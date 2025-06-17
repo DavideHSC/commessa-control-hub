@@ -14,7 +14,7 @@ const CommessaDettaglio = () => {
     id: id,
     nome: "Ristrutturazione Palazzo Centrale",
     cliente: "Immobiliare Milano SRL",
-    stato: "in-corso" as const,
+    stato: "in_lavorazione" as const,
     ricavi: 245000,
     costi: 180000,
     margine: 26.5,
