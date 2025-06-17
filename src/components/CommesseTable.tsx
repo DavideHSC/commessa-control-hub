@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Search, Filter, MoreHorizontal, Eye, Edit, Archive } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -6,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import StatusBadge from './StatusBadge';
+import { useNavigate } from 'react-router-dom';
 
 interface Commessa {
   id: string;
@@ -64,6 +64,7 @@ const mockCommesse: Commessa[] = [
 const CommesseTable: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const navigate = useNavigate();
 
   const filteredCommesse = mockCommesse.filter(commessa => {
     const matchesSearch = commessa.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -81,6 +82,18 @@ const CommesseTable: React.FC = () => {
       currency: 'EUR',
       minimumFractionDigits: 0
     }).format(amount);
+  };
+
+  const handleViewDetails = (id: string) => {
+    navigate(`/commesse/${id}`);
+  };
+
+  const handleEdit = (id: string) => {
+    navigate(`/commesse/${id}/edit`);
+  };
+
+  const handleRowClick = (id: string) => {
+    handleViewDetails(id);
   };
 
   return (
@@ -134,7 +147,11 @@ const CommesseTable: React.FC = () => {
           </thead>
           <tbody className="divide-y divide-slate-200">
             {filteredCommesse.map((commessa) => (
-              <tr key={commessa.id} className="hover:bg-slate-50 cursor-pointer transition-colors">
+              <tr 
+                key={commessa.id} 
+                className="hover:bg-slate-50 cursor-pointer transition-colors"
+                onClick={() => handleRowClick(commessa.id)}
+              >
                 <td className="py-4 px-6">
                   <div>
                     <div className="font-medium text-slate-900">{commessa.nome}</div>
@@ -164,16 +181,33 @@ const CommesseTable: React.FC = () => {
                 <td className="py-4 px-6 text-center">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-8 w-8 p-0"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem className="flex items-center gap-2">
+                      <DropdownMenuItem 
+                        className="flex items-center gap-2"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewDetails(commessa.id);
+                        }}
+                      >
                         <Eye className="w-4 h-4" />
                         Visualizza Dettagli
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="flex items-center gap-2">
+                      <DropdownMenuItem 
+                        className="flex items-center gap-2"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(commessa.id);
+                        }}
+                      >
                         <Edit className="w-4 h-4" />
                         Modifica
                       </DropdownMenuItem>

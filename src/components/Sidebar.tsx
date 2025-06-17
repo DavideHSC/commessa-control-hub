@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Home, FileText, PlusCircle, BarChart3, Settings, Building2 } from 'lucide-react';
+import { Home, FileText, BarChart3, Settings, Building2 } from 'lucide-react';
 import {
   Sidebar as SidebarPrimitive,
   SidebarContent,
@@ -12,7 +12,7 @@ import {
   SidebarMenuItem,
   SidebarHeader,
 } from '@/components/ui/sidebar';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const menuItems = [
   {
@@ -31,11 +31,6 @@ const menuItems = [
     icon: FileText,
   },
   {
-    title: "Nuova Registrazione",
-    url: "/nuova-registrazione",
-    icon: PlusCircle,
-  },
-  {
     title: "Report",
     url: "/report",
     icon: BarChart3,
@@ -49,6 +44,7 @@ const menuItems = [
 
 export function Sidebar() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   return (
     <SidebarPrimitive className="border-r border-slate-200 bg-white">
@@ -70,22 +66,27 @@ export function Sidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton 
-                    asChild 
-                    className="hover:bg-slate-100 rounded-lg transition-colors duration-200"
-                  >
-                    <button
-                      onClick={() => navigate(item.url)}
-                      className="w-full flex items-center gap-3 px-3 py-2 text-left"
+              {menuItems.map((item) => {
+                const isActive = location.pathname === item.url;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton 
+                      asChild 
+                      className={`hover:bg-slate-100 rounded-lg transition-colors duration-200 ${
+                        isActive ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : ''
+                      }`}
                     >
-                      <item.icon className="w-5 h-5 text-slate-600" />
-                      <span className="text-slate-700 font-medium">{item.title}</span>
-                    </button>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+                      <button
+                        onClick={() => navigate(item.url)}
+                        className="w-full flex items-center gap-3 px-3 py-2 text-left"
+                      >
+                        <item.icon className={`w-5 h-5 ${isActive ? 'text-indigo-600' : 'text-slate-600'}`} />
+                        <span className={`font-medium ${isActive ? 'text-indigo-700' : 'text-slate-700'}`}>{item.title}</span>
+                      </button>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

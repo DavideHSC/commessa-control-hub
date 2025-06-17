@@ -4,17 +4,27 @@ import { Building2, Euro, TrendingUp, Percent } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import KPICard from '@/components/KPICard';
 import CommesseTable from '@/components/CommesseTable';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
+
+  const handleNewCommessa = () => {
+    navigate('/commesse');
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Tutte le Commesse</h1>
+          <h1 className="text-3xl font-bold text-slate-900">Dashboard Commesse</h1>
           <p className="text-slate-600 mt-1">Panoramica completa delle commesse aziendali</p>
         </div>
-        <Button className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/25">
+        <Button 
+          onClick={handleNewCommessa}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/25"
+        >
           + Nuova Commessa
         </Button>
       </div>
