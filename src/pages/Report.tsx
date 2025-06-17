@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { BarChart3, TrendingUp, Calendar, Download, Filter, Euro, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -44,6 +43,28 @@ const Report: React.FC = () => {
   const totalCosti = ricaviMensili.reduce((sum, item) => sum + item.costi, 0);
   const marginePercentuale = ((totalRicavi - totalCosti) / totalRicavi) * 100;
 
+  const handleExportReport = () => {
+    // Implementazione semplice dell'esportazione
+    const reportData = {
+      periodo: periodoFilter,
+      ricaviTotali: totalRicavi,
+      costiTotali: totalCosti,
+      margine: marginePercentuale,
+      dataEsportazione: new Date().toISOString()
+    };
+    
+    const dataStr = JSON.stringify(reportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `report-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -64,7 +85,11 @@ const Report: React.FC = () => {
               <SelectItem value="ultimo-anno">Ultimo Anno</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" className="border-slate-200">
+          <Button 
+            variant="outline" 
+            className="border-slate-200"
+            onClick={handleExportReport}
+          >
             <Download className="w-4 h-4 mr-2" />
             Esporta Report
           </Button>

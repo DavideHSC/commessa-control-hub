@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Search, Filter, MoreHorizontal, Eye, Edit, Archive } from 'lucide-react';
+import { Search, Filter, MoreHorizontal, Eye, Edit, Archive, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import StatusBadge from './StatusBadge';
 import { useNavigate } from 'react-router-dom';
@@ -92,13 +92,13 @@ const CommesseTable: React.FC = () => {
     navigate(`/commesse/${id}/edit`);
   };
 
-  const handleRowClick = (id: string) => {
-    handleViewDetails(id);
+  const handleRowClick = (commessaId: string) => {
+    navigate(`/commesse/${commessaId}`);
   };
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-      {/* Toolbar */}
+      {/* Header and filters */}
       <div className="flex items-center justify-between p-6 border-b border-slate-200">
         <div className="flex items-center gap-4 flex-1">
           <div className="relative flex-1 max-w-md">
@@ -149,7 +149,7 @@ const CommesseTable: React.FC = () => {
             {filteredCommesse.map((commessa) => (
               <tr 
                 key={commessa.id} 
-                className="hover:bg-slate-50 cursor-pointer transition-colors"
+                className="hover:bg-slate-50 transition-colors cursor-pointer"
                 onClick={() => handleRowClick(commessa.id)}
               >
                 <td className="py-4 px-6">
@@ -183,36 +183,31 @@ const CommesseTable: React.FC = () => {
                     <DropdownMenuTrigger asChild>
                       <Button 
                         variant="ghost" 
-                        size="sm" 
                         className="h-8 w-8 p-0"
                         onClick={(e) => e.stopPropagation()}
                       >
+                        <span className="sr-only">Apri menu</span>
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem 
-                        className="flex items-center gap-2"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleViewDetails(commessa.id);
-                        }}
-                      >
-                        <Eye className="w-4 h-4" />
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/commesse/${commessa.id}`);
+                      }}>
+                        <Eye className="mr-2 h-4 w-4" />
                         Visualizza Dettagli
                       </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        className="flex items-center gap-2"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEdit(commessa.id);
-                        }}
-                      >
-                        <Edit className="w-4 h-4" />
+                      <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                        <Edit className="mr-2 h-4 w-4" />
                         Modifica
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="flex items-center gap-2 text-red-600">
-                        <Archive className="w-4 h-4" />
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem 
+                        className="text-red-600"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
                         Archivia
                       </DropdownMenuItem>
                     </DropdownMenuContent>
