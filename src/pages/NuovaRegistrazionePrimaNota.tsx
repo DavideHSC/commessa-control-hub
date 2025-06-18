@@ -174,6 +174,24 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
   const getTotaleAvere = () => registrazione.righe.reduce((sum, r) => sum + (r.avere || 0), 0);
   const getSbilancio = () => Math.abs(getTotaleDare() - getTotaleAvere());
 
+  const isDareEnabled = (contoId: string): boolean => {
+    const conto = conti.find(c => c.id === contoId);
+    if (!conto) return true; // Abilitato se nessun conto è selezionato
+    return conto.tipo === 'Costo' || conto.tipo === 'Patrimoniale' || conto.tipo === 'Fornitore' || conto.tipo === 'Cliente';
+  };
+
+  const isAvereEnabled = (contoId: string): boolean => {
+    const conto = conti.find(c => c.id === contoId);
+    if (!conto) return true; // Abilitato se nessun conto è selezionato
+    return conto.tipo === 'Ricavo' || conto.tipo === 'Patrimoniale' || conto.tipo === 'Fornitore' || conto.tipo === 'Cliente';
+  };
+
+  const isAllocazioneEnabled = (contoId: string): boolean => {
+    const conto = conti.find(c => c.id === contoId);
+    if (!conto) return false;
+    return conto.tipo === 'Costo' || conto.tipo === 'Ricavo';
+  };
+
   const handleSave = () => {
     console.log('Salvataggio registrazione:', registrazione);
     navigate('/prima-nota');
@@ -554,6 +572,7 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
                       value={displayValues[`${riga.id}-dare`] || ''}
                       onChange={e => handleDisplayValueChange(`${riga.id}-dare`, e.target.value)}
                       onBlur={() => handleDisplayValueBlur(`${riga.id}-dare`, 'riga', riga.id, 'dare')}
+                      disabled={!isDareEnabled(riga.contoId)}
                     />
                   </div>
 
@@ -567,6 +586,7 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
                       value={displayValues[`${riga.id}-avere`] || ''}
                       onChange={e => handleDisplayValueChange(`${riga.id}-avere`, e.target.value)}
                       onBlur={() => handleDisplayValueBlur(`${riga.id}-avere`, 'riga', riga.id, 'avere')}
+                      disabled={!isAvereEnabled(riga.contoId)}
                     />
                   </div>
                   
@@ -574,11 +594,11 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
                   <div className="col-span-1 md:col-span-2 flex items-center justify-center space-x-1">
                      <Dialog>
                       <DialogTrigger asChild>
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
+                        <Button
+                          variant="outline"
+                          size="icon"
                           onClick={() => setAllocazioneRigaId(riga.id)}
-                          disabled={!riga.dare && !riga.avere}
+                          disabled={!isAllocazioneEnabled(riga.contoId) || (!riga.dare && !riga.avere)}
                           title="Alloca a Commessa"
                         >
                           <Calculator className="h-4 w-4" />

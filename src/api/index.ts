@@ -1,35 +1,49 @@
-import { centriDiCosto, pianoDeiConti, commesse, causaliContabili } from '../data/mock';
-import { CentroDiCosto, Conto, Commessa, CausaleContabile } from '../types';
+import { 
+  commesse, 
+  centriDiCosto, 
+  pianoDeiConti, 
+  registrazioniContabili,
+  causaliContabili 
+} from '@/data/mock';
+import { 
+  Commessa, 
+  CentroDiCosto, 
+  Conto, 
+  ScritturaContabile,
+  CausaleContabile
+} from '@/types';
 
-/**
- * Simula una chiamata API asincrona con un ritardo.
- * @param data I dati da restituire.
- * @param delay Il ritardo in millisecondi.
- */
-const fetchMockData = <T>(data: T, delay = 500): Promise<T> => {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve(data);
-    }, delay);
-  });
-};
+// Simula un ritardo di rete per un'esperienza più realistica
+const networkDelay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
 // --- API Functions ---
 
-export const getCentriDiCosto = (): Promise<CentroDiCosto[]> => {
-  return fetchMockData(centriDiCosto);
+export const getCommesse = async (): Promise<Commessa[]> => {
+  await networkDelay(50);
+  return Promise.resolve(commesse);
 };
 
-export const getPianoDeiConti = (): Promise<Conto[]> => {
-  return fetchMockData(pianoDeiConti);
+export const getCentriDiCosto = async (): Promise<CentroDiCosto[]> => {
+  await networkDelay(50);
+  return Promise.resolve(centriDiCosto);
 };
 
-export const getCommesse = (): Promise<Commessa[]> => {
-  return fetchMockData(commesse);
+export const getPianoDeiConti = async (): Promise<Conto[]> => {
+  await networkDelay(50);
+  return Promise.resolve(pianoDeiConti);
 };
 
-export const getCausaliContabili = (): Promise<CausaleContabile[]> => {
-  return fetchMockData(causaliContabili);
+export const getCausaliContabili = async (): Promise<CausaleContabile[]> => {
+  await networkDelay(50);
+  return Promise.resolve(causaliContabili);
+};
+
+export const getRegistrazioni = async (): Promise<ScritturaContabile[]> => {
+  await networkDelay(150);
+  return Promise.resolve(registrazioniContabili);
 };
 
 // In futuro aggiungeremo qui le funzioni per recuperare e salvare le scritture contabili. 
+
+// Qui potremmo aggiungere funzioni per creare/aggiornare/eliminare dati,
+// che in un'app reale farebbero chiamate a un backend API. 

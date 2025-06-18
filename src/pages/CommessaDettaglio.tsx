@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit, Trash2, FileText, Landmark, DollarSign } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, FileText, Landmark, DollarSign, Calculator } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Commessa, CentroDiCosto } from '@/types';
-import { getCommesse, getCentriDiCosto } from '@/api';
+import { Commessa, CentroDiCosto, PrimaNota } from '@/types';
+import { getCommesse, getCentriDiCosto, getRegistrazioni } from '@/api';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 
 const CommessaDettaglio = () => {
   const { id } = useParams<{ id: string }>();
@@ -11,6 +13,7 @@ const CommessaDettaglio = () => {
   
   const [commessa, setCommessa] = useState<Commessa | null>(null);
   const [centriDiCosto, setCentriDiCosto] = useState<CentroDiCosto[]>([]);
+  const [registrazioni, setRegistrazioni] = useState<PrimaNota[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -18,13 +21,15 @@ const CommessaDettaglio = () => {
       if (!id) return;
       try {
         setIsLoading(true);
-        const [commesseData, centriDiCostoData] = await Promise.all([
+        const [commesseData, centriDiCostoData, registrazioniData] = await Promise.all([
           getCommesse(),
-          getCentriDiCosto()
+          getCentriDiCosto(),
+          getRegistrazioni()
         ]);
         const currentCommessa = commesseData.find(c => c.id === id);
         setCommessa(currentCommessa || null);
         setCentriDiCosto(centriDiCostoData);
+        setRegistrazioni(registrazioniData);
       } catch (error) {
         console.error("Errore nel caricamento dei dati di dettaglio:", error);
       } finally {
@@ -54,6 +59,14 @@ const CommessaDettaglio = () => {
   }
 
   const totalBudget = Object.values(commessa.budget).reduce((sum, value) => sum + value, 0);
+  
+  const movimentiAllocati = registrazioni
+    .flatMap(r => 
+      r.righe.map(riga => ({ ...riga, dataRegistrazione: r.data, descrizioneRegistrazione: r.descrizione, idRegistrazione: r.id }))
+    )
+    .filter(riga => 
+      riga.allocazioni && riga.allocazioni.some(a => a.commessaId === commessa.id)
+    );
 
   return (
     <div className="space-y-6">
@@ -112,6 +125,58 @@ const CommessaDettaglio = () => {
             </div>
           ))}
         </div>
+      </div>
+      
+      {/* Movimenti Allocati */}
+      <div className="bg-white rounded-xl border border-slate-200 mt-6">
+        <div className="p-6 border-b border-slate-200">
+          <h3 className="text-lg font-semibold text-slate-900">Movimenti Allocati</h3>
+          <p className="text-sm text-slate-500 mt-1">
+            Dettaglio dei costi e ricavi imputati a questa commessa.
+          </p>
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Data</TableHead>
+              <TableHead>Conto</TableHead>
+              <TableHead>Descrizione Registrazione</TableHead>
+              <TableHead className="text-right">Importo Allocato</TableHead>
+              <TableHead className="text-center">Rif. Registrazione</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {movimentiAllocati.length > 0 ? (
+              movimentiAllocati.map(riga => {
+                const importoAllocato = (riga.dare || 0) > 0 ? riga.dare : riga.avere;
+                // Trova il conto corretto dal piano dei conti
+                const contoAssociato = centriDiCosto.find(c => c.id === riga.contoId);
+
+                return (
+                  <TableRow key={riga.id}>
+                    <TableCell>{new Date(riga.dataRegistrazione).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      {contoAssociato ? <Badge variant="outline">{contoAssociato.nome}</Badge> : 'N/D'}
+                    </TableCell>
+                    <TableCell>{riga.descrizioneRegistrazione}</TableCell>
+                    <TableCell className="text-right font-medium">{formatCurrency(importoAllocato || 0)}</TableCell>
+                    <TableCell className="text-center">
+                      <Button variant="ghost" size="sm" onClick={() => navigate(`/prima-nota/registrazione/${riga.idRegistrazione}`)}>
+                        #{riga.idRegistrazione}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center text-slate-500 py-8">
+                  Nessun movimento allocato a questa commessa.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

@@ -24,6 +24,7 @@ export interface Conto {
   centroDiCostoSuggeritoId?: string; // Es. '2' (gestione automezzi)
   richiedeCentroDiCosto?: boolean; // True se il conto richiede un centro di costo
   centriDiCostoAbilitatiIds?: string[]; // Lista di CdC permessi per questo conto
+  contropartiteSuggeriteIds?: string[]; // Lista di conti suggeriti come contropartita
 }
 
 /**
@@ -77,6 +78,7 @@ export interface MovimentoTemplate {
 export interface Allocazione {
   id: string; // UUID per la riga di allocazione
   commessaId: string;
+  centroDiCostoId: string;
   tipo: 'importo' | 'percentuale';
   valore: number; // Il valore inserito dall'utente (es. 100€ o 50%)
   importo: number; // L'importo finale calcolato
@@ -102,8 +104,8 @@ export interface RigaScrittura {
  */
 export interface ScritturaContabile {
   id: string; // UUID per la registrazione
-  data: Date;
-  causaleId: string; // ID della causale usata
+  data: string; // ISO Date String
+  causaleId?: string; // ID della causale usata (opzionale per registrazioni manuali)
   descrizione: string;
   righe: RigaScrittura[];
 }

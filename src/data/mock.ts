@@ -43,9 +43,9 @@ export const pianoDeiConti: Conto[] = [
   { id: '6340000650', codice: '6340000650', nome: 'BUONI PASTO', tipo: 'Costo', centroDiCostoSuggeritoId: '1', richiedeCentroDiCosto: true, centriDiCostoAbilitatiIds: ['1'] },
 
   // Costi per servizi
-  { id: '6005000850', codice: '6005000850', nome: 'CARBURANTI E LUBRIFICANTI', tipo: 'Costo', centroDiCostoSuggeritoId: '2', richiedeCentroDiCosto: true, centriDiCostoAbilitatiIds: ['2', '8'] },
-  { id: '6015000800', codice: '6015000800', nome: 'MANUTENZIONI E RIPARAZIONI AUTOMEZZI', tipo: 'Costo', centroDiCostoSuggeritoId: '2', richiedeCentroDiCosto: true, centriDiCostoAbilitatiIds: ['2', '8'] },
-  { id: '6015001800', codice: '6015001800', nome: 'ASSICURAZIONI OBBLIGATORIE AUTOMEZZI', tipo: 'Costo', centroDiCostoSuggeritoId: '2', richiedeCentroDiCosto: true, centriDiCostoAbilitatiIds: ['2', '8'] },
+  { id: '6005000850', codice: '6005000850', nome: 'CARBURANTI E LUBRIFICANTI', tipo: 'Costo', centroDiCostoSuggeritoId: '2', richiedeCentroDiCosto: true, centriDiCostoAbilitatiIds: ['2', '8'], contropartiteSuggeriteIds: ['FOR001', '45.01.001'] },
+  { id: '6015000800', codice: '6015000800', nome: 'MANUTENZIONI E RIPARAZIONI AUTOMEZZI', tipo: 'Costo', centroDiCostoSuggeritoId: '2', richiedeCentroDiCosto: true, centriDiCostoAbilitatiIds: ['2', '8'], contropartiteSuggeriteIds: ['FOR999', '45.01.001'] },
+  { id: '6015001800', codice: '6015001800', nome: 'ASSICURAZIONI OBBLIGATORIE AUTOMEZZI', tipo: 'Costo', centroDiCostoSuggeritoId: '2', richiedeCentroDiCosto: true, centriDiCostoAbilitatiIds: ['2', '8'], contropartiteSuggeriteIds: ['FOR002', '45.01.001'] },
   { id: '6015000750', codice: '6015000750', nome: 'MANUTENZIONI E RIPARAZIONI ATTREZZATURE', tipo: 'Costo', centroDiCostoSuggeritoId: '3', richiedeCentroDiCosto: true, centriDiCostoAbilitatiIds: ['3', '9'] },
   { id: '6008001114', codice: '6008001114', nome: 'SACCHI E BIDONI', tipo: 'Costo', centroDiCostoSuggeritoId: '4', richiedeCentroDiCosto: true, centriDiCostoAbilitatiIds: ['4'] },
   { id: '6015010103', codice: '6015010103', nome: 'SELEZIONE/TRATTAMENTO RIF.INGOMBRANTI', tipo: 'Costo', richiedeCentroDiCosto: true, centroDiCostoSuggeritoId: '13' },
@@ -57,7 +57,7 @@ export const pianoDeiConti: Conto[] = [
   { id: '7820000880', codice: '7820000880', nome: 'TARI (TASSA RIFIUTI)', tipo: 'Costo', richiedeCentroDiCosto: false },
   
   // --- RICAVI ---
-  { id: '5510001122', codice: '5510001122', nome: 'RICAVI DA CONVENZIONE', tipo: 'Ricavo', richiedeCentroDiCosto: false },
+  { id: '5510001122', codice: '5510001122', nome: 'RICAVI DA CONVENZIONE', tipo: 'Ricavo', richiedeCentroDiCosto: false, contropartiteSuggeriteIds: ['CLI001', 'CLI002', 'CLI003', '45.02.001'] },
   { id: '5510001121', codice: '5510001121', nome: 'RICAVI DA RACCOLTA DIFFERENZIATA', tipo: 'Ricavo', richiedeCentroDiCosto: true, centriDiCostoAbilitatiIds: ['13', '14'] },
   { id: '50100002', codice: '50100002', nome: 'RICAVI PRESTAZIONI DI SERVIZI', tipo: 'Ricavo', richiedeCentroDiCosto: true, centroDiCostoSuggeritoId: '5' },
   { id: '5510001132', codice: '5510001132', nome: 'RICAVI DA MANUT. VERDE PUBBLICO', tipo: 'Ricavo', richiedeCentroDiCosto: true, centroDiCostoSuggeritoId: '15' },
@@ -71,8 +71,8 @@ export const pianoDeiConti: Conto[] = [
 
   // Clienti
   { id: 'CLI001', codice: 'CLI001', nome: 'COMUNE DI SORRENTO', tipo: 'Cliente' },
-  { id: 'CLI002', codice: 'CLI002', nome: 'COMUNE DI PIANO DI SORRENTO', tipo: 'Cliente' },
-  { id: 'CLI003', codice: 'CLI003', nome: 'COMUNE DI MASSA LUBRENSE', tipo: 'Cliente' },
+  { id: 'CLI002', codice: 'CLI002', nome: 'COMUNE DI VICO EQUENSE', tipo: 'Cliente' },
+  { id: 'CLI003', codice: 'CLI003', nome: 'COMUNE DI PIANO DI SORRENTO', tipo: 'Cliente' },
   { id: 'CLI999', codice: 'CLI999', nome: 'CLIENTE GENERICO SPA', tipo: 'Cliente' },
 
   // Fornitori
@@ -160,6 +160,64 @@ export const causaliContabili: CausaleContabile[] = [
       { segno: 'Avere', tipoConto: 'IVA', tipoImporto: 'IVA', contoSuggeritoId: '45.02.001' },
     ]
   },
+];
+
+// =================================================================================
+// 5. REGISTRAZIONI CONTABILI (PRIMA NOTA)
+// =================================================================================
+import { ScritturaContabile } from '@/types';
+
+export const registrazioniContabili: ScritturaContabile[] = [
+  {
+    id: 'REG001',
+    data: '2023-10-26T00:00:00.000Z',
+    descrizione: 'Fattura acquisto carburante',
+    righe: [
+      {
+        id: 'RIGA001',
+        contoId: '6005000850', // CARBURANTI E LUBRIFICANTI
+        descrizione: 'Gasolio per automezzi',
+        dare: 1000,
+        allocazioni: [
+          { id: 'ALLOC001', commessaId: 'SORRENTO', centroDiCostoId: '2', tipo: 'importo', valore: 1000, importo: 1000 }
+        ]
+      },
+      {
+        id: 'RIGA002',
+        contoId: '45.03.001', // IVA SU ACQUISTI
+        descrizione: 'IVA 22%',
+        dare: 220
+      },
+      {
+        id: 'RIGA003',
+        contoId: 'FOR001', // FORNITORE CARBURANTI SPA
+        descrizione: 'Debito vs fornitore',
+        avere: 1220
+      }
+    ]
+  },
+  {
+    id: 'REG002',
+    data: '2023-10-27T00:00:00.000Z',
+    descrizione: 'Canone servizio pulizia strade',
+    righe: [
+       {
+        id: 'RIGA004',
+        contoId: '5510001122', // RICAVI DA CONVENZIONE
+        descrizione: 'Convenzione Comune di Sorrento',
+        avere: 5000,
+        allocazioni: [
+          { id: 'ALLOC002', commessaId: 'SORRENTO', centroDiCostoId: '13', tipo: 'importo', valore: 5000, importo: 5000 }
+        ]
+      },
+      {
+        id: 'RIGA005',
+        contoId: 'CLI001', // COMUNE DI SORRENTO
+        descrizione: 'Credito vs cliente',
+        dare: 5000
+      }
+    ]
+  }
 ];
 
 // Altri dati mock (Causali, Scritture) verranno aggiunti in seguito.
