@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Home, FileText, BarChart3, Settings, Building2 } from 'lucide-react';
 import {
@@ -30,16 +29,16 @@ const menuItems = [
     url: "/prima-nota",
     icon: FileText,
   },
-  {
-    title: "Report",
-    url: "/report",
-    icon: BarChart3,
-  },
-  {
-    title: "Impostazioni",
-    url: "/impostazioni",
-    icon: Settings,
-  },
+  // {
+  //   title: "Report",
+  //   url: "/report",
+  //   icon: BarChart3,
+  // },
+  // {
+  //   title: "Impostazioni",
+  //   url: "/impostazioni",
+  //   icon: Settings,
+  // },
 ];
 
 export function Sidebar() {
