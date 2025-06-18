@@ -1,13 +1,10 @@
-
 import React, { useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { Outlet } from "react-router-dom";
+import { Toaster } from "@/components/ui/sonner"
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
-
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout: React.FC = () => {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-slate-50">
@@ -17,9 +14,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <SidebarTrigger className="text-slate-600 hover:text-slate-900" />
           </div>
           <div className="flex-1 p-6">
-            {children}
+            <Outlet />
           </div>
         </main>
+        <Toaster />
       </div>
     </SidebarProvider>
   );

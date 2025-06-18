@@ -34,6 +34,7 @@ export interface Conto {
 export interface Commessa {
   id: string; // Es. 'SORRENTO'
   nome: string; // Es. 'Comune di Sorrento'
+  clienteId?: string; // ID del cliente associato alla commessa (per automatismi sui ricavi)
   descrizione?: string;
   /**
    * Il budget della commessa, suddiviso per ID del centro di costo.
@@ -46,6 +47,16 @@ export interface Commessa {
 }
 
 /**
+ * Campo dati richiesto da una causale per poter generare la scrittura.
+ */
+export interface CampoDatiPrimari {
+  id: 'totaleDocumento' | 'aliquotaIva' | 'fornitoreId' | 'clienteId' | string; // ID univoco del campo
+  label: string; // Es. "Totale Documento"
+  tipo: 'number' | 'select' | 'text' | 'date';
+  riferimentoConto?: 'Fornitore' | 'Cliente'; // Usato se tipo è 'select'
+}
+
+/**
  * Definisce il template per una registrazione contabile automatica.
  * È il motore degli automatismi di inserimento.
  */
@@ -53,35 +64,34 @@ export interface CausaleContabile {
   id: string; // Es. 'FATT_ACQ_MERCI'
   nome: string; // Nome breve, es. "Fattura Acquisto"
   descrizione: string; // Es. 'Registrazione Fattura Acquisto Merce'
-  template: MovimentoTemplate[];
+  // Lista dei dati che l'utente deve inserire per usare il template
+  datiPrimari: CampoDatiPrimari[]; 
+  // Il template vero e proprio per generare le righe
+  templateScrittura: VoceTemplateScrittura[];
 }
 
 /**
  * Rappresenta una riga del template di una causale contabile.
  */
-export interface MovimentoTemplate {
-  segno: 'Dare' | 'Avere';
-  // Specifica il tipo di conto da usare, non il conto specifico.
-  // Es. 'Fornitore', 'Costo', 'Ricavo', 'IVA', 'Banca'.
-  // Il sistema poi chiederà all'utente di selezionare il conto specifico se necessario.
-  tipoConto: 'Fornitore' | 'Cliente' | 'Costo' | 'Ricavo' | 'IVA' | 'Banca';
+export interface VoceTemplateScrittura {
+  sezione: 'Dare' | 'Avere';
+  // ID del conto da usare. Può essere un conto generico (es. 'IVA')
+  // o un segnaposto che verrà sostituito da un dato primario (es. fornitoreId).
+  contoId: string;
   // Specifica come calcolare l'importo per questa riga.
-  tipoImporto: 'Imponibile' | 'IVA' | 'Totale';
-  // Se il tipoConto è 'Costo' o 'Ricavo', questo campo può suggerire un conto specifico
-  contoSuggeritoId?: string;
+  formulaImporto: 'imponibile' | 'iva' | 'totale';
 }
 
 /**
- * Rappresenta la ripartizione di un importo su una specifica commessa.
+ * Rappresenta la ripartizione di un importo su una specifica commessa e centro di costo.
  * Questa è l'informazione analitica finale.
  */
 export interface Allocazione {
   id: string; // UUID per la riga di allocazione
   commessaId: string;
   centroDiCostoId: string;
-  tipo: 'importo' | 'percentuale';
-  valore: number; // Il valore inserito dall'utente (es. 100€ o 50%)
   importo: number; // L'importo finale calcolato
+  descrizione?: string;
 }
 
 /**
@@ -91,12 +101,11 @@ export interface RigaScrittura {
   id: string; // UUID per la riga
   contoId: string; // ID del conto movimentato (dal PianoDeiConti)
   descrizione: string;
-  dare?: number; // Importo in Dare
-  avere?: number; // Importo in Avere
-  centroDiCostoId?: string; // ID del centro di costo (se applicabile)
+  dare: number; // Importo in Dare
+  avere: number; // Importo in Avere
   // Per le righe di costo/ricavo, questa è la lista delle allocazioni analitiche.
   // Una singola riga di costo può essere allocata a più commesse/centri di costo.
-  allocazioni?: Allocazione[];
+  allocazioni: Allocazione[];
 }
 
 /**
@@ -104,8 +113,8 @@ export interface RigaScrittura {
  */
 export interface ScritturaContabile {
   id: string; // UUID per la registrazione
-  data: string; // ISO Date String
-  causaleId?: string; // ID della causale usata (opzionale per registrazioni manuali)
+  data: Date; // Usiamo l'oggetto Date per maneggiarlo più facilmente, lo convertiremo in stringa solo per le API
+  causaleId: string; // ID della causale usata (obbligatorio se si usa un automatismo)
   descrizione: string;
   righe: RigaScrittura[];
 }

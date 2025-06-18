@@ -20,11 +20,13 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Layout><Dashboard /></Layout>} />
-          <Route path="/commesse" element={<Layout><Commesse /></Layout>} />
-          <Route path="/commesse/:id" element={<Layout><CommessaDettaglio /></Layout>} />
-          <Route path="/prima-nota" element={<Layout><PrimaNota /></Layout>} />
-          <Route path="/prima-nota/nuova" element={<Layout><NuovaRegistrazionePrimaNota /></Layout>} />
+          <Route element={<Layout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/commesse" element={<Commesse />} />
+            <Route path="/commesse/:id" element={<CommessaDettaglio />} />
+            <Route path="/prima-nota" element={<PrimaNota />} />
+            <Route path="/prima-nota/nuova" element={<NuovaRegistrazionePrimaNota />} />
+          </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

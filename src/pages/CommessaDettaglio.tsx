@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Trash2, FileText, Landmark, DollarSign, Calculator } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Commessa, CentroDiCosto, PrimaNota } from '@/types';
-import { getCommesse, getCentriDiCosto, getRegistrazioni } from '@/api';
+import { Commessa, CentroDiCosto, ScritturaContabile } from '@/types';
+import { getCommesse, getCentriDiCosto } from '@/api';
+import { getRegistrazioni } from '@/api/registrazioni';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 
@@ -13,7 +14,7 @@ const CommessaDettaglio = () => {
   
   const [commessa, setCommessa] = useState<Commessa | null>(null);
   const [centriDiCosto, setCentriDiCosto] = useState<CentroDiCosto[]>([]);
-  const [registrazioni, setRegistrazioni] = useState<PrimaNota[]>([]);
+  const [registrazioni, setRegistrazioni] = useState<ScritturaContabile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
