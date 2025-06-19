@@ -46,8 +46,31 @@ enum FormulaImporto {
 
 // --- MODELLI DI BASE ---
 
+model Cliente {
+  id         String   @id @default(cuid())
+  externalId String?  @unique
+  nome       String
+  piva       String?  @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  commesse Commessa[]
+}
+
+model Fornitore {
+  id         String   @id @default(cuid())
+  externalId String?  @unique
+  nome       String
+  piva       String?  @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  scritture ScritturaContabile[]
+}
+
 model VoceAnalitica {
   id          String  @id
+  externalId  String? @unique
   nome        String  @unique
   descrizione String?
 
@@ -58,6 +81,7 @@ model VoceAnalitica {
 
 model Conto {
   id                         String   @id
+  externalId                 String?  @unique
   codice                     String   @unique
   nome                       String
   tipo                       TipoConto
@@ -73,9 +97,12 @@ model Conto {
 
 model Commessa {
   id          String   @id
+  externalId  String?  @unique
   nome        String   @unique
-  clienteId   String?
   descrizione String?
+
+  clienteId   String
+  cliente     Cliente  @relation(fields: [clienteId], references: [id])
 
   budget      BudgetVoce[]
   allocazioni Allocazione[]
@@ -97,10 +124,14 @@ model BudgetVoce {
 
 model ScritturaContabile {
   id             String    @id @default(cuid())
+  externalId     String?   @unique
   data           DateTime  @default(now())
   causaleId      String
   descrizione    String
   datiAggiuntivi Json?
+
+  fornitoreId    String?
+  fornitore      Fornitore? @relation(fields: [fornitoreId], references: [id])
 
   righe          RigaScrittura[]
 }
@@ -139,6 +170,7 @@ model Allocazione {
 
 model CausaleContabile {
   id                String   @id
+  externalId        String?  @unique
   nome              String   @unique
   descrizione       String
 

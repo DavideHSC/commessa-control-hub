@@ -10,6 +10,8 @@ import CommessaDettaglio from "./pages/CommessaDettaglio";
 import PrimaNota from "./pages/PrimaNota";
 import NuovaRegistrazionePrimaNota from "./pages/NuovaRegistrazionePrimaNota";
 import NotFound from "./pages/NotFound";
+import ImportPage from './pages/Import';
+import Database from './pages/Database';
 
 const queryClient = new QueryClient();
 
@@ -27,6 +29,8 @@ const App = () => (
             <Route path="/prima-nota" element={<PrimaNota />} />
             <Route path="/prima-nota/nuova" element={<NuovaRegistrazionePrimaNota />} />
             <Route path="/prima-nota/modifica/:id" element={<NuovaRegistrazionePrimaNota />} />
+            <Route path="/import" element={<ImportPage />} />
+            <Route path="/database" element={<Database />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

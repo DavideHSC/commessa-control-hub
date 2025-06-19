@@ -1,6 +1,26 @@
 // Questo file conterrà tutte le definizioni di tipo (interfacce) per il nostro dominio di business.
 // Manterrà il nostro codice organizzato, riutilizzabile e fortemente tipizzato.
 
+import { Prisma, Commessa as CommessaPrisma } from '@prisma/client';
+
+/**
+ * Rappresenta un Cliente.
+ */
+export interface Cliente {
+  id: string;
+  nome: string;
+  externalId?: string | null;
+}
+
+/**
+ * Rappresenta un Fornitore.
+ */
+export interface Fornitore {
+  id: string;
+  nome: string;
+  externalId?: string | null;
+}
+
 /**
  * Rappresenta un centro di costo o di ricavo, una delle colonne analitiche del foglio Excel.
  * Esempio: "personale", "gestione automezzi", "sacchi".
@@ -31,19 +51,9 @@ export interface Conto {
  * Rappresenta una Commessa di lavoro. Contiene i dati anagrafici
  * e la struttura di budget per il confronto con il consuntivo.
  */
-export interface Commessa {
-  id: string; // Es. 'SORRENTO'
-  nome: string; // Es. 'Comune di Sorrento'
-  clienteId?: string; // ID del cliente associato alla commessa (per automatismi sui ricavi)
-  descrizione?: string;
-  /**
-   * Il budget della commessa, suddiviso per ID del centro di costo.
-   * La chiave è l'ID del CentroDiCosto, il valore è l'importo previsto.
-   * Esempio: { '1': 2274867, '2': 358625 }
-   */
-  budget: {
-    [voceAnaliticaId: string]: number;
-  };
+export interface Commessa extends CommessaPrisma {
+  cliente: Cliente;
+  budget: { [key: string]: number };
 }
 
 /**
@@ -98,13 +108,11 @@ export interface Allocazione {
  * Rappresenta una singola riga di dettaglio all'interno di una ScritturaContabile.
  */
 export interface RigaScrittura {
-  id: string; // UUID per la riga
-  contoId: string; // ID del conto movimentato (dal PianoDeiConti)
+  id: string;
   descrizione: string;
-  dare: number; // Importo in Dare
-  avere: number; // Importo in Avere
-  // Per le righe di costo/ricavo, questa è la lista delle allocazioni analitiche.
-  // Una singola riga di costo può essere allocata a più commesse/centri di costo.
+  dare: number;
+  avere: number;
+  contoId: string;
   allocazioni: Allocazione[];
 }
 
@@ -125,43 +133,66 @@ export interface ScritturaContabile {
   };
 }
 
-// --- Tipi per la Dashboard di Controllo ---
+// --- Tipi per la Dashboard Commesse ---
 
 /**
- * Rappresenta il dettaglio di una singola voce analitica (ex centro di costo)
- * all'interno della dashboard per una specifica commessa.
+ * Rappresenta i dati per una singola card KPI nella dashboard.
  */
-export interface DettaglioAnaliticoDashboard {
-  voceAnaliticaId: string;
-  voceAnaliticaNome: string;
-  budget: number;
-  consuntivo: number;
-  scostamento: number; // calcolato come budget - consuntivo
+export interface CardKPI {
+  label: string;
+  value: string; // Valore formattato come stringa (es. "€ 1.2M", "33%")
+  delta?: string; // Variazione percentuale opzionale (es. "+8.2%")
 }
 
 /**
- * Contiene tutti i dati aggregati per una singola commessa,
- * pronti per essere visualizzati nella dashboard.
+ * Rappresenta una riga nella tabella della dashboard delle commesse.
  */
+export interface CommessaRow {
+  id: string;
+  nome: string;
+  codice: string; // Es. CDM-2024-001
+  cliente: string;
+  stato: 'In Lavorazione' | 'Aperta' | 'Chiusa' | 'Fatturata';
+  ricavi: number;
+  costi: number;
+  marginePercentuale: number; // (ricavi - costi) / ricavi
+}
+
+/**
+ * L'oggetto dati principale per popolare la nuova dashboard delle commesse.
+ */
+export interface DashboardCommesseData {
+  kpi: {
+    commesseAttive: CardKPI;
+    ricaviTotali: CardKPI;
+    costiTotali: CardKPI;
+    margineLordoMedio: CardKPI;
+  };
+  commesse: CommessaRow[];
+}
+
+// --- TIPI PER LA DASHBOARD DI CONTROLLO ---
+
 export interface CommessaDashboard {
-  commessaId: string;
-  commessaNome: string;
-  budgetTotale: number;
-  consuntivoTotale: number;
-  scostamento: number; // calcolato come budgetTotale - consuntivoTotale
-  avanzamentoPercentuale: number; // (consuntivo / budget) * 100
-  dettagli: DettaglioAnaliticoDashboard[];
+  id: string;
+  nome: string;
+  cliente: {
+    id: string;
+    nome: string;
+  };
+  stato: string; // Es. "In Lavorazione", "Chiusa"
+  ricavi: number;
+  costi: number;
+  margine: number; // (ricavi - costi) / ricavi
 }
 
-/**
- * L'oggetto dati principale per popolare l'intera dashboard di controllo.
- */
 export interface DashboardData {
   commesse: CommessaDashboard[];
-  totaleGenerale: {
-    budget: number;
-    consuntivo: number;
-    scostamento: number;
+  kpi: {
+    commesseAttive: number;
+    ricaviTotali: number;
+    costiTotali: number;
+    margineLordoMedio: number;
   };
 }
 

@@ -25,6 +25,26 @@ async function main() {
   await prisma.commessa.deleteMany({});
   await prisma.conto.deleteMany({});
   await prisma.voceAnalitica.deleteMany({});
+  await prisma.fornitore.deleteMany({});
+  await prisma.cliente.deleteMany({});
+
+  // A. Inserisce anagrafiche di base (Clienti/Fornitori)
+  console.log('Seeding Clienti e Fornitori...');
+  const clienteDefault = await prisma.cliente.create({
+    data: {
+      id: 'cl_rossi',
+      nome: 'Mario Rossi SRL',
+      piva: '01234567890',
+    },
+  });
+
+  await prisma.fornitore.create({
+    data: {
+      id: 'for_bianchi',
+      nome: 'Fratelli Bianchi SPA',
+      piva: '09876543210',
+    },
+  });
 
   // 2. Inserisce le Voci Analitiche
   console.log('Seeding Voci Analitiche...');
@@ -67,10 +87,26 @@ async function main() {
   console.log('Seeding Commesse e Budget...');
   for (const commessa of commesse) {
     const { budget, ...commessaData } = commessa;
+
+    // Associa il cliente di default
+    const dataToCreate = {
+      ...commessaData,
+      clienteId: clienteDefault.id,
+    };
+
     const createdCommessa = await prisma.commessa.upsert({
       where: { id: commessaData.id },
-      update: commessaData,
-      create: commessaData,
+      update: {
+        nome: commessaData.nome,
+        descrizione: commessaData.descrizione,
+        clienteId: clienteDefault.id,
+      },
+      create: {
+        id: commessaData.id,
+        nome: commessaData.nome,
+        descrizione: commessaData.descrizione,
+        clienteId: clienteDefault.id,
+      },
     });
 
     if (budget) {
@@ -144,6 +180,79 @@ async function main() {
       }
     }
   }
+
+  // 6. Inserisce alcune registrazioni di esempio con ricavi e costi
+  console.log('Seeding registrazioni di esempio...');
+  
+  // Registrazione di ricavo
+  const registrazioneRicavo = await prisma.scritturaContabile.create({
+    data: {
+      causaleId: 'FATTURA_ATTIVA',
+      descrizione: 'Fattura attiva - Comune di Sorrento',
+      fornitoreId: null, // Per i ricavi non c'è fornitore
+      datiAggiuntivi: {
+        numeroFattura: 'FA001',
+        totaleDocumento: 50000
+      },
+    },
+  });
+
+  // Riga di ricavo
+  const rigaRicavo = await prisma.rigaScrittura.create({
+    data: {
+      descrizione: 'Ricavi da commessa Sorrento',
+      dare: 0,
+      avere: 50000,
+      contoId: '5510001122', // Conto ricavi da convenzione
+      scritturaContabileId: registrazioneRicavo.id,
+    },
+  });
+
+  // Allocazione del ricavo alla commessa Sorrento
+  await prisma.allocazione.create({
+    data: {
+      importo: 50000,
+      descrizione: 'Ricavo commessa Sorrento',
+      rigaScritturaId: rigaRicavo.id,
+      commessaId: 'SORRENTO',
+      voceAnaliticaId: '1', // Manodopera
+    },
+  });
+
+  // Registrazione di costo
+  const registrazioneCosto = await prisma.scritturaContabile.create({
+    data: {
+      causaleId: 'FATT_ACQ_MERCI',
+      descrizione: 'Fattura passiva - Fornitore materiali',
+      fornitoreId: 'for_bianchi',
+      datiAggiuntivi: {
+        numeroFattura: 'FP001',
+        totaleDocumento: 15000
+      },
+    },
+  });
+
+  // Riga di costo
+  const rigaCosto = await prisma.rigaScrittura.create({
+    data: {
+      descrizione: 'Costi materiali',
+      dare: 15000,
+      avere: 0,
+      contoId: '60100002', // Conto acquisti prestazioni di servizi
+      scritturaContabileId: registrazioneCosto.id,
+    },
+  });
+
+  // Allocazione del costo alla commessa Sorrento
+  await prisma.allocazione.create({
+    data: {
+      importo: 15000,
+      descrizione: 'Costo materiali commessa Sorrento',
+      rigaScritturaId: rigaCosto.id,
+      commessaId: 'SORRENTO',
+      voceAnaliticaId: '2', // Materiali
+    },
+  });
 
   console.log('Seeding completato.');
 }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, FileText, BarChart3, Settings, Building2 } from 'lucide-react';
+import { Home, FileText, BarChart3, Settings, Building2, Upload, Database } from 'lucide-react';
 import {
   Sidebar as SidebarPrimitive,
   SidebarContent,
@@ -29,16 +29,29 @@ const menuItems = [
     url: "/prima-nota",
     icon: FileText,
   },
-  // {
-  //   title: "Report",
-  //   url: "/report",
-  //   icon: BarChart3,
-  // },
-  // {
-  //   title: "Impostazioni",
-  //   url: "/impostazioni",
-  //   icon: Settings,
-  // },
+  {
+    title: "Importa Dati",
+    url: "/import",
+    icon: Upload,
+  },
+  {
+    title: "Report",
+    url: "/report",
+    icon: BarChart3,
+  },
+  {
+    title: "Impostazioni",
+    url: "/impostazioni",
+    icon: Settings,
+  },
+];
+
+const serviziItems = [
+  {
+    title: "Database",
+    url: "/database",
+    icon: Database,
+  },
 ];
 
 export function Sidebar() {
@@ -89,6 +102,38 @@ export function Sidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-4 pt-4">
+            Servizi
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu className="space-y-1">
+              {serviziItems.map((item) => {
+                const isActive = location.pathname === item.url;
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton 
+                      asChild 
+                      className={`hover:bg-slate-100 rounded-lg transition-colors duration-200 ${
+                        isActive ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : ''
+                      }`}
+                    >
+                      <button
+                        onClick={() => navigate(item.url)}
+                        className="w-full flex items-center gap-3 px-3 py-2 text-left"
+                      >
+                        <item.icon className={`w-5 h-5 ${isActive ? 'text-indigo-600' : 'text-slate-600'}`} />
+                        <span className={`font-medium ${isActive ? 'text-indigo-700' : 'text-slate-700'}`}>{item.title}</span>
+                      </button>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
       </SidebarContent>
     </SidebarPrimitive>
   );

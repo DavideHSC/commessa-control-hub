@@ -1,126 +1,77 @@
 import { ScritturaContabile } from "@/types";
-import { scrittureContabili as mockScritture } from "@/data/mock";
 
-// --- Inizializzazione di un "database" fittizio nel localStorage ---
-const DB_KEY = 'commessa_hub_db';
-
-let scrittureInMemoria: ScritturaContabile[] = [];
-
-const initializeDb = () => {
-  try {
-    const dataFromStorage = localStorage.getItem(DB_KEY);
-    if (dataFromStorage) {
-      scrittureInMemoria = JSON.parse(dataFromStorage);
-    } else {
-      // Se non c'è nulla, inizializza con i dati mock e salva
-      scrittureInMemoria = [...mockScritture];
-      localStorage.setItem(DB_KEY, JSON.stringify(scrittureInMemoria));
-    }
-  } catch (error) {
-    console.error("Errore nell'inizializzazione del DB in localStorage:", error);
-    // Fallback ai dati mock in caso di errore
-    scrittureInMemoria = [...mockScritture];
-  }
-};
-
-const persistDb = () => {
-  try {
-    localStorage.setItem(DB_KEY, JSON.stringify(scrittureInMemoria));
-  } catch (error) {
-    console.error("Errore nel salvataggio del DB in localStorage:", error);
-  }
-};
-
-// Inizializza il DB all'avvio del modulo
-initializeDb();
-// -------------------------------------------------------------------
+const API_BASE_URL = 'http://localhost:3001/api';
 
 /**
- * Recupera tutte le scritture contabili.
- * Simula una chiamata API GET.
+ * Recupera tutte le scritture contabili dal server.
  * @returns Una Promise che si risolve con l'array di tutte le scritture.
  */
-export const getRegistrazioni = (): Promise<ScritturaContabile[]> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([...scrittureInMemoria]);
-    }, 300);
-  });
+export const getRegistrazioni = async (): Promise<ScritturaContabile[]> => {
+  const response = await fetch(`${API_BASE_URL}/registrazioni`);
+  if (!response.ok) {
+    throw new Error('Errore nel recupero delle registrazioni');
+  }
+  return response.json();
 };
 
 /**
- * Trova una singola scrittura contabile tramite il suo ID.
- * Simula una chiamata API GET by ID.
+ * Trova una singola scrittura contabile tramite il suo ID dal server.
  * @param id L'ID della scrittura da trovare.
  * @returns Una Promise che si risolve con la scrittura trovata o `null`.
  */
-export const getRegistrazioneById = (id: string): Promise<ScritturaContabile | null> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const registrazione = scrittureInMemoria.find(r => r.id === id) || null;
-      resolve(registrazione);
-    }, 300);
-  });
+export const getRegistrazioneById = async (id: string): Promise<ScritturaContabile | null> => {
+  const response = await fetch(`${API_BASE_URL}/registrazioni/${id}`);
+  if (!response.ok) {
+    if (response.status === 404) return null;
+    throw new Error('Errore nel recupero della registrazione');
+  }
+  return response.json();
 };
 
 /**
- * Aggiunge una nuova scrittura contabile.
- * Simula una chiamata API POST.
+ * Aggiunge una nuova scrittura contabile al server.
  * @param scritturaData I dati della nuova scrittura.
  * @returns Una Promise che si risolve con la scrittura appena creata.
  */
-export const addRegistrazione = (scritturaData: Omit<ScritturaContabile, 'id'>): Promise<ScritturaContabile> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const nuovaScrittura: ScritturaContabile = {
-        ...scritturaData,
-        id: `reg-${Date.now()}`,
-      };
-      scrittureInMemoria.push(nuovaScrittura);
-      persistDb();
-      resolve(nuovaScrittura);
-    }, 500);
+export const addRegistrazione = async (scritturaData: Omit<ScritturaContabile, 'id'>): Promise<ScritturaContabile> => {
+  const response = await fetch(`${API_BASE_URL}/registrazioni`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(scritturaData),
   });
+  if (!response.ok) {
+    throw new Error('Errore nell\'aggiunta della registrazione');
+  }
+  return response.json();
 };
 
 /**
- * Aggiorna una scrittura contabile esistente.
- * Simula una chiamata API PUT.
+ * Aggiorna una scrittura contabile esistente sul server.
  * @param registrazione La scrittura contabile da aggiornare.
  * @returns Una Promise che si risolve con la scrittura aggiornata.
  */
-export const updateRegistrazione = (registrazione: ScritturaContabile): Promise<ScritturaContabile> => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const index = scrittureInMemoria.findIndex(r => r.id === registrazione.id);
-      if (index !== -1) {
-        scrittureInMemoria[index] = registrazione;
-        persistDb();
-        resolve(scrittureInMemoria[index]);
-      } else {
-        reject(new Error("Registrazione non trovata"));
-      }
-    }, 500);
+export const updateRegistrazione = async (registrazione: ScritturaContabile): Promise<ScritturaContabile> => {
+  const response = await fetch(`${API_BASE_URL}/registrazioni/${registrazione.id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(registrazione),
   });
+  if (!response.ok) {
+    throw new Error('Errore nell\'aggiornamento della registrazione');
+  }
+  return response.json();
 };
 
 /**
- * Elimina una scrittura contabile.
- * Simula una chiamata API DELETE.
+ * Elimina una scrittura contabile dal server.
  * @param id L'ID della scrittura da eliminare.
  * @returns Una Promise che si risolve quando l'eliminazione ha successo.
  */
-export const deleteRegistrazione = (id: string): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const index = scrittureInMemoria.findIndex(r => r.id === id);
-      if (index !== -1) {
-        scrittureInMemoria.splice(index, 1);
-        persistDb();
-        resolve();
-      } else {
-        reject(new Error("Registrazione non trovata per l'eliminazione"));
-      }
-    }, 500);
+export const deleteRegistrazione = async (id: string): Promise<void> => {
+  const response = await fetch(`${API_BASE_URL}/registrazioni/${id}`, {
+    method: 'DELETE',
   });
+  if (!response.ok) {
+    throw new Error('Errore durante l\'eliminazione della registrazione');
+  }
 };

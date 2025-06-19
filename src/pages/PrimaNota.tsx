@@ -73,7 +73,7 @@ const PrimaNota: React.FC = () => {
     const totaleDare = scrittura.righe.reduce((sum, riga) => sum + riga.dare, 0);
     const totaleAvere = scrittura.righe.reduce((sum, riga) => sum + riga.avere, 0);
     const sbilancio = Math.abs(totaleDare - totaleAvere);
-    return { totale: totaleDare, sbilancio };
+    return { totale: totaleDare || totaleAvere, sbilancio };
   };
 
   const checkAllocazioneMancante = (scrittura: ScritturaContabile): boolean => {
