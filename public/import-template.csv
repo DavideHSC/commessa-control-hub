@@ -1,7 +1,9 @@
 data_registrazione,descrizione_scrittura,codice_conto,importo_dare,importo_avere,id_commessa,voce_analitica,external_id_fornitore,external_id_cliente
-2024-07-25,"Fattura n. 123 - Lavori Sorrento","5510001122",0,12500.75,"SORRENTO","5",,"EXT-CLI-001"
-2024-07-25,"Fattura n. 123 - Lavori Sorrento","45.02.001",0,2750.17,"SORRENTO","5",,"EXT-CLI-001"
-2024-07-26,"Fattura Acquisto Materiali n. 889","60100002",800.00,0,"NAPOLI","2","EXT-FOR-001",
-2024-07-26,"Fattura Acquisto Materiali n. 889","45.01.001",176.00,0,"NAPOLI","2","EXT-FOR-001",
+2024-07-25,"Fattura n. 123 - Lavori Sorrento","5510001122",0,12500.75,"SORRENTO","1",,"CLI-001"
+2024-07-25,"Fattura n. 123 - IVA su Ricavi","45.02.001",0,2750.17,"SORRENTO","1",,"CLI-001"
+2024-07-26,"Fattura Acquisto Materiali n. 889","60100002",800.00,0,"NAPOLI","2","FOR-001",
+2024-07-26,"Fattura Acquisto Materiali - IVA","45.01.001",176.00,0,"NAPOLI","2","FOR-001",
 2024-07-27,"Costo Personale - Luglio","6310000500",2500.00,0,"SORRENTO","1",,
-2024-07-27,"Costo Personale - Luglio","6310000500",3500.00,0,"NAPOLI","1",, 
+2024-07-27,"Costo Personale - Luglio","6310000500",3500.00,0,"NAPOLI","1",,
+2024-07-28,"Carburanti e Lubrificanti","6005000850",450.50,0,"SORRENTO_2025","2","FOR-002",
+2024-07-28,"IVA su Carburanti","45.01.001",99.11,0,"SORRENTO_2025","2","FOR-002", 

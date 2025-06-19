@@ -35,6 +35,7 @@ async function main() {
       id: 'cl_rossi',
       nome: 'Mario Rossi SRL',
       piva: '01234567890',
+      externalId: 'CLI-001',
     },
   });
 
@@ -43,6 +44,17 @@ async function main() {
       id: 'for_bianchi',
       nome: 'Fratelli Bianchi SPA',
       piva: '09876543210',
+      externalId: 'FOR-001',
+    },
+  });
+
+  // Aggiungi fornitori extra per i test
+  await prisma.fornitore.create({
+    data: {
+      id: 'for_carburanti',
+      nome: 'Carburanti Express SRL',
+      piva: '11223344556',
+      externalId: 'FOR-002',
     },
   });
 

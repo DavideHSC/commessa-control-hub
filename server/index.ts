@@ -22,11 +22,15 @@ const upload = multer({ dest: 'uploads/' });
 
 // Interfacce per tipizzare i dati CSV
 interface CSVRow {
-  data: string;
-  descrizione: string;
-  importo: string;
-  codiceConto: string;
-  codiceCommessa?: string;
+  data_registrazione: string;
+  descrizione_scrittura: string;
+  codice_conto: string;
+  importo_dare: string;
+  importo_avere: string;
+  id_commessa?: string;
+  voce_analitica?: string;
+  external_id_fornitore?: string;
+  external_id_cliente?: string;
 }
 
 // Endpoint per l'importazione di file CSV
@@ -51,76 +55,124 @@ app.post('/api/import', upload.single('file'), async (req: Request, res: Respons
                         where: { causaleId: 'IMPORT' }
                     });
 
-                    // Processa ogni riga del CSV
+                    console.log(`Processando ${results.length} righe CSV...`);
+                    let scriptureCreate = 0;
+                    let righeCreate = 0;
+
+                    // Raggruppa le righe per scrittura (stessa data + descrizione)
+                    const scrittureMap = new Map<string, CSVRow[]>();
+                    
                     for (const row of results) {
-                        const { data, descrizione, importo, codiceConto, codiceCommessa } = row;
-                        
-                        if (!data || !descrizione || !importo || !codiceConto) {
+                        if (!row.data_registrazione || !row.descrizione_scrittura || !row.codice_conto) {
                             continue; // Salta righe incomplete
                         }
-
-                        // Trova o crea il conto
-                        let conto = await prisma.conto.findFirst({
-                            where: { codice: codiceConto }
-                        });
-
-                        if (!conto) {
-                            // Crea un nuovo conto se non esiste
-                            conto = await prisma.conto.create({
-                                data: {
-                                    id: `conto_${codiceConto}`,
-                                    codice: codiceConto,
-                                    nome: `Conto ${codiceConto}`,
-                                    tipo: 'Costo'
-                                }
-                            });
-                        }
-
-                        // Trova la commessa se specificata
-                        let commessa: { id: string } | null = null;
-                        if (codiceCommessa) {
-                            commessa = await prisma.commessa.findFirst({
-                                where: { nome: codiceCommessa }
-                            });
-                        }
-
-                        const importoNum = parseFloat(importo);
                         
-                        // Crea la scrittura contabile
-                        await prisma.scritturaContabile.create({
-                            data: {
-                                data: new Date(data),
-                                descrizione,
-                                causaleId: 'IMPORT',
-                                righe: {
-                                    create: [
-                                        // Riga di costo (dare)
-                                        {
-                                            descrizione: `${descrizione} - Costo`,
-                                            dare: importoNum,
-                                            avere: 0,
-                                            contoId: conto.id,
-                                            allocazioni: commessa ? {
-                                                create: [{
-                                                    commessaId: commessa.id,
-                                                    voceAnaliticaId: '2', // Gestione Automezzi come default
-                                                    importo: importoNum,
-                                                    descrizione: `Allocazione ${descrizione}`
-                                                }]
-                                            } : undefined
-                                        },
-                                        // Riga di contropartita (avere) - Cassa
-                                        {
-                                            descrizione: `${descrizione} - Pagamento`,
-                                            dare: 0,
-                                            avere: importoNum,
-                                            contoId: '1', // Assumiamo che '1' sia il conto Cassa
-                                            allocazioni: undefined
-                                        }
-                                    ]
-                                }
+                        const key = `${row.data_registrazione}_${row.descrizione_scrittura}`;
+                        if (!scrittureMap.has(key)) {
+                            scrittureMap.set(key, []);
+                        }
+                        scrittureMap.get(key)!.push(row);
+                    }
+
+                    // Processa ogni scrittura
+                    for (const [key, righe] of scrittureMap) {
+                        const primaRiga = righe[0];
+                        
+                        // Prepara le righe della scrittura
+                        const righeScrittura: Prisma.RigaScritturaCreateWithoutScritturaContabileInput[] = [];
+                        
+                        for (const riga of righe) {
+                            const importoDare = parseFloat(riga.importo_dare) || 0;
+                            const importoAvere = parseFloat(riga.importo_avere) || 0;
+                            
+                            if (importoDare === 0 && importoAvere === 0) {
+                                continue; // Salta righe senza importi
                             }
-                        });
+
+                            // Trova o crea il conto
+                            let conto = await prisma.conto.findFirst({
+                                where: { codice: riga.codice_conto }
+                            });
+
+                            if (!conto) {
+                                conto = await prisma.conto.create({
+                                    data: {
+                                        id: `conto_${riga.codice_conto}_${Date.now()}`,
+                                        codice: riga.codice_conto,
+                                        nome: `Conto ${riga.codice_conto}`,
+                                        tipo: importoDare > 0 ? 'Costo' : 'Ricavo'
+                                    }
+                                });
+                            }
+
+                            // Trova la commessa se specificata
+                            let commessa: { id: string } | null = null;
+                            if (riga.id_commessa) {
+                                commessa = await prisma.commessa.findFirst({
+                                    where: { id: riga.id_commessa }
+                                });
+                            }
+
+                            // Gestisci clienti/fornitori con external_id
+                            let cliente: { id: string } | null = null;
+                            let fornitore: { id: string } | null = null;
+
+                            if (riga.external_id_cliente) {
+                                cliente = await prisma.cliente.findFirst({
+                                    where: { externalId: riga.external_id_cliente }
+                                });
+                            }
+
+                            if (riga.external_id_fornitore) {
+                                fornitore = await prisma.fornitore.findFirst({
+                                    where: { externalId: riga.external_id_fornitore }
+                                });
+                            }
+
+                            // Prepara i dati della riga
+                            const rigaData: Prisma.RigaScritturaCreateWithoutScritturaContabileInput = {
+                                descrizione: `${riga.descrizione_scrittura} - ${riga.codice_conto}`,
+                                dare: importoDare,
+                                avere: importoAvere,
+                                conto: {
+                                    connect: { id: conto.id }
+                                }
+                            };
+
+                            // Aggiungi allocazione se ci sono commessa e/o voce analitica
+                            if (commessa && (importoDare > 0 || importoAvere > 0)) {
+                                rigaData.allocazioni = {
+                                    create: [{
+                                        commessa: {
+                                            connect: { id: commessa.id }
+                                        },
+                                        voceAnalitica: {
+                                            connect: { id: riga.voce_analitica || '1' }
+                                        },
+                                        importo: importoDare > 0 ? importoDare : importoAvere,
+                                        descrizione: `Allocazione: ${riga.descrizione_scrittura}`
+                                    }]
+                                };
+                            }
+
+                            righeScrittura.push(rigaData);
+                            righeCreate++;
+                        }
+
+                        // Crea la scrittura contabile
+                        if (righeScrittura.length > 0) {
+                            await prisma.scritturaContabile.create({
+                                data: {
+                                    data: new Date(primaRiga.data_registrazione),
+                                    descrizione: primaRiga.descrizione_scrittura,
+                                    causaleId: 'IMPORT',
+                                    righe: {
+                                        create: righeScrittura
+                                    }
+                                }
+                            });
+                            scriptureCreate++;
+                        }
                     }
 
                     // Pulisci il file temporaneo
@@ -128,7 +180,11 @@ app.post('/api/import', upload.single('file'), async (req: Request, res: Respons
 
                     res.json({ 
                         message: 'Importazione completata con successo',
-                        recordsProcessed: results.length
+                        recordsProcessed: results.length,
+                        summary: {
+                            scrittureCreate: scriptureCreate,
+                            righeCreate: righeCreate
+                        }
                     });
 
                 } catch (error) {
@@ -141,6 +197,13 @@ app.post('/api/import', upload.single('file'), async (req: Request, res: Respons
                         }
                     } else {
                         res.status(500).json({ error: 'Errore interno del server durante l\'elaborazione del file' });
+                    }
+                    
+                    // Pulisci il file anche in caso di errore
+                    try {
+                        fs.unlinkSync(filePath);
+                    } catch (unlinkError) {
+                        console.error('Errore nella pulizia del file temporaneo:', unlinkError);
                     }
                 }
             });
