@@ -22,6 +22,7 @@ import {
 export interface ComboboxOption {
   value: string;
   label: string;
+  description?: string;
 }
 
 interface ComboboxProps {
@@ -32,6 +33,7 @@ interface ComboboxProps {
   searchPlaceholder?: string;
   emptyPlaceholder?: string;
   className?: string;
+  disabled?: boolean;
 }
 
 export function Combobox({ 
@@ -41,7 +43,8 @@ export function Combobox({
   placeholder = "Select option...", 
   searchPlaceholder = "Search...",
   emptyPlaceholder = "No options found.",
-  className 
+  className,
+  disabled = false
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
 
@@ -53,6 +56,7 @@ export function Combobox({
           role="combobox"
           aria-expanded={open}
           className={cn("w-full justify-between", className)}
+          disabled={disabled}
         >
           {value
             ? options.find((option) => option.value === value)?.label
@@ -69,9 +73,9 @@ export function Combobox({
               {options.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.value}
-                  onSelect={(currentValue) => {
-                    onChange(currentValue === value ? "" : currentValue)
+                  value={option.label}
+                  onSelect={() => {
+                    onChange(option.value)
                     setOpen(false)
                   }}
                 >
@@ -81,7 +85,14 @@ export function Combobox({
                       value === option.value ? "opacity-100" : "opacity-0"
                     )}
                   />
-                  {option.label}
+                  <div className="flex flex-col">
+                    <span>{option.label}</span>
+                    {option.description && (
+                      <span className="text-xs text-slate-500">
+                        {option.description}
+                      </span>
+                    )}
+                  </div>
                 </CommandItem>
               ))}
             </CommandGroup>

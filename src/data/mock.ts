@@ -199,66 +199,43 @@ export const causaliContabili: CausaleContabile[] = [
 // =================================================================================
 // 5. REGISTRAZIONI CONTABILI (PRIMA NOTA)
 // =================================================================================
-export const registrazioniContabili: ScritturaContabile[] = [
+export const scrittureContabili: ScritturaContabile[] = [
   {
-    id: 'REG001',
-    data: new Date('2023-10-26T00:00:00.000Z'),
-    causaleId: 'FATT_ACQ_MERCI',
-    descrizione: 'Fattura acquisto carburante',
-    righe: [
-      {
-        id: 'RIGA001',
-        contoId: '6005000850', // CARBURANTI E LUBRIFICANTI
-        descrizione: 'Gasolio per automezzi',
-        dare: 1000,
-        avere: 0,
-        allocazioni: [
-          { id: 'ALLOC001', commessaId: 'SORRENTO', voceAnaliticaId: '2', importo: 1000 }
-        ]
-      },
-      {
-        id: 'RIGA002',
-        contoId: '45.01.001', // IVA SU ACQUISTI
-        descrizione: 'IVA 22%',
-        dare: 220,
-        avere: 0,
-        allocazioni: []
-      },
-      {
-        id: 'RIGA003',
-        contoId: 'FOR001', // FORNITORE CARBURANTI SPA
-        descrizione: 'Debito vs fornitore',
-        dare: 0,
-        avere: 1220,
-        allocazioni: []
-      }
-    ]
-  },
-  {
-    id: 'REG002',
-    data: new Date('2023-10-27T00:00:00.000Z'),
+    id: 'reg-1716135384238',
+    data: '2024-05-19',
     causaleId: 'FATT_VEND_PRODOTTI',
-    descrizione: 'Canone servizio pulizia strade',
+    descrizione: 'Fattura n.1 del 19/05/2024',
     righe: [
-       {
-        id: 'RIGA004',
-        contoId: '5510001122', // RICAVI DA CONVENZIONE
-        descrizione: 'Convenzione Comune di Sorrento',
-        dare: 0,
-        avere: 5000,
-        allocazioni: [
-          { id: 'ALLOC002', commessaId: 'SORRENTO', voceAnaliticaId: '', importo: 5000 }
-        ]
-      },
       {
-        id: 'RIGA005',
-        contoId: 'CLI001', // COMUNE DI SORRENTO
-        descrizione: 'Credito vs cliente',
-        dare: 5000,
+        id: 'riga-1716135384238',
+        contoId: 'CLI001',
+        descrizione: 'COMUNE DI SORRENTO',
+        dare: 3000,
         avere: 0,
         allocazioni: []
+      },
+      {
+        id: 'riga-1716135394238',
+        contoId: '45.02.001',
+        descrizione: 'IVA NS/DEBITO',
+        dare: 0,
+        avere: 660,
+        allocazioni: []
+      },
+      {
+        id: 'riga-1716135404238',
+        contoId: '5510001122',
+        descrizione: 'RICAVI DA CONVENZIONE',
+        dare: 0,
+        avere: 2340,
+        allocazioni: []
       }
-    ]
+    ],
+    datiAggiuntivi: {
+      clienteId: 'CLI001',
+      totaleFattura: 3000,
+      aliquotaIva: 22
+    }
   }
 ];
 

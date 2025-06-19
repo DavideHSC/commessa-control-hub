@@ -2,7 +2,7 @@ import {
   commesse, 
   vociAnalitiche, 
   pianoDeiConti, 
-  registrazioniContabili,
+  scrittureContabili,
   causaliContabili 
 } from '@/data/mock';
 import { 
@@ -38,9 +38,9 @@ export const getCausaliContabili = async (): Promise<CausaleContabile[]> => {
   return Promise.resolve(causaliContabili);
 };
 
-export const getRegistrazioni = async (): Promise<ScritturaContabile[]> => {
+export const getScrittureContabiliMock = async (): Promise<ScritturaContabile[]> => {
   await networkDelay(150);
-  return Promise.resolve(registrazioniContabili);
+  return Promise.resolve(scrittureContabili);
 };
 
 // In futuro aggiungeremo qui le funzioni per recuperare e salvare le scritture contabili. 

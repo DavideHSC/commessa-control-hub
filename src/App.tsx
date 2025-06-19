@@ -26,6 +26,7 @@ const App = () => (
             <Route path="/commesse/:id" element={<CommessaDettaglio />} />
             <Route path="/prima-nota" element={<PrimaNota />} />
             <Route path="/prima-nota/nuova" element={<NuovaRegistrazionePrimaNota />} />
+            <Route path="/prima-nota/modifica/:id" element={<NuovaRegistrazionePrimaNota />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

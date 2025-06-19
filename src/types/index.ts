@@ -113,10 +113,15 @@ export interface RigaScrittura {
  */
 export interface ScritturaContabile {
   id: string; // UUID per la registrazione
-  data: Date; // Usiamo l'oggetto Date per maneggiarlo più facilmente, lo convertiremo in stringa solo per le API
+  data: string; // Usiamo l'oggetto Date per maneggiarlo più facilmente, lo convertiremo in stringa solo per le API
   causaleId: string; // ID della causale usata (obbligatorio se si usa un automatismo)
   descrizione: string;
   righe: RigaScrittura[];
+  datiAggiuntivi?: {
+    clienteId?: string | null;
+    totaleFattura?: number | string;
+    aliquotaIva?: number;
+  };
 }
 
 export {}; 
