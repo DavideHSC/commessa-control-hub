@@ -12,7 +12,8 @@ export const getDashboardData = async (): Promise<DashboardData> => {
     const response = await fetch('http://localhost:3001/api/dashboard');
     
     if (!response.ok) {
-      throw new Error(`Errore HTTP: ${response.status}`);
+      const errorData = await response.json();
+      throw new Error(errorData.message || `Errore HTTP: ${response.status}`);
     }
     
     const data = await response.json();

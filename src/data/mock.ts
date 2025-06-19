@@ -100,6 +100,7 @@ export const commesse: Commessa[] = [
         id: 'SORRENTO_2025',
         nome: 'Comune di Sorrento (2025)',
         clienteId: 'CLI001',
+        cliente: { id: 'CLI001', nome: 'COMUNE DI SORRENTO' },
         budget: {
             '1': 2274867, // Personale
             '2': 358625,  // Gestione automezzi
@@ -121,6 +122,7 @@ export const commesse: Commessa[] = [
         id: 'PIANO_SORR_2025',
         nome: 'Comune di Piano di Sorrento (2025)',
         clienteId: 'CLI003',
+        cliente: { id: 'CLI003', nome: 'COMUNE DI PIANO DI SORRENTO' },
         budget: {
             '1': 1000000,
             '2': 150000,
@@ -130,14 +132,16 @@ export const commesse: Commessa[] = [
     {
         id: 'MASSA_LUB_2025',
         nome: 'Comune di Massa Lubrense (2025)',
+        clienteId: 'CLI999',
+        cliente: { id: 'CLI999', nome: 'CLIENTE GENERICO SPA' },
         budget: {
             '1': 1800000,
             '2': 250000,
             '8': 100000,
         }
     },
-    { id: 'SORRENTO', nome: 'Comune di Sorrento', clienteId: 'CLI001', budget: { '1': 10000, '2': 5000 } },
-    { id: 'NAPOLI', nome: 'Comune di Napoli', clienteId: 'CLI002', budget: { '1': 20000, '10': 8000 } },
+    { id: 'SORRENTO', nome: 'Comune di Sorrento', clienteId: 'CLI001', cliente: { id: 'CLI001', nome: 'COMUNE DI SORRENTO' }, budget: { '1': 10000, '2': 5000 } },
+    { id: 'NAPOLI', nome: 'Comune di Napoli', clienteId: 'CLI002', cliente: { id: 'CLI002', nome: 'COMUNE DI VICO EQUENSE' }, budget: { '1': 20000, '10': 8000 } },
 ];
 
 // ====================================================================

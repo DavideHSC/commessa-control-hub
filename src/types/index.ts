@@ -1,8 +1,6 @@
 // Questo file conterrà tutte le definizioni di tipo (interfacce) per il nostro dominio di business.
 // Manterrà il nostro codice organizzato, riutilizzabile e fortemente tipizzato.
 
-import { Prisma, Commessa as CommessaPrisma } from '@prisma/client';
-
 /**
  * Rappresenta un Cliente.
  */
@@ -51,9 +49,17 @@ export interface Conto {
  * Rappresenta una Commessa di lavoro. Contiene i dati anagrafici
  * e la struttura di budget per il confronto con il consuntivo.
  */
-export interface Commessa extends CommessaPrisma {
+export interface Commessa {
+  id: string;
+  externalId?: string | null;
+  nome: string;
+  descrizione?: string | null;
+  clienteId: string;
   cliente: Cliente;
   budget: { [key: string]: number };
+  allocazioni?: Allocazione[];
+  // Nota: questa interfaccia ora è autonoma e non estende più CommessaPrisma
+  // per evitare conflitti di tipo con i dati mock e le relazioni di Prisma.
 }
 
 /**

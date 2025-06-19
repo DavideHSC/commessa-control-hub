@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { getDashboardData } from '@/api/dashboard';
 import { CommessaDashboard, DashboardData } from '@/types';
-import { DollarSign, TrendingUp, TrendingDown, Layers } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, Layers, AlertCircle } from 'lucide-react';
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(value);
@@ -17,15 +17,18 @@ const formatPercent = (value: number) => {
 const Dashboard: React.FC = () => {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        setError(null);
         const dashboardData = await getDashboardData();
         setData(dashboardData);
-      } catch (error) {
-        console.error("Errore nel caricamento dei dati della dashboard:", error);
+      } catch (err: any) {
+        console.error("Errore nel caricamento dei dati della dashboard:", err);
+        setError(err.message || 'Si è verificato un errore imprevisto.');
       } finally {
         setLoading(false);
       }
@@ -36,6 +39,10 @@ const Dashboard: React.FC = () => {
 
   if (loading) {
     return <DashboardSkeleton />;
+  }
+
+  if (error) {
+    return <ErrorDisplay message={error} />;
   }
 
   if (!data) {
@@ -57,6 +64,15 @@ const Dashboard: React.FC = () => {
     </div>
   );
 };
+
+const ErrorDisplay = ({ message }: { message: string }) => (
+    <div className="flex flex-col items-center justify-center h-64 bg-red-50 border border-red-200 rounded-lg">
+        <AlertCircle className="w-12 h-12 text-red-500" />
+        <h2 className="mt-4 text-xl font-semibold text-red-700">Errore di Caricamento</h2>
+        <p className="mt-2 text-slate-600">Impossibile caricare i dati della dashboard.</p>
+        <p className="mt-1 text-sm text-slate-500">Dettagli: {message}</p>
+    </div>
+);
 
 const Header = () => (
   <div>

@@ -278,9 +278,12 @@ app.get('/api/dashboard', async (req: Request, res: Response): Promise<void> => 
 
     console.log('Dashboard data preparata:', JSON.stringify(dashboardData, null, 2));
     res.json(dashboardData);
+
   } catch (error) {
-    console.error(`Errore nel recupero dati per la dashboard:`, error);
-    res.status(500).json({ error: 'Impossibile caricare i dati per la dashboard.' });
+    console.error('Errore durante il recupero dei dati della dashboard:', error);
+
+    // Errore generico di interazione con il database
+    res.status(503).json({ message: 'Servizio non disponibile. Impossibile comunicare con il database.' });
   }
 });
 
