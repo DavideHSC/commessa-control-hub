@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Trash2, FileText, Landmark, DollarSign, Calculator } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Commessa, CentroDiCosto, ScritturaContabile } from '@/types';
-import { getCommesse, getCentriDiCosto } from '@/api';
+import { Commessa, VoceAnalitica, ScritturaContabile } from '@/types';
+import { getCommesse, getVociAnalitiche } from '@/api';
 import { getRegistrazioni } from '@/api/registrazioni';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,7 @@ const CommessaDettaglio = () => {
   const navigate = useNavigate();
   
   const [commessa, setCommessa] = useState<Commessa | null>(null);
-  const [centriDiCosto, setCentriDiCosto] = useState<CentroDiCosto[]>([]);
+  const [vociAnalitiche, setVociAnalitiche] = useState<VoceAnalitica[]>([]);
   const [registrazioni, setRegistrazioni] = useState<ScritturaContabile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -22,14 +22,14 @@ const CommessaDettaglio = () => {
       if (!id) return;
       try {
         setIsLoading(true);
-        const [commesseData, centriDiCostoData, registrazioniData] = await Promise.all([
+        const [commesseData, vociAnaliticheData, registrazioniData] = await Promise.all([
           getCommesse(),
-          getCentriDiCosto(),
+          getVociAnalitiche(),
           getRegistrazioni()
         ]);
         const currentCommessa = commesseData.find(c => c.id === id);
         setCommessa(currentCommessa || null);
-        setCentriDiCosto(centriDiCostoData);
+        setVociAnalitiche(vociAnaliticheData);
         setRegistrazioni(registrazioniData);
       } catch (error) {
         console.error("Errore nel caricamento dei dati di dettaglio:", error);
@@ -47,8 +47,8 @@ const CommessaDettaglio = () => {
     }).format(value);
   };
   
-  const getNomeCentroDiCosto = (id: string) => {
-    return centriDiCosto.find(c => c.id === id)?.nome || 'N/D';
+  const getNomeVoceAnalitica = (id: string) => {
+    return vociAnalitiche.find(c => c.id === id)?.nome || 'N/D';
   }
 
   if (isLoading) {
@@ -107,17 +107,17 @@ const CommessaDettaglio = () => {
       {/* Dettaglio Budget */}
       <div className="bg-white rounded-xl border border-slate-200">
         <div className="p-6 border-b border-slate-200">
-          <h3 className="text-lg font-semibold text-slate-900">Dettaglio Budget per Centro di Costo</h3>
+          <h3 className="text-lg font-semibold text-slate-900">Dettaglio Budget per Voce Analitica</h3>
           <p className="text-sm text-slate-500 mt-1">
-            Suddivisione del budget allocato ai diversi centri di costo per questa commessa.
+            Suddivisione del budget allocato alle diverse voci analitiche per questa commessa.
           </p>
         </div>
         <div className="divide-y divide-slate-200">
-          {Object.entries(commessa.budget).map(([cdcId, importo]) => (
-            <div key={cdcId} className="flex items-center justify-between p-4 hover:bg-slate-50">
+          {Object.entries(commessa.budget).map(([voceAnaliticaId, importo]) => (
+            <div key={voceAnaliticaId} className="flex items-center justify-between p-4 hover:bg-slate-50">
               <div className="flex items-center gap-3">
                 <Landmark className="w-5 h-5 text-slate-400" />
-                <span className="font-medium text-slate-800">{getNomeCentroDiCosto(cdcId)}</span>
+                <span className="font-medium text-slate-800">{getNomeVoceAnalitica(voceAnaliticaId)}</span>
               </div>
               <div className="flex items-center gap-3">
                  <DollarSign className="w-5 h-5 text-green-500" />
@@ -151,7 +151,7 @@ const CommessaDettaglio = () => {
               movimentiAllocati.map(riga => {
                 const importoAllocato = (riga.dare || 0) > 0 ? riga.dare : riga.avere;
                 // Trova il conto corretto dal piano dei conti
-                const contoAssociato = centriDiCosto.find(c => c.id === riga.contoId);
+                const contoAssociato = vociAnalitiche.find(c => c.id === riga.contoId);
 
                 return (
                   <TableRow key={riga.id}>

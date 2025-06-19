@@ -7,8 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Commessa, Conto, CausaleContabile, ScritturaContabile, RigaScrittura, Allocazione, CentroDiCosto } from '@/types';
-import { getCommesse, getPianoDeiConti, getCausaliContabili, getCentriDiCosto } from '@/api';
+import { Commessa, Conto, CausaleContabile, ScritturaContabile, RigaScrittura, Allocazione, VoceAnalitica } from '@/types';
+import { getCommesse, getPianoDeiConti, getCausaliContabili, getVociAnalitiche } from '@/api';
 import {
   Dialog,
   DialogContent,
@@ -29,7 +29,7 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
   const [commesse, setCommesse] = useState<Commessa[]>([]);
   const [conti, setConti] = useState<Conto[]>([]);
   const [causali, setCausali] = useState<CausaleContabile[]>([]);
-  const [centriDiCosto, setCentriDiCosto] = useState<CentroDiCosto[]>([]);
+  const [vociAnalitiche, setVociAnalitiche] = useState<VoceAnalitica[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -67,21 +67,24 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
   const [allocazioneRigaId, setAllocazioneRigaId] = useState<string | null>(null);
   const [allocazioniTemporanee, setAllocazioniTemporanee] = useState<Allocazione[]>([]);
 
+  // Stato per sapere se la riga in allocazione è un costo o un ricavo
+  const [isCostoInAllocazione, setIsCostoInAllocazione] = useState<boolean>(false);
+
   // Caricamento dati iniziali
   useEffect(() => {
     const loadData = async () => {
       try {
         setIsLoading(true);
-        const [commesseData, contiData, causaliData, centriDiCostoData] = await Promise.all([
+        const [commesseData, contiData, causaliData, vociAnaliticheData] = await Promise.all([
           getCommesse(),
           getPianoDeiConti(),
           getCausaliContabili(),
-          getCentriDiCosto(),
+          getVociAnalitiche(),
         ]);
         setCommesse(commesseData);
         setConti(contiData);
         setCausali(causaliData);
-        setCentriDiCosto(centriDiCostoData);
+        setVociAnalitiche(vociAnaliticheData);
       } catch (error) {
         console.error("Errore nel caricamento dei dati iniziali", error);
         // Gestire l'errore, magari con una notifica
@@ -100,6 +103,9 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
       const rigaInAllocazione = registrazione.righe.find(r => r.id === allocazioneRigaId);
       const contoRiga = conti.find(c => c.id === rigaInAllocazione?.contoId);
       
+      // Impostiamo se la riga corrente è un costo per la UI della modale
+      setIsCostoInAllocazione(contoRiga?.tipo === 'Costo');
+      
       let commessaSuggeritaId = '';
       // Se è una riga di ricavo e abbiamo un cliente nei dati primari, tentiamo di pre-selezionare la commessa
       if (contoRiga?.tipo === 'Ricavo' && datiPrimari.clienteId) {
@@ -114,12 +120,13 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
       if (existingAllocations.length > 0) {
         setAllocazioniTemporanee(existingAllocations);
       } else {
-        // Proponi una riga vuota per iniziare, con la commessa pre-selezionata se trovata
+        // Proponi una riga vuota per iniziare, con la commessa e la voce analitica pre-selezionate se trovate
         setAllocazioniTemporanee([{
           id: `alloc-${Date.now()}`,
           commessaId: commessaSuggeritaId,
-          centroDiCostoId: '',
-          importo: 0,
+          voceAnaliticaId: contoRiga?.voceAnaliticaSuggeritaId || '',
+          importo: rigaInAllocazione?.dare || rigaInAllocazione?.avere || 0, // Pre-popola l'importo
+          descrizione: '',
         }]);
       }
     }
@@ -390,18 +397,32 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
   };
 
   const handleAddAllocazioneTemp = () => {
+    const rigaInAllocazione = registrazione.righe.find(r => r.id === allocazioneRigaId);
+    if (!rigaInAllocazione) return;
+    const importoDaAllocare = rigaInAllocazione.dare || rigaInAllocazione.avere || 0;
+    const totaleGiaAllocato = allocazioniTemporanee.reduce((sum, a) => sum + (a.importo || 0), 0);
+    const importoRimanente = importoDaAllocare - totaleGiaAllocato;
+    const ultimaCommessaId = allocazioniTemporanee.length > 0
+      ? allocazioniTemporanee[allocazioniTemporanee.length - 1].commessaId
+      : '';
+    const ultimaVoceAnaliticaId = allocazioniTemporanee.length > 0
+      ? allocazioniTemporanee[allocazioniTemporanee.length - 1].voceAnaliticaId
+      : '';
+
     setAllocazioniTemporanee(prev => [
       ...prev,
       {
         id: `alloc-${Date.now()}`,
-        commessaId: '',
-        centroDiCostoId: '',
-        importo: 0,
+        commessaId: ultimaCommessaId,
+        voceAnaliticaId: ultimaVoceAnaliticaId,
+        descrizione: '',
+        importo: Math.max(0, importoRimanente),
       }
     ]);
   };
 
   const handleRemoveAllocazioneTemp = (index: number) => {
+    if (allocazioniTemporanee.length <= 1) return; // Non rimuovere l'ultima riga
     setAllocazioniTemporanee(prev => prev.filter((_, i) => i !== index));
   };
 
@@ -500,7 +521,116 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
       </Card>
     );
   };
-  
+
+  const renderAllocazioneModal = () => {
+    const rigaInAllocazione = registrazione.righe.find(r => r.id === allocazioneRigaId);
+    if (!rigaInAllocazione) return null;
+
+    const contoRiga = conti.find(c => c.id === rigaInAllocazione.contoId);
+
+    // Filtra le voci analitiche in base al conto della riga
+    const vociAnaliticheFiltrate = contoRiga?.vociAnaliticheAbilitateIds?.length
+      ? vociAnalitiche.filter(va => contoRiga.vociAnaliticheAbilitateIds?.includes(va.id))
+      : vociAnalitiche;
+
+    const importoDaAllocare = rigaInAllocazione.dare || rigaInAllocazione.avere || 0;
+    const totaleAllocato = allocazioniTemporanee.reduce((sum, a) => sum + (a.importo || 0), 0);
+
+    return (
+      <DialogContent className="max-w-4xl">
+        <>
+          <DialogHeader>
+            <DialogTitle>Allocazione per riga: {rigaInAllocazione?.descrizione} ({formatCurrency(rigaInAllocazione?.dare || rigaInAllocazione?.avere || 0)})</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-2 py-4">
+            {/* Intestazioni */}
+            <div className="grid grid-cols-12 gap-3 font-semibold px-1">
+              <div className="col-span-4">Commessa</div>
+              <div className="col-span-4">Voce Analitica</div>
+              <div className="col-span-3">Descrizione</div>
+              <div className="col-span-1 text-right">Importo</div>
+            </div>
+
+            {/* Righe di Allocazione */}
+            {allocazioniTemporanee.map((alloc, index) => (
+              <div key={alloc.id || index} className="grid grid-cols-12 gap-3 items-center">
+                {/* Commessa */}
+                <div className="col-span-4">
+                  <Combobox
+                    options={commesse.map(c => ({ value: c.id, label: c.nome }))}
+                    value={alloc.commessaId}
+                    onChange={(value) => handleUpdateAllocazioneTemp(index, 'commessaId', value)}
+                    placeholder="Seleziona Commessa..."
+                    searchPlaceholder="Cerca commessa..."
+                    emptyPlaceholder="Nessuna commessa trovata."
+                  />
+                </div>
+                
+                {/* Voce Analitica */}
+                <div className="col-span-4">
+                  <Combobox
+                    options={vociAnaliticheFiltrate.map(va => ({ value: va.id, label: va.nome }))}
+                    value={alloc.voceAnaliticaId}
+                    onChange={(value) => handleUpdateAllocazioneTemp(index, 'voceAnaliticaId', value)}
+                    placeholder="Seleziona Voce..."
+                    searchPlaceholder="Cerca Voce Analitica..."
+                    emptyPlaceholder="Nessuna voce trovata."
+                  />
+                </div>
+
+                {/* Descrizione */}
+                <div className="col-span-3">
+                   <Input
+                      placeholder="Descrizione allocazione..."
+                      value={alloc.descrizione || ''}
+                      onChange={(e) => handleUpdateAllocazioneTemp(index, 'descrizione', e.target.value)}
+                    />
+                </div>
+
+                {/* Importo */}
+                <div className="col-span-1">
+                   <Input
+                    type="text"
+                    className="text-right"
+                    placeholder="0,00"
+                    value={displayValues[`alloc-${index}`] || ''}
+                    onChange={(e) => handleDisplayValueChange(`alloc-${index}`, e.target.value)}
+                    onBlur={() => handleDisplayValueBlur(`alloc-${index}`, 'allocazione', undefined, undefined, index)}
+                  />
+                </div>
+                
+                {/* Pulsante Rimuovi */}
+                <div className="col-span-1 flex justify-end">
+                  <Button variant="ghost" size="icon" onClick={() => handleRemoveAllocazioneTemp(index)}>
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Pulsante Aggiungi Allocazione */}
+          <Button variant="outline" onClick={handleAddAllocazioneTemp} className="mt-2 w-full sm:w-auto">
+            <Plus className="mr-2 h-4 w-4"/> Aggiungi Allocazione
+          </Button>
+
+          {/* Totali */}
+          <div className="mt-4 flex flex-col sm:flex-row justify-end sm:gap-6">
+            <div className="font-bold text-lg text-right">Totale Allocato: {formatCurrency(totaleAllocato)}</div>
+            <div className="font-bold text-lg text-right">Da Allocare: {formatCurrency(importoDaAllocare - totaleAllocato)}</div>
+          </div>
+          <DialogFooter className="mt-4">
+            <DialogClose asChild>
+              <Button type="button" variant="outline">Annulla</Button>
+            </DialogClose>
+            <Button type="button" onClick={handleSalvaAllocazioni} disabled={Math.abs(importoDaAllocare - totaleAllocato) > 0.001}>
+              Salva Allocazioni
+            </Button>
+          </DialogFooter>
+        </>
+      </DialogContent>
+    );
+  };
+
   if (isLoading) {
     return (
         <div className="flex items-center justify-center h-screen">
@@ -643,89 +773,7 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
                                 {riga.allocazioni && riga.allocazioni.length > 0 ? `${riga.allocazioni.length} alloc.` : 'Alloca'}
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-5xl">
-                              <DialogHeader>
-                                <DialogTitle>
-                                  Allocazione per riga: {riga.descrizione} ({formatCurrency(riga.dare || riga.avere)})
-                                </DialogTitle>
-                              </DialogHeader>
-                              
-                              <div className="py-4">
-                                <div className="grid grid-cols-5 gap-4 font-semibold border-b pb-2 mb-2">
-                                  <div className="col-span-2">Commessa</div>
-                                  <div>Centro di Costo</div>
-                                  <div>Descrizione</div>
-                                  <div className="text-right">Importo</div>
-                                  <div></div>
-                                </div>
-                                {allocazioniTemporanee.map((alloc, idx) => {
-                                  const contoRiga = conti.find(c => c.id === riga.contoId);
-                                  const centriDiCostoFiltrati = contoRiga?.centriDiCostoAbilitatiIds
-                                    ? centriDiCosto.filter(cdc => contoRiga.centriDiCostoAbilitatiIds?.includes(cdc.id))
-                                    : centriDiCosto;
-
-                                  return (
-                                    <div key={idx} className="grid grid-cols-5 gap-4 items-center mb-2">
-                                      <Combobox
-                                        options={commesse.map(c => ({ value: c.id, label: c.nome }))}
-                                        value={alloc.commessaId}
-                                        onChange={(v) => handleUpdateAllocazioneTemp(idx, 'commessaId', v)}
-                                        placeholder="Commessa..."
-                                        searchPlaceholder="Cerca commessa..."
-                                        emptyPlaceholder="Nessuna commessa trovata."
-                                        className="col-span-2"
-                                      />
-                                      <Combobox
-                                        options={centriDiCostoFiltrati.map(cdc => ({ value: cdc.id, label: cdc.nome }))}
-                                        value={alloc.centroDiCostoId}
-                                        onChange={(v) => handleUpdateAllocazioneTemp(idx, 'centroDiCostoId', v)}
-                                        placeholder="C.d.C..."
-                                        searchPlaceholder="Cerca C.d.C..."
-                                        emptyPlaceholder="Nessun C.d.C. trovato."
-                                      />
-                                      <Input 
-                                          placeholder="Descrizione allocazione..."
-                                          value={alloc.descrizione || ''}
-                                          onChange={(e) => handleUpdateAllocazioneTemp(idx, 'descrizione', e.target.value)}
-                                      />
-                                       <Input
-                                          type="text"
-                                          className="text-right"
-                                          placeholder="0,00"
-                                          value={displayValues[`alloc-${idx}`] || ''}
-                                          onChange={(e) => handleDisplayValueChange(`alloc-${idx}`, e.target.value)}
-                                          onBlur={() => handleDisplayValueBlur(`alloc-${idx}`, 'allocazione', undefined, undefined, idx)}
-                                      />
-                                      <Button variant="ghost" size="icon" onClick={() => handleRemoveAllocazioneTemp(idx)}>
-                                          <Trash2 className="h-4 w-4 text-red-500"/>
-                                      </Button>
-                                    </div>
-                                  );
-                                })}
-                                <Button variant="outline" size="sm" onClick={handleAddAllocazioneTemp} className="mt-2">
-                                    <Plus className="mr-2 h-4 w-4"/> Aggiungi Allocazione
-                                </Button>
-                                <div className="mt-4 text-right font-bold">
-                                    Totale Allocato: {formatCurrency(allocazioniTemporanee.reduce((sum, a) => sum + (a.importo || 0), 0))}
-                                    <br/>
-                                    Da Allocare: {
-                                        (() => {
-                                            const rigaCorrente = registrazione.righe.find(r => r.id === allocazioneRigaId);
-                                            const importoRiga = rigaCorrente?.dare || rigaCorrente?.avere || 0;
-                                            const totaleAllocato = allocazioniTemporanee.reduce((sum, a) => sum + (a.importo || 0), 0);
-                                            return formatCurrency(importoRiga - totaleAllocato);
-                                        })()
-                                    }
-                                </div>
-                              </div>
-                              
-                              <DialogFooter>
-                                <DialogClose asChild>
-                                  <Button variant="outline">Annulla</Button>
-                                </DialogClose>
-                                <Button onClick={handleSalvaAllocazioni}>Salva Allocazioni</Button>
-                              </DialogFooter>
-                            </DialogContent>
+                            {renderAllocazioneModal()}
                           </Dialog>
                         </td>
                         <td className="p-2 text-center">

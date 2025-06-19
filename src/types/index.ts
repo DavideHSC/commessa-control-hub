@@ -5,7 +5,7 @@
  * Rappresenta un centro di costo o di ricavo, una delle colonne analitiche del foglio Excel.
  * Esempio: "personale", "gestione automezzi", "sacchi".
  */
-export interface CentroDiCosto {
+export interface VoceAnalitica {
   id: string; // Es. '1', '2', '3' come da file Excel
   nome: string; // Es. 'personale', 'gestione automezzi'
   descrizione?: string;
@@ -21,9 +21,9 @@ export interface Conto {
   nome: string; // Es. "CARBURANTI E LUBRIFICANTI"
   tipo: 'Costo' | 'Ricavo' | 'Patrimoniale' | 'Fornitore' | 'Cliente'; // Ampliato per maggiore specificità
   // Il motore del nostro automatismo: collega un conto a un centro di costo di default.
-  centroDiCostoSuggeritoId?: string; // Es. '2' (gestione automezzi)
-  richiedeCentroDiCosto?: boolean; // True se il conto richiede un centro di costo
-  centriDiCostoAbilitatiIds?: string[]; // Lista di CdC permessi per questo conto
+  voceAnaliticaSuggeritaId?: string; // Es. '2' (gestione automezzi)
+  richiedeVoceAnalitica?: boolean; // True se il conto richiede una voce analitica
+  vociAnaliticheAbilitateIds?: string[]; // Lista di Voci Analitiche permesse per questo conto
   contropartiteSuggeriteIds?: string[]; // Lista di conti suggeriti come contropartita
 }
 
@@ -42,7 +42,7 @@ export interface Commessa {
    * Esempio: { '1': 2274867, '2': 358625 }
    */
   budget: {
-    [centroDiCostoId: string]: number;
+    [voceAnaliticaId: string]: number;
   };
 }
 
@@ -89,7 +89,7 @@ export interface VoceTemplateScrittura {
 export interface Allocazione {
   id: string; // UUID per la riga di allocazione
   commessaId: string;
-  centroDiCostoId: string;
+  voceAnaliticaId: string;
   importo: number; // L'importo finale calcolato
   descrizione?: string;
 }

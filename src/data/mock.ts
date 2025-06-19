@@ -1,13 +1,13 @@
 // Questo file conterrà tutti i dati mock per la nostra demo.
 // Simula un database a cui l'applicazione accederà tramite un layer API fittizio.
 
-import { CentroDiCosto, Conto, Commessa, CausaleContabile, ScritturaContabile } from '../types';
+import { VoceAnalitica, Conto, Commessa, CausaleContabile, ScritturaContabile } from '../types';
 
 // ====================================================================
-// 1. CENTRI DI COSTO
-// Basati sulle colonne del file Excel del cliente e del file di testo.
+// 1. VOCI ANALITICHE (ex Centri di Costo)
+// Basate sulle colonne del file Excel del cliente e del file di testo.
 // ====================================================================
-export const centriDiCosto: CentroDiCosto[] = [
+export const vociAnalitiche: VoceAnalitica[] = [
   { id: '1', nome: 'Personale', descrizione: 'Costi relativi al personale dipendente' },
   { id: '2', nome: 'Gestione Automezzi', descrizione: 'Costi per la manutenzione e gestione della flotta' },
   { id: '3', nome: 'Gestione Attrezzature' },
@@ -34,40 +34,40 @@ export const centriDiCosto: CentroDiCosto[] = [
 export const pianoDeiConti: Conto[] = [
   // --- COSTI ---
   // Acquisti
-  { id: '60100001', codice: '60100001', nome: 'MERCE C/ACQUISTI', tipo: 'Costo', richiedeCentroDiCosto: true, centroDiCostoSuggeritoId: '12', centriDiCostoAbilitatiIds: ['12'] },
-  { id: '6005000150', codice: '6005000150', nome: 'ACQUISTI MATERIALE DI CONSUMO', tipo: 'Costo', richiedeCentroDiCosto: true, centroDiCostoSuggeritoId: '12', centriDiCostoAbilitatiIds: ['4', '7', '12'] },
-  { id: '60100002', codice: '60100002', nome: 'ACQUISTI PRESTAZIONI DI SERVIZI', tipo: 'Costo', richiedeCentroDiCosto: true, centroDiCostoSuggeritoId: '5', centriDiCostoAbilitatiIds: ['5', '6', '11', '13', '14'] },
-  { id: '6005000350', codice: '6005000350', nome: 'ACQUISTO FIORI E PIANTE', tipo: 'Costo', richiedeCentroDiCosto: true, centroDiCostoSuggeritoId: '15', centriDiCostoAbilitatiIds: ['15'] },
+  { id: '60100001', codice: '60100001', nome: 'MERCE C/ACQUISTI', tipo: 'Costo', richiedeVoceAnalitica: true, voceAnaliticaSuggeritaId: '12', vociAnaliticheAbilitateIds: ['12'] },
+  { id: '6005000150', codice: '6005000150', nome: 'ACQUISTI MATERIALE DI CONSUMO', tipo: 'Costo', richiedeVoceAnalitica: true, voceAnaliticaSuggeritaId: '12', vociAnaliticheAbilitateIds: ['4', '7', '12'] },
+  { id: '60100002', codice: '60100002', nome: 'ACQUISTI PRESTAZIONI DI SERVIZI', tipo: 'Costo', richiedeVoceAnalitica: true, voceAnaliticaSuggeritaId: '5', vociAnaliticheAbilitateIds: ['5', '6', '11', '13', '14'] },
+  { id: '6005000350', codice: '6005000350', nome: 'ACQUISTO FIORI E PIANTE', tipo: 'Costo', richiedeVoceAnalitica: true, voceAnaliticaSuggeritaId: '15', vociAnaliticheAbilitateIds: ['15'] },
 
   // Costi del personale
-  { id: '6310000500', codice: '6310000500', nome: 'SALARI E STIPENDI', tipo: 'Costo', centroDiCostoSuggeritoId: '1', richiedeCentroDiCosto: true, centriDiCostoAbilitatiIds: ['1'] },
-  { id: '6340000650', codice: '6340000650', nome: 'BUONI PASTO', tipo: 'Costo', centroDiCostoSuggeritoId: '1', richiedeCentroDiCosto: true, centriDiCostoAbilitatiIds: ['1'] },
+  { id: '6310000500', codice: '6310000500', nome: 'SALARI E STIPENDI', tipo: 'Costo', voceAnaliticaSuggeritaId: '1', richiedeVoceAnalitica: true, vociAnaliticheAbilitateIds: ['1'] },
+  { id: '6340000650', codice: '6340000650', nome: 'BUONI PASTO', tipo: 'Costo', voceAnaliticaSuggeritaId: '1', richiedeVoceAnalitica: true, vociAnaliticheAbilitateIds: ['1'] },
 
   // Costi per servizi
-  { id: '6005000850', codice: '6005000850', nome: 'CARBURANTI E LUBRIFICANTI', tipo: 'Costo', centroDiCostoSuggeritoId: '2', richiedeCentroDiCosto: true, centriDiCostoAbilitatiIds: ['2', '8'], contropartiteSuggeriteIds: ['FOR001', '45.01.001'] },
-  { id: '6015000800', codice: '6015000800', nome: 'MANUTENZIONI E RIPARAZIONI AUTOMEZZI', tipo: 'Costo', centroDiCostoSuggeritoId: '2', richiedeCentroDiCosto: true, centriDiCostoAbilitatiIds: ['2', '8'], contropartiteSuggeriteIds: ['FOR999', '45.01.001'] },
-  { id: '6015001800', codice: '6015001800', nome: 'ASSICURAZIONI OBBLIGATORIE AUTOMEZZI', tipo: 'Costo', centroDiCostoSuggeritoId: '2', richiedeCentroDiCosto: true, centriDiCostoAbilitatiIds: ['2', '8'], contropartiteSuggeriteIds: ['FOR002', '45.01.001'] },
-  { id: '6015000750', codice: '6015000750', nome: 'MANUTENZIONI E RIPARAZIONI ATTREZZATURE', tipo: 'Costo', centroDiCostoSuggeritoId: '3', richiedeCentroDiCosto: true, centriDiCostoAbilitatiIds: ['3', '9'] },
-  { id: '6008001114', codice: '6008001114', nome: 'SACCHI E BIDONI', tipo: 'Costo', centroDiCostoSuggeritoId: '4', richiedeCentroDiCosto: true, centriDiCostoAbilitatiIds: ['4'] },
-  { id: '6015010103', codice: '6015010103', nome: 'SELEZIONE/TRATTAMENTO RIF.INGOMBRANTI', tipo: 'Costo', richiedeCentroDiCosto: true, centroDiCostoSuggeritoId: '13', centriDiCostoAbilitatiIds: ['13'] },
-  { id: '6015010104', codice: '6015010104', nome: 'CONFERIMENTO RIFIUTI ORGANICI', tipo: 'Costo', richiedeCentroDiCosto: true, centroDiCostoSuggeritoId: '14', centriDiCostoAbilitatiIds: ['14'] },
+  { id: '6005000850', codice: '6005000850', nome: 'CARBURANTI E LUBRIFICANTI', tipo: 'Costo', voceAnaliticaSuggeritaId: '2', richiedeVoceAnalitica: true, vociAnaliticheAbilitateIds: ['2', '8'], contropartiteSuggeriteIds: ['FOR001', '45.01.001'] },
+  { id: '6015000800', codice: '6015000800', nome: 'MANUTENZIONI E RIPARAZIONI AUTOMEZZI', tipo: 'Costo', voceAnaliticaSuggeritaId: '2', richiedeVoceAnalitica: true, vociAnaliticheAbilitateIds: ['2', '8'], contropartiteSuggeriteIds: ['FOR999', '45.01.001'] },
+  { id: '6015001800', codice: '6015001800', nome: 'ASSICURAZIONI OBBLIGATORIE AUTOMEZZI', tipo: 'Costo', voceAnaliticaSuggeritaId: '2', richiedeVoceAnalitica: true, vociAnaliticheAbilitateIds: ['2', '8'], contropartiteSuggeriteIds: ['FOR002', '45.01.001'] },
+  { id: '6015000750', codice: '6015000750', nome: 'MANUTENZIONI E RIPARAZIONI ATTREZZATURE', tipo: 'Costo', voceAnaliticaSuggeritaId: '3', richiedeVoceAnalitica: true, vociAnaliticheAbilitateIds: ['3', '9'] },
+  { id: '6008001114', codice: '6008001114', nome: 'SACCHI E BIDONI', tipo: 'Costo', voceAnaliticaSuggeritaId: '4', richiedeVoceAnalitica: true, vociAnaliticheAbilitateIds: ['4'] },
+  { id: '6015010103', codice: '6015010103', nome: 'SELEZIONE/TRATTAMENTO RIF.INGOMBRANTI', tipo: 'Costo', richiedeVoceAnalitica: true, voceAnaliticaSuggeritaId: '13', vociAnaliticheAbilitateIds: ['13'] },
+  { id: '6015010104', codice: '6015010104', nome: 'CONFERIMENTO RIFIUTI ORGANICI', tipo: 'Costo', richiedeVoceAnalitica: true, voceAnaliticaSuggeritaId: '14', vociAnaliticheAbilitateIds: ['14'] },
   
   // Costi diversi
-  { id: '60100013', codice: '60100013', nome: 'ANTIVIRUS E SOFTWARE', tipo: 'Costo', richiedeCentroDiCosto: true, centroDiCostoSuggeritoId: '12', centriDiCostoAbilitatiIds: ['12'] },
-  { id: '6020000250', codice: '6020000250', nome: 'AFFITTI UFFICI', tipo: 'Costo', richiedeCentroDiCosto: true, centroDiCostoSuggeritoId: '10', centriDiCostoAbilitatiIds: ['10'] },
-  { id: '7820000880', codice: '7820000880', nome: 'TARI (TASSA RIFIUTI)', tipo: 'Costo', richiedeCentroDiCosto: false },
+  { id: '60100013', codice: '60100013', nome: 'ANTIVIRUS E SOFTWARE', tipo: 'Costo', richiedeVoceAnalitica: true, voceAnaliticaSuggeritaId: '12', vociAnaliticheAbilitateIds: ['12'] },
+  { id: '6020000250', codice: '6020000250', nome: 'AFFITTI UFFICI', tipo: 'Costo', richiedeVoceAnalitica: true, voceAnaliticaSuggeritaId: '10', vociAnaliticheAbilitateIds: ['10'] },
+  { id: '7820000880', codice: '7820000880', nome: 'TARI (TASSA RIFIUTI)', tipo: 'Costo', richiedeVoceAnalitica: false },
   
   // --- RICAVI ---
-  { id: '5510001122', codice: '5510001122', nome: 'RICAVI DA CONVENZIONE', tipo: 'Ricavo', richiedeCentroDiCosto: false, contropartiteSuggeriteIds: ['CLI001', 'CLI002', 'CLI003', '45.02.001'] },
-  { id: '5510001121', codice: '5510001121', nome: 'RICAVI DA RACCOLTA DIFFERENZIATA', tipo: 'Ricavo', richiedeCentroDiCosto: true, centriDiCostoAbilitatiIds: ['13', '14'] },
-  { id: '50100002', codice: '50100002', nome: 'RICAVI PRESTAZIONI DI SERVIZI', tipo: 'Ricavo', richiedeCentroDiCosto: true, centroDiCostoSuggeritoId: '5', centriDiCostoAbilitatiIds: ['5', '6', '11'] },
-  { id: '5510001132', codice: '5510001132', nome: 'RICAVI DA MANUT. VERDE PUBBLICO', tipo: 'Ricavo', richiedeCentroDiCosto: true, centroDiCostoSuggeritoId: '15', centriDiCostoAbilitatiIds: ['15'] },
-  { id: '5560000950', codice: '5560000950', nome: 'RISARCIMENTI ASSICURATIVI', tipo: 'Ricavo', richiedeCentroDiCosto: false },
+  { id: '5510001122', codice: '5510001122', nome: 'RICAVI DA CONVENZIONE', tipo: 'Ricavo', richiedeVoceAnalitica: false, contropartiteSuggeriteIds: ['CLI001', 'CLI002', 'CLI003', '45.02.001'] },
+  { id: '5510001121', codice: '5510001121', nome: 'RICAVI DA RACCOLTA DIFFERENZIATA', tipo: 'Ricavo', richiedeVoceAnalitica: true, vociAnaliticheAbilitateIds: ['13', '14'] },
+  { id: '50100002', codice: '50100002', nome: 'RICAVI PRESTAZIONI DI SERVIZI', tipo: 'Ricavo', richiedeVoceAnalitica: true, voceAnaliticaSuggeritaId: '5', vociAnaliticheAbilitateIds: ['5', '6', '11'] },
+  { id: '5510001132', codice: '5510001132', nome: 'RICAVI DA MANUT. VERDE PUBBLICO', tipo: 'Ricavo', richiedeVoceAnalitica: true, voceAnaliticaSuggeritaId: '15', vociAnaliticheAbilitateIds: ['15'] },
+  { id: '5560000950', codice: '5560000950', nome: 'RISARCIMENTI ASSICURATIVI', tipo: 'Ricavo', richiedeVoceAnalitica: false },
   
   // --- CONTI PATRIMONIALI E FINANZIARI ---
   { id: '45.01.001', codice: '45.01.001', nome: 'IVA NS/CREDITO', tipo: 'Patrimoniale' },
   { id: '45.02.001', codice: '45.02.001', nome: 'IVA NS/DEBITO', tipo: 'Patrimoniale' },
-  { id: '10.01.001', codice: '10.01.001', nome: 'BANCA INTESA SANPAOLO C/C', tipo: 'Patrimoniale' },
+  { id: '10.01.001', codice: '10.01.001', nome: 'BANCA INTESA SANPAOLO', tipo: 'Patrimoniale' },
   { id: '1010001', codice: '1010001', nome: 'CASSA CONTANTI', tipo: 'Patrimoniale' },
 
   // Clienti
@@ -86,9 +86,9 @@ export const pianoDeiConti: Conto[] = [
   { id: '4010000002', codice: '4010000002', nome: 'Cliente ACME S.p.A.', tipo: 'Cliente' },
   { id: '45.01.001', codice: '45.01.001', nome: 'IVA SU ACQUISTI', tipo: 'Patrimoniale' },
   { id: '45.02.001', codice: '45.02.001', nome: 'IVA SU VENDITE', tipo: 'Patrimoniale' },
-  { id: '6005000850', codice: '6005000850', nome: 'CARBURANTI E LUBRIFICANTI', tipo: 'Costo', centroDiCostoSuggeritoId: '2', richiedeCentroDiCosto: true, centriDiCostoAbilitatiIds: ['2', '8'] },
-  { id: '60100002', codice: '60100002', nome: 'ACQUISTI PRESTAZIONI DI SERVIZI', tipo: 'Costo', richiedeCentroDiCosto: true, centriDiCostoAbilitatiIds: ['5', '6', '11', '13', '14'] },
-  { id: '7001000001', codice: '7001000001', nome: 'RICAVI PER SERVIZI', tipo: 'Ricavo', richiedeCentroDiCosto: true, centriDiCostoAbilitatiIds: ['5', '6', '11'] },
+  { id: '6005000850', codice: '6005000850', nome: 'CARBURANTI E LUBRIFICANTI', tipo: 'Costo', voceAnaliticaSuggeritaId: '2', richiedeVoceAnalitica: true, vociAnaliticheAbilitateIds: ['2', '8'] },
+  { id: '60100002', codice: '60100002', nome: 'ACQUISTI PRESTAZIONI DI SERVIZI', tipo: 'Costo', richiedeVoceAnalitica: true, vociAnaliticheAbilitateIds: ['5', '6', '11', '13', '14'] },
+  { id: '7001000001', codice: '7001000001', nome: 'RICAVI PER SERVIZI', tipo: 'Ricavo', richiedeVoceAnalitica: true, vociAnaliticheAbilitateIds: ['5', '6', '11'] },
 ];
 
 
@@ -213,7 +213,7 @@ export const registrazioniContabili: ScritturaContabile[] = [
         dare: 1000,
         avere: 0,
         allocazioni: [
-          { id: 'ALLOC001', commessaId: 'SORRENTO', centroDiCostoId: '2', importo: 1000 }
+          { id: 'ALLOC001', commessaId: 'SORRENTO', voceAnaliticaId: '2', importo: 1000 }
         ]
       },
       {
@@ -247,9 +247,7 @@ export const registrazioniContabili: ScritturaContabile[] = [
         dare: 0,
         avere: 5000,
         allocazioni: [
-          // Poiché i ricavi non hanno centro di costo, l'allocazione qui è solo per commessa.
-          // In un caso reale, potremmo avere un CdC "Ricavi" generico o nessuno.
-          // Per ora, lo lasciamo per coerenza ma potrebbe essere vuoto.
+          { id: 'ALLOC002', commessaId: 'SORRENTO', voceAnaliticaId: '', importo: 5000 }
         ]
       },
       {

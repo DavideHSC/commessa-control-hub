@@ -1,13 +1,13 @@
 import { 
   commesse, 
-  centriDiCosto, 
+  vociAnalitiche, 
   pianoDeiConti, 
   registrazioniContabili,
   causaliContabili 
 } from '@/data/mock';
 import { 
   Commessa, 
-  CentroDiCosto, 
+  VoceAnalitica, 
   Conto, 
   ScritturaContabile,
   CausaleContabile
@@ -23,9 +23,9 @@ export const getCommesse = async (): Promise<Commessa[]> => {
   return Promise.resolve(commesse);
 };
 
-export const getCentriDiCosto = async (): Promise<CentroDiCosto[]> => {
+export const getVociAnalitiche = async (): Promise<VoceAnalitica[]> => {
   await networkDelay(50);
-  return Promise.resolve(centriDiCosto);
+  return Promise.resolve(vociAnalitiche);
 };
 
 export const getPianoDeiConti = async (): Promise<Conto[]> => {
