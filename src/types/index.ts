@@ -118,9 +118,50 @@ export interface ScritturaContabile {
   descrizione: string;
   righe: RigaScrittura[];
   datiAggiuntivi?: {
+    fornitoreId?: string | null;
     clienteId?: string | null;
     totaleFattura?: number | string;
     aliquotaIva?: number;
+  };
+}
+
+// --- Tipi per la Dashboard di Controllo ---
+
+/**
+ * Rappresenta il dettaglio di una singola voce analitica (ex centro di costo)
+ * all'interno della dashboard per una specifica commessa.
+ */
+export interface DettaglioAnaliticoDashboard {
+  voceAnaliticaId: string;
+  voceAnaliticaNome: string;
+  budget: number;
+  consuntivo: number;
+  scostamento: number; // calcolato come budget - consuntivo
+}
+
+/**
+ * Contiene tutti i dati aggregati per una singola commessa,
+ * pronti per essere visualizzati nella dashboard.
+ */
+export interface CommessaDashboard {
+  commessaId: string;
+  commessaNome: string;
+  budgetTotale: number;
+  consuntivoTotale: number;
+  scostamento: number; // calcolato come budgetTotale - consuntivoTotale
+  avanzamentoPercentuale: number; // (consuntivo / budget) * 100
+  dettagli: DettaglioAnaliticoDashboard[];
+}
+
+/**
+ * L'oggetto dati principale per popolare l'intera dashboard di controllo.
+ */
+export interface DashboardData {
+  commesse: CommessaDashboard[];
+  totaleGenerale: {
+    budget: number;
+    consuntivo: number;
+    scostamento: number;
   };
 }
 

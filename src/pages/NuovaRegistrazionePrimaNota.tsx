@@ -80,7 +80,7 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
   const [allocazioneRigaId, setAllocazioneRigaId] = useState<string | null>(null);
   const [allocazioniTemporanee, setAllocazioniTemporanee] = useState<Allocazione[]>([]);
   const [isCostoInAllocazione, setIsCostoInAllocazione] = useState<boolean>(false);
-  const [clienteSelezionato, setClienteSelezionato] = useState<string | null>(null);
+  const [fornitoreSelezionato, setFornitoreSelezionato] = useState<string | null>(null);
 
   // Caricamento dati iniziali e della registrazione in modalità modifica
   useEffect(() => {
@@ -113,7 +113,7 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
                 totaleDocumento: regDaModificare.datiAggiuntivi.totaleFattura || 0,
                 aliquotaIva: regDaModificare.datiAggiuntivi.aliquotaIva || 22,
               });
-              setClienteSelezionato(regDaModificare.datiAggiuntivi.clienteId || null);
+              setFornitoreSelezionato(regDaModificare.datiAggiuntivi.fornitoreId || null);
             }
           } else {
             toast.error("Registrazione non trovata.");
@@ -224,6 +224,35 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
     return conto ? ['Costo', 'Ricavo'].includes(conto.tipo) : false;
   };
 
+  const proceedWithSave = async () => {
+    setIsSaving(true);
+    try {
+      const dataToSave: ScritturaContabile = {
+        ...registrazione,
+        datiAggiuntivi: {
+          totaleFattura: datiPrimari.totaleDocumento as number,
+          aliquotaIva: datiPrimari.aliquotaIva as number,
+          fornitoreId: fornitoreSelezionato,
+          clienteId: null, // Per ora gestiamo solo fornitori
+        }
+      };
+
+      if (isEditMode && registrazioneId) {
+        await updateRegistrazione(dataToSave);
+        toast.success("Registrazione aggiornata con successo!");
+      } else {
+        await addRegistrazione(dataToSave);
+        toast.success("Registrazione creata con successo!");
+      }
+      navigate('/prima-nota');
+    } catch (error) {
+      toast.error("Si è verificato un errore durante il salvataggio.");
+      console.error(error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleSave = async () => {
     // Validazione #1: controlla che tutte le righe abbiano un conto selezionato.
     for (const [index, riga] of registrazione.righe.entries()) {
@@ -236,29 +265,13 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
     }
 
     // Validazione #2: controlla se una riga di costo/ricavo non è stata allocata.
-    for (const riga of registrazione.righe) {
-      if (isAllocazioneEnabled(riga.contoId) && riga.allocazioni.length === 0) {
-        setRigaDaAllocareId(riga.id);
-        setShowAllocazioneWarning(true);
-        return; // Blocca il salvataggio e mostra l'avviso
-      }
-    }
+    const rigaNonAllocata = registrazione.righe.find(riga => isAllocazioneEnabled(riga.contoId) && riga.allocazioni.length === 0);
 
-    setIsSaving(true);
-    try {
-      if (isEditMode && registrazioneId) {
-        await updateRegistrazione(registrazione);
-        toast.success("Registrazione aggiornata!");
-      } else {
-        const { id, ...nuovaReg } = registrazione;
-        await addRegistrazione(nuovaReg);
-        toast.success("Registrazione creata!");
-      }
-      navigate('/prima-nota');
-    } catch (error) {
-      toast.error("Errore nel salvataggio.");
-    } finally {
-      setIsSaving(false);
+    if (rigaNonAllocata) {
+      setRigaDaAllocareId(rigaNonAllocata.id);
+      setShowAllocazioneWarning(true);
+    } else {
+      await proceedWithSave();
     }
   };
 
@@ -390,37 +403,74 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
   };
 
   const renderDatiPrimari = () => (
-    <div className="space-y-4">
-      <div>
-        <Label htmlFor="causale">Causale Contabile</Label>
-        <Select value={registrazione.causaleId} onValueChange={handleCausaleChange}>
-          <SelectTrigger id="causale"><SelectValue placeholder="Seleziona una causale..." /></SelectTrigger>
-          <SelectContent>{causali.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}</SelectContent>
-        </Select>
-      </div>
-      {causaleSelezionata?.datiPrimari.map(campo => (
-        <div key={campo.id}>
-          <Label htmlFor={campo.id}>{campo.label}</Label>
-          {campo.tipo === 'select' ? (
-            <Combobox
-              options={conti.filter(c => c.tipo === campo.riferimentoConto).map(c => ({ value: c.id, label: c.nome }))}
-              value={datiPrimari[campo.id] as string || ''}
-              onChange={(value) => handleDatiPrimariChange(campo.id, value)}
-              placeholder={`Seleziona ${campo.label.toLowerCase()}...`}
-            />
-          ) : (
-            <Input
-              id={campo.id}
-              type="text"
-              className="text-right"
-              value={displayValues[campo.id] || ''}
-              onChange={(e) => handleDisplayValueChange(campo.id, e.target.value)}
-              onBlur={() => handleDisplayValueBlur(campo.id, 'totale')}
-            />
-          )}
+    <Card>
+      <CardHeader><CardTitle>Dati Principali</CardTitle></CardHeader>
+      <CardContent className="space-y-4">
+        <div>
+          <Label htmlFor="causale">Causale Contabile</Label>
+          <Select onValueChange={handleCausaleChange} value={causaleSelezionata?.id || ''} disabled={isEditMode}>
+            <SelectTrigger id="causale">
+              <SelectValue placeholder="Seleziona una causale..." />
+            </SelectTrigger>
+            <SelectContent>
+              {causali.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+            </SelectContent>
+          </Select>
         </div>
-      ))}
-    </div>
+
+        {causaleSelezionata?.datiPrimari.map(dp => {
+          const campoId = dp.id;
+          
+          if (dp.riferimentoConto === 'Fornitore') {
+            const fornitori = conti.filter(c => c.tipo === 'Fornitore');
+            return (
+              <div key={dp.id}>
+                <Label>{dp.label}</Label>
+                <Combobox
+                  options={fornitori.map(f => ({ value: f.id, label: f.nome }))}
+                  value={fornitoreSelezionato}
+                  onChange={setFornitoreSelezionato}
+                  placeholder="Seleziona fornitore..."
+                  searchPlaceholder="Cerca fornitore..."
+                  emptyPlaceholder="Nessun fornitore trovato."
+                />
+              </div>
+            );
+          }
+
+          if (dp.riferimentoConto === 'Cliente') {
+            const clienti = conti.filter(c => c.tipo === 'Cliente');
+            return (
+              <div key={dp.id}>
+                <Label>{dp.label}</Label>
+                <Combobox
+                  options={clienti.map(c => ({ value: c.id, label: c.nome }))}
+                  value={null} // Non gestiamo ancora i clienti
+                  onChange={() => {}} // Non gestiamo ancora i clienti
+                  placeholder="Seleziona cliente..."
+                  searchPlaceholder="Cerca cliente..."
+                  emptyPlaceholder="Nessun cliente trovato."
+                />
+              </div>
+            );
+          }
+
+          return (
+            <div key={dp.id}>
+              <Label htmlFor={dp.id}>{dp.label}</Label>
+              <Input
+                id={dp.id}
+                type="text"
+                value={displayValues[campoId] || ''}
+                onChange={(e) => handleDisplayValueChange(campoId, e.target.value)}
+                onBlur={() => handleDisplayValueBlur(campoId, 'totale')}
+                className="text-right"
+              />
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
   );
 
   const renderAllocazioneModal = () => {
@@ -522,10 +572,7 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 space-y-6">
-          <Card>
-            <CardHeader><CardTitle>Dati Principali</CardTitle></CardHeader>
-            <CardContent>{renderDatiPrimari()}</CardContent>
-          </Card>
+          {renderDatiPrimari()}
 
           {!isEditMode && causaleSelezionata?.templateScrittura.length > 0 && (
             <Card>
@@ -650,19 +697,21 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Allocazione Mancante</AlertDialogTitle>
             <AlertDialogDescription>
-              Una o più righe di costo/ricavo non sono state allocate a una commessa. 
-              Questo è necessario per il controllo di gestione. Vuoi procedere con l'allocazione ora?
+              Una o più righe di costo/ricavo non sono state allocate a una commessa. Questo è necessario per il controllo di gestione. Vuoi procedere con l'allocazione ora?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => navigate('/prima-nota')}>No, torna alla lista</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (rigaDaAllocareId) {
-                  setAllocazioneRigaId(rigaDaAllocareId);
-                }
-              }}
-            >
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <Button variant="outline" onClick={() => {
+              setShowAllocazioneWarning(false);
+              proceedWithSave();
+            }}>
+              Salva Comunque
+            </Button>
+            <AlertDialogAction onClick={() => {
+              setShowAllocazioneWarning(false);
+              setAllocazioneRigaId(rigaDaAllocareId);
+            }}>
               Alloca Ora
             </AlertDialogAction>
           </AlertDialogFooter>

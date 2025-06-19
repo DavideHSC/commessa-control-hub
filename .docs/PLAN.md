@@ -65,27 +65,70 @@ Questo documento delinea le fasi e i task necessari per trasformare il prototipo
 
 ---
 
-### 🎯 Fase 5: La Dashboard di Controllo (VIEW)
+### ✅ Fase 4.8: Completamento Ciclo CRUD (UPDATE e DELETE)
 
-**Obiettivo:** Trasformare la pagina `Dashboard.tsx` in un cruscotto di controllo di gestione che mostri i dati aggregati per ogni commessa, confrontando **Budget vs. Consuntivo**.
+**Obiettivo:** Implementare le funzionalità mancanti per la gestione completa delle scritture contabili, consentendo la modifica e l'eliminazione delle registrazioni esistenti.
 
-**Stato:** ⏳ **Da iniziare**
+**Stato:** ✅ **Completata**
 
-**Passi Previsti:**
-1.  **Analisi Iniziale**: Leggere il contenuto attuale di `commessa-control-hub/src/pages/Dashboard.tsx` per capire la sua struttura di base.
-2.  **Definizione Dati Dashboard**: Definire una nuova struttura dati in `src/types/index.ts` per contenere i dati aggregati necessari (es. `DashboardData`). Questa struttura dovrebbe contenere, per ogni commessa, il budget totale, il consuntivo totale e il dettaglio per centro di costo.
-3.  **Logica di Aggregazione**: Creare una nuova funzione (`getDashboardData`) nel layer API che:
-    - Prende in input tutte le commesse e tutte le registrazioni contabili.
-    - Calcola i dati aggregati per la dashboard.
-    - Restituisce i dati nel formato definito al punto 2.
-4.  **Integrazione UI**: Modificare `Dashboard.tsx` per:
-    - Chiamare la nuova funzione API per ottenere i dati aggregati.
-    - Visualizzare i dati in modo chiaro e intuitivo, usando i componenti ShadCN/UI (es. `Card`, `Table`, `Chart`) per mostrare il confronto Budget vs. Consuntivo per ogni commessa.
+- ✅ **Funzionalità di Modifica (Update):**
+    - Aggiunta l'icona "Modifica" e la relativa logica nella tabella della `PrimaNota.tsx`.
+    - Riutilizzato e adattato il componente `NuovaRegistrazionePrimaNota.tsx` per funzionare anche in modalità di modifica, pre-caricando i dati della registrazione selezionata.
+    - Implementate le funzioni API `getRegistrazioneById` e `updateRegistrazione` per recuperare e salvare i dati modificati.
+    - Perfezionata la UX in modalità modifica, nascondendo elementi non pertinenti (es. "Generazione Automatica") e garantendo il corretto caricamento di tutti i dati.
+
+- ✅ **Funzionalità di Eliminazione (Delete):**
+    - Aggiunto il pulsante "Elimina" nella tabella della `PrimaNota.tsx`.
+    - Implementata la funzione API `deleteRegistrazione`.
+    - Integrato un `AlertDialog` di conferma per prevenire eliminazioni accidentali.
+
+- ✅ **Bug Fixing e Validazione:**
+    - Corretto un bug che permetteva il salvataggio di righe di registrazione incomplete.
+    - Implementato un flusso di avviso per guidare l'utente a completare le allocazioni mancanti prima del salvataggio.
+    - Risolto un bug critico che impediva il salvataggio corretto delle allocazioni modificate.
 
 ---
 
-### ⏳ Fase 6: Finalizzazione e Aggiornamento (Prossimi Passi)
-- [ ] **Task 6.1:** Eseguire un'attività di pulizia del codice per risolvere tutti i `linting error` residui emersi durante il refactoring (`data/mock.ts`, `CommessaDettaglio.tsx`).
-- [ ] **Task 6.2:** Aggiornare la documentazione e le guide di utilizzo del progetto.
-- [ ] **Task 6.3:** Eseguire test di regressione per garantire che il sistema funzioni correttamente anche in condizioni di carico elevato.
-- [ ] **Task 6.4:** (Opzionale) Aggiungere un grafico a barre o a torta per una rappresentazione visuale immediata della composizione dei costi. 
+### ✅ Fase 5: La Dashboard di Controllo (VIEW)
+
+**Obiettivo:** Trasformare la pagina `Dashboard.tsx` in un cruscotto di controllo di gestione che mostri i dati aggregati per ogni commessa, confrontando **Budget vs. Consuntivo**.
+
+**Stato:** ✅ **Completata**
+
+**Lavoro Svolto:**
+- ✅ **Definizione Struttura Dati:** Create nuove interfacce (`DashboardData`, `CommessaDashboard`) in `src/types/index.ts` per modellare i dati aggregati.
+- ✅ **Logica di Aggregazione Dati:** Implementata una nuova funzione `getDashboardData` in `src/api/dashboard.ts` che recupera commesse e registrazioni, calcola totali di budget, consuntivo e scostamenti per ogni commessa e per voce analitica.
+- ✅ **Sviluppo Interfaccia Utente:** La pagina `Dashboard.tsx` è stata completamente riprogettata. Ora carica i dati in modo asincrono, mostra uno stato di caricamento (`skeleton`), e presenta i dati attraverso:
+    - Un riepilogo con `Card` per i totali generali.
+    - Un componente `Accordion` per visualizzare ogni commessa singolarmente.
+    - Una `Table` di dettaglio per ogni commessa, che mostra il confronto Budget/Consuntivo/Scostamento per ogni voce analitica.
+    - Una `Progress` bar per un colpo d'occhio immediato sull'avanzamento dei costi.
+
+---
+
+### ✅ Fase 6: Connessione al Database e Refactoring API
+
+**Obiettivo:** Sostituire il sistema di dati mock in memoria con una vera connessione al database `postgres_dev_server` (PostgreSQL), rendendo i dati persistenti tramite l'ORM Prisma.
+
+**Stato:** ✅ **Completata**
+
+- ✅ **Installazione e Configurazione di Prisma:** Installate e configurate le dipendenze, inizializzato Prisma e definito lo schema dati in `schema.prisma`.
+- ✅ **Migrazione e Connessione:** Eseguita la migrazione iniziale del database e configurata la connessione tramite il file `.env`.
+- ✅ **Risoluzione Problemi di Seeding:** Affrontato e risolto un complesso problema di esecuzione dello script di seed (`npx prisma db seed`) causato da conflitti tra moduli ESM e CommonJS, configurazioni di `tsconfig`, e versioni dei pacchetti. La soluzione ha richiesto:
+    - L'adozione di `tsx` per l'esecuzione dello script.
+    - La correzione del path di output del client Prisma in `schema.prisma`.
+    - Il pinning di versioni stabili per i pacchetti `prisma` e `@prisma/client`.
+    - La modifica dello script per usare `upsert` e garantire l'idempotenza.
+- ✅ **Refactoring del Layer API:** Sostituita la logica mock nei file `src/api/*.ts` con chiamate reali al database tramite il client di Prisma. Questo include tutte le operazioni CRUD per le registrazioni e la logica di aggregazione dati per la dashboard.
+
+---
+### ✅ Fase 7: Finalizzazione e Pulizia
+
+**Obiettivo:** Raffinare il codice, migliorare la documentazione e validare il comportamento dell'applicazione dopo il passaggio al database reale.
+
+**Stato:** ✅ **Completata**
+
+- [x] **Task 7.1:** Eseguire un'attività di pulizia del codice per risolvere tutti i `linting error` residui.
+- [x] **Task 7.2:** Aggiornare la documentazione e le guide di utilizzo del progetto.
+- [x] **Task 7.3:** Eseguire test di regressione per garantire che il sistema funzioni correttamente con il nuovo database.
+- [ ] **Task 7.4:** (Opzionale) Aggiungere un grafico a barre o a torta per una rappresentazione visuale immediata della composizione dei costi. 

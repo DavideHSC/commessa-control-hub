@@ -1,0 +1,170 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 2. Definizioni di tipi enumerati (Enum)
+// Usati per limitare i valori possibili di un campo.
+
+enum TipoConto {
+  Costo
+  Ricavo
+  Patrimoniale
+  Fornitore
+  Cliente
+}
+
+enum TipoCampo {
+  number
+  select
+  text
+  date
+}
+
+enum SezioneScrittura {
+  Dare
+  Avere
+}
+
+enum FormulaImporto {
+  imponibile
+  iva
+  totale
+}
+
+// 3. Modelli Dati (le nostre tabelle)
+
+// --- MODELLI DI BASE ---
+
+model VoceAnalitica {
+  id          String  @id
+  nome        String  @unique
+  descrizione String?
+
+  budgetItems             BudgetVoce[]
+  allocazioni             Allocazione[]
+  contiPerCuiESuggerita   Conto[]
+}
+
+model Conto {
+  id                         String   @id
+  codice                     String   @unique
+  nome                       String
+  tipo                       TipoConto
+  richiedeVoceAnalitica      Boolean  @default(false)
+  vociAnaliticheAbilitateIds String[]
+  contropartiteSuggeriteIds  String[]
+
+  voceAnaliticaSuggeritaId   String?
+  voceAnaliticaSuggerita     VoceAnalitica? @relation(fields: [voceAnaliticaSuggeritaId], references: [id])
+
+  righeScrittura             RigaScrittura[]
+}
+
+model Commessa {
+  id          String   @id
+  nome        String   @unique
+  clienteId   String?
+  descrizione String?
+
+  budget      BudgetVoce[]
+  allocazioni Allocazione[]
+}
+
+model BudgetVoce {
+  id              String        @id @default(cuid())
+  importo         Float
+
+  commessaId      String
+  commessa        Commessa      @relation(fields: [commessaId], references: [id], onDelete: Cascade)
+  voceAnaliticaId String
+  voceAnalitica   VoceAnalitica @relation(fields: [voceAnaliticaId], references: [id], onDelete: Cascade)
+
+  @@unique([commessaId, voceAnaliticaId])
+}
+
+// --- MODELLI TRANSAZIONALI (CONTABILITA') ---
+
+model ScritturaContabile {
+  id             String    @id @default(cuid())
+  data           DateTime  @default(now())
+  causaleId      String
+  descrizione    String
+  datiAggiuntivi Json?
+
+  righe          RigaScrittura[]
+}
+
+model RigaScrittura {
+  id                   String        @id @default(cuid())
+  descrizione          String
+  dare                 Float
+  avere                Float
+
+  contoId              String
+  conto                Conto         @relation(fields: [contoId], references: [id])
+
+  scritturaContabileId String
+  scritturaContabile   ScritturaContabile @relation(fields: [scritturaContabileId], references: [id], onDelete: Cascade)
+
+  allocazioni          Allocazione[]
+}
+
+model Allocazione {
+  id                String        @id @default(cuid())
+  importo           Float
+  descrizione       String?
+
+  rigaScritturaId   String
+  rigaScrittura     RigaScrittura @relation(fields: [rigaScritturaId], references: [id], onDelete: Cascade)
+
+  commessaId        String
+  commessa          Commessa      @relation(fields: [commessaId], references: [id])
+
+  voceAnaliticaId   String
+  voceAnalitica     VoceAnalitica @relation(fields: [voceAnaliticaId], references: [id])
+}
+
+// --- MODELLI PER LA CONFIGURAZIONE DEGLI AUTOMATISMI ---
+
+model CausaleContabile {
+  id                String   @id
+  nome              String   @unique
+  descrizione       String
+
+  datiPrimari       CampoDatiPrimari[]
+  templateScrittura VoceTemplateScrittura[]
+}
+
+model CampoDatiPrimari {
+  id                 String     @id @default(cuid())
+  fieldId            String // es: 'totaleDocumento'
+  label              String
+  tipo               TipoCampo
+  riferimentoConto   TipoConto?
+
+  causaleId          String
+  causale            CausaleContabile @relation(fields: [causaleId], references: [id], onDelete: Cascade)
+
+  @@unique([causaleId, fieldId])
+}
+
+model VoceTemplateScrittura {
+  id             String         @id @default(cuid())
+  sezione        SezioneScrittura
+  contoId        String
+  formulaImporto FormulaImporto
+
+  causaleId      String
+  causale        CausaleContabile @relation(fields: [causaleId], references: [id], onDelete: Cascade)
+}

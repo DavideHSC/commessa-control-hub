@@ -3,12 +3,12 @@ version: '3.8'
 # Server PostgreSQL generico per lo sviluppo locale
 services:
   postgres_dev:
-    image: postgres:15-alpine  # Usiamo l'immagine standard, vedi punto 2
+    image: postgres:15-alpine
     container_name: postgres_dev_server
     environment:
-      POSTGRES_USER: dev_user # Un utente generico per lo sviluppo
-      POSTGRES_PASSWORD: LaTuaPasswordSuperSicura # <-- CAMBIA QUESTA!
-      POSTGRES_DB: dev_main_db # Un database di default, ma ne creeremo altri
+      POSTGRES_USER: dev_user
+      POSTGRES_PASSWORD: Remotepass1
+      POSTGRES_DB: dev_main_db
     ports:
       - "5433:5432"
     volumes:

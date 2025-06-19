@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Plus, Eye, Edit, Trash2 } from 'lucide-react';
+import { Plus, Eye, Edit, Trash2, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -12,8 +12,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { ScritturaContabile } from '@/types';
+import { ScritturaContabile, Conto } from '@/types';
 import { getRegistrazioni, deleteRegistrazione } from '@/api/registrazioni';
+import { getPianoDeiConti } from '@/api';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,22 +31,27 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 const PrimaNota: React.FC = () => {
   const navigate = useNavigate();
   const [registrazioni, setRegistrazioni] = useState<ScritturaContabile[]>([]);
+  const [conti, setConti] = useState<Conto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [registrazioneDaEliminare, setRegistrazioneDaEliminare] = useState<ScritturaContabile | null>(null);
 
   useEffect(() => {
-    const fetchRegistrazioni = async () => {
+    const fetchAllData = async () => {
       try {
-        const data = await getRegistrazioni();
-        setRegistrazioni(data);
+        const [registrazioniData, contiData] = await Promise.all([
+          getRegistrazioni(),
+          getPianoDeiConti(),
+        ]);
+        setRegistrazioni(registrazioniData);
+        setConti(contiData);
       } catch (error) {
-        console.error("Failed to fetch registrazioni:", error);
-        toast.error("Errore nel caricamento delle registrazioni.");
+        console.error("Failed to fetch data:", error);
+        toast.error("Errore nel caricamento dei dati.");
       } finally {
         setIsLoading(false);
       }
     };
-    fetchRegistrazioni();
+    fetchAllData();
   }, []);
 
   const handleDelete = async () => {
@@ -68,6 +74,14 @@ const PrimaNota: React.FC = () => {
     const totaleAvere = scrittura.righe.reduce((sum, riga) => sum + riga.avere, 0);
     const sbilancio = Math.abs(totaleDare - totaleAvere);
     return { totale: totaleDare, sbilancio };
+  };
+
+  const checkAllocazioneMancante = (scrittura: ScritturaContabile): boolean => {
+    return scrittura.righe.some(riga => {
+      const conto = conti.find(c => c.id === riga.contoId);
+      const richiedeAllocazione = conto && (conto.tipo === 'Costo' || conto.tipo === 'Ricavo');
+      return richiedeAllocazione && riga.allocazioni.length === 0;
+    });
   };
 
   if (isLoading) {
@@ -99,12 +113,14 @@ const PrimaNota: React.FC = () => {
                 <th className="text-left p-2">Descrizione</th>
                 <th className="text-right p-2">Totale</th>
                 <th className="text-center p-2">Stato</th>
+                <th className="text-center p-2">Allocazione</th>
                 <th className="text-center p-2">Azioni</th>
               </tr>
             </thead>
             <tbody>
               {registrazioni.map(scrittura => {
                 const { totale, sbilancio } = getTotaliScrittura(scrittura);
+                const allocazioneMancante = checkAllocazioneMancante(scrittura);
                 return (
                   <tr key={scrittura.id} className="border-b">
                     <td className="p-2">{new Date(scrittura.data).toLocaleDateString('it-IT')}</td>
@@ -114,6 +130,20 @@ const PrimaNota: React.FC = () => {
                       <Badge variant={sbilancio > 0.01 ? 'destructive' : 'default'} className={sbilancio <= 0.01 ? 'bg-green-600' : ''}>
                         {sbilancio > 0.01 ? 'Sbilanciata' : 'Quadrata'}
                       </Badge>
+                    </td>
+                    <td className="p-2 text-center">
+                      {allocazioneMancante && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <AlertTriangle className="h-5 w-5 text-amber-500 mx-auto" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Allocazione mancante</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
                     </td>
                     <td className="p-2 text-center">
                       <TooltipProvider>
