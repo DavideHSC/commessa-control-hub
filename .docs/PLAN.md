@@ -147,12 +147,13 @@ Questo documento delinea le fasi e i task necessari per trasformare il prototipo
 
 **Obiettivo:** Implementare una funzionalità robusta per l'importazione di dati contabili da file di testo a larghezza fissa, come specificato nel `PIANO_IMPORTAZIONE_DATI.md`.
 
-**Stato:** ✅ **Completata**
+**Stato:** ✅ **Completata e Verificata**
 
 - ✅ **Estensione Schema DB:** Modificato lo schema Prisma per supportare importazioni multi-file, aggiungendo un `fileIdentifier` alle definizioni dei campi.
 - ✅ **Logica di Parsing Avanzata:** Sviluppata una logica di backend per orchestrare il parsing di file multipli (`PNTESTA`, `PNRIGCON`, etc.), mappando correttamente le relazioni tra le varie entità.
 - ✅ **Importazione Transazionale:** Garantita l'integrità dei dati utilizzando `prisma.$transaction` per l'intero processo di salvataggio.
 - ✅ **Refactoring UI di Importazione:** Riscritto completamente il componente `Import.tsx` per supportare la selezione dinamica di template e il caricamento di file multipli, migliorando drasticamente l'usabilità della funzione.
+- ✅ **Correzione Logica Allocazioni:** Risolta una criticità che assegnava una voce analitica codificata. Ora l'importazione supporta pienamente i dati di allocazione analitica dal file `PNRIGANA.TXT`.
 
 ---
 
@@ -160,11 +161,9 @@ Questo documento delinea le fasi e i task necessari per trasformare il prototipo
 
 **Obiettivo:** Aumentare la sicurezza e il controllo del processo di importazione introducendo un passaggio di anteprima e conferma prima del salvataggio definitivo dei dati.
 
-**Stato:** 📝 **Pianificato**
+**Stato:** 🟉 **Rimosso/Da Rivalutare**
 
-- [ ] **Task 8.6.1:** Modificare l'endpoint API di importazione per supportare una modalità "dry run" (esecuzione a secco) che analizzi i file e restituisca un riepilogo senza salvare i dati.
-- [ ] **Task 8.6.2:** Creare un nuovo endpoint API (o modificare l'esistente) per eseguire il "commit" dei dati pre-analizzati solo dopo la conferma dell'utente.
-- [ ] **Task 8.6.3:** Aggiornare l'interfaccia utente di `Import.tsx` per mostrare una vista di anteprima con il riepilogo dei dati e richiedere una conferma esplicita prima di avviare il salvataggio definitivo.
+- [ ] **Task 8.6.1:** La logica di "dry run" è stata rimossa durante un refactoring per semplificare il flusso. Si valuterà se reintrodurla in futuro in base alle necessità.
 
 ---
 
@@ -200,7 +199,7 @@ Questo documento delinea le fasi e i task necessari per trasformare il prototipo
 
 **Obiettivo:** Raccogliere idee e possibili miglioramenti non critici da implementare per migliorare l'usabilità e la manutenibilità dell'applicazione.
 
-**Stato:** 📝 **Pianificato**
+**Stato:** 🟠 **In Corso**
 
 - [ ] **Task 10.1:** Rendere la lista delle tabelle nella pagina di **Amministrazione Database** dinamica, recuperando l'elenco direttamente dal backend per evitare aggiornamenti manuali del frontend quando lo schema del database cambia.
-- [ ] **Task 10.2:** Creare un'interfaccia utente nella sezione di **Amministrazione Database** per visualizzare e gestire i template di importazione (`ImportTemplate`) e le loro definizioni di campo (`FieldDefinition`), eliminando la necessità di gestirli tramite lo script di seed. 
+- [ ] **Task 10.2 (In Lavorazione):** Creare un'interfaccia utente nella sezione di **Amministrazione Database** per visualizzare e gestire i template di importazione (`ImportTemplate`) e le loro definizioni di campo (`FieldDefinition`), eliminando la necessità di gestirli tramite lo script di seed. 

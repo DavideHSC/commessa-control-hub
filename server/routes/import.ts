@@ -111,15 +111,34 @@ async function saveDataInTransaction(data: { testate: any[], righeContabili: any
 
     await prisma.$transaction(async (tx) => {
         for (const [testataId, testata] of testateMap.entries()) {
-            const scrittura = await tx.scritturaContabile.create({
-                data: {
+
+            // Se la scrittura esiste, prima eliminiamo le sue righe per poterle ricreare.
+            // Grazie a onDelete: Cascade, verranno eliminate anche righeIva e allocazioni.
+            const existingScrittura = await tx.scritturaContabile.findUnique({
+                where: { externalId: testataId }
+            });
+
+            if (existingScrittura) {
+                await tx.rigaScrittura.deleteMany({
+                    where: { scritturaContabileId: existingScrittura.id }
+                });
+            }
+
+            const scritturaData = {
+                data: testata.data_registrazione,
+                descrizione: `Importazione - ${testataId}`,
+                causaleId: testata.codice_causale.trim(),
+                dataDocumento: testata.data_documento,
+                numeroDocumento: testata.numero_documento.trim(),
+                fornitoreId: testata.id_cliente_fornitore?.trim() || undefined
+            };
+
+            const scrittura = await tx.scritturaContabile.upsert({
+                where: { externalId: testataId },
+                update: scritturaData,
+                create: {
+                    ...scritturaData,
                     externalId: testataId,
-                    data: testata.data_registrazione,
-                    descrizione: `Importazione - ${testataId}`,
-                    causaleId: testata.codice_causale.trim(),
-                    dataDocumento: testata.data_documento,
-                    numeroDocumento: testata.numero_documento.trim(),
-                    fornitoreId: testata.id_cliente_fornitore?.trim() || undefined
                 }
             });
             createdHeaders++;
@@ -158,7 +177,7 @@ async function saveDataInTransaction(data: { testate: any[], righeContabili: any
                             rigaScritturaId: rigaScrittura.id,
                             importo: alloc.importo_allocato,
                             commessaId: alloc.codice_commessa.trim(),
-                            voceAnaliticaId: 'COSTI_GENERALI', 
+                            voceAnaliticaId: alloc.codice_voce_analitica.trim(), 
                         }
                     });
                     createdAnalyticRows++;
@@ -244,39 +263,34 @@ router.post('/:templateName', upload.array('files', 10), async (req: Request, re
             console.log('File trovati e associati:', Object.keys(filesByDefinition));
 
             // VERIFICA: Assicurarsi che tutti i file necessari siano presenti
-            const requiredFiles = ['PNTESTA.TXT', 'PNRIGCON.TXT']; // Aggiungere altri se necessario
+            const requiredFiles = ['PNTESTA.TXT', 'PNRIGCON.TXT']; // PNRIGANA.TXT è opzionale
             for (const requiredFile of requiredFiles) {
                 if (!filesByDefinition[requiredFile]) {
                     return res.status(400).json({ error: `File mancante: ${requiredFile} è richiesto per questa importazione.` });
                 }
             }
 
-            // 4. Esegui il parsing dei file
-            const parsedData: Record<string, any[]> = {};
-            for (const fileName in filesByDefinition) {
-                const { file, definitions } = filesByDefinition[fileName];
-                const content = file.buffer.toString('utf-8');
-                parsedData[fileName] = parseFixedWidth(content, definitions);
+            // 4. Esegui il parsing per ogni file
+            const testate = parseFixedWidth<any>(filesByDefinition['PNTESTA.TXT'].file.buffer.toString('utf-8'), filesByDefinition['PNTESTA.TXT'].definitions);
+            const righeContabili = parseFixedWidth<any>(filesByDefinition['PNRIGCON.TXT'].file.buffer.toString('utf-8'), filesByDefinition['PNRIGCON.TXT'].definitions);
+            
+            let righeIva: any[] = [];
+            if (filesByDefinition['PNRIGIVA.TXT']) {
+                righeIva = parseFixedWidth<any>(filesByDefinition['PNRIGIVA.TXT'].file.buffer.toString('utf-8'), filesByDefinition['PNRIGIVA.TXT'].definitions);
             }
 
-            // 5. Ora questo endpoint esegue solo il "dry-run"
-            // Restituisce i dati parsati e un riepilogo.
-            res.json({
-                message: 'Dry run completato con successo. Dati pronti per la conferma.',
-                summary: {
-                    headers: (parsedData['PNTESTA.TXT'] || []).length,
-                    accountingRows: (parsedData['PNRIGCON.TXT'] || []).length,
-                    vatRows: (parsedData['PNRIGIVA.TXT'] || []).length,
-                    analyticRows: (parsedData['MOVANAC.TXT'] || []).length,
-                },
-                parsedData: { // Includiamo i dati per il commit
-                    testate: parsedData['PNTESTA.TXT'] || [],
-                    righeContabili: parsedData['PNRIGCON.TXT'] || [],
-                    righeIva: parsedData['PNRIGIVA.TXT'] || [],
-                    allocazioni: parsedData['MOVANAC.TXT'] || [],
-                }
+            let allocazioni: any[] = [];
+            if (filesByDefinition['PNRIGANA.TXT']) {
+                allocazioni = parseFixedWidth<any>(filesByDefinition['PNRIGANA.TXT'].file.buffer.toString('utf-8'), filesByDefinition['PNRIGANA.TXT'].definitions);
+            }
+
+            // 5. Salva i dati in una transazione
+            const summary = await saveDataInTransaction({ testate, righeContabili, righeIva, allocazioni });
+
+            return res.status(200).json({ 
+                message: 'Importazione delle scritture completata con successo.',
+                summary
             });
-            return;
         }
 
         // --- Logica per upload singolo, mantenuta per compatibilità (solo anagrafiche) ---
@@ -296,105 +310,97 @@ router.post('/:templateName', upload.array('files', 10), async (req: Request, re
             return res.status(404).json({ error: `Template '${templateName}' non trovato.` });
         }
 
-        // 2. Parsa il file usando le definizioni dinamiche
-        const fileContent = file.buffer.toString('utf-8');
+        const modelName = (importTemplate as any).modelName as keyof PrismaClient;
+        
+        // Gestione speciale per clienti/fornitori che non usano un singolo modello
+        if (templateName === 'clienti_fornitori') {
+            const fileContent = files[0].buffer.toString('utf-8');
+            const fieldDefinitions = importTemplate.fields.map(f => ({ name: f.nomeCampo, start: f.start, length: f.length, type: f.type as any }));
+            const parsedData = parseFixedWidth<any>(fileContent, fieldDefinitions);
+
+            await prisma.$transaction(async (tx) => {
+                for (const record of parsedData) {
+                    const dataToUpsert = {
+                        id: record.externalId.trim(),
+                        externalId: record.externalId.trim(),
+                        nome: record.nome.trim(),
+                        piva: record.piva.trim(),
+                        codiceFiscale: record.codiceFiscale.trim(),
+                    };
+                    const targetModel = record.tipo === 'C' ? tx.cliente : tx.fornitore;
+                    await (targetModel as any).upsert({
+                        where: { id: dataToUpsert.id },
+                        update: dataToUpsert,
+                        create: dataToUpsert,
+                    });
+                }
+            });
+             return res.status(200).json({ message: `Importazione per '${templateName}' completata. ${parsedData.length} record processati.` });
+        }
+
+        if (!modelName || !(prisma as any)[modelName]) {
+            return res.status(400).json({ error: `Il nome del modello per '${templateName}' non è valido o non è configurato.` });
+        }
+
+        const model = (prisma as any)[modelName];
+
+        // Esegui il parsing e il salvataggio
+        const fileContent = files[0].buffer.toString('utf-8');
         const fieldDefinitions = importTemplate.fields.map(f => ({
             name: f.nomeCampo,
             start: f.start,
             length: f.length,
             type: f.type as 'string' | 'number' | 'date',
         }));
-
+        
         const parsedData = parseFixedWidth<any>(fileContent, fieldDefinitions);
 
-        // 3. Salva i dati nella tabella corretta in base al template
-        let count = 0;
-        switch (templateName) {
-            case 'causali':
-                const causaliToCreate = parsedData.map(item => ({
-                    id: item.id.trim(),
-                    externalId: item.id.trim(),
-                    nome: item.descrizione.trim(),
-                    descrizione: item.descrizione.trim(),
-                    datiPrimari: [],
-                    templateScrittura: [],
-                }));
-                await prisma.$transaction([
-                    prisma.causaleContabile.deleteMany({}),
-                    prisma.causaleContabile.createMany({ data: causaliToCreate, skipDuplicates: true }),
-                ]);
-                count = causaliToCreate.length;
-                break;
-            
-            case 'condizioni_pagamento':
-                const pagamentiToCreate = parsedData.map(item => ({
-                    id: item.id.trim(),
-                    externalId: item.id.trim(),
-                    descrizione: item.descrizione.trim(),
-                }));
-                 await prisma.$transaction([
-                    prisma.condizionePagamento.deleteMany({}),
-                    prisma.condizionePagamento.createMany({ data: pagamentiToCreate, skipDuplicates: true }),
-                ]);
-                count = pagamentiToCreate.length;
-                break;
-
-            case 'codici_iva':
-                const ivaToCreate = parsedData.map(item => ({
-                    id: item.id.trim(),
-                    externalId: item.id.trim(),
-                    descrizione: item.descrizione.trim(),
-                    aliquota: 0, // Da mappare in futuro
-                }));
-                 await prisma.$transaction([
-                    prisma.codiceIva.deleteMany({}),
-                    prisma.codiceIva.createMany({ data: ivaToCreate, skipDuplicates: true }),
-                ]);
-                count = ivaToCreate.length;
-                break;
-
-            case 'clienti_fornitori':
-                const clientiToCreate: Prisma.ClienteCreateManyInput[] = [];
-                const fornitoriToCreate: Prisma.FornitoreCreateManyInput[] = [];
-
-                parsedData.forEach(item => {
-                    const commonData = {
-                        id: item.externalId.trim(),
-                        externalId: item.externalId.trim(),
-                        nome: item.nome.trim(),
-                        piva: item.piva.trim(),
-                        codiceFiscale: item.codiceFiscale.trim(),
-                    };
-                    if (item.tipo === 'C') {
-                        clientiToCreate.push(commonData);
-                    } else if (item.tipo === 'F') {
-                        fornitoriToCreate.push(commonData);
-                    }
-                });
-
-                await prisma.$transaction([
-                    // NOTA: Per ora non cancelliamo i clienti/fornitori per non perdere i dati di seed.
-                    // In un'implementazione reale, si userebbe un upsert o una logica più complessa.
-                    prisma.cliente.createMany({ data: clientiToCreate, skipDuplicates: true }),
-                    prisma.fornitore.createMany({ data: fornitoriToCreate, skipDuplicates: true }),
-                ]);
-
-                count = clientiToCreate.length + fornitoriToCreate.length;
-                break;
-
-            case 'scritture_contabili':
-                // Questa logica ora è gestita sopra, ma la lasciamo per chiarezza
-                // TODO: Implementare la logica di importazione transazionale
-                break;
-
-            default:
-                return res.status(400).json({ error: `Logica di salvataggio per il template '${templateName}' non implementata.` });
-        }
-
-        res.json({
-            message: `Importazione per '${templateName}' completata con successo. Importati ${count} record.`,
+        const dataToCreate = parsedData.map(record => {
+          const newRecord: { [key: string]: any } = {};
+          for (const key in record) {
+            // Rinomina la chiave 'id' in 'codice' se necessario, o gestisci la mappatura
+            const newKey = key === 'id' ? 'id' : key; // Esempio: nessuna modifica
+            newRecord[newKey] = record[key];
+          }
+          
+          // Gestione speciale per le causali: aggiungi il campo 'nome' se mancante
+          if (templateName === 'causali' && !newRecord.nome && newRecord.descrizione) {
+            newRecord.nome = newRecord.descrizione;
+          }
+          
+          // Gestione speciale per i codici IVA: aggiungi il campo 'aliquota' se mancante
+          if (templateName === 'codici_iva' && newRecord.aliquota === undefined) {
+            newRecord.aliquota = 22.0; // Aliquota di default del 22%
+          }
+          
+          return newRecord;
         });
 
+        await prisma.$transaction(async (tx) => {
+            const txModel = (tx as any)[modelName];
+            for (const record of dataToCreate) {
+                // Se il record non ha un ID, saltalo per evitare errori.
+                if (!record.id) {
+                    console.warn("Skipping record due to missing ID:", record);
+                    continue;
+                }
+                await txModel.upsert({
+                    where: { id: record.id },
+                    update: record,
+                    create: record,
+                });
+            }
+        });
+
+        res.status(200).json({
+            message: `Importazione per '${templateName}' completata con successo.`,
+            summary: {
+                createdHeaders: 0,
+                createdAccountingRows: 0,
+                createdVatRows: 0,
+                createdAnalyticRows: 0
+            }
+        });
     } catch (error) {
         console.error(`Errore durante l'importazione per '${templateName}':`, error);
         res.status(500).json({ error: "Errore interno del server durante l'importazione." });

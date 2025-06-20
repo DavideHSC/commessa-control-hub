@@ -221,19 +221,21 @@ model CampoDatiPrimari {
 }
 
 model VoceTemplateScrittura {
-  id             String         @id @default(cuid())
-  sezione        SezioneScrittura
-  contoId        String
-  formulaImporto FormulaImporto
+  id                            String         @id @default(cuid())
+  sezione                       SezioneScrittura
+  contoId                       String?
+  contoRiferimentoDatiPrimari   String?        // Es: 'fornitoreId', 'clienteId'
+  formulaImporto                FormulaImporto
 
-  causaleId      String
-  causale        CausaleContabile @relation(fields: [causaleId], references: [id], onDelete: Cascade)
+  causaleId                     String
+  causale                       CausaleContabile @relation(fields: [causaleId], references: [id], onDelete: Cascade)
 }
 
 // Modelli per l'importazione dinamica
 model ImportTemplate {
   id     String @id @default(cuid())
   nome   String @unique // Es. "causali", "clienti_fornitori"
+  modelName String? // Es. "causaleContabile", "cliente". Se nullo, gestito da logica custom.
   
   fields FieldDefinition[]
 }

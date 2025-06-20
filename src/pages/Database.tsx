@@ -27,7 +27,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,6 +55,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TipoConto } from '@prisma/client';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ImportTemplatesAdmin from '@/components/admin/ImportTemplatesAdmin';
 
 // Definiamo un'interfaccia aggregata per i dati del database
 interface DatabaseData {
@@ -881,52 +882,6 @@ const CommesseTable = ({ data, onDataChange, clienti }: { data: Commessa[], onDa
   )
 }
 
-const GenericTable = ({ title, data }: { title: string, data: any[] }) => {
-  if (!data || data.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{title}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p>Nessun dato da visualizzare in questa tabella.</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Estrai le colonne dal primo oggetto (ignorando eventuali oggetti relazionali)
-  const columns = Object.keys(data[0]).filter(key => typeof data[0][key] !== 'object' || data[0][key] === null);
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {columns.map((col) => <TableHead key={col}>{col}</TableHead>)}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((row, rowIndex) => (
-              <TableRow key={rowIndex}>
-                {columns.map((col) => (
-                  <TableCell key={`${rowIndex}-${col}`}>
-                    {row[col] === null ? 'N/A' : String(row[col])}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
-  );
-};
-
 const ScrittureTable = ({ data, onDataChange }: { data: ScritturaContabile[], onDataChange: () => void }) => {
   const navigate = useNavigate();
   const [deletingRegistrazione, setDeletingRegistrazione] = useState<ScritturaContabile | null>(null);
@@ -1019,8 +974,11 @@ const ScrittureTable = ({ data, onDataChange }: { data: ScritturaContabile[], on
 const Database: React.FC = () => {
   const [data, setData] = useState<DatabaseData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<string>('');
   const [selectedTable, setSelectedTable] = useState<TableKey>('scritture');
+
+  useEffect(() => {
+    fetchDatabaseData();
+  }, []);
 
   const fetchDatabaseData = async (showLoading = true) => {
     if (showLoading) {
@@ -1028,14 +986,11 @@ const Database: React.FC = () => {
     }
     try {
       const response = await fetch('/api/database');
-      if (!response.ok) {
-        throw new Error('Errore nel caricamento dei dati del database');
-      }
-      const dbData = await response.json();
-      setData(dbData);
-      setLastUpdated(new Date().toLocaleTimeString());
+      const result = await response.json();
+      setData(result);
     } catch (error) {
-      toast.error((error as Error).message);
+      console.error("Errore nel recupero dei dati del database:", error);
+      toast.error("Impossibile caricare i dati dal database.");
     } finally {
       if (showLoading) {
         setLoading(false);
@@ -1043,90 +998,90 @@ const Database: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    fetchDatabaseData();
-  }, []);
-
   const handleDataChange = () => {
-    fetchDatabaseData(false); // Refresha i dati senza mostrare il loader
+    fetchDatabaseData(false); // Ricarica i dati senza mostrare l'indicatore di caricamento principale
   };
 
   const renderSelectedTable = () => {
-    if (!data) return null;
+    if (!data) return <p>Dati non disponibili.</p>;
 
     switch (selectedTable) {
-      case 'scritture':
-        return <ScrittureTable data={data.scritture} onDataChange={handleDataChange} />;
-      case 'clienti':
-        return <ClientiTable data={data.clienti} onDataChange={handleDataChange} />;
-      case 'fornitori':
-        return <FornitoriTable data={data.fornitori} onDataChange={handleDataChange} />;
-      case 'commesse':
-        return <CommesseTable data={data.commesse} onDataChange={handleDataChange} clienti={data.clienti} />;
-      case 'conti':
-        return <ContiTable data={data.conti} onDataChange={handleDataChange} vociAnalitiche={data.vociAnalitiche} />;
-      case 'vociAnalitiche':
-        return <VociAnaliticheTable data={data.vociAnalitiche} onDataChange={handleDataChange} />;
-      default:
-        return <p>Seleziona una tabella per visualizzare i dati.</p>;
+        case 'clienti':
+            return <ClientiTable data={data.clienti} onDataChange={handleDataChange} />;
+        case 'fornitori':
+            return <FornitoriTable data={data.fornitori} onDataChange={handleDataChange} />;
+        case 'vociAnalitiche':
+            return <VociAnaliticheTable data={data.vociAnalitiche} onDataChange={handleDataChange} />;
+        case 'conti':
+            return <ContiTable data={data.conti} onDataChange={handleDataChange} vociAnalitiche={data.vociAnalitiche} />;
+        case 'commesse':
+            return <CommesseTable data={data.commesse} onDataChange={handleDataChange} clienti={data.clienti}/>;
+        case 'scritture':
+             return <ScrittureTable data={data.scritture} onDataChange={handleDataChange} />;
+        default:
+            return <p>Seleziona una tabella da visualizzare.</p>;
     }
   };
 
-  if (loading && !data) {
-    return (
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
+  return (
+    <div className="flex flex-col h-full">
+      <header className="flex items-center justify-between p-4 border-b">
+        <div className='flex items-center'>
+          <DatabaseIcon className="h-6 w-6 mr-2" />
           <h1 className="text-2xl font-bold">Amministrazione Database</h1>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="col-span-1">
-            <Skeleton className="h-48 w-full" />
-          </div>
-          <div className="col-span-3">
-            <Skeleton className="h-96 w-full" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div>
-            <h1 className="text-2xl font-bold">Amministrazione Database</h1>
-            {lastUpdated && <p className="text-sm text-slate-500">Ultimo aggiornamento: {lastUpdated}</p>}
-        </div>
-        <Button onClick={() => fetchDatabaseData()} variant="outline" size="sm">
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Aggiorna
+        <Button onClick={() => fetchDatabaseData()} disabled={loading}>
+          <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          Aggiorna Dati
         </Button>
-      </div>
-
-      <ResizablePanelGroup direction="horizontal" className="rounded-lg border">
-        <ResizablePanel defaultSize={25}>
-          <div className="p-4 space-y-2">
-            <h2 className="text-lg font-semibold mb-2">Tabelle</h2>
-            {tableConfig.map(({ key, label, icon: Icon }) => (
-              <Button
-                key={key}
-                variant={selectedTable === key ? 'secondary' : 'ghost'}
-                className="w-full justify-start"
-                onClick={() => setSelectedTable(key)}
-              >
-                <Icon className="h-4 w-4 mr-2" />
-                {label}
-              </Button>
-            ))}
-          </div>
-        </ResizablePanel>
-        <ResizableHandle withHandle />
-        <ResizablePanel defaultSize={75}>
-          <div className="p-4 h-full overflow-auto">
-            {renderSelectedTable()}
-          </div>
-        </ResizablePanel>
-      </ResizablePanelGroup>
+      </header>
+      <main className="flex-grow p-4">
+        <Tabs defaultValue="data-management">
+          <TabsList className="mb-4">
+            <TabsTrigger value="data-management">Gestione Dati</TabsTrigger>
+            <TabsTrigger value="template-management">Gestione Template Import</TabsTrigger>
+          </TabsList>
+          <TabsContent value="data-management">
+            {loading ? (
+              <div className="space-y-4">
+                <Skeleton className="h-12 w-1/4" />
+                <Skeleton className="h-64 w-full" />
+              </div>
+            ) : (
+              <ResizablePanelGroup direction="horizontal" className="rounded-lg border">
+                <ResizablePanel defaultSize={20}>
+                  <div className="flex h-full flex-col p-4 space-y-2">
+                    <h2 className="text-lg font-semibold">Tabelle</h2>
+                    {tableConfig.map((table) => (
+                      <Button
+                        key={table.key}
+                        variant={selectedTable === table.key ? 'secondary' : 'ghost'}
+                        onClick={() => setSelectedTable(table.key)}
+                        className="w-full justify-start"
+                      >
+                        <table.icon className="mr-2 h-4 w-4" />
+                        {table.label}
+                        <Badge variant="outline" className="ml-auto">
+                          {data?.stats[`totale${table.label.replace(/\s/g, '')}` as keyof typeof data.stats] ?? 0}
+                        </Badge>
+                      </Button>
+                    ))}
+                  </div>
+                </ResizablePanel>
+                <ResizableHandle withHandle />
+                <ResizablePanel defaultSize={80}>
+                  <div className="p-4">
+                    {renderSelectedTable()}
+                  </div>
+                </ResizablePanel>
+              </ResizablePanelGroup>
+            )}
+          </TabsContent>
+          <TabsContent value="template-management">
+            <ImportTemplatesAdmin />
+          </TabsContent>
+        </Tabs>
+      </main>
     </div>
   );
 };

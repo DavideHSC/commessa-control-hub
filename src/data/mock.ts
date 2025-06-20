@@ -146,80 +146,9 @@ export const commesse: Commessa[] = [
 
 // ====================================================================
 // 4. CAUSALI CONTABILI (con i loro template)
+// RIMOSSO - Ora gestito direttamente in prisma/seed.ts per maggiore robustezza
 // ====================================================================
-export const causaliContabili: CausaleContabile[] = [
-  {
-    id: 'FATT_ACQ_MERCI',
-    nome: 'Fattura Acquisto Merce',
-    descrizione: 'Registrazione di una fattura di acquisto per merce o servizi.',
-    datiPrimari: [
-      { id: 'fornitoreId', label: 'Fornitore', tipo: 'select', riferimentoConto: 'Fornitore' },
-      { id: 'totaleDocumento', label: 'Totale Fattura', tipo: 'number' },
-      { id: 'aliquotaIva', label: 'Aliquota IVA (%)', tipo: 'number' },
-    ],
-    templateScrittura: [
-      { sezione: 'Dare', contoId: '60100002', formulaImporto: 'imponibile' },
-      { sezione: 'Dare', contoId: '45.01.001', formulaImporto: 'iva' },
-      { sezione: 'Avere', contoId: '4010000001', formulaImporto: 'totale' },
-    ],
-  },
-  {
-    id: 'FATT_VEND_PRODOTTI',
-    nome: 'Fattura Vendita Prodotti',
-    descrizione: 'Registrazione di una fattura di vendita per prodotti o servizi.',
-    datiPrimari: [
-        { id: 'clienteId', label: 'Cliente', tipo: 'select', riferimentoConto: 'Cliente' },
-        { id: 'totaleDocumento', label: 'Totale Fattura', tipo: 'number' },
-        { id: 'aliquotaIva', label: 'Aliquota IVA (%)', tipo: 'number' },
-    ],
-    templateScrittura: [
-      { sezione: 'Dare', contoId: '4010000002', formulaImporto: 'totale' },
-      { sezione: 'Avere', contoId: '45.02.001', formulaImporto: 'iva' },
-      { sezione: 'Avere', contoId: '7001000001', formulaImporto: 'imponibile' },
-    ],
-  },
-  {
-    id: 'PAG_FATT_FORN',
-    nome: 'Pagamento Fornitore',
-    descrizione: 'Pagamento di una fattura fornitore tramite banca.',
-    datiPrimari: [
-        { id: 'fornitoreId', label: 'Fornitore', tipo: 'select', riferimentoConto: 'Fornitore' },
-        { id: 'totaleDocumento', label: 'Importo Pagato', tipo: 'number' },
-    ],
-    templateScrittura: [
-      { sezione: 'Dare', contoId: '4010000001', formulaImporto: 'totale' },
-      { sezione: 'Avere', contoId: '10.01.001', formulaImporto: 'totale' },
-    ],
-  },
-  {
-    id: 'MANUALE',
-    nome: 'Registrazione Manuale',
-    descrizione: 'Registrazione manuale non basata su template.',
-    datiPrimari: [],
-    templateScrittura: [],
-  },
-  {
-    id: 'COMM-001',
-    nome: 'Sito Web E-commerce',
-    descrizione: 'Sviluppo completo di una piattaforma e-commerce per cliente B2C',
-    clienteId: 'cl_rossi',
-    budget: [
-      { voceAnaliticaId: 'CONSULENZA_DIR', importo: 5000 },
-      { voceAnaliticaId: 'SVILUPPO_SW', importo: 15000 },
-      { voceAnaliticaId: 'LICENZE_SW', importo: 2000 },
-    ],
-  },
-  {
-    id: 'COMM-002',
-    nome: 'App Mobile iOS/Android',
-    descrizione: 'App per la gestione di prenotazioni eventi',
-    clienteId: 'cl_rossi',
-    budget: [
-      { voceAnaliticaId: 'SVILUPPO_SW', importo: 25000 },
-      { voceAnaliticaId: 'MARKETING', importo: 7000 },
-    ],
-  },
-];
+
 
 // =================================================================================
 // 5. REGISTRAZIONI CONTABILI (PRIMA NOTA)

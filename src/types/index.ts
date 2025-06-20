@@ -208,4 +208,27 @@ export interface DashboardData {
   };
 }
 
+// --- TIPI PER LA GESTIONE DEI TEMPLATE DI IMPORTAZIONE ---
+
+/**
+ * Rappresenta la definizione di un singolo campo in un file a larghezza fissa.
+ */
+export interface FieldDefinition {
+  id: string;
+  nomeCampo: string;
+  start: number;
+  length: number;
+  type: 'string' | 'number' | 'date';
+  fileIdentifier?: string | null;
+}
+
+/**
+ * Rappresenta un template di importazione completo.
+ */
+export interface ImportTemplate {
+  id: string;
+  nome: string;
+  fields: FieldDefinition[];
+}
+
 export {}; 

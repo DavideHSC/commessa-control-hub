@@ -1,3 +1,4 @@
+import 'dotenv/config'; // Carica le variabili d'ambiente
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
@@ -13,6 +14,7 @@ import causaliRoutes from './routes/causali';
 import vociAnaliticheRoutes from './routes/vociAnalitiche';
 import contiRoutes from './routes/conti';
 import commesseRoutes from './routes/commesse';
+import importTemplatesRoutes from './routes/importTemplates';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -34,6 +36,7 @@ app.use('/api/causali', causaliRoutes);
 app.use('/api/voci-analitiche', vociAnaliticheRoutes);
 app.use('/api/conti', contiRoutes);
 app.use('/api/commesse', commesseRoutes);
+app.use('/api/import-templates', importTemplatesRoutes);
 
 
 // Endpoint di base per testare il server
