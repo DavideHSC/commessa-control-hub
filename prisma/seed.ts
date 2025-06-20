@@ -118,19 +118,16 @@ async function main() {
     }
   });
 
-  // Template Piano dei Conti
+  // Template Piano dei Conti (CORRETTO per CONTIGEN.TXT)
   await prisma.importTemplate.create({
     data: {
       nome: 'piano_dei_conti',
-      modelName: 'Conto',
+      modelName: null, // Gestione custom per mappare i tipi
       fields: { create: [
         { nomeCampo: 'livello', start: 4, length: 1, type: 'string' },
         { nomeCampo: 'codice', start: 5, length: 10, type: 'string' },
         { nomeCampo: 'nome', start: 15, length: 60, type: 'string' },
-        { nomeCampo: 'tipo', start: 75, length: 1, type: 'string' },
-        { nomeCampo: 'sigla', start: 76, length: 12, type: 'string' },
-        { nomeCampo: 'controlloSegno', start: 88, length: 1, type: 'string' },
-        { nomeCampo: 'gruppo', start: 256, length: 1, type: 'string' }
+        { nomeCampo: 'tipoChar', start: 75, length: 1, type: 'string' }
       ] },
     }
   });

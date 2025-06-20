@@ -102,28 +102,95 @@ router.post('/:templateName', upload.single('file'), async (req: Request, res: R
              return res.status(200).json({ message: `Importazione per '${templateName}' completata con successo.` });
         }
 
-        // Gestione per Piano dei Conti
+        // Gestione per Piano dei Conti (CONTIGEN.TXT)
         if (templateName === 'piano_dei_conti') {
-            const contiDaImportare = parsedData
-                .filter(record => record.tipo_soggetto !== 'C' && record.tipo_soggetto !== 'F' && record.id.trim())
-                .map(record => ({
-                    id: record.id.trim(),
-                    codice: record.id.trim(),
-                    nome: record.nome.trim() || 'N/A',
-                    tipo: TipoConto.Patrimoniale, // Default, andrà classificato meglio in futuro
-                    richiedeVoceAnalitica: false,
-                }));
+            let processedCount = 0;
+            const batchSize = 100; // Processa in batch per evitare timeout
+            
+            try {
+                // Filtra e prepara i dati prima della transazione
+                const validRecords = parsedData
+                    .map(record => {
+                        const codice = record.codice?.trim();
+                        if (!codice) return null;
 
-            await prisma.$transaction(async (tx) => {
-                for (const conto of contiDaImportare) {
-                    await tx.conto.upsert({
-                        where: { id: conto.id },
-                        update: { nome: conto.nome },
-                        create: conto,
+                        // Mappa il tipo carattere a TipoConto enum
+                        let tipo: TipoConto;
+                        const tipoChar = record.tipoChar?.trim();
+                        switch (tipoChar) {
+                            case 'P': 
+                                tipo = TipoConto.Patrimoniale; 
+                                break;
+                            case 'E': 
+                                // Per i conti economici, distingui tra ricavi (classe 1) e costi (altre classi)
+                                tipo = codice.startsWith('1') ? TipoConto.Ricavo : TipoConto.Costo; 
+                                break;
+                            case 'C': 
+                                tipo = TipoConto.Cliente; 
+                                break;
+                            case 'F': 
+                                tipo = TipoConto.Fornitore; 
+                                break;
+                            default: 
+                                tipo = TipoConto.Patrimoniale; 
+                                break;
+                        }
+
+                        return {
+                            id: codice,
+                            externalId: codice,
+                            codice: codice,
+                            nome: record.nome?.trim() || 'Conto senza nome',
+                            tipo: tipo,
+                            richiedeVoceAnalitica: false,
+                            vociAnaliticheAbilitateIds: [],
+                            contropartiteSuggeriteIds: []
+                        };
+                    })
+                    .filter(record => record !== null);
+
+                console.log(`Piano dei conti: ${validRecords.length} record validi da processare`);
+
+                // Processa in batch
+                for (let i = 0; i < validRecords.length; i += batchSize) {
+                    const batch = validRecords.slice(i, i + batchSize);
+                    
+                    await prisma.$transaction(async (tx) => {
+                        for (const dataToUpsert of batch) {
+                            try {
+                                await tx.conto.upsert({
+                                    where: { id: dataToUpsert.id },
+                                    update: {
+                                        nome: dataToUpsert.nome,
+                                        tipo: dataToUpsert.tipo,
+                                        externalId: dataToUpsert.externalId,
+                                        richiedeVoceAnalitica: dataToUpsert.richiedeVoceAnalitica,
+                                        vociAnaliticheAbilitateIds: dataToUpsert.vociAnaliticheAbilitateIds,
+                                        contropartiteSuggeriteIds: dataToUpsert.contropartiteSuggeriteIds
+                                    },
+                                    create: dataToUpsert,
+                                });
+                                processedCount++;
+                            } catch (error) {
+                                console.warn(`Errore processando conto ${dataToUpsert.codice}:`, error);
+                            }
+                        }
                     });
+                    
+                    console.log(`Piano dei conti: processati ${Math.min(i + batchSize, validRecords.length)}/${validRecords.length} record`);
                 }
-            });
-            return res.status(200).json({ message: `Importazione per '${templateName}' completata. ${contiDaImportare.length} conti processati.` });
+                
+                console.log(`✅ IMPORTAZIONE COMPLETATA: ${processedCount} conti salvati nel database su ${parsedData.length} record totali`);
+                
+                return res.status(200).json({ 
+                    message: `Importazione piano dei conti completata. ${processedCount} conti processati su ${parsedData.length} record totali.` 
+                });
+            } catch (error) {
+                console.error('Errore durante importazione piano dei conti:', error);
+                return res.status(500).json({ 
+                    error: `Errore durante importazione piano dei conti: ${(error as Error).message}. Processati: ${processedCount} record.` 
+                });
+            }
         }
 
         if (!modelName || !(prisma as any)[modelName]) {
