@@ -101,16 +101,16 @@ interface DatabaseData {
 
 type TableKey = 'scritture' | 'commesse' | 'clienti' | 'fornitori' | 'conti' | 'vociAnalitiche' | 'causali' | 'codiciIva' | 'condizioniPagamento';
 
-const tableConfig: { key: TableKey; label: string; icon: React.ElementType }[] = [
-    { key: 'scritture', label: 'Scritture', icon: FileText },
-    { key: 'commesse', label: 'Commesse', icon: Building },
-    { key: 'clienti', label: 'Clienti', icon: Users },
-    { key: 'fornitori', label: 'Fornitori', icon: Landmark },
-    { key: 'conti', label: 'Piano dei Conti', icon: Library },
-    { key: 'vociAnalitiche', label: 'Voci Analitiche', icon: Landmark },
-    { key: 'causali', label: 'Causali', icon: FileText },
-    { key: 'codiciIva', label: 'Codici IVA', icon: Library },
-    { key: 'condizioniPagamento', label: 'Condizioni Pagamento', icon: Library },
+const tableConfig: { key: TableKey; label: string; icon: React.ElementType; statsKey: keyof DatabaseData['stats'] }[] = [
+    { key: 'scritture', label: 'Scritture', icon: FileText, statsKey: 'totaleScrittureContabili' },
+    { key: 'commesse', label: 'Commesse', icon: Building, statsKey: 'totaleCommesse' },
+    { key: 'clienti', label: 'Clienti', icon: Users, statsKey: 'totaleClienti' },
+    { key: 'fornitori', label: 'Fornitori', icon: Landmark, statsKey: 'totaleFornitori' },
+    { key: 'conti', label: 'Piano dei Conti', icon: Library, statsKey: 'totaleConti' },
+    { key: 'vociAnalitiche', label: 'Voci Analitiche', icon: Landmark, statsKey: 'totaleVociAnalitiche' },
+    { key: 'causali', label: 'Causali', icon: FileText, statsKey: 'totaleCausali' },
+    { key: 'codiciIva', label: 'Codici IVA', icon: Library, statsKey: 'totaleCodiciIva' },
+    { key: 'condizioniPagamento', label: 'Condizioni Pagamento', icon: Library, statsKey: 'totaleCondizioniPagamento' },
 ];
 
 const PlaceholderTable = ({ title }: { title: string }) => (
@@ -1733,7 +1733,7 @@ const Database: React.FC = () => {
                         <table.icon className="mr-2 h-4 w-4" />
                         {table.label}
                         <Badge variant="outline" className="ml-auto">
-                          {data?.stats[`totale${table.label.replace(/\s/g, '')}` as keyof typeof data.stats] ?? 0}
+                          {data?.stats[table.statsKey] ?? 0}
                         </Badge>
                       </Button>
                     ))}
