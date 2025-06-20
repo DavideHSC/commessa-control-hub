@@ -4,80 +4,74 @@ import { PrismaClient } from '@prisma/client';
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// GET - Recupera tutte le causali contabili
+// GET - Recupera tutte le condizioni di pagamento
 router.get('/', async (req, res) => {
   try {
-    const causali = await prisma.causaleContabile.findMany({
-        include: {
-            datiPrimari: true,
-            templateScrittura: true,
-        },
-        orderBy: {
-            nome: 'asc'
-        }
+    const condizioniPagamento = await prisma.condizionePagamento.findMany({
+      orderBy: {
+        id: 'asc'
+      }
     });
-    res.json(causali);
+    res.json(condizioniPagamento);
   } catch (error) {
-    console.error('Errore nel caricamento delle causali contabili:', error);
+    console.error('Errore nel caricamento delle condizioni di pagamento:', error);
     res.status(500).json({ error: 'Errore interno del server' });
   }
 });
 
-// POST - Crea una nuova causale contabile
+// POST - Crea una nuova condizione di pagamento
 router.post('/', async (req, res) => {
   try {
-    const { id, nome, descrizione, externalId } = req.body;
+    const { id, descrizione, externalId } = req.body;
     
-    const causale = await prisma.causaleContabile.create({
+    const condizionePagamento = await prisma.condizionePagamento.create({
       data: {
         id,
-        nome,
         descrizione,
         externalId: externalId || null,
       }
     });
     
-    res.status(201).json(causale);
+    res.status(201).json(condizionePagamento);
   } catch (error) {
-    console.error('Errore nella creazione della causale contabile:', error);
+    console.error('Errore nella creazione della condizione di pagamento:', error);
     res.status(500).json({ error: 'Errore interno del server' });
   }
 });
 
-// PUT - Aggiorna una causale contabile esistente
+// PUT - Aggiorna una condizione di pagamento esistente
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { nome, descrizione, externalId } = req.body;
+    const { descrizione, externalId } = req.body;
     
-    const causale = await prisma.causaleContabile.update({
+    const condizionePagamento = await prisma.condizionePagamento.update({
       where: { id },
       data: {
-        nome,
         descrizione,
         externalId: externalId || null,
       }
     });
     
-    res.json(causale);
+    res.json(condizionePagamento);
   } catch (error) {
-    console.error('Errore nell\'aggiornamento della causale contabile:', error);
+    console.error('Errore nell\'aggiornamento della condizione di pagamento:', error);
     res.status(500).json({ error: 'Errore interno del server' });
   }
 });
 
-// DELETE - Elimina una causale contabile
+// DELETE - Elimina una condizione di pagamento
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     
-    await prisma.causaleContabile.delete({
+    await prisma.condizionePagamento.delete({
       where: { id }
     });
     
     res.status(204).send();
   } catch (error) {
-    console.error('Errore nell\'eliminazione della causale contabile:', error);
+    console.error('Errore nell\'eliminazione della condizione di pagamento:', error);
     res.status(500).json({ error: 'Errore interno del server' });
   }
 });

@@ -13,6 +13,9 @@ router.get('/', async (req, res) => {
       fornitori,
       conti,
       vociAnalitiche,
+      causali,
+      codiciIva,
+      condizioniPagamento,
     ] = await prisma.$transaction([
       prisma.scritturaContabile.findMany({
         include: {
@@ -27,6 +30,9 @@ router.get('/', async (req, res) => {
       prisma.fornitore.findMany({ orderBy: { nome: 'asc' } }),
       prisma.conto.findMany({ orderBy: { codice: 'asc' } }),
       prisma.voceAnalitica.findMany({ orderBy: { nome: 'asc' } }),
+      prisma.causaleContabile.findMany({ orderBy: { nome: 'asc' } }),
+      prisma.codiceIva.findMany({ orderBy: { id: 'asc' } }),
+      prisma.condizionePagamento.findMany({ orderBy: { id: 'asc' } }),
     ]);
 
     const stats = {
@@ -36,6 +42,9 @@ router.get('/', async (req, res) => {
       totaleFornitori: fornitori.length,
       totaleConti: conti.length,
       totaleVociAnalitiche: vociAnalitiche.length,
+      totaleCausali: causali.length,
+      totaleCodiciIva: codiciIva.length,
+      totaleCondizioniPagamento: condizioniPagamento.length,
     };
 
     res.json({
@@ -45,11 +54,29 @@ router.get('/', async (req, res) => {
       fornitori,
       conti,
       vociAnalitiche,
+      causali,
+      codiciIva,
+      condizioniPagamento,
       stats,
     });
   } catch (error) {
     console.error('Errore nel recupero dei dati del database:', error);
     res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
+router.delete('/scritture', async (req, res) => {
+  try {
+    await prisma.$transaction(async (tx) => {
+      await tx.allocazione.deleteMany({});
+      await tx.rigaIva.deleteMany({});
+      await tx.rigaScrittura.deleteMany({});
+      await tx.scritturaContabile.deleteMany({});
+    });
+    res.status(200).json({ message: 'Tabella Scritture Contabili svuotata con successo.' });
+  } catch (error) {
+    console.error("Errore durante lo svuotamento della tabella Scritture Contabili:", error);
+    res.status(500).json({ error: 'Errore interno del server durante la pulizia delle scritture.' });
   }
 });
 

@@ -84,6 +84,7 @@ export interface CampoDatiPrimari {
  */
 export interface CausaleContabile {
   id: string; // Es. 'FATT_ACQ_MERCI'
+  externalId?: string | null; // ID esterno per importazione
   nome: string; // Nome breve, es. "Fattura Acquisto"
   descrizione: string; // Es. 'Registrazione Fattura Acquisto Merce'
   // Lista dei dati che l'utente deve inserire per usare il template

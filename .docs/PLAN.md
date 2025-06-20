@@ -180,26 +180,52 @@ Questo documento delinea le fasi e i task necessari per trasformare il prototipo
 
 ---
 
-### Fase 9: Separazione Fisica Progetti (Decoupling)
+### Fase 9: Validazione Dati e Affinamento Parser
 
-**Obiettivo:** Completare il processo di refactoring separando fisicamente il frontend (Vite/React) e il backend (Express/Prisma) in due progetti distinti con repository e pipeline di deployment individuali.
+**Obiettivo:** Analizzare in dettaglio i file di importazione a larghezza fissa del cliente, correggere le definizioni dei campi (`FieldDefinition`) e garantire che i dati importati (date, importi, codici) siano mappati correttamente nel database.
 
-**Stato:** 📝 **Pianificato**
+**Stato:** 🟉 **Pianificato**
 
-- [ ] **Task 9.1:** Creare un nuovo repository dedicato esclusivamente all'API backend (`commessa-control-hub-api`).
-- [ ] **Task 9.2:** Spostare la cartella `server`, lo schema `prisma`, il file `.env` e le relative dipendenze nel nuovo progetto backend.
-- [ ] **Task 9.3:** Configurare il server backend per gestire CORS in modo più granulare, accettando richieste solo dal dominio del frontend in produzione.
-- [ ] **Task 9.4:** Rimuovere la cartella `server` e tutte le dipendenze di backend dal progetto frontend originale.
-- [ ] **Task 9.5:** Aggiornare il layer API del frontend per effettuare chiamate a un URL assoluto definito tramite variabili d'ambiente (es. `process.env.VITE_API_URL`).
-- [ ] **Task 9.6:** Definire due pipeline di deployment separate: una per il frontend (su un servizio di hosting statico come Vercel/Netlify) e una per il backend (su una piattaforma come Render/Heroku).
+- [ ] **Task 9.1:** Analizzare il contenuto dei file (`PNTESTA.TXT`, `PNRIGCON.TXT`, etc.) confrontandolo con le attuali definizioni di campo in `prisma/seed.ts`.
+- [ ] **Task 9.2:** Correggere le `FieldDefinition` (start, length, type) per tutti i template di importazione per risolvere i problemi di mapping (es. date `01/01/1970`, importi errati).
+- [ ] **Task 9.3:** Rieseguire l'importazione e validare i dati risultanti nella pagina "Database" per confermare la corretta interpretazione dei tracciati.
 
 ---
 
-### Fase 10: Miglioramenti Futuri e Quality of Life
+### Fase 10: Feedback di Importazione in Real-time (Frontend)
+
+**Obiettivo:** Migliorare l'esperienza utente durante le importazioni di lunga durata, mostrando una barra di progresso e un feedback in tempo reale direttamente nell'interfaccia web.
+
+**Stato:** 🟉 **Pianificato**
+
+- [ ] **Task 10.1:** Valutare la tecnologia più adatta per la comunicazione real-time backend-frontend (es. Server-Sent Events - SSE, WebSockets).
+- [ ] **Task 10.2:** Creare un nuovo endpoint API e una logica lato server per tracciare e comunicare lo stato di avanzamento dell'importazione.
+- [ ] **Task 10.3:** Aggiornare la pagina `Import.tsx` per avviare l'importazione e, in parallelo, ricevere gli aggiornamenti di stato, mostrando una barra di progresso e dei messaggi all'utente.
+- [ ] **Task 10.4:** Gestire la conclusione del processo (successo o errore) e il reindirizzamento o l'aggiornamento della UI.
+
+---
+
+### Fase 11: Separazione Fisica Progetti (Decoupling)
+
+**Obiettivo:** Completare il processo di refactoring separando fisicamente il frontend (Vite/React) e il backend (Express/Prisma) in due progetti distinti con repository e pipeline di deployment individuali.
+
+**Stato:** 🟉 **Pianificato**
+
+- [ ] **Task 11.1:** Creare un nuovo repository dedicato esclusivamente all'API backend (`commessa-control-hub-api`).
+- [ ] **Task 11.2:** Spostare la cartella `server`, lo schema `prisma`, il file `.env` e le relative dipendenze nel nuovo progetto backend.
+- [ ] **Task 11.3:** Configurare il server backend per gestire CORS in modo più granulare, accettando richieste solo dal dominio del frontend in produzione.
+- [ ] **Task 11.4:** Rimuovere la cartella `server` e tutte le dipendenze di backend dal progetto frontend originale.
+- [ ] **Task 11.5:** Aggiornare il layer API del frontend per effettuare chiamate a un URL assoluto definito tramite variabili d'ambiente (es. `process.env.VITE_API_URL`).
+- [ ] **Task 11.6:** Definire due pipeline di deployment separate: una per il frontend (su un servizio di hosting statico come Vercel/Netlify) e una per il backend (su una piattaforma come Render/Heroku).
+
+---
+
+### Fase 12: Miglioramenti Futuri e Quality of Life
 
 **Obiettivo:** Raccogliere idee e possibili miglioramenti non critici da implementare per migliorare l'usabilità e la manutenibilità dell'applicazione.
 
 **Stato:** 🟠 **In Corso**
 
-- [ ] **Task 10.1:** Rendere la lista delle tabelle nella pagina di **Amministrazione Database** dinamica, recuperando l'elenco direttamente dal backend per evitare aggiornamenti manuali del frontend quando lo schema del database cambia.
-- [ ] **Task 10.2 (In Lavorazione):** Creare un'interfaccia utente nella sezione di **Amministrazione Database** per visualizzare e gestire i template di importazione (`ImportTemplate`) e le loro definizioni di campo (`FieldDefinition`), eliminando la necessità di gestirli tramite lo script di seed. 
+- [ ] **Task 12.1:** Rendere la lista delle tabelle nella pagina di **Amministrazione Database** dinamica, recuperando l'elenco direttamente dal backend per evitare aggiornamenti manuali del frontend quando lo schema del database cambia.
+- [x] **Task 12.2:** Creata un'interfaccia utente nella sezione di **Amministrazione Database** per visualizzare e gestire i template di importazione (`ImportTemplate`) e le loro definizioni di campo (`FieldDefinition`), eliminando la necessità di gestirli tramite lo script di seed.
+- [x] **Task 12.3:** Integrata la visualizzazione e gestione CRUD per le tabelle di importazione (`CausaleContabile`, `CodiceIva`, `CondizionePagamento`) nella sezione **Amministrazione Database**, permettendo al cliente di verificare e gestire i dati importati dal gestionale esterno. 

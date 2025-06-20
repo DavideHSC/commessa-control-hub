@@ -9,12 +9,15 @@ import fornitoriRoutes from './routes/fornitori';
 import registrazioniRoutes from './routes/registrazioni';
 import dashboardRoutes from './routes/dashboard';
 import databaseRoutes from './routes/database';
-import importRoutes from './routes/import';
+import importScrittureRoutes from './routes/importScritture';
+import importAnagraficheRoutes from './routes/importAnagrafiche';
 import causaliRoutes from './routes/causali';
 import vociAnaliticheRoutes from './routes/vociAnalitiche';
 import contiRoutes from './routes/conti';
 import commesseRoutes from './routes/commesse';
 import importTemplatesRoutes from './routes/importTemplates';
+import codiciIvaRoutes from './routes/codiciIva';
+import condizioniPagamentoRoutes from './routes/condizioniPagamento';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -31,12 +34,15 @@ app.use('/api/fornitori', fornitoriRoutes);
 app.use('/api/registrazioni', registrazioniRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/database', databaseRoutes);
-app.use('/api/import', importRoutes);
+app.use('/api/import/scritture', importScrittureRoutes);
+app.use('/api/import/anagrafica', importAnagraficheRoutes);
 app.use('/api/causali', causaliRoutes);
 app.use('/api/voci-analitiche', vociAnaliticheRoutes);
 app.use('/api/conti', contiRoutes);
 app.use('/api/commesse', commesseRoutes);
 app.use('/api/import-templates', importTemplatesRoutes);
+app.use('/api/codici-iva', codiciIvaRoutes);
+app.use('/api/condizioni-pagamento', condizioniPagamentoRoutes);
 
 
 // Endpoint di base per testare il server

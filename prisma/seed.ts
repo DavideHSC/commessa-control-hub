@@ -4,6 +4,9 @@ import { PrismaClient, TipoConto, TipoCampo, SezioneScrittura, FormulaImporto } 
 
 const prisma = new PrismaClient();
 
+const SYSTEM_CUSTOMER_ID = 'system_customer_01';
+const SYSTEM_SUPPLIER_ID = 'system_supplier_01';
+
 async function main() {
   console.log('Inizio seeding...');
 
@@ -26,6 +29,28 @@ async function main() {
   await prisma.condizionePagamento.deleteMany({});
   await prisma.codiceIva.deleteMany({});
 
+  // 1. Crea o aggiorna il cliente di sistema
+  await prisma.cliente.upsert({
+    where: { id: SYSTEM_CUSTOMER_ID },
+    update: {},
+    create: {
+      id: SYSTEM_CUSTOMER_ID,
+      externalId: 'SYS-CUST',
+      nome: 'Cliente di Sistema (per importazioni)',
+    }
+  });
+
+  await prisma.fornitore.upsert({
+    where: { id: SYSTEM_SUPPLIER_ID },
+    update: {},
+    create: {
+      id: SYSTEM_SUPPLIER_ID,
+      externalId: 'SYS-SUPP',
+      nome: 'Fornitore di Sistema (per importazioni)',
+    }
+  });
+
+  console.log('Cliente e Fornitore di sistema assicurati.');
 
   // --- TEMPLATE DI IMPORTAZIONE ---
   console.log('Seeding Template di Importazione...');
@@ -34,7 +59,7 @@ async function main() {
     data: {
       nome: 'causali',
       modelName: 'CausaleContabile',
-      fields: { create: [ { nomeCampo: 'id', start: 0, length: 8 }, { nomeCampo: 'descrizione', start: 8, length: 40 } ] },
+      fields: { create: [ { nomeCampo: 'id', start: 0, length: 8 }, { nomeCampo: 'externalId', start: 0, length: 8 }, { nomeCampo: 'descrizione', start: 8, length: 40 } ] },
     }
   });
 
@@ -42,7 +67,7 @@ async function main() {
     data: {
       nome: 'condizioni_pagamento',
       modelName: 'CondizionePagamento',
-      fields: { create: [ { nomeCampo: 'id', start: 0, length: 8 }, { nomeCampo: 'descrizione', start: 8, length: 40 } ] },
+      fields: { create: [ { nomeCampo: 'id', start: 0, length: 8 }, { nomeCampo: 'externalId', start: 0, length: 8 }, { nomeCampo: 'descrizione', start: 8, length: 40 } ] },
     }
   });
 
@@ -50,7 +75,7 @@ async function main() {
     data: {
       nome: 'codici_iva',
       modelName: 'CodiceIva',
-      fields: { create: [ { nomeCampo: 'id', start: 0, length: 5 }, { nomeCampo: 'descrizione', start: 5, length: 45 } ] },
+      fields: { create: [ { nomeCampo: 'id', start: 0, length: 5 }, { nomeCampo: 'externalId', start: 0, length: 5 }, { nomeCampo: 'descrizione', start: 5, length: 45 } ] },
     }
   });
 
@@ -62,10 +87,45 @@ async function main() {
     }
   });
 
+  await prisma.importTemplate.create({
+    data: {
+      nome: 'anagrafica_clifor',
+      modelName: 'Cliente', // Gestirà entrambi tramite logica custom
+      fields: { create: [ 
+        { nomeCampo: 'id_interno', start: 16, length: 12 }, 
+        { nomeCampo: 'codice_fiscale_piva', start: 28, length: 16 }, 
+        { nomeCampo: 'tipo_soggetto', start: 44, length: 1 }, 
+        { nomeCampo: 'conto_contabile', start: 57, length: 10 }, 
+        { nomeCampo: 'codice_esterno', start: 67, length: 12 }, 
+        { nomeCampo: 'codice_numerico', start: 79, length: 12 }, 
+        { nomeCampo: 'ragione_sociale', start: 91, length: 50 }, 
+        { nomeCampo: 'cognome', start: 141, length: 20 }, 
+        { nomeCampo: 'nome', start: 161, length: 20 }, 
+        { nomeCampo: 'sesso', start: 181, length: 1 }, 
+        { nomeCampo: 'data_nascita', start: 182, length: 8, type: 'date' }, 
+        { nomeCampo: 'comune_nascita', start: 190, length: 4 }, 
+        { nomeCampo: 'cap', start: 194, length: 8 }, 
+        { nomeCampo: 'indirizzo', start: 202, length: 50 } 
+      ] },
+    }
+  });
+
+  await prisma.importTemplate.create({
+    data: {
+      nome: 'piano_dei_conti',
+      modelName: 'Conto',
+      fields: { create: [ 
+        { nomeCampo: 'id', start: 45, length: 10 }, 
+        { nomeCampo: 'nome', start: 91, length: 50 }, 
+        { nomeCampo: 'tipo_soggetto', start: 44, length: 1 } // Usato per filtrare
+      ] },
+    }
+  });
+
   const scrittureContabiliFields: any = [
-    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'id_registrazione', start: 11, length: 14 },
-    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'data_registrazione', start: 25, length: 8, type: 'date' },
-    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'codice_causale', start: 33, length: 6 },
+    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'id_registrazione', start: 20, length: 12 },
+    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'data_registrazione', start: 33, length: 8, type: 'date' },
+    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'codice_causale', start: 41, length: 6 },
     { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'data_documento', start: 56, length: 8, type: 'date' },
     { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'id_cliente_fornitore', start: 64, length: 16 },
     { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'numero_documento', start: 96, length: 16 },
@@ -110,7 +170,7 @@ async function main() {
   // --- VOCI ANALITICHE ---
   console.log('Seeding Voci Analitiche...');
   const vociAnalitiche = [
-    { id: '1', nome: 'Personale', descrizione: 'Costi relativi al personale dipendente' },
+    { id: '1', nome: 'Ricavi Vendite', descrizione: 'Ricavi derivanti dalla vendita di prodotti/servizi' },
     { id: '2', nome: 'Gestione Automezzi', descrizione: 'Costi per la manutenzione e gestione della flotta' },
     { id: '3', nome: 'Gestione Attrezzature' },
     { id: '4', nome: 'Sacchi e Bidoni' },

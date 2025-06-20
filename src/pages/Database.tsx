@@ -19,7 +19,9 @@ import { toast } from "sonner";
 import { deleteRegistrazione } from '@/api/registrazioni';
 import { useNavigate } from 'react-router-dom';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import { ScritturaContabile, Commessa, Cliente, Fornitore, Conto, VoceAnalitica, RigaScrittura } from '@/types';
+import { ScritturaContabile, Commessa, Cliente, Fornitore, Conto, VoceAnalitica, RigaScrittura, CausaleContabile } from '@/types';
+import { CodiceIva } from '@/api/codiciIva';
+import { CondizionePagamento } from '@/api/condizioniPagamento';
 import {
   Dialog,
   DialogContent,
@@ -46,6 +48,9 @@ import { createFornitore, updateFornitore, deleteFornitore } from '@/api/fornito
 import { createVoceAnalitica, deleteVoceAnalitica, updateVoceAnalitica } from '@/api/vociAnalitiche';
 import { createConto, deleteConto, updateConto } from '@/api/conti';
 import { createCommessa, deleteCommessa, updateCommessa } from '@/api/commesse';
+import { createCausale, deleteCausale, updateCausale } from '@/api/causali';
+import { createCodiceIva, deleteCodiceIva, updateCodiceIva } from '@/api/codiciIva';
+import { createCondizionePagamento, deleteCondizionePagamento, updateCondizionePagamento } from '@/api/condizioniPagamento';
 import { Switch } from "@/components/ui/switch";
 import {
   Select,
@@ -57,6 +62,7 @@ import {
 import { TipoConto } from '@prisma/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ImportTemplatesAdmin from '@/components/admin/ImportTemplatesAdmin';
+import { clearScrittureContabili } from '@/api/database';
 
 // Definiamo un'interfaccia aggregata per i dati del database
 interface DatabaseData {
@@ -66,6 +72,9 @@ interface DatabaseData {
   fornitori: Fornitore[];
   conti: Conto[];
   vociAnalitiche: VoceAnalitica[];
+  causali: CausaleContabile[];
+  codiciIva: CodiceIva[];
+  condizioniPagamento: CondizionePagamento[];
   stats: {
     totaleScrittureContabili: number;
     totaleCommesse: number;
@@ -73,10 +82,13 @@ interface DatabaseData {
     totaleFornitori: number;
     totaleConti: number;
     totaleVociAnalitiche: number;
+    totaleCausali: number;
+    totaleCodiciIva: number;
+    totaleCondizioniPagamento: number;
   };
 }
 
-type TableKey = 'scritture' | 'commesse' | 'clienti' | 'fornitori' | 'conti' | 'vociAnalitiche';
+type TableKey = 'scritture' | 'commesse' | 'clienti' | 'fornitori' | 'conti' | 'vociAnalitiche' | 'causali' | 'codiciIva' | 'condizioniPagamento';
 
 const tableConfig: { key: TableKey; label: string; icon: React.ElementType }[] = [
     { key: 'scritture', label: 'Scritture', icon: FileText },
@@ -85,6 +97,9 @@ const tableConfig: { key: TableKey; label: string; icon: React.ElementType }[] =
     { key: 'fornitori', label: 'Fornitori', icon: Landmark },
     { key: 'conti', label: 'Piano dei Conti', icon: Library },
     { key: 'vociAnalitiche', label: 'Voci Analitiche', icon: Landmark },
+    { key: 'causali', label: 'Causali', icon: FileText },
+    { key: 'codiciIva', label: 'Codici IVA', icon: Library },
+    { key: 'condizioniPagamento', label: 'Condizioni Pagamento', icon: Library },
 ];
 
 const PlaceholderTable = ({ title }: { title: string }) => (
@@ -883,8 +898,9 @@ const CommesseTable = ({ data, onDataChange, clienti }: { data: Commessa[], onDa
 }
 
 const ScrittureTable = ({ data, onDataChange }: { data: ScritturaContabile[], onDataChange: () => void }) => {
-  const navigate = useNavigate();
   const [deletingRegistrazione, setDeletingRegistrazione] = useState<ScritturaContabile | null>(null);
+  const [isClearing, setIsClearing] = useState(false);
+  const navigate = useNavigate();
 
   const handleDelete = async () => {
     if (!deletingRegistrazione) return;
@@ -899,15 +915,32 @@ const ScrittureTable = ({ data, onDataChange }: { data: ScritturaContabile[], on
     }
   };
 
-  const handleEdit = (registrazione: ScritturaContabile) => {
-    navigate(`/app/prima-nota/modifica/${registrazione.id}`);
+  const handleClearTable = async () => {
+    try {
+      await clearScrittureContabili();
+      onDataChange();
+    } finally {
+      setIsClearing(false);
+    }
   };
 
+  const handleEdit = (registrazione: ScritturaContabile) => {
+    navigate(`/app/prima-nota/registrazioni/${registrazione.id}/modifica`);
+  };
+
+  const calculateTotal = (righe: RigaScrittura[] = []) => {
+    return righe.reduce((acc, riga) => acc + (riga.dare || 0), 0);
+  };
+  
   return (
     <>
       <Card>
-        <CardHeader>
-          <CardTitle>Scritture Contabili</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle>Scritture Contabili</CardTitle>
+            <Button variant="destructive" onClick={() => setIsClearing(true)}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Svuota Scritture
+            </Button>
         </CardHeader>
         <CardContent>
           <Table>
@@ -929,9 +962,7 @@ const ScrittureTable = ({ data, onDataChange }: { data: ScritturaContabile[], on
                     <Badge variant="outline">{scrittura.causaleId}</Badge>
                   </TableCell>
                   <TableCell>
-                    {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(
-                      scrittura.righe.reduce((acc, riga) => acc + riga.dare, 0)
-                    )}
+                    {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(calculateTotal(scrittura.righe))}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button variant="ghost" size="icon" onClick={() => handleEdit(scrittura)}>
@@ -952,13 +983,593 @@ const ScrittureTable = ({ data, onDataChange }: { data: ScritturaContabile[], on
           </Table>
         </CardContent>
       </Card>
-      
+
       <AlertDialog open={!!deletingRegistrazione} onOpenChange={() => setDeletingRegistrazione(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Sei sicuro?</AlertDialogTitle>
             <AlertDialogDescription>
               Questa azione eliminerà la registrazione contabile e tutte le sue righe e allocazioni. Questa azione non può essere annullata.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">Elimina</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={isClearing} onOpenChange={setIsClearing}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sei assolutamente sicuro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Questa azione è irreversibile e cancellerà TUTTE le scritture contabili, 
+              incluse le righe e le allocazioni analitiche. Sei sicuro di voler procedere?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleClearTable} 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Sì, svuota tutto
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+};
+
+const CausaliTable = ({ data, onDataChange }: { data: CausaleContabile[], onDataChange: () => void }) => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingCausale, setEditingCausale] = useState<CausaleContabile | null>(null);
+  const [deletingCausale, setDeletingCausale] = useState<CausaleContabile | null>(null);
+
+  const causaleSchema = z.object({
+    id: z.string().min(1, { message: "L'ID è obbligatorio." }),
+    nome: z.string().min(2, { message: "Il nome deve essere di almeno 2 caratteri." }),
+    descrizione: z.string().min(2, { message: "La descrizione deve essere di almeno 2 caratteri." }),
+    externalId: z.string().optional(),
+  });
+
+  const form = useForm<z.infer<typeof causaleSchema>>({
+    resolver: zodResolver(causaleSchema),
+    defaultValues: { id: "", nome: "", descrizione: "", externalId: "" },
+  });
+
+  const handleOpenDialog = (causale: CausaleContabile | null = null) => {
+    setEditingCausale(causale);
+    if (causale) {
+      form.reset({ 
+        id: causale.id, 
+        nome: causale.nome, 
+        descrizione: causale.descrizione, 
+        externalId: causale.externalId || "" 
+      });
+    } else {
+      form.reset({ id: "", nome: "", descrizione: "", externalId: "" });
+    }
+    setIsDialogOpen(true);
+  };
+
+  const onSubmit = async (values: z.infer<typeof causaleSchema>) => {
+    try {
+      if (editingCausale) {
+        await updateCausale(editingCausale.id, { 
+          nome: values.nome!, 
+          descrizione: values.descrizione!, 
+          externalId: values.externalId 
+        });
+        toast.success("Causale aggiornata con successo.");
+      } else {
+        await createCausale({ 
+          id: values.id!, 
+          nome: values.nome!, 
+          descrizione: values.descrizione!, 
+          externalId: values.externalId 
+        });
+        toast.success("Causale creata con successo.");
+      }
+      onDataChange();
+      setIsDialogOpen(false);
+    } catch (error) {
+      toast.error((error as Error).message);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deletingCausale) return;
+    try {
+      await deleteCausale(deletingCausale.id);
+      toast.success("Causale eliminata con successo.");
+      onDataChange();
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setDeletingCausale(null);
+    }
+  };
+
+  return (
+    <>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Causali Contabili</CardTitle>
+          <Button onClick={() => handleOpenDialog()}>Aggiungi Causale</Button>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Nome</TableHead>
+                <TableHead>Descrizione</TableHead>
+                <TableHead>ID Esterno</TableHead>
+                <TableHead className="text-right">Azioni</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((causale) => (
+                <TableRow key={causale.id}>
+                  <TableCell><Badge variant="outline">{causale.id}</Badge></TableCell>
+                  <TableCell>{causale.nome}</TableCell>
+                  <TableCell>{causale.descrizione}</TableCell>
+                  <TableCell>{causale.externalId || 'N/A'}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(causale)}><Edit className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => setDeletingCausale(causale)}><Trash2 className="h-4 w-4" /></Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingCausale ? 'Modifica Causale' : 'Nuova Causale'}</DialogTitle>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ID</FormLabel>
+                    <FormControl>
+                      <Input {...field} disabled={!!editingCausale} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="nome"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="descrizione"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descrizione</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="externalId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ID Esterno</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button type="submit">{editingCausale ? 'Aggiorna' : 'Crea'}</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!deletingCausale} onOpenChange={() => setDeletingCausale(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sei sicuro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Questa azione eliminerà la causale contabile. Questa azione non può essere annullata.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">Elimina</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+};
+
+const CodiciIvaTable = ({ data, onDataChange }: { data: CodiceIva[], onDataChange: () => void }) => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingCodice, setEditingCodice] = useState<CodiceIva | null>(null);
+  const [deletingCodice, setDeletingCodice] = useState<CodiceIva | null>(null);
+
+  const codiceIvaSchema = z.object({
+    id: z.string().min(1, { message: "L'ID è obbligatorio." }),
+    descrizione: z.string().min(2, { message: "La descrizione deve essere di almeno 2 caratteri." }),
+    aliquota: z.number().min(0).max(100, { message: "L'aliquota deve essere tra 0 e 100." }),
+    externalId: z.string().optional(),
+  });
+
+  const form = useForm<z.infer<typeof codiceIvaSchema>>({
+    resolver: zodResolver(codiceIvaSchema),
+    defaultValues: { id: "", descrizione: "", aliquota: 22, externalId: "" },
+  });
+
+  const handleOpenDialog = (codice: CodiceIva | null = null) => {
+    setEditingCodice(codice);
+    if (codice) {
+      form.reset({ 
+        id: codice.id, 
+        descrizione: codice.descrizione, 
+        aliquota: codice.aliquota,
+        externalId: codice.externalId || "" 
+      });
+    } else {
+      form.reset({ id: "", descrizione: "", aliquota: 22, externalId: "" });
+    }
+    setIsDialogOpen(true);
+  };
+
+  const onSubmit = async (values: z.infer<typeof codiceIvaSchema>) => {
+    try {
+      if (editingCodice) {
+        await updateCodiceIva(editingCodice.id, { 
+          descrizione: values.descrizione!, 
+          aliquota: values.aliquota!, 
+          externalId: values.externalId 
+        });
+        toast.success("Codice IVA aggiornato con successo.");
+      } else {
+        await createCodiceIva({ 
+          id: values.id!, 
+          descrizione: values.descrizione!, 
+          aliquota: values.aliquota!, 
+          externalId: values.externalId 
+        });
+        toast.success("Codice IVA creato con successo.");
+      }
+      onDataChange();
+      setIsDialogOpen(false);
+    } catch (error) {
+      toast.error((error as Error).message);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deletingCodice) return;
+    try {
+      await deleteCodiceIva(deletingCodice.id);
+      toast.success("Codice IVA eliminato con successo.");
+      onDataChange();
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setDeletingCodice(null);
+    }
+  };
+
+  return (
+    <>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Codici IVA</CardTitle>
+          <Button onClick={() => handleOpenDialog()}>Aggiungi Codice IVA</Button>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Descrizione</TableHead>
+                <TableHead>Aliquota</TableHead>
+                <TableHead>ID Esterno</TableHead>
+                <TableHead className="text-right">Azioni</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((codice) => (
+                <TableRow key={codice.id}>
+                  <TableCell><Badge variant="outline">{codice.id}</Badge></TableCell>
+                  <TableCell>{codice.descrizione}</TableCell>
+                  <TableCell>{codice.aliquota}%</TableCell>
+                  <TableCell>{codice.externalId || 'N/A'}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(codice)}><Edit className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => setDeletingCodice(codice)}><Trash2 className="h-4 w-4" /></Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingCodice ? 'Modifica Codice IVA' : 'Nuovo Codice IVA'}</DialogTitle>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ID</FormLabel>
+                    <FormControl>
+                      <Input {...field} disabled={!!editingCodice} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="descrizione"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descrizione</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="aliquota"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Aliquota (%)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        step="0.01"
+                        {...field} 
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="externalId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ID Esterno</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button type="submit">{editingCodice ? 'Aggiorna' : 'Crea'}</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!deletingCodice} onOpenChange={() => setDeletingCodice(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sei sicuro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Questa azione eliminerà il codice IVA. Questa azione non può essere annullata.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">Elimina</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+};
+
+const CondizioniPagamentoTable = ({ data, onDataChange }: { data: CondizionePagamento[], onDataChange: () => void }) => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingCondizione, setEditingCondizione] = useState<CondizionePagamento | null>(null);
+  const [deletingCondizione, setDeletingCondizione] = useState<CondizionePagamento | null>(null);
+
+  const condizioneSchema = z.object({
+    id: z.string().min(1, { message: "L'ID è obbligatorio." }),
+    descrizione: z.string().min(2, { message: "La descrizione deve essere di almeno 2 caratteri." }),
+    externalId: z.string().optional(),
+  });
+
+  const form = useForm<z.infer<typeof condizioneSchema>>({
+    resolver: zodResolver(condizioneSchema),
+    defaultValues: { id: "", descrizione: "", externalId: "" },
+  });
+
+  const handleOpenDialog = (condizione: CondizionePagamento | null = null) => {
+    setEditingCondizione(condizione);
+    if (condizione) {
+      form.reset({ 
+        id: condizione.id, 
+        descrizione: condizione.descrizione, 
+        externalId: condizione.externalId || "" 
+      });
+    } else {
+      form.reset({ id: "", descrizione: "", externalId: "" });
+    }
+    setIsDialogOpen(true);
+  };
+
+  const onSubmit = async (values: z.infer<typeof condizioneSchema>) => {
+    try {
+      if (editingCondizione) {
+        await updateCondizionePagamento(editingCondizione.id, { 
+          descrizione: values.descrizione!, 
+          externalId: values.externalId 
+        });
+        toast.success("Condizione di pagamento aggiornata con successo.");
+      } else {
+        await createCondizionePagamento({ 
+          id: values.id!, 
+          descrizione: values.descrizione!, 
+          externalId: values.externalId 
+        });
+        toast.success("Condizione di pagamento creata con successo.");
+      }
+      onDataChange();
+      setIsDialogOpen(false);
+    } catch (error) {
+      toast.error((error as Error).message);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deletingCondizione) return;
+    try {
+      await deleteCondizionePagamento(deletingCondizione.id);
+      toast.success("Condizione di pagamento eliminata con successo.");
+      onDataChange();
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setDeletingCondizione(null);
+    }
+  };
+
+  return (
+    <>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Condizioni di Pagamento</CardTitle>
+          <Button onClick={() => handleOpenDialog()}>Aggiungi Condizione</Button>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Descrizione</TableHead>
+                <TableHead>ID Esterno</TableHead>
+                <TableHead className="text-right">Azioni</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((condizione) => (
+                <TableRow key={condizione.id}>
+                  <TableCell><Badge variant="outline">{condizione.id}</Badge></TableCell>
+                  <TableCell>{condizione.descrizione}</TableCell>
+                  <TableCell>{condizione.externalId || 'N/A'}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(condizione)}><Edit className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => setDeletingCondizione(condizione)}><Trash2 className="h-4 w-4" /></Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingCondizione ? 'Modifica Condizione' : 'Nuova Condizione'}</DialogTitle>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ID</FormLabel>
+                    <FormControl>
+                      <Input {...field} disabled={!!editingCondizione} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="descrizione"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descrizione</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="externalId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ID Esterno</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter>
+                <Button type="submit">{editingCondizione ? 'Aggiorna' : 'Crea'}</Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!deletingCondizione} onOpenChange={() => setDeletingCondizione(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sei sicuro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Questa azione eliminerà la condizione di pagamento. Questa azione non può essere annullata.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1018,6 +1629,12 @@ const Database: React.FC = () => {
             return <CommesseTable data={data.commesse} onDataChange={handleDataChange} clienti={data.clienti}/>;
         case 'scritture':
              return <ScrittureTable data={data.scritture} onDataChange={handleDataChange} />;
+        case 'causali':
+            return <CausaliTable data={data.causali} onDataChange={handleDataChange} />;
+        case 'codiciIva':
+            return <CodiciIvaTable data={data.codiciIva} onDataChange={handleDataChange} />;
+        case 'condizioniPagamento':
+            return <CondizioniPagamentoTable data={data.condizioniPagamento} onDataChange={handleDataChange} />;
         default:
             return <p>Seleziona una tabella da visualizzare.</p>;
     }

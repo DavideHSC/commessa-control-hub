@@ -127,10 +127,10 @@ model BudgetVoce {
 model ScritturaContabile {
   id              String    @id @default(cuid())
   externalId      String?   @unique
-  data            DateTime  @default(now())
+  data            DateTime?  @default(now())
   dataDocumento   DateTime?
   numeroDocumento String?
-  causaleId       String
+  causaleId       String?
   descrizione     String
   datiAggiuntivi  Json?
 
