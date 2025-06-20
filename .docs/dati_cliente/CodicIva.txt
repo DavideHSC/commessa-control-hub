@@ -1,0 +1,816 @@
+   X10  Iva al 10%                              O10                                                                             D 1 1                             
+   X101010% Prod. agr. % comp. detr. 10%        O10       quadro VE sezione II                                                  D 1 1         A10                 
+   X101FIva 10% cessione prod.agr.detr.10 c.f.  O10       quadro VE sezione II consumatori finali                               D 1           A10                 
+   X102 10% Prod. agr. % comp. detr. 2%         O10                                                                             D 1 1         A2                  
+   X102FIva 10% cessione prod. agr. detr.2% c.f.O10       quadro VE sezione II consumatori finali                               D 1           A2                  
+   X103FIva 10% Cessione prod.agr detr. 7,3%c.f.O10       Quadro VE sezione II consumatori finali                               D 1           A7.30               
+   X104 10% Prod. agr. % comp. detr. 4%         O10                                                                             D 1 1         A4                  
+   X1046Cessioni al 10% condomini               O10                                                                             D 1                               
+   X104FIva 10% cessione prod. agr. detr.4% c.f.O10       quadro VE sezione II consumatori finali                               D 1           A4                  
+   X105FIva 10% cessione prod.agr.detr.7,5  c.f.O10       quadro VE sezione II consumatori finali                               D 1           A7.50               
+   X106 10% Prod. agr. % comp. detr. 6%         O10                                                                             D 1 1         A6                  
+   X106410% Prod. agr. % comp. detr. 6,4%       O10                                                                             D 1 1         A6.40               
+   X106FIva 10% cessione prod.agr. detr. 6  c.f.O10       quadro VE sezione II consumatori finali                               D 1           A6                  
+   X106GIva 10% cess. prod.agr. detr. 6,4  c.f. O10       quadro VE sezione II consumatori finali                               D 1           A6.40               
+   X107 10% Prod. agr. % comp.  detr. 7%        O10                                                                             D 1 1         A7                  
+   X1073Iva 10% prod. agr. % comp. detr. 7,3%   O10       Quadro VE sezione II                                                  D 1 1         A7.30               
+   X107510% Prod. agr. % comp. detr. 7,5%       O10                                                                             D 1 1         A7.50               
+   X107610% Prod. agr. % comp. detr. 7,65%      O10                                                                             D 1 1         A7.65               
+   X107910% Prod. agr. % comp. detr. 7,95%      O10                                                                             D 1 1         A7.95               
+   X107FIva 10% cessione prod. agr. detr.7% c.f.O10       quadro VE sezione II consumatori finali                               D 1           A7                  
+   X107PIva 10% cessione prod.agr.detr.7,95 c.f.O10       quadro VE sezione II consumatori finali                               D 1           A7.95               
+   X107RIva 10% cessione prod.agr.detr.7,65 c.f.O10       quadro VE sezione II consumatori finali                               D 1           A7.65               
+   X1083Iva 10% prod. agr. % comp. detr. 8,3%   O10       Quadro VE sezione II                                                  D 1 1         A8.30               
+   X108510% Prod. agr. % comp. detr. 8,5%       O10                                                                             D 1 1         A8.50               
+   X1088Iva 10% prod. agr. % comp. detr. 8,8%   O10       Quadro VE sezione II                                                  D 1 1         A8.80               
+   X108AIva 10% Cessione prod.agr detr 8,8% c.f.O10       Quadro VE sezione II consumatori finali                               D 1           A8.80               
+   X108FIva 10% cessione prod.agr. detr.8,5 c.f.O10       quadro VE sezione II consumatori finali                               D 1           A8.50               
+   X108PIva 10% Cessione prod.agr. detr.8,3% c.fO10       Quadro VE sezione II consumatori finali                               D 1           A8.30               
+   X109 10% Prod. agr. % comp. detr. 9%         O10                                                                             D 1 1         A9                  
+   X109510% Prod. agr. % comp. detr. 9,5%       O10                                                                             D 1 1         A9.50               
+   X109FIva 10% cessione prod. agr.detr. 9% c.f.O10       quadro VE sezione II consumatori finali                               D 1           A9                  
+   X109PIva 10% cessione prod.agr.detr. 9,5 c.f.O10       quadro VE sezione II consumatori finali                               D 1           A9.50               
+   X10AAIVA al 10% acquisto prodotti tab. A/1   O10                                                                             D   1         A                   
+   X10AB10% acquisti intra beni agriturismo     O10                                                                            XN   1                           X 
+   X10ACIVA al 10% beni att. agricole connesse  O10                                                                             D 1 1         B                   
+   X10ADIva al 10% detr. 1/2 legge 398/91       O10       associazioni sportive, pro loco                                       D                              2  
+   X10AFIva 10% acquisti di fabbricati strument.O10       Art. 17 c.6 lett. a-bis                                              XN   1X                            
+   X10AG10% Prod. agr. % comp. detr. 10%        O10       quadro VE sezione I                                                   D 1 1         A10                 
+   X10AIIVA 10% Acq. prodotti no agric.Iva indetO10       acquisti attività agricole IVA ind.                                   D   1         A                   
+   X10AOIva al 10% beni att. Agr.connesse occ.liO10    100att. agricole connesse occasionali                                    D 1 1         B                   
+   X10APIVA al 10% beni att. agricole conn. c.f.O10       quadro VE sezione II consumatori finali                               D 1           B                   
+   X10ASIVA al 10% att.agricole connesse serviziO10                                                                             D 1 1         B                   
+   X10BAIva al 10% cessione beni amm.           O10                                                                            XN 1                               
+   X10C Cessioni al 10% condomini no p.Iva      O10                                                                             D 1                               
+   X10CCIva 10% sogg. no p.Iva                  O10                                                                             D 1                               
+   X10CSIva al 10% corrispettivi                S10                                                                             D 1                               
+   X10FOIva al 10% forfetari                    O10                                                       31122010              D 1 1                             
+   X10GDIva 10% acquisti grande distribuzione   O10       Art. 17 c.6 lett. d-quinquies                   31122014              N   1X                            
+   X10GSIva al 10% giroconto split payment      A10                                                                             N                                 
+   X10IFIva 10% prest. servizi fabbr. indetr 100O10    100Art. 17 c.6 lett. a-ter (per VF17)                                    N   1X                            
+   X10LFIva 10% prest. servizi fabbr. indetr 100O10    100sogg. esenti o art. 36-bis (per VF18)                                 N   1X                            
+   X10MAMargine beni usati non occasionali 10%  O10                                                                             N                                 
+   X10NAIva 10% prodotti no agricoli Iva detraibO10       soggetti in regime agricolo                                           D 1 1                             
+   X10NPIva al 10% prodotti no agr. a privati   O10       soggetti in regime agricolo                                           D 1 1                             
+   X10P1Acq. art. 17 c.2 10% indetr. 100%       O10    100Beni e servizi art.17 c.2 Iva indetr.                                XN   1                             
+   X10PFIva 10% prest. servizi su fabbricati    O10       Art. 17 c.6 lett. a-ter                                               N   1X                            
+   X10PIIva al 10% passaggi interni             O10                                                                            XN 1 1                             
+   X10PSAcq. beni e serv. art. 17 c.2 10%       O10                                                                            XN   1                             
+   X10PTAcq. art. 17 c.2 10% ind. op. esenti    O10    100acquisti  relativi a operazioni esenti                               XN   1                             
+   X10R1Iva 10% acquisti RSM no Iva indetr. 100%O10    100                                                                     XN   1                             
+   X10R2Iva al 10% acq.RSM con Iva indetr. 100% O10    100                                                                      N   1                             
+   X10R6Iva 10% acq. RSM Iva ind. 100% (esenti) O10    100                                                                      N   1                             
+   X10REAcquisti edilizia al 10% art. 17 c. 6   O10                                                                            XN   1X                            
+   X10RIAcq. edilizia al 10% art. 17 c.6 indetr.O10    100                                                                     XN   1X                            
+   X10RMIva 10% acquisti RSM no Iva             O10                                                                            XN   1                             
+   X10RSIva al 10% acquisti RSM con Iva         O10                                                                             N   1                             
+   X10RVIva al 10% acquisti RSM no Iva monte acqO10                                                                          X XN   1                             
+   X10S Iva al 10% a carico cliente (art.17-ter)O10       ft. enti pubblici con split payment     01012015                      D 1                               
+   X10S1Iva al 10% esigibilità diff. DL.185/2008O10                                                                             D 1 1                             
+   X10S2Iva al 10% esigibilità diff. DL.83/2012 O10       art. 32 bis DL.83/2012                                                D 1 1                             
+   X10SBIva al 10% subforniture                 O10                                                                             D 1X1                             
+   X10SIIva al 10% (solo Iva)                   A10                                                                             N                                 
+   X10SLIva 10% acquisti split payment          O10       Fatture ricevute split payment                                        N   1X                            
+   X10SNIva al 10% a carico cliente (art.17-ter)O10       split payment - sogg. no p. Iva         01012015                      D 1                               
+   X10SOIva al 10% esigibilità differita        O10                                                                             D 1 1                             
+   X10SPIva al 10% spettacoli viaggianti        S10                                                               X             D 1 1                             
+   X10TEIva 10% trasferimenti settore energeticoO10       Art. 17 c.6 lett. d-bis, d-ter, d-quater                              N   1X                            
+   X121212,5% Prod. agr. % comp. detr. 12,5%    O12.50                                                    31122009              D 1 1         A12.50              
+   X1313Iva 12,3% prod. agr. % comp. detr. 12,3%O12.30    Quadro VE sezione I                                                   D 1 1         A12.30              
+   X20  Iva al 20%                              O20                                                       31122013              D 1 1                             
+   X2010Iva al 20% detraibile 10%               O20    90                                                 31122013              N   1                             
+   X2012Iva al 20% tab. A1 perc. comp. 12,5%    O20                                                       31122009              D 1 1         A12.50              
+   X2013Iva 20% prod. agr. % comp. detr. 12,3%  O20       Quadro VE sezione II                            31122013              D 1 1         A12.30              
+   X2015Iva al 20% detraibile 15%               O20    85                                                 31122013              N   1                             
+   X201CIva 20% Cessione prod.agr. detr.12,3%c.fO20       Quadro VE sezione II consumatori finali         31122013              D 1           A12.30              
+   X201FIva 20% cessione prod.agr.detr.12,5 c.f.O20       quadro VE sezione II consumatori finali         31122009              D 1           A12.50              
+   X202 20% Prod. agr.  detr. 2%                O20                                                       31122013              D 1 1         A2                  
+   X202FIva 20% cessione prod. agr.detr. 2% c.f.O20       quadro VE sezione II consumatori finali         31122013              D 1           A2                  
+   X204 20% Prod. agr.  detr. 4%                O20                                                       31122013              D 1 1         A4                  
+   X2040Iva al 20% detraibile 40%               O20    60                                                 31122013              N   1                             
+   X2046Cessioni al 20% condomini               O20                                                       31122013              D 1                               
+   X204FIva 20% cessione prod. agr.detr. 4% c.f.O20       quadro VE sezione II consumatori finali         31122013              D 1           A4                  
+   X2088Iva 20% prod. agr. % comp. detr. 8,8%   O20       Quadro VE sezione II                            31122013              D 1 1         A8.80               
+   X208FIva 20% Cessione prod.agr. det. 8,8% c.fO20       Quadro VE sezione II consumatori finali         31122013              D 1           A8.80               
+   X209 20% Prod. agr.  detr. 9%                O20                                                       31122009              D 1 1         A9                  
+   X209FIva 20% cessione prod.agr.detr. 9% c.f. O20       quadro VE sezione II consumatori finali         31122009              D 1           A9                  
+   X20AAIVA al 20% acquisto prodotti tab. A/1   O20                                                       31122013              D   1         A                   
+   X20ACIVA al 20% beni att. agricole connesse  O20                                                       31122013              D 1 1         B                   
+   X20AFIva 20% acquisti di fabbricati strument.O20       art. 10, n. 8 ter, lett. d) - acquisti          31122013             XN   1X                            
+   X20AIIVA 20% Acq. prodotti no agric.Iva indetO20       acquisti attività agricole IVA ind.             31122013              D   1         A                   
+   X20AOIva al 20% beni att. Agr. conn. occ.li  O20    100att. agricole connesse occasionali              31122013              D 1 1         B                   
+   X20APIVA al 20% beni att. agricole conn. c.f.O20       quadro VE sezione II consumatori finali         31122013              D 1           B                   
+   X20ASIVA al 20% att.agricole connesse serviziO20                                                       31122013              D 1 1         B                   
+   X20AUEstrazioni depositi Iva 20% x cess. int.O20                                                       31122013             XN                                 
+   X20BAIva al 20% cessione beni amm.           O20                                                       31122013             XN 1                               
+   X20C Cessioni al 20% condomini no p.Iva      O20                                                       31122013              D 1                               
+   X20CA20% cessione autoveicoli immatr. UE     O20                                                       31122013              D 1                               
+   X20CBIva 20% sogg. no p.Iva beni amm.        O20                                                       31122013             XN 1                               
+   X20CCIva 20% sogg. no p.Iva                  O20                                                       31122013              D 1                               
+   X20CDAcq.  int. cell. 20% IVA detr.100% rev. O20                                                       31122013             XN   1X                            
+   X20CEAcq.  int. cell. 20% IVA detr. 50 % rev.O20    50                                                 31122013             XN   1X                            
+   X20CICessione Intra oro industriale          E                                                                             E D 2                               
+   X20COCessione interne oro industriale        E                                                                               D 1                               
+   X20CPAcq. Interni Processori 20% reverse     O20                                                       31122013             XN   1X                            
+   X20CSIva al 20% corrispettivi                S20                                                       31122013              D 1                               
+   X20FBIva 20% forfetari no volume d'affari    O20                                                       31122010              N 1                               
+   X20FCIva 20% forfetari cessioni a cons. fin. O20                                                       31122009              N 1                               
+   X20FOIva al 20% forfetari                    O20                                                       31122009              D 1 1                             
+   X20I5IVA CEE al 20% detraibile al 50%        O20    50                                                 31122013             XN   2                             
+   X20MAMargine beni usati non occasionali 20%  O20                                                       31122013              N                                 
+   X20NAIva 20% prodotti no agricoli Iva detraibO20       soggetti in regime agricolo                     31122013              D 1 1                             
+   X20NPIva al 20% prodotti no agr. a privati   O20       soggetti in regime agricolo                     31122013              D 1 1                             
+   X20PIIva al 20% passaggi interni             O20                                                       31122013             XN 1 1                             
+   X20PRProvvigioni art. 74 ter c.8             O20                                                       31122013             XN   1                             
+   X20PSAcq. beni e servizi  art. 17 c.2 20%    O20                                                       31122013             XN   1                             
+   X20R1Iva al 20% acq. RSM no Iva indetr. 100% O20                                                       31122013             XN   1                             
+   X20R5Iva al 20% acq. RSM no Iva detr. 50%    O20    50                                                 31122013             XN   1                             
+   X20REAcquisti edilizia al 20% art. 17 c. 6   O20                                                       31122013             XN   1X                            
+   X20RIAcq. edilizia al 20% art. 17 c.6 indetr.O20    100                                                31122013             XN   1X                            
+   X20RMIva al 20% acquisti RSM no Iva          O20                                                       31122013             XN   1                             
+   X20RSIva al 20% acquisti RSM con Iva         O20                                                       31122013              N   1                             
+   X20RVIva al 20% acquisti RSM no Iva monte acqO20                                                       31122013           X XN   1                             
+   X20S1Iva al 20% esigibilità diff. DL.185/2008O20                                                       31122013              D 1 1                             
+   X20S5Iva al 20% acq. RSM con Iva detr. 50%   O20    50                                                 31122013              N   1                             
+   X20SAIVA al 20% art. 17 c.2 agricolt.        O20       soggetti in regime agricolo                     31122013             XN   1                             
+   X20SBIva al 20% subforniture                 O20                                                       31122013              D 1X1                             
+   X20SCIva al 20% scorporo                     S20                                                       31122013              D 1 1                             
+   X20SIIva al 20% (solo Iva)                   A20                                                       31122013              N                                 
+   X20SOIval 20% esigibilità differita          O20                                                       31122013              D 1 1                             
+   X20SPIva al 20% spettacoli viaggianti        S20                                                       31122013X             D 1                               
+   X20TAAcquisti tartufi 20% da sogg. No p. iva O20    100                                                31122013             XN   1X                            
+   X21  Iva al 21%                              O21                                                       31122015              D 1 1                             
+   X2110Iva al 21% detraibile 10%               O21    90                                                 31122015              N   1                             
+   X2113Iva 21% prod. agr. % comp. detr. 12,3%  O21       Quadro VE sezione II                            31122015              D 1 1         A12.30              
+   X211CIva 21% Cessione prod.agr. detr.12,3%c.fO21       Quadro VE sezione II consumatori finali         31122015              D 1           A12.30              
+   X212 21% Prod. agr.  detr. 2%                O21                                                       31122015              D 1 1         A2                  
+   X212FIva 21% cessione prod. agr.detr. 2% c.f.O21       quadro VE sezione II consumatori finali         31122015              D 1           A2                  
+   X214 21% Prod. agr.  detr. 4%                O21                                                       31122015              D 1 1         A4                  
+   X2140Iva al 21% detraibile 40%               O21    60                                                 31122015              N   1                             
+   X2146Cessioni al 21% condomini               O21                                                       31122015              D 1                               
+   X214FIva 21% cessione prod. agr.detr. 4% c.f.O21       quadro VE sezione II consumatori finali         31122015              D 1           A4                  
+   X2188Iva 21% prod. agr. % comp. detr. 8,8%   O21       Quadro VE sezione II                            31122015              D 1 1         A8.80               
+   X218FIva 21% Cessione prod.agr. det. 8,8% c.fO21       Quadro VE sezione II consumatori finali         31122015              D 1           A8.80               
+   X21A1Iva al 21% detr.1/10 legge 398/91       O21       associazioni sportive, pro loco                 31122015              D                              1  
+   X21A3Iva al 21% detr. 1/3 legge 398/91       O21       associazioni sportive, pro loco                 31122015              D                              3  
+   X21AAIva al 21% acquisto prodotti tab. A/1   O21                                                       31122015              D   1         A                   
+   X21ACIva al 21% beni att. agricole connesse  O21                                                       31122015              D 1 1         B                   
+   X21ADIva al 21% detr. 1/2 legge 398/91       O21       associazioni sportive, pro loco                 31122015              D                              2  
+   X21AFIva 21% acquisti di fabbricati strument.O21       art. 10, n. 8 ter, lett. d) - acquisti          31122015             XN   1X                            
+   X21AIIva 21% Acq. prodotti no agric.Iva indetO21       acquisti attività agricole IVA ind.             31122015              D   1         A                   
+   X21AOIva al 21% beni att. Agr. conn. occ.li  O21    100att. agricole connesse occasionali              31122015              D 1 1         B                   
+   X21APIva al 21% beni att. agricole conn. c.f.O21       quadro VE sezione II consumatori finali         31122015              D 1           B                   
+   X21ASIva al 21% att.agricole connesse serviziO21                                                       31122015              D 1 1         B                   
+   X21AUEstrazioni depositi Iva 21% cess. int.  O21                                                       31122015             XN                                 
+   X21BAIva al 21% cessione beni amm.           O21                                                       31122015             XN 1                               
+   X21C Cessioni al 21% condomini no p.Iva      O21                                                       31122015              D 1                               
+   X21CA21% cessione autoveicoli immatr. UE     O21                                                       31122015              D 1                               
+   X21CBIva 21% sogg. no p.Iva beni amm.        O21                                                       31122015             XN 1                               
+   X21CCIva 21% sogg. no p.Iva                  O21                                                       31122015              D 1                               
+   X21CDAcq.  int. cell. 21% Iva detr.100% rev. O21                                                       31122015             XN   1X                            
+   X21CEAcq.  int. cell. 21% Iva detr. 50 % rev.O21    50                                                 31122015             XN   1X                            
+   X21CPAcq. Interni Processori 21% reverse     O21                                                       31122015             XN   1X                            
+   X21CSIva al 21% corrispettivi                S21                                                       31122015              D 1                               
+   X21DEEstrazione deposito Iva 21%             O21       Estrazione da depositi Iva gestione aut.        31122015              D 1 1                             
+   X21I5Iva CEE al 21% detraibile al 50%        O21    50                                                 31122015             XN   2                             
+   X21IPAcq. Interni Proc.  21% reverse Iva ind.O21    100                                                31122015             XN   1X                            
+   X21MAMargine beni usati non occasionali 21%  O21                                                       31122015              N                                 
+   X21NAIva 21% prodotti no agricoli Iva detraibO21       soggetti in regime agricolo                     31122015              D 1 1                             
+   X21NPIva al 21% prodotti no agr. a privati   O21       soggetti in regime agricolo                     31122015              D 1 1                             
+   X21P1Acq. art. 17 c.2 21% indetr. 100%       O21    100Beni e servizi art.17 c.2 Iva indetr.           31122015             XN   1                             
+   X21PIIva al 21% passaggi interni             O21                                                       31122015             XN 1 1                             
+   X21PRProvvigioni art. 74 ter c.8 21%         O21                                                       31122015             XN   1                             
+   X21PSAcq. beni e servizi  art. 17 c.2 21%    O21                                                       31122015             XN   1                             
+   X21PTAcq. art. 17 c.2 21% ind. op. es.       O21    100acquisti  relativi a operazioni esenti          31122015             XN   1                             
+   X21R1Iva al 21% acq. RSM no Iva indetr. 100% O21    100                                                31122015             XN   1                             
+   X21R2Iva al 21% acq. RSM con Iva indetr. 100%O21    100                                                31122015              N   1                             
+   X21R5Iva al 21% acq. RSM no Iva detr. 50%    O21    50                                                 31122015             XN   1                             
+   X21REAcquisti edilizia al 21% art. 17 c. 6   O21                                                       31122015             XN   1X                            
+   X21RIAcq. edilizia al 21% art. 17 c.6 indetr.O21    100                                                31122015             XN   1X                            
+   X21RMIva al 21% acquisti RSM no Iva          O21                                                       31122015             XN   1                             
+   X21RSIva al 21% acquisti RSM con Iva         O21                                                       31122015              N   1                             
+   X21RVIva al 21% acquisti RSM no Iva monte acqO21                                                       31122015           X XN   1                             
+   X21S1Iva al 21% esigibilità diff. DL.185/2008O21                                                       31122015              D 1 1                             
+   X21S2Iva al 21% esigibilità diff. DL.83/2012 O21       Art. 32 bis DL. 83/2012                         31122015              D 1 1                             
+   X21S4Iva al 21% acq. RSM con Iva detr. 40%   O21    60                                                 31122015              N   1                             
+   X21S5Iva al 21% acq. RSM con Iva detr. 50%   O21    50                                                 31122015              N   1                             
+   X21SAIva al 21% art. 17 c.2 agricolt.        O21       soggetti in regime agricolo                     31122015             XN   1                             
+   X21SBIva al 21% subforniture                 O21                                                       31122015              D 1X1                             
+   X21SCIva al 21% scorporo                     S21                                                       31122015              D 1 1                             
+   X21SIIva al 21% (solo Iva)                   A21                                                       31122015              N                                 
+   X21SOIval 21% esigibilità differita          O21                                                       31122015              D 1 1                             
+   X21SPIva al 21% spettacoli viaggianti        S21                                                       31122015X             D 1                               
+   X21TAAcquisti tartufi 21% da sogg. No p. Iva O21    100                                                31122015             XN   1X                            
+   X21VVIva al 21% acquisti Vaticano no Iva     O21                                                       31122015             XN   1                             
+   X22  Iva al 22%                              O22                                                                             D 1 1                             
+   X2210Iva 22% prod. agr. % comp. detr. 10%    O22       Quadro VE sezione II                                                  D 1 1         A10                 
+   X2213Iva 22% prod. agr. % comp. detr. 12,3%  O22       Quadro VE sezione II                                                  D 1 1         A12.30              
+   X221CIva 22% Cessione prod.agr. detr.12,3%c.fO22       Quadro VE sezione II consumatori finali                               D 1           A12.30              
+   X221FIva 22% Cessione prod.agr. det. 10% c.f O22       Quadro VE sezione II consumatori finali                               D 1           A10                 
+   X222A22% Prod. agr.  detr. 2%                O22                                                                             D 1 1         A2                  
+   X222FIva 22% cessione prod. agr.detr. 2% c.f.O22       quadro VE sezione II consumatori finali                               D 1           A2                  
+   X224 22% Prod. agr.  detr. 4%                O22                                                                             D 1 1         A4                  
+   X2240Iva al 22% detraibile 40%               O22    60 veicoli art.19-bis1 lett. c)                                          N   1                             
+   X2246Cessioni al 22% condomini               O22                                                                             D 1                               
+   X224CIva al 22% detraibile 40% esig. diff.   O22    60 veicoli art.19-bis1 lett. c)                                          N   1                             
+   X224FIva 22% cessione prod. agr.detr. 4% c.f.O22       quadro VE sezione II consumatori finali                               D 1           A4                  
+   X226 Iva 22% prod. agr. % comp. detr. 6%     O22       Quadro VE sezione II                                                  D 1 1         A6                  
+   X2264Iva 22% prod. agr. % comp. detr. 6,4%   O22       Quadro VE sezione II                                                  D 1 1         A6.40               
+   X226FIva 22% Cessione prod.agr. det. 6% c.f  O22       Quadro VE sezione II consumatori finali                               D 1           A6                  
+   X226GIva 22% Cess. prod.agr. det. 6,4% c.f   O22       Quadro VE sezione II consumatori finali                               D 1           A6.40               
+   X2288Iva 22% prod. agr. % comp. detr. 8,8%   O22       Quadro VE sezione II                                                  D 1 1         A8.80               
+   X228FIva 22% Cessione prod.agr. det. 8,8% c.fO22       Quadro VE sezione II consumatori finali                               D 1           A8.80               
+   X22A1Iva al 22% detr.1/10 legge 398/91       O22       associazioni sportive, pro loco                                       D                              1  
+   X22A3Iva al 22% detr. 1/3 legge 398/91       O22       associazioni sportive, pro loco                                       D                              3  
+   X22AAIva al 22% acquisto prodotti tab. A/1   O22                                                                             D   1         A                   
+   X22AB22% acquisti intra beni agriturismo     O22                                                                            XN   1                           X 
+   X22ACIva al 22% beni att. agricole connesse  O22                                                                             D 1 1         B                   
+   X22ADIva al 22% detr. 1/2 legge 398/91       O22       associazioni sportive, pro loco                                       D                              2  
+   X22AE22% acquisti intra servizi agriturismo  O22                                                                            XN   1                           X 
+   X22AFIva 22% acquisti di fabbricati strument.O22       Art. 17 c.6 lett. a-bis                                              XN   1X                            
+   X22AIIva 22% Acq. prodotti no agric.Iva indetO22       acquisti attività agricole IVA ind.                                   D   1         A                   
+   X22AOIva al 22% beni att. Agr. conn. occ.li  O22    100att. agricole connesse occasionali                                    D 1 1         B                   
+   X22APIva al 22% beni att. agricole conn. c.f.O22       quadro VE sezione II consumatori finali                               D 1           B                   
+   X22ASIva al 22% att.agricole connesse serviziO22                                                                             D 1 1         B                   
+   X22AUEstrazioni depositi Iva 22% cess. int.  O22                                                                            XN                                 
+   X22BAIva al 22% cessione beni amm.           O22                                                                            XN 1                               
+   X22C Cessioni al 22% condomini no p.Iva      O22                                                                             D 1                               
+   X22CA22% cessione autoveicoli immatr. UE     O22                                                                             D 1                               
+   X22CBIva 22% sogg. no p.Iva beni amm.        O22                                                                            XN 1                               
+   X22CCIva 22% sogg. no p.Iva                  O22                                                                             D 1                               
+   X22CDAcq.  int. cell. 22% Iva detr.100% rev. O22                                                                            XN   1X                            
+   X22CEAcq.  int. cell. 22% Iva detr. 50 % rev.O22    50                                                                      XN   1X                            
+   X22CFAcq. int. cell. 22% Iva ind. 100 % rev. O22    100                                                                     XN   1X                            
+   X22CPAcq. Interni Processori 22% reverse     O22                                                                            XN   1X                            
+   X22CSIva al 22% corrispettivi                S22                                                                             D 1                               
+   X22DEEstrazione deposito Iva 22%             O22       Estrazione da depositi Iva gestione aut.                              D 1 1                             
+   X22GDIva 22% acquisti grande distribuzione   O22       Art. 17 c.6 lett. d-quinquies                   31122014              N   1X                            
+   X22GSIva al 22% giroconto split payment      A22                                                                             N                                 
+   X22I5Iva CEE al 22% detraibile al 50%        O22    50 acquisto cellulari ded. 50%                                          XN   2                             
+   X22I6Iva EXTRACEE al 22% detraibile al 50%   O22    50 acquisto extracee cellulari art. 17c.2                               XN   1                             
+   X22I7Iva EXTRACEE al 22% detraibile al 40%   O22    60                                                                      XN   1                             
+   X22ICIva 22% indetraibile 50% esig. diff.    O22    50                                                                       N   1                             
+   X22IFIva 22% prest. servizi fabbr. indetr 100O22    100Art. 17 c.6 lett. a-ter (per VF19)                                    N   1X                            
+   X22IPAcq. Interni Proc.  22% reverse Iva ind.O22    100per regimi Iva con acquisti indetraibili                             XN   1X                            
+   X22LFIva 22% prest. servizi fabbr. indetr 100O22    100sogg. esenti o art. 36-bis (per VF20)                                 N   1X                            
+   X22LPAcq. Int. Proc.  22% rev. Iva ind. 100  O22    100Soggetti esenti o art. 36-bis                                        XN   1X                            
+   X22MAMargine beni usati non occasionali 22%  O22                                                                             N                                 
+   X22NAIva 22% prodotti no agricoli Iva detraibO22       soggetti in regime agricolo                                           D 1 1                             
+   X22NPIva al 22% prodotti no agr. a privati   O22       soggetti in regime agricolo                                           D 1 1                             
+   X22NSPrest. servizi UE agricolt. 22%         O22       soggetti in regime agricolo                                           D 1 1                             
+   X22P1Acq. art. 17 c.2 22% indetr. 100%       O22    100Beni e servizi art.17 c.2 Iva indetr.                                XN   1X                            
+   X22P5Iva 22% servizi fabbricati detr. 50%    O22    50 Art. 17 c.6 lett. a-ter detr. 50%                                     N   1X                            
+   X22PAIva 22% prest. servizi fabbricati agric.O22       Art. 17 c.6 lett. a-ter regime agricolo                               N   1X        A                   
+   X22PFIva 22% prest. servizi su fabbricati    O22       Art. 17 c.6 lett. a-ter                                               N   1X                            
+   X22PIIva al 22% passaggi interni             O22                                                                            XN 1 1                             
+   X22PRProvvigioni art. 74 ter c.8 22%         O22                                                                            XN   1X                            
+   X22PSAcq. beni e servizi  art. 17 c.2 22%    O22                                                                            XN   1                             
+   X22PTAcq. art. 17 c.2 22% ind. op. esenti    O22    100acquisti  relativi a operazioni esenti                               XN   1                             
+   X22PVProvvigioni rivenditori doc. viaggio 22%O22                                                                            XN   1X                            
+   X22R1Iva al 22% acq. RSM no Iva indetr. 100% O22    100                                                                     XN   1                             
+   X22R2Iva al 22% acq. RSM con Iva indetr. 100%O22    100                                                                      N   1                             
+   X22R3Iva al 22% serv RSM no Iva indetr. 100% O22    100Acquisti servizi RSM                                                 XN   1                             
+   X22R5Iva al 22% acq. RSM no Iva detr. 50%    O22    50                                                                      XN   1                             
+   X22R6Iva 22% acq. RSM Iva ind. 100% (esenti) O22    100                                                                      N   1                             
+   X22REAcquisti edilizia al 22% art. 17 c. 6   O22                                                                            XN   1X                            
+   X22RIAcq. edilizia al 22% art. 17 c.6 indetr.O22    100sogg. esenti o art. 36-bis (per VF20)                                XN   1X                            
+   X22RLAcq. edilizia al 22% art. 17 c.6 indetr.O22    100Art. 17 c.6 lett. a-ter (per VF19)                                   XN   1X                            
+   X22RMIva al 22% acquisti RSM no Iva          O22                                                                            XN   1                             
+   X22ROAcq. rott./pallet interni 22% rev. indetO22    100acquisti art. 74 c.7 (per VF18)                                       N   1X                            
+   X22RSIva al 22% acquisti RSM con Iva         O22                                                                             N   1                             
+   X22RVIva al 22% acquisti RSM no Iva monte acqO22                                                                          X XN   1                             
+   X22S Iva al 22% a carico cliente (art.17-ter)O22       ft. enti pubblici con split payment     01012015                      D 1                               
+   X22S1Iva al 22% esigibilità diff. DL.185/2008O22                                                                             D 1 1                             
+   X22S2Iva al 22% esigibilità diff. DL.83/2012 O22       Art. 32 bis DL. 83/2012                                               D 1 1                             
+   X22S4Iva al 22% acq. RSM con Iva detr. 40%   O22    60 veicoli art.19-bis1 lett. c)                                          N   1                             
+   X22S5Iva al 22% acq. RSM con Iva detr. 50%   O22    50                                                                       N   1                             
+   X22SAIva al 22% art. 17 c.2 agricolt.        O22       soggetti in regime agricolo                                          XN   1                             
+   X22SBIva al 22% subforniture                 O22                                                                             D 1X1                             
+   X22SCIva al 22% scorporo                     S22                                                                             D 1 1                             
+   X22SIIva al 22% (solo Iva)                   A22                                                                             N                                 
+   X22SLIva 22% acquisti split payment          O22       Fatture ricevute split payment                                        N   1X                            
+   X22SMIva al 22% servizi RSM no Iva           O22       Acquisti servizi RSM                                                 XN   1                             
+   X22SNIva al 22% a carico cliente (art.17-ter)O22       split payment - sogg. no p.IVA          01012015                      D 1                               
+   X22SOIva al 22% esigibilità differita        O22                                                                             D 1 1                             
+   X22SPIva al 22% spettacoli viaggianti        S22                                                               X             D 1                               
+   X22TAAcquisti tartufi 22% da sogg. No p. Iva O22    100                                                                     XN   1X                            
+   X22TEIva 22% trasferimenti settore energeticoO22       Art. 17 c.6 lett. d-bis, d-ter, d-quater                              N   1X                            
+   X22VVIva al 22% acquisti Vaticano no Iva     O22                                                                            XN   1                             
+   X4   Iva al 4%                               O4                                                                              D 1 1                             
+   X4 ACIVA al 4% beni att. agricole connesse   O4                                                                              D 1 1         B                   
+   X4 AOIva al 4% beni att. Agri. conn. occ.li  O4     100att. agricole connesse occasionali                                    D 1 1         B                   
+   X4 FOIva al 4 % forfetari                    O4                                                        31122010              D 1 1                             
+   X4 MAMargine beni usati non occasionali 4%   O4                                                                              N                                 
+   X4 NAIva 4% prodotti no agricoli Iva detraib O4        soggetti in regime agricolo                                           D 1 1                             
+   X4 PSAcquisti beni e servizi art. 17 c.2 4%  O4                                                                             XN   1                             
+   X4 RSIva al 4% acquisti RSM con Iva          O4                                                                              N   1                             
+   X4 SPIva al 4% spettacoli viaggianti         S4                                                                X             D 1                               
+   X44  Iva 4% Prod. agr. % comp. detr. 4%      O4        quadro VE sezione I                                                   D 1 1         A4                  
+   X442 4% Prod. agr.% comp detr. 4% (VE SEZ.II)O4                                                                              D 1 1         A4                  
+   X44CFIva 4% cessione prod. agr. detr. 4% c.f.O4        quadro VE sezione II consumatori finali                               D 1           A4                  
+   X4AA IVA al 4% acquisto prodotti tab. A/1    O4                                                                              D   1         A                   
+   X4AB 4% acquisti intra beni agriturismo      O4                                                                             XN   1                           X 
+   X4AD Iva al 4% detr. 1/2 legge 398/91        O4        associazioni sportive, pro loco                                       D                              2  
+   X4AF Iva 4% acquisti di fabbricati strument. O4        Art. 17 c.6 lett. a-bis                                              XN   1X                            
+   X4AI IVA  4% Acq. prodotti no agric.Iva indetO4        acquisti attività agricole IVA ind.                                   D   1         A                   
+   X4AP IVA al 4% beni att. agricole conn. c.f. O4        quadro VE sezione II consumatori finali                               D 1           B                   
+   X4AS IVA al 4% att.agricole connesse servizi O4                                                                              D 1 1         B                   
+   X4BA Iva al 4% cessione beni amm.            O4                                                                             XN 1                               
+   X4C  Cessioni al 4% condomini no p.iva       O4                                                                              D 1                               
+   X4CC Iva 4% sogg. no p.Iva                   O4                                                                              D 1                               
+   X4CS IVA al 4%  corrispettivi                S4                                                                              D 1                               
+   X4GD Iva 4% acquisti grande distribuzione    O4        Art. 17 c.6 lett. d-quinquies                   31122014              N   1X                            
+   X4GS Iva al 4% giroconto split payment       A4                                                                              N                                 
+   X4IF Iva 4% prest. servizi fabbr. indetr. 100O4     100Art. 17 c.6 lett. a-ter (per VF17)                                    N   1X                            
+   X4NP Iva al 4% prodotti no agr. a privati    O4        soggetti in regime agricolo                                           D 1 1                             
+   X4P1 Acq. art. 17 c.2 4% indetr. 100%        O4     100Beni e servizi art.17 c.2 Iva indetr.                                XN   1                             
+   X4PF Iva 4% prest. servizi su fabbricati     O4        Art. 17 c.6 lett. a-ter                                               N   1X                            
+   X4PI Iva al 4% passaggi interni              O4                                                                             XN 1 1                             
+   X4PT Acq. art. 17 c.2 4% ind. op. esenti     O4     100acquisti  relativi a operazioni esenti                               XN   1                             
+   X4R1 Iva 4% acquisti Rsm no Iva indetr. 100% O4     100                                                                     XN   1                             
+   X4R2 Iva al 4% acq. RSM con Iva indetr. 100% O4     100                                                                      N   1                             
+   X4R6 Iva 4% acq. RSM Iva ind. 100% (esenti)  O4     100                                                                      N   1                             
+   X4RE Acquisti edilizia al 4% art. 17 c. 6    O4                                                                             XN   1X                            
+   X4RI Acq. edilizia al 4% art. 17 c.6 indetr. O4     100                                                                     XN   1X                            
+   X4RM Iva 4% acquisti Rsm no Iva              O4                                                                             XN   1                             
+   X4RV Iva al 4 % acquisti RSM no Iva monte acqO4                                                                           X XN   1                             
+   X4S  Iva al 4% a carico cliente (art. 17-ter)O4        ft. enti pubblici con split payment     01012015                      D 1                               
+   X4S1 Iva al 4% esigibilità diff. DL.185/2008 O4                                                                              D 1 1                             
+   X4S2 Iva al 4% esigibilità diff. DL.83/2012  O4        Art. 32 bis DL. 83/2012                                               D 1 1                             
+   X4SB Iva al 4% subforniture                  O4                                                                              D 1X1                             
+   X4SI Iva al 4%  (solo Iva)                   A4                                                                              N                                 
+   X4SL Iva 4% acquisti split payment           O4        Fatture ricevute split payment                                        N   1X                            
+   X4SN Iva al 4% a carico cliente (art. 17-ter)O4        split payment - sogg. no p. Iva         01012015                      D 1                               
+   X4SO Iva al 4% esigibilità differita         O4                                                                              D 1 1                             
+   X5   Iva al 5%                               O5                                                                              D 1 1                             
+   X5 ACIVA al 5% beni att. agricole connesse   O5                                                                              D 1 1         B                   
+   X54  5% Prod. agr.% comp detr. 4%            O5                                                                              D 1 1         A4                  
+   X540 Iva al 5% detraibile al 40%             O5     60 veicoli art. 19-bis1 lett. c)                                         N   1                             
+   X54CFIva 5% cessione prod. agr. detr. 4% c.f.O5        quadro VE sezione II consumatori finali                               D 1           A4                  
+   X5AA IVA al 5% acquisto prodotti tab. A/1    O5                                                                              D   1         A                   
+   X5AI IVA  5% Acq. prodotti no agric.Iva indetO5        acquisti attività agricole IVA ind.                                   D   1         A                   
+   X5C  Cessioni al 5% condomini no p.Iva       O5                                                                              D 1                               
+   X5CC Iva 5% sogg. no p.Iva                   O5                                                                              D 1                               
+   X5CS Iva al 5% corrispettivi                 S5                                                                              D 1                               
+   X5GS Iva al 5% giroconto split payment       A5                                                                              N                                 
+   X5PI Iva al 5% passaggi interni              O5                                                                             XN 1 1                             
+   X5PS Acq. beni e servizi  art. 17 c.2 5%     O5                                                                             XN   1                             
+   X5RS Iva al 5% acquisti RSM con Iva          O5                                                                              N   1                             
+   X5S  Iva al 5% a carico cliente (art. 17-ter)O5        ft. enti pubblici con split payment     01012015                      D 1                               
+   X5S2 Iva al 5% esigibilità diff. DL.83/2012  O5        Art. 32 bis DL. 83/2012                                               D 1 1                             
+   X5SI Iva al 5% (solo Iva)                    A5                                                                              N                                 
+   X5SL Iva 5% acquisti split payment           O5        Fatture ricevute split payment                                        N   1X                            
+   X5SN Iva al 5% a carico cliente (art. 17-ter)O5        split payment - sogg. no p. Iva                                       D 1                               
+   X64646,4% Prod. agr. % comp.  detr. 6,4%     O6.40                                                                           D 1 1         A6.40               
+   X66  6% Prod. agr. % comp.  detr. 6%         O6                                                                              D 1 1         A6                  
+   X6Q  Escluso art. 6-quater                   E                                                                              XN                                 
+   X7373Iva 7,3 % prod. agr. % comp. detr. 7,3% O7.30     quadro VE sezione I                                                   D 1 1         A7.30               
+   X75757,5% Prod. agr. % comp.  detr. 7,5%     O7.50                                                                           D 1 1         A7.50               
+   X765 Iva 7,65% prod. agr. % comp. detr. 7,65 O7.65     quadro VE sezione I                                                   D 1 1         A7.65               
+   X77  Iva 7% Prod. agr. % comp. detr. 7%      O7                                                                              D 1 1         A7                  
+   X795 Iva 7,95% prod. agr. % comp. detr. 7,95 O7.95     quadro VE sezione I                                                   D 1 1         A7.95               
+   X8383Iva 8,3% prod. agr. % comp. detr. 8,3%  O8.30     Quadro VE sezione I                                                   D 1 1         A8.30               
+   X8585Iva 8,5% Prod. agr. % comp. detr. 8,5%  O8.50                                                                           D 1 1         A8.50               
+   X8888Iva 8,8% prod. agr. % comp. detr. 8,8%  O8.80     Quadro VE sezione I                                                   D 1 1         A8.80               
+   X9595Iva 9,5% prod. agr. % comp. detr. 9,5   O9.50     quadro VE sezione I                                                   D 1 1         A9.50               
+   X99  Iva 9% Prod. agr. % comp. detr. 9%      O9                                                        31122009              D 1 1         A9                  
+   XAA20Beni usati amm. analitico 20%           I20                                                       31122013             XN   1                      T  X   
+   XAA21Beni usati amm. analitico 21%           I21                                                       31122015             XN   1                      T  X   
+   XAA22Beni usati amm. analitico 22%           I22                                                                            XN   1                      T  X   
+   XAC20Iva al 20% acquisto cellulari detr. 100%O20                                                       31122013              N   1                             
+   XAC21Iva al 21% acquisto cellulari detr. 100%O21                                                       31122015              N   1                             
+   XAC22Iva al 22% acquisto cellulari detr. 100%O22                                                                             N   1                             
+   XACBUAcquisto beni usati occasionali         E                                                                               N   1                             
+   XACSFAcq. da sogg. in franchigia art.32bis   E                                                         31122009              N   1                             
+   XAF10Beni usati analitico 10% (acq. da Forf.)I10       Beni usati acquistati da sogg. L. 190/14                              N   1                      T      
+   XAF22Beni usati analitico 22% (acq. da Forf.)I22       Beni usati acquistati da sogg. L. 190/14                              N   1                      T      
+   XAF4 Beni usati analitico 4% (acq. da Forf.) I4        Beni usati acquistati da sogg. L. 190/14                              N   1                      T      
+   XAG22Iva 2% Prod. agr. % comp. detr. 2%      O2        quadro VE sezione I                                                   D 1 1         A2                  
+   XAI20Beni usati metodo analitico 20% - Intra I20       Fatture con Iva non esposta                     31122013              N   1                      T      
+   XAI21Beni usati metodo analitico 21% - Intra I21       Fatture con Iva non esposta                     31122015              N   1                      T      
+   XAI22Beni usati metodo analitico 22% - Intra I22       Fatture con Iva non esposta                                           N   1                      T      
+   XAN 4Beni usati metodo analitico 4%          I4        Fatture con Iva non esposta                                           N   1                      T      
+   XAN10Beni usati metodo analitico 10%         I10       Fatture con Iva non esposta                                           N   1                      T      
+   XAN20Beni usati metodo analitico 20%         I20       Fatture con Iva non esposta                     31122013              N   1                      T      
+   XAN21Beni usati metodo analitico 21%         I21       Fatture con Iva non esposta                     31122015              N   1                      T      
+   XAN22Beni usati metodo analitico 22%         I22       Fatture con Iva non esposta                                           N   1                      T      
+   XAP10Beni usati metodo analitico 10%         I10       Fatture con Iva esposta separatamente                                 N   1                      T      
+   XAP20Beni usati metodo analitico 20%         I20       Fatture con Iva esposta separatamente           31122013              N   1                      T      
+   XAP21Beni usati metodo analitico 21%         I21       Fatture con Iva esposta separatamente           31122015              N   1                      T      
+   XAP22Beni usati metodo analitico 22%         I22       Fatture con Iva esposta separatamente                                 N   1                      T      
+   XAP4 Beni usati metodo analitico 4%          I4        Fatture con Iva esposta separatamente                                 N   1                      T      
+   XAU22Beni usati analitico 22% - UE no Intra  I22       Fatture con Iva non esposta                                           N   1                      T      
+   XCC20IVA acquisti CEE cellulari  al 20%      O20                                                       31122013             XN   2                             
+   XCC21Iva acquisti CEE cellulari  al 21%      O21                                                       31122015             XN   2                             
+   XCC22Iva acquisti CEE cellulari  al 22%      O22                                                                            XN   2                             
+   XCE10IVA acquisti CEE al 10%                 O10                                                                            XN   2                             
+   XCE14Iva acquisti CEE beni 21% detraibile 40%O21    60                                                 31122015             XN   2                             
+   XCE1AIVA acquisti CEE al 10% prod. agricoli  O10                                                                            XN   2         A                 X 
+   XCE20IVA acquisti CEE beni al 20%            O20                                                       31122013             XN   2                             
+   XCE21Iva acquisti CEE beni al 21%            O21                                                       31122015             XN   2                             
+   XCE22Iva acquisti CEE beni al 22%            O22                                                                            XN   2                             
+   XCE24IVA acquisti CEE beni 20% detraibile 40%O20    60                                                 31122013             XN   2                             
+   XCE2AIVA acquisti CEE al 20% prod. agricoli  O20                                                       31122013             XN   2         A                 X 
+   XCE34Iva acquisti CEE beni 22% detraibile 40%O22    60 veicoli art.19-bis1 lett. c)                                         XN   2                             
+   XCE3AIva acquisti CEE al 21% prod. agricoli  O21                                                       31122015             XN   2         A                 X 
+   XCE4 IVA acquisti CEE al 4%                  O4                                                                             XN   2                             
+   XCE44Iva acquisti CEE serv. 22% detraib. 40% O22    60 servizi su veicoli art.19-bis1 lett. c)                              XN   2                             
+   XCE4AIVA acquisti CEE al 4% prod. agricoli   O4                                                                             XN   2         A                 X 
+   XCE5 IVA acquisti CEE al 5%                  O5                                                                             XN   2                             
+   XCE5AIva acquisti CEE al 22% prod. agricoli  O22                                                                            XN   2         A                 X 
+   XCE74Corrisp. lordi CEE ag. viaggi art.74 terE                                                                               D                     VC          
+   XCEAGIva acquisti EXTRA-UE al 22% prod. agr. O22                                                                            XN   2         A                 X 
+   XCEEEAcquisti servizi cee esenti art. 10     E                                                                              XN   2                             
+   XCEESAcquisti beni cee esenti art. 10        E                                                                              XN   2                             
+   XCEFACessione fabbricati imponibili per opz. E         Art. 10, n. 8ter, lett. d) - cessioni                                 D 1                               
+   XCEFOAcquisti cee regime forfetario 20%      O20                                                       31122010              N   2                           X 
+   XCES4Iva acquisti CEE beni 22% detraibile 40%O22    60 veicoli art.19-bis1 lett. c)                                         XN   2                             
+   XCI10Iva acquisti servizi CEE al 10% indetr. O10    100                                                                     XN   1                             
+   XCI20IVA acquisti servizi CEE al 20% indetr. O20    100                                                31122013             XN   1                             
+   XCI21Iva acquisti servizi CEE al 21% indetr. O21    100                                                31122015             XN   1                             
+   XCI22Iva acquisti servizi CEE al 22% indetr. O22    100                                                                     XN   1                             
+   XCI2BIva acq. serv. CEE al 22% indetr. marg. O22    100Acquisti servizi cee margine indetr.                                 XN   1                      T      
+   XCI2CIva acq. Beni CEE al 22% indetr. marg.  O22    100Acquisti beni cee margine indetr.                                    XN   1                      T      
+   XCI2GAcq. serv. CEE al 22% indetr. marg. Glo.O22    100Acquisti servizi cee margine Globale                                 XN   1                      T      
+   XCN 4IVA su acquisti CEE beni al 4% indetr.  O4     100                                                                     XN   2                             
+   XCN 5IVA su acquisti CEE beni al 5% indetr.  O5     100                                                                     XN   2                             
+   XCN10IVA su acquisti CEE beni al 10% indetr. O10    100                                                                     XN   2                             
+   XCN20IVA su acquisti CEE beni al 20% indetr. O20    100                                                31122013             XN   2                             
+   XCN21Iva su acquisti CEE beni al 21% indetr. O21    100                                                31122015             XN   2                             
+   XCN22Iva su acquisti CEE beni al 22% indetr. O22    100                                                                     XN   2                             
+   XCOCEAcquisti art. 74 ter - costi lordi CEE  E                                                                               N                        AC       
+   XCOEXCorrispettivi art. 74 ter extra CEE     E                                                                               D                     VX          
+   XCOMICorrispettivi art. 74 ter viaggi misti  E                                                                               D                     VM          
+   XCS 4IVA acquisti CEE servizi 4%             O4                                                                             XN   1                             
+   XCS10IVA acquisti CEE servizi 10%            O10                                                                            XN   1                             
+   XCS20IVA acquisti CEE servizi 20%            O20                                                       31122013             XN   1                             
+   XCS21Iva acquisti CEE servizi 21%            O21                                                       31122015             XN   1                             
+   XCS22Iva acquisti CEE servizi 22%            O22                                                                            XN   1                             
+   XCSEXAcquisti art. 74 ter costi EXTRA CEE    E                                                                               N                        AX       
+   XCSMCAcquisti art. 74 ter costi misti CEE    E                                                                               N                        MC       
+   XCSMXAcquisti art. 74 ter cos.misti  extraCEEE                                                                               N                        MX       
+   XCT21Iva acquisti CEE servizi 21% ind. esentiO21    100acquisti  relativi a operazioni esenti          31122015             XN   1                             
+   XCT22Iva acquisti CEE servizi 22% ind. op. esO22    100acquisti  relativi a operazioni esenti                               XN   1                             
+   XCV10IVA acquisti CEE beni al 10% monte acq. O10                                                                          X XN   2                             
+   XCV20IVA acquisti CEE beni al 20% monte acq. O20                                                       31122013           X XN   2                             
+   XCV21Iva acquisti CEE beni al 21% monte acq. O21                                                       31122015           X XN   2                             
+   XCV22Iva acquisti CEE beni al 22% monte acq. O22                                                                          X XN   2                             
+   XCV4 IVA acquisti CEE al 4% monte acquisti   O4                                                                           X XN   2                             
+   XCX10Iva su acq. CEE beni al 10% ind. esenti O10    100acquisti  relativi a operazioni esenti                               XN   2                             
+   XCX20IVA su acq. CEE beni al 20% ind. op. es.O20    100acquisti  relativi a operazioni esenti          31122013             XN   2                             
+   XCX21Iva su acq. CEE beni al 21% ind. op. es.O21    100acquisti  relativi a operazioni esenti          31122015             XN   2                             
+   XCX22Iva su acq. CEE beni al 22% ind. esenti O22    100acquisti  relativi a operazioni esenti                               XN   2                             
+   XCX4 Iva su acq. CEE beni al 4% ind. esenti  O4     100acquisti  relativi a operazioni esenti                               XN   2                             
+   XDE20Estrazione deposito Iva 20%             A20                                                       31122013              N                                 
+   XDE21Estrazione deposito Iva 21%             A21                                                       31122012              N                                 
+   XE124Esenti art. 124 DL 34/2020 pro-rata     E         utilizzo in caso di gestione pro-rata                                 D 4 5                             
+   XE12CEsenti art. 10 n. 12 (pro-rata, cons.f.)E                                                                               E 4                               
+   XE13CEsenti art. 10 n. 13 (pro-rata, cons.f.)E                                                                               E 4                               
+   XE14CEsenti art. 10 n. 14 (pro-rata, cons.f.)E                                                                               E 4                               
+   XE18CEsenti art. 10 n. 18 (pro-rata, cons.f.)E                                                                               E 4                               
+   XE196Escluso art.26bis L.196/97              E         Rimborso oneri lavoro temporaneo                                     XN                                 
+   XE19CEsenti art. 10 n. 19 (pro-rata, cons.f.)E                                                                               E 4                               
+   XE1C Esenti art. 10 n. 1 (pro-rata, cons. f.)E                                                                               E 4                               
+   XE20CEsenti art. 10 n. 20 (pro-rata, cons.f.)E                                                                               E 4                               
+   XE21CEsenti art. 10 n. 21 (pro-rata, cons.f.)E                                                                               E 4                               
+   XE22CEsenti art. 10 n. 22 (pro-rata, cons.f.)E                                                                               E 4                               
+   XE23CEsenti art. 10 n. 23 (pro-rata, cons.f.)E                                                                               E 4                               
+   XE26DEscluso art. 26 comma 4                 E                                                                              XN                                 
+   XE26LEscluso art. 26 comma 10                E                                                                              XN                                 
+   XE27CEsenti art. 10 n. 27 (pro-rata, cons.f.)E         pompe funebri                                                         E 4                               
+   XE27FEsenti art. 10 n. 27 (pro-rata)         E         cessione tipiche pompe funebri                                        E 4 5                             
+   XE6C Esenti art. 10 n. 6 (pro-rata, cons. f.)E                                                                               E 4                               
+   XE741Escluso art.74 c.1                      E                                                                              XN                                 
+   XE74DEscluso art.74 c.1 lett.d)              E                                                                              XN                                 
+   XE74EEscluso art.74 c.1 lett.e)              E                                                         31122011             XN                                 
+   XE74PEscluso art. 74 c. 1 pro rata           E                                                                              XD                                 
+   XE7C Esenti art. 10 n. 7 (pro-rata, cons. f.)E                                                                               E 4                               
+   XE7EPEscluso art. 74 c.1 lett.e pro-rata     E                                                         31122011             XD                                 
+   XE8C Esenti art. 10 n. 8 (pro-rata, cons. f.)E                                                                               E 4                               
+   XEA27Esenti art. 10 n.27 quinq. vend. b.amm. E         cessione beni amm. a consum. finali                                  XN 4                               
+   XEB27Esenti art. 10 n.27 quinq. vend. b. amm.E                                                                              XN 4                               
+   XEC11Esenti art. 10 n.11 cess. a cons. fin.  E                                                                               D 4                               
+   XEC27Esenti art. 10 n. 27 quinq.cess.cons.finE                                                                               N 4                               
+   XED04Editoria cessione prodotti 4%           O4                                                                              D                                X
+   XED10Editoria cessione prodotti 10%          O10                                                                             D                                X
+   XED20Editoria cessione prodotti 20%          O20                                                       31122013              D                                X
+   XED21Editoria cessione prodotti 21%          O21                                                       31122015              D                                X
+   XED22Editoria cessione prodotti 22%          O22                                                                             D                                X
+   XED74Editoria cessione non imp. art. 74      E                                                                               D                                X
+   XEL01Escluso art. 1                          E                                                                              XN                                 
+   XEL1 Escluso contribuenti minimi finanz. 2008E         art. 1, comma 100, legge 244/2007                                    XN   1                             
+   XEL12Escluso minimi DL 98/2011 art. 27 c. 1/2E         DL 98/2011 art. 27 commi 1 e 2                                       XN   1                             
+   XEL13Escluso art. 13                         E                                                                              XN                                 
+   XEL15Escluso art. 15                         E                                                                              XN                                 
+   XEL1BEscluso art. 15 no dati 770 (bolli)     E                                                                              XN                                 
+   XEL1EEscluso art. 15 (no studi di settore)   E                                                                              XN                                 
+   XEL1NEscluso art. 15 spese anticipate        E                                                                              XN                                 
+   XEL2 Escluso art. 2                          E                                                                              XN                                 
+   XEL22Escluso art. 26 c. 2                    E                                                                              XN                                 
+   XEL26Escluso art. 26 c. 3                    E                                                                              XN                                 
+   XEL3 Escluso art. 3                          E                                                                              XN                                 
+   XEL4 Escluso art. 4                          E                                                                              XN                                 
+   XEL5 Escluso art. 5                          E                                                                              XN                                 
+   XEL67Escluso art. 8 c. 35 legge 67/1988      E         distacco del personale                                               XN                                 
+   XEL7 Escluso art. 7                          E                                                                              XN                                 
+   XEL7PEscluso art. 7 - pro-rata               E                                                                              XD                                 
+   XELFAEscluso art. 1 c. 54/89 L. 190/14 agric.E         Regime forfetario + agricolo                                         XN   1                             
+   XELRFEscluso art. 1 comma 54/89 L. 190/14    E         Regime forfetario in vigore dal 2015    01012015                     XN   1                             
+   XES1 Esenti art. 10 n. 1 (pro-rata)          E         operazioni di cessione tipiche                                        E 4 5                             
+   XES10Esenti art. 10 (acquisti)               E                                                                               N 4 5 X                           
+   XES11Esenti art. 10 n. 11                    E                                                                               D 4 5                             
+   XES12Esenti art. 10 n. 12 (pro-rata)         E         operazioni di cessione tipiche                                        E 4 5                             
+   XES13Esenti art. 10 n. 13 (pro-rata)         E         operazioni di cessione tipiche                                        E 4 5                             
+   XES14Esenti art. 10 n. 14 (pro-rata)         E         operazioni di cessione tipiche                                        E 4 5                             
+   XES15Esenti art. 10 n. 15 (pro-rata)         E         operazioni di cessione tipiche                                        E 4 5                             
+   XES16Esenti art. 10 n. 16 (no pro-rata)      E                                                                               N 4 5 X                           
+   XES18Esenti art. 10 n. 18 (pro-rata)         E         operazioni di cessione tipiche                                        E 4 5                             
+   XES19Esenti art. 10 n. 19 (pro-rata)         E         operazioni di cessione tipiche                                        E 4 5                             
+   XES1EEsenti art.10 da 1 a 4 EXTRA UE pro-rataE         Cessioni esenti art. 10  EXTRA UE                                     D 4                               
+   XES1PEsenti art. 10 n. 16 (pro-rata)         E                                                                               E 4                               
+   XES2 Esenti art. 10 n. 2 (pro-rata)          E                                                                               E 4                               
+   XES20Esenti art. 10 n. 20 (pro-rata)         E         operazioni di cessione tipiche                                        E 4 5                             
+   XES21Esenti art. 10 n. 21 (pro-rata)         E         operazioni di cessione tipiche                                        E 4 5                             
+   XES22Esenti art. 10 n. 22 (pro-rata)         E         operazioni di cessione tipiche                                        E 4 5                             
+   XES23Esenti art. 10 n. 23 (pro-rata)         E         operazioni di cessione tipiche                                        E 4 5                             
+   XES27Esenti art. 10 n. 27 quinquies          E                                                                               N 4 5                             
+   XES6 Esenti art. 10 n. 6 (pro-rata)          E         operazioni di cessione tipiche                                        E 4 5                             
+   XES7 Esenti art. 10 n. 7 (pro-rata)          E         operazioni di cessione tipiche                                        E 4 5                             
+   XES8 Esenti art. 10 n. 8 (pro-rata)          E         operazioni di cessione tipiche                                        E 4 5                             
+   XES9 Esenti art 10 da 1 a 9 atipiche pro-rataE         op. non rientranti nell'attività propria                              N 4 5                             
+   XES9CEsenti art.10 1- 9  pro-rata a c.fin.   E         op. no attività propria a cons. finali                                N 4                               
+   XESBAEsenti art. 10 - vendita beni amm.      E                                                                              XN 4                               
+   XESBCEsenti art.10 - vendita b.a. cons.fin.  E                                                                              XN 4                               
+   XESFOEsenti art. 10 - forfetari 662/96       E                                                         31122009              N 4                               
+   XESOCEsenti art. 10 occasionali              E         Cod. generico anche per acquisti                                      N 4 5 X                           
+   XESOFEsenti art.10 occasionali a cons. fin.  E                                                                               N 4   X                           
+   XESR Esenti art. 10 pro-rata                 E                                                                               E 4 5                             
+   XESRBCessioni beni esenti art.10 Cee         E                                                                               E 4 5                             
+   XESRCEsenti art. 10 pro-rata a cons.fin      E                                                                               E 4                               
+   XESRSPrestazioni servizi esenti art.10 Cee   E                                                                               E 4 5                             
+   XESRXEsenti art. 10 pro-rata Extra UE        E                                                                               E 4 5                             
+   XESXCEs. art. 10 ExtraUE occasionali         E                                                                               N 4 5 X                           
+   XF102Beni usati forf. Iva 10% forf. 25%      I10                                                                             N                          F25    
+   XF105Beni usati forf. Iva 10% forf. 50%      I10                                                                             N                          F50    
+   XF106Beni usati forf. Iva 10% f. 60%         I10                                                                             N                          F60    
+   XF20 Iva 20% op.norm.-b.usati forf.          O20                                                       31122013              D 1 1                             
+   XF202Beni usati forf. Iva 20% f.25%          I20                                                       31122013              N                          F25    
+   XF205Beni usati forf.Iva 20% f.50%           I20                                                       31122013              N                          F50    
+   XF206Beni usati forf. Iva 20% f.60%          I20                                                       31122013              N                          F60    
+   XF21 Iva 21% op.norm.-b.usati forf.          O21                                                       31122015              D 1 1                             
+   XF212Beni usati forf. Iva 21% f.25%          I21                                                       31122015              N                          F25    
+   XF215Beni usati forf.Iva 21% f.50%           I21                                                       31122015              N                          F50    
+   XF216Beni usati forf. Iva 21% f.60%          I21                                                       31122015              N                          F60    
+   XF22 Iva 22% op.norm.-b.usati forf.          O22                                                                             D 1 1                             
+   XF222Beni usati forf. Iva 22% f.25%          I22                                                                             N                          F25    
+   XF225Beni usati forf.Iva 22% f.50%           I22                                                                             N                          F50    
+   XF226Beni usati forf. Iva 22% f.60%          I22                                                                             N                          F60    
+   XF425Beni usati forfet. Iva 4% f.25%         I4                                                                              N                          F25    
+   XF450Beni usati forfet. Iva 4% f.50%         I4                                                                              N                          F50    
+   XF460Beni usati forfet.Iva 4% f.60%          I4                                                                              N                          F60    
+   XFC17Fuori campo IVA art. 17 comma 2         E         cessioni da parte rappresentante fiscale                             XN                                 
+   XFCI Fuori campo IVA                         E                                                                              XN                                 
+   XFCISFuori campo IVA semplificata            E                                                                              XN                                 
+   XGF10Beni usati globale 10% (acq. da Forf.)  I10       Beni usati acquistati da sogg. L. 190/14                              N                          T      
+   XGF22Beni usati globale 22% (acq. da Forf.)  I22       Beni usati acquistati da sogg. L. 190/14                              N                          T      
+   XGF4 Beni usati globale 4% (acq. da Forf.)   I4        Beni usati acquistati da sogg. L. 190/14                              N                          T      
+   XGI20Beni usati metodo globale 20% - Intra   I20       Fatture con Iva non esposta                     31122013              N                          T      
+   XGI21Beni usati metodo globale 21% - Intra   I21       Fatture con Iva non esposta                     31122015              N                          T      
+   XGI22Beni usati metodo globale 22% - Intra   I22       Fatture con Iva non esposta                                           N                          T      
+   XGL 4Beni usati metodo globale 4%            I4        Fatture con Iva non esposta                                           N                          T      
+   XGL10Beni usati metodo globale 10%           I10       Fatture con Iva non esposta                                           N                          T      
+   XGL20Beni usati metodo globale 20%           I20       Fatture con Iva non esposta                     31122013              N                          T      
+   XGL21Beni usati metodo globale 21%           I21       Fatture con Iva non esposta                     31122015              N                          T      
+   XGL22Beni usati metodo globale 22%           I22       Fatture con Iva non esposta                                           N                          T      
+   XGLC1B.usati met. glob. cess. art. 17c.5 21% I21                                                       31122015              N                          T      
+   XGLC2B.usati met. glob. cess. art. 17c.5 22% I22                                                                             N                          T      
+   XGLCOBeni usati met. glob. cess. art. 17 c.5 I20                                                       31122013              N                          T      
+   XGP10Beni usati metodo globale 10%           I10       Fatture con Iva esposta separatamente                                 N                          T      
+   XGP20Beni usati metodo globale 20%           I20       Fatture con Iva esposta separatamente           31122013              N                          T      
+   XGP21Beni usati metodo globale 21%           I21       Fatture con Iva esposta separatamente           31122015              N                          T      
+   XGP22Beni usati metodo globale 22%           I22       Fatture con Iva esposta separatamente                                 N                          T      
+   XGP4 Beni usati metodo globale 4%            I4        Fatture con Iva esposta separatamente                                 N                          T      
+   XGU22Beni usati globale 22% - UE no Intra    I22       Fatture con Iva non esposta                                           N                          T      
+   XID20IVA 20% indetr. 100% dentisti acq. oro  O20    100                                                31122013              D   1X                            
+   XID21Iva 21% indetr. 100% dentisti acq. oro  O21    100                                                31122015              D   1X                            
+   XID22Iva 22% indetr. 100% dentisti acq. oro  O22    100                                                                      D   1X                            
+   XII22Iva 22% importazione indetraibile 100%  O22    100                                                                      N   1                             
+   XIM10IVA importazioni al 10%                 O10                                                                             N   1                             
+   XIM20IVA importazioni al 20%                 O20                                                       31122013              N   1                             
+   XIM21Iva importazioni al 21%                 O21                                                       31122015              N   1                             
+   XIM22Iva importazioni al 22%                 O22                                                                             N   1                             
+   XIM4 IVA importazioni al 4%                  O4                                                                              N   1                             
+   XIM5 IVA importazioni al 5%                  O5                                                                              N   1                             
+   XIMC222% oper. impon. occasionali cons. fin. O22       presenza di op. esenti - cons. finali                                 NX1 1                             
+   XIMCF21% oper. impon. occasionali cons. fin. O21       presenza di op. esenti - cons. finali           31122015              NX1 1                             
+   XIMO121% operazioni imponibili occasionali   O21       in caso di presenza di op. esenti               31122015              NX1 1                             
+   XIMO210% operazioni imponibili occasionali   O10       in caso di presenza di op. esenti                                     NX1 1                             
+   XIMO322% operazioni imponibili occasionali   O22       in caso di presenza di op. esenti                                     NX1 1                             
+   XIMO44% operazioni imponibili occasionali    O4        in caso di presenza di op. esenti                                     NX1 1                             
+   XIMOC20% operazioni imponibili occasionali   O20       in caso di presenza di op. esenti               31122013              NX1 1                             
+   XIN10IVA 10% indetraibile 50%                O10    50                                                                       N   1                             
+   XIN20IVA 20% indetraibile 50%                O20    50                                                 31122013              N   1                             
+   XIN21Iva 21% indetraibile 50%                O21    50                                                 31122015              N   1                             
+   XIN22Iva 22% indetraibile 50%                O22    50                                                                       N   1                             
+   XIN4 IVA 4% indetraibile 50%                 O4     50                                                                       N   1                             
+   XIN5 IVA 5% indetraibile 50%                 O5     50                                                                       N   1                             
+   XIS22Iva 22% indetraibile 50% acq. split p.  O22    50                                                                       N   1X                            
+   XMA1010% marg. Beni usati occasionali        S10       beni ammortizzabili                                                   N 1                               
+   XMA2020% marg. Beni usati  occasionali       S20       beni ammortizzabili                             31122013              N 1                               
+   XMA2121% marg. Beni usati  occasionali       S21       beni ammortizzabili                             31122015              N 1                               
+   XMA2222% marg. Beni usati  occasionali       S22       beni ammortizzabili                                                   N 1                               
+   XMA4 4% marg. Beni usati occasionali         S4        beni ammortizzabili                                                   N 1                               
+   XN124Esenti art. 124 DL 34/20-art. 1 L.178/20E                                                                               D 4 5 X                           
+   XN17CNon imponibile  art.17 c.6 cellulari    E         Cessioni lett. b)                                                     D 1                               
+   XN17ENon imponibile art.17 c.6 edilizia      E         Cessioni lett. a)                                                     D 1                               
+   XN17FNon imponibile art.17 c.6 lett. a-bis)  E         Art. 10, n. 8 bis/ter -beni strumentali                               N 1                               
+   XN17INon imponibile art.17 c.6 d-quinquies   E         Cessione beni a grande distribuzione                                  D 1                               
+   XN17MNon imponibile art.17 c.6 lett. a-bis)  E         Art. 10, n. 8 bis/ter - immobili merce                                D 1                               
+   XN17PNon imponibile art.17 c.6 prod. elettr. E         Cessioni lett. c)                                                     D 1                               
+   XN17SNon imponibile art.17 c.6 serv. edifici E         Cessioni lett. a-ter (pulizie, ecc.)                                  D 1                               
+   XN17TNon imponibile art.17 c.6 trasf. energ. E         Cessione lett. d bis/ter/quater                                       D 1                               
+   XN32BNon imponibile art. 32 bis DPR 633/72   E                                                         31122009              D 1 1                             
+   XN36 Non imp. cessione occasionale beni usatiE                                                                               N 3                               
+   XN36CNon imp. cessione occ. beni us. cons. f.E         equivalente N36 per cess. a cons. fin.                                N 3                               
+   XN385Non territoriali art.38 c.5 DL331/93    E                                                                              XD 1                               
+   XN38QNon imponibile art. 38 quater           E                                                                               D 3                               
+   XN402Non imponibile art. 40 c.2 DL 331/93    E                                                                              XN   2                             
+   XN404Non imponibile art. 40 c.4 bis DL 331/93E                                                         31122011            E D 1                               
+   XN405Non imponibile art. 40 c. 5 DL 331/93   E                                                         31122011            E D 1 2                             
+   XN409Serv. Intra art.40c.9 DL.331/93         E                                                         31122011            E D 1                               
+   XN41 Non imponib. art. 41 DL 331/93          E                                                                             E D 2                               
+   XN412Non imp. art. 41 DL 331/93 comp.2%      E                                                                             E D 2     2     A                   
+   XN413Non imp. art. 41 DL 331/93 comp.12,3%   E                                                                             E D 2     12.30 A                   
+   XN414Non imp. art. 41 DL 331/93  comp.4%     E                                                                             E D 2     4     A                   
+   XN417Non imp. art. 41 DL 331/93 comp.7%      E                                                                             E D 2     7     A                   
+   XN41BNon impon. art. 41 DL 331/93 No pro-rataE                                                                             E N 2                               
+   XN473Non imp. art. 41 DL 331/93 comp.7,3%    E                                                                             E D 2     7.30  A                   
+   XN475Non imp. art. 41 DL 331/93 comp.7,5%    E                                                                             E D 2     7.50  A                   
+   XN483Non imp. art. 41 DL 331/93 comp.8,3%    E                                                                             E D 2     8.30  A                   
+   XN485Non imp. art. 41 DL 331/93 comp.8,5%    E                                                                             E D 2     8.50  A                   
+   XN488Non imp. art. 41 DL 331/93 comp.8,8%    E                                                                             E D 2     8.80  A                   
+   XN49 Non imp. art.14 legge n.49/87           E         cessioni a ONG                                                       XN 3                               
+   XN50BNon imp. art.50 bis DL 331/93           E         no art. 50 bis c.4 f, estraz. extracee                              E N 3 4                             
+   XN58 Non imponibile art. 58 D.L. 331/93      E                                                                             E D 3 4                             
+   XN58AAcquisti non impon. art. 58 D.L. 331/93 E         Utilizzare per acquisti reverse charge                              E D   4                             
+   XN68 Non soggetto art. 68 DPR 633/72         E                                                                               N   4                             
+   XN71 Non imponibile art. 71                  E                                                                             E D 3                               
+   XN72 Non imponibile art. 72                  E                                                                             E D 3 4                             
+   XN72INon imponibile art. 72 dich. intento    E         dich. intento                                                         D 3 4                             
+   XN74 Non impon. art. 74 c.9                  E                                                         31122008              D 1 1                             
+   XN747Non imponib. art. 74 comma 7            E                                                                               D 1 1                             
+   XN748Non imp.art.74  c.8 mod. Dl.269/03      E         vendita rottami                                                       D 1                               
+   XN74DNon imponib. art. 74 c. 7-8 (rottami)   E                                                                               D 1 1                             
+   XN74NNon imponibile art. 74 ter  regime norm.E                                                                               N   4                             
+   XN74TNon imp. art. 74 ter c.8 provvigioni    E         no regime speciale                                                    D 3                               
+   XN74UNon soggetto art. 7-quater UE           E                                                                              XD 1                               
+   XN74XNon soggetto art. 7 quater extraUE      E         Prest. servizi volume d'affari pro-rata                              XD 1                               
+   XN75UNon soggetto art. 7-quinquies UE        E                                                                              XD 1                               
+   XN75XNon soggetto art. 7 quinquies extraUE   E         Prest. servizi volume d'affari pro-rata                              XD 1                               
+   XN76XNon soggetto art. 7 sexies extraUE      E         Prest. servizi volume d'affari pro-rata                              XD 1                               
+   XN77XNon soggetto art. 7 septies extraUE     E         Prest. servizi volume d'affari pro-rata                              XD 1                               
+   XN7B Non soggetto art. 7-bis DPR 633/72 no UEE                                                                              XN                                 
+   XN7BUNon soggetto art. 7-bis DPR 633/72 UE   E                                                                              XN                                 
+   XN7E Non soggetto art. 7-ter DPR 633/72 no UEE         Prestazioni di servizi extra UE         01012010                     XD 1                               
+   XN7EENon sogg. art. 7/7-septies escl. prorataE         articolo 19 comma 3 lett. b) DPR 633/72                              XN 1                               
+   XN7N1Non sogg. art. 7-bis extraUE            E         Cessione beni vol. d'affari pro-rata                                 XD 1                               
+   XN7NUNon soggetto art. 7 extraUE             E         Prest. servizi extraUE pro-rata v. aff.                              XD 1                               
+   XN7T Non soggetto art. 7-ter DPR 633/72 UE   E         Prestazione di servizi UE               01012010                     XD 1                               
+   XN7U1Non soggetto art. 7-bis UE - vol. d'aff.E         Cessione di beni UE vol. d'affari                                    XD 2                               
+   XN7UENon soggetto art. 7 UE - no intrastat   E         Prestazione di servizi UE  vol. d'affari                             XD 1                               
+   XN8  Non imponibile art. 8 (triang.)         E                                                                             E D 3 4                             
+   XN8A Non imponibile art. 8 c.1 lett.a/b      E                                                                             E D 3                               
+   XN8ABNon imp. art. 8 c.1 lett.a cess. b. amm.E                                                                              XN 3                               
+   XN8B Non imponibile art. 8 bis               E                                                                             E D 3 4                             
+   XN8B2Non imponibile art. 8 bis comma 2       E         dich. intento                                                         D 3 4                             
+   XN8C Non imponibile art. 8 c. 1 lett.c       E         dich. intento                                                         D 3 4                             
+   XN8MMNon imp. art.8 c.1 let.a agr. comp.12,3%E         cessione prodotti agricoli Tab.A parte 1                              D       12.30 A                   
+   XN8NPNon impon. art. 8 beni usati            E         esportazioni beni usati                                             E N 3 4                      T      
+   XN8TRNon imponibile art. 8 (triang.)No importE                                                                             E D 3 4                             
+   XN8ZANon imp. art.8 c.1 lett.c agr. comp. 2% E         cessione prodotti agricoli Tab.A parte 1                              D       2     A                   
+   XN8ZBNon imp. art.8 c.1 lett.c agr. comp. 4% E         cessione prodotti agricoli Tab.A parte 1                              D       4     A                   
+   XN8ZCNon imp. art.8 c.1 lett.c agr. comp.7,3%E         cessione prodotti agricoli Tab.A parte 1                              D       7.30  A                   
+   XN8ZDNon imp. art.8 c.1 lett.c agr. comp.7,5%E         cessione prodotti agricoli Tab.A parte 1                              D       7.50  A                   
+   XN8ZENon imp. art.8 c.1 lett.c agr. com.7,65%E         cessione prodotti agricoli Tab.A parte 1                              D       7.65  A                   
+   XN8ZFNon imp. art.8 c.1 lett.c agr. com.7,95%E         cessione prodotti agricoli Tab.A parte 1                              D       7.95  A                   
+   XN8ZGNon imp. art.8 c.1 lett.c agr. comp.8,3%E         cessione prodotti agricoli Tab.A parte 1                              D       8.30  A                   
+   XN8ZHNon imp. art.8 c.1 lett.c agr. comp.8,5%E         cessione prodotti agricoli Tab.A parte 1                              D       8.50  A                   
+   XN8ZINon imp. art.8 c.1 lett.c agr. comp.8,8%E         cessione prodotti agricoli Tab.A parte 1                              D       8.80  A                   
+   XN8ZLNon imp. art.8 c.1 lett.c agr. comp. 10%E         cessione prodotti agricoli Tab.A parte 1                              D       10    A                   
+   XN8ZMNon imp. art.8 c.1 let.c agr. comp.12,3%E         cessione prodotti agricoli Tab.A parte 1                              D       12.30 A                   
+   XN9  Non imponibile art. 9                   E                                                                             E D 3 4                             
+   XN92 Non imponibile art. 9 c.2               E         non imp. art. 8 comma 3 - dich. intento                               D 3 4                             
+   XN9P Non imponibile provv.art.9 c.1 n. 7 bis E         provvigioni interm. - op. extraCee                                  E D 3                               
+   XN9RCAcquisti CEE/EXTRACEE non imp. art. 9   E         utilizzo per acquisti soggetti a rev. ch                             XN   4X                            
+   XN9RIAcquisti CEE non imponibili art. 9 IntraE         utilizzo per acquisti soggetti a rev. ch                             XN   4X                            
+   XND10IVA 10% indetraibile 100%               O10    100                                                                      N   1                             
+   XND20IVA 20% indetraibile 100%               O20    100                                                31122013              N   1                             
+   XND21Iva 21% indetraibile 100%               O21    100                                                31122015              N   1                             
+   XND22Iva 22% indetraibile 100%               O22    100                                                                      N   1                             
+   XND4 IVA 4% indetraibile 100%                O4     100                                                                      N   1                             
+   XND5 Iva 5% indetraibile 100%                O5     100                                                                      N   1                             
+   XNE10IVA 10% indetraibile 100% rel. op.esentiO10    100acquisti relativi a operazioni esenti                                 N   1                             
+   XNE20Iva 20% indetraibile 100% rel. op.esentiO20    100acquisti relativi a operazioni esenti           31122013              N   1                             
+   XNE21Iva 21% indetraibile 100% rel. op.esentiO21    100acquisti relativi a operazioni esenti           31122015              N   1                             
+   XNE22Iva 22% indetraibile 100% rel. op.esentiO22    100acquisti relativi a operazioni esenti                                 N   1                             
+   XNE4 IVA 4% indetraibile 100% rel. op. esentiO4     100acquisti relativi a operazioni esenti                                 N   1                             
+   XNE5 IVA 5% indetraibile 100% rel. op. esentiO5     100acquisti relativi a operazioni esenti                                 N   1                             
+   XNS10Iva 10% indetraibile 100% acq. split p. O10    100                                                                      N   1X                            
+   XNS22Iva 22% indetraibile 100% acq. split p. O22    100                                                                      N   1X                            
+   XNS38Non sogg. art. 7 (oper. art. 38 bis c.2)E         Oper. per rimb.trim. Iva art. 38 bis c.2                             XD                                 
+   XNS4 Iva 4% indetraibile 100% acq. split p.  O4     100                                                                      N   1X                            
+   XNS5 Iva 5% indetraibile 100% acq. split p.  O5     100                                                                      N   1X                            
+   XNSOTNon soggetto operazioni con terremotati E                                                                              XD                                 
+   XNT38Non sogg. art. 7 ( art.38 bis c.2) IntraE         Oper. art. 38 bis c.2 Intra                                          XD 1                               
+   XO10 IVA 10% omaggio indetraibile            O10    100                                                                      N   1                             
+   XO20 IVA 20% omaggio indetraibile            O20    100                                                31122013              N   1                             
+   XO21 Iva 21% omaggio indetraibile            O21    100                                                31122015              N   1                             
+   XO22 Iva 22% omaggio indetraibile            O22    100                                                                      N   1                             
+   XO4  IVA 4% omaggio indetraibile             O4     100                                                                      N   1                             
+   XOA20Acquisti interni oro investimento 20%   O20       imponibile a seguito di opzione                 31122013              N   1X                            
+   XOA21Acquisti interni oro investimento 21%   O21       imponibile a seguito di opzione                 31122015              N   1X                            
+   XOA22Acquisti interni oro investimento 22%   O22       imponibile a seguito di opzione                                       N   1X                            
+   XOI20Acq. oro Intra al 20% reverse           O20                                                       31122013             XN   2                             
+   XOI21Acq. oro Intra al 21% reverse           O21                                                       31122015             XN   2                             
+   XOI22Acq. oro Intra al 22% reverse           O22                                                                            XN   2                             
+   XOM20Acq. oro import. al 20% reverse         O20                                                       31122013              N   3X                            
+   XOM21Acq. oro import. al 21% reverse         O21                                                       31122015              N   3X                            
+   XOM22Acq. oro import. al 22% reverse         O22                                                                             N   3X                            
+   XOO20Iva al 20% omaggi (solo Iva)            A20                                                       31122013              N                                 
+   XOO21Iva al 21% omaggi (solo Iva)            A21                                                       31122015              N                                 
+   XOO22Iva al 22% omaggi (solo Iva)            A22                                                                             N                                 
+   XOR20Acquisti oro interni al 20% reverse     O20       Oro industriale e argento puro                  31122013             XN   1X                            
+   XOR21Acquisti oro interni al 21% reverse     O21       Oro industriale e argento puro                  31122015             XN   1X                            
+   XOR22Acquisti oro interni al 22% reverse     O22       Oro industriale e argento puro                                       XN   1X                            
+   XPA 4Plafond 4% acq. int. non imp.art.8 c.1  I4                                                                          I   N   4                             
+   XPA10Plafond 10% acq. int. non imp.art.8 c.1 I10                                                                         I   N   4                             
+   XPA20Plafond 20% acq. int. non imp.art.8 c.1 I20                                                       31122013          I   N   4                             
+   XPA21Plafond 21% acq. int. non imp.art.8 c.1 I21                                                       31122015          I   N   4                             
+   XPA22Plafond 22% acq. int. non imp.art.8 c.1 I22                                                                         I   N   4                             
+   XPE  Plafond Iva - esport.non imp.art. 8/8b/9E                                                                             E D 3                               
+   XPE 4Plafond 4% acq.Intra non imp.art.8 c.1  I4                                                                          I   N   2                             
+   XPE10Plafond 10% acq.Intra non imp.art.8 c.1 I10                                                                         I   N   2                             
+   XPE20Plafond 20% acq.Intra non imp.art.8 c.1 I20                                                       31122013          I   N   2                             
+   XPE21Plafond 21% acq.Intra non imp.art.8 c.1 I21                                                       31122015          I   N   2                             
+   XPE22Plafond 22% acq.Intra non imp.art.8 c.1 I22                                                                         I   N   2                             
+   XPI  Plafond cess. Intra art. 41 DL.331/93   E                                                                             E D 2                               
+   XPI 4Plafond 4% import. non imp.art.8 c.1    I4                                                                          E   N   4                             
+   XPI10Plafond 10% import. non imp.art.8 c.1   I10                                                                         E   N   4                             
+   XPI20Plafond 20% import. non imp.art.8 c.1   I20                                                       31122013          E   N   4                             
+   XPI21Plafond 21% import. non imp.art.8 c.1   I21                                                       31122015          E   N   4                             
+   XPI22Plafond 22% import. non imp.art.8 c.1   I22                                                                         E   N   4                             
+   XPIS Plafond cess. Intra art. 41 - Servizi   E         art. 41 DL 331/93                                                   E D 2                               
+   XPLS1Serv. art.8 c.1 lett. c plafond 21%     I21                                                       31122015          I   N   4                             
+   XPLS2Serv. art.8 c.1 lett. c plafond 22%     I22       servizi prestati da fornitore nazionale                           I   N   4                             
+   XPLSAServ. art.8 c.1 lett. c plafond         I20                                                       31122013          I   N   4                             
+   XPLSCServ. art.8 c.1 lett. c UE plafond 22%  I22       Servizi prestati da fornitore UE                                  I   N   4                             
+   XPX  Plafond Iva - esport. n. 8a/b           E                                                                             E D 3                               
+   XRE20Rettifiche per mutamenti regime fiscale O20                                                       31122013             XN                                 
+   XRE21Rettifiche per mut. regime fiscale 21%  O21                                                       31122015             XN                                 
+   XRE2NRettifiche per mut. regime fiscale 21%  A21       solo Iva                                        31122015             XN                                 
+   XRE3NRettifiche per mut. regime fiscale      A22       solo Iva                                                             XN                                 
+   XRI20Acq. rottami Intra 20% reverse          O20                                                       31122013              N   2                             
+   XRI21Acq. rottami Intra 21% reverse          O21                                                       31122015              N   2                             
+   XRI22Acq. rottami/pallet Intra 22% reverse   O22       acquisti art. 74 c.7                                                  N   2                             
+   XRM20Acq. rottami import.20% reverse         O20                                                       31122013              N   6X                            
+   XRM21Acq. rottami import.21% reverse         O21                                                       31122015              N   6X                            
+   XRM22Acq. rottami/pallet import.22% reverse  O22       acquisti art. 74 c.7                                                  N   6X                            
+   XRO10Acq. rottami/pallet interni 10% reverse O10       acquisti art. 74 c.7                                                  N   1X                            
+   XRO20Acq. rottami interni 20% reverse        O20                                                       31122013              N   1X                            
+   XRO21Acq. rottami interni 21% reverse        O21                                                       31122015              N   1X                            
+   XRO22Acq. rottami/pallet interni 22% reverse O22       acquisti art. 74 c.7                                                  N   1X                            
+   XROA2Acq. pallet interni 22% rev. tab. A/1   O22       acquisti art. 74 c.7                                                  N   1X        A                   
+   XSG20Iva 20% servizi gest. cellul. detr. 100%O20                                                       31122013              N   1                             
+   XSG21Iva 21% servizi gest. cellul. detr. 100%O21                                                       31122015              N   1                             
+   XSG22Iva 22% servizi gest. cellul. detr. 100%O22                                                                             N   1                             
+    TVENcorrispettivi ticket                    V                                                                               D                                 
+   XV0  Ventiilazione Iva senza aliquota        O                                                                            X  N   1                             
+   XV10 IVA 10% per ventilazione acq.           O10                                                                          X  N   1                             
+   XV10PIva 10% acq. ventilazione split payment O10       Fatture ricevute split payment                                     X  N   1X                            
+   XV10SIva al 10% acquisti ventil. RSM con Iva O10                                                                          X  N   1                             
+   XV123IVA 12,3% per ventilazione acq.         O12.30                                                                       X  N   1                             
+   XV2  IVA 2% per ventilazione acq.            O2                                                                           X  N   1                             
+   XV20 IVA 20% per ventilazione acq.           O20                                                       31122013           X  N   1                             
+   XV20SIva al 20% acquisti ventil. RSM con Iva O20                                                       31122013           X  N   1                             
+   XV21 Iva 21% per ventilazione acq.           O21                                                       31122015           X  N   1                             
+   XV21SIva al 21% acquisti ventil. RSM con Iva O21                                                       31122015           X  N   1                             
+   XV22 Iva 22% per ventilazione acq.           O22                                                                          X  N   1                             
+   XV22PIva 22% acq. ventilazione split payment O22       Fatture ricevute split payment                                     X  N   1X                            
+   XV22SIva al 22% acquisti ventil. RSM con Iva O22                                                                          X  N   1                             
+   XV4  IVA 4% per ventilazione acq.            O4                                                                           X  N   1                             
+   XV4P Iva 4% acq. ventilazione split payment  O4        Fatture ricevute split payment                                     X  N   1X                            
+   XV4S Iva al 4% acquisti ventil. RSM con Iva  O4                                                                           X  N   1                             
+   XV5  IVA 5% per ventilazione acq.            O5                                                                           X  N   1                             
+   XV5P Iva 5% acq. ventilazione split payment  O5        Fatture ricevute split payment                                     X  N   1X                            
+   XV5S Iva al 5% acquisti ventil. RSM con Iva  O5                                                                           X  N   1                             
+   XV7  IVA 7% per ventilazione acq.            O7                                                                           X  N   1                             
+   XV73 IVA 7,3% per ventilazione acq.          O7.30                                                                        X  N   1                             
+   XV75 IVA 7,5% per ventilazione acq.          O7.50                                                                        X  N   1                             
+   XV76 IVA 7,65% per ventilazione acq.         O7.65                                                                        X  N   1                             
+   XV79 IVA 7,95% per ventilazione acq.         O7.95                                                                        X  N   1                             
+   XV83 IVA 8,3% per ventilazione acq.          O8.30                                                                        X  N   1                             
+   XV85 IVA 8,5% per ventilazione acq.          O8.50                                                                        X  N   1                             
+   XV88 IVA 8,8% per ventilazione acq.          O8.80                                                                        X  N   1                             
+   XV95 IVA 9,5% per ventilazione acq.          O9.50                                                                        X  N   1                             
+   XVDIFVentilazione corr. con IVA a esig. diff.V                                                                               D                                 
+   XVENTVentilazione corrispettivi              V                                                                               D                                 

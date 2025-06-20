@@ -27,8 +27,106 @@ async function main() {
   await prisma.voceAnalitica.deleteMany({});
   await prisma.fornitore.deleteMany({});
   await prisma.cliente.deleteMany({});
+  await prisma.importTemplate.deleteMany({});
+  await prisma.fieldDefinition.deleteMany({});
 
-  // A. Inserisce anagrafiche di base (Clienti/Fornitori)
+  // A.1 Inserisce i template di importazione
+  console.log('Seeding Template di Importazione...');
+  
+  // Template per Causali Contabili
+  await prisma.importTemplate.create({
+    data: {
+      nome: 'causali',
+      fields: {
+        create: [
+          { nomeCampo: 'id', start: 0, length: 8 },
+          { nomeCampo: 'descrizione', start: 8, length: 40 },
+        ],
+      },
+    },
+  });
+
+  // Template per Condizioni di Pagamento
+  await prisma.importTemplate.create({
+    data: {
+      nome: 'condizioni_pagamento',
+      fields: {
+        create: [
+          { nomeCampo: 'id', start: 0, length: 8 },
+          { nomeCampo: 'descrizione', start: 8, length: 40 },
+        ],
+      },
+    },
+  });
+
+  // Template per Codici IVA
+  await prisma.importTemplate.create({
+    data: {
+      nome: 'codici_iva',
+      fields: {
+        create: [
+          { nomeCampo: 'id', start: 0, length: 5 },
+          { nomeCampo: 'descrizione', start: 5, length: 45 },
+        ],
+      },
+    },
+  });
+
+  // Template per Clienti e Fornitori
+  await prisma.importTemplate.create({
+    data: {
+      nome: 'clienti_fornitori',
+      fields: {
+        create: [
+          { nomeCampo: 'externalId', start: 11, length: 11 },
+          { nomeCampo: 'codiceFiscale', start: 22, length: 16 },
+          { nomeCampo: 'tipo', start: 38, length: 1 },
+          { nomeCampo: 'piva', start: 50, length: 16 },
+          { nomeCampo: 'nome', start: 66, length: 50 },
+        ],
+      },
+    },
+  });
+
+  // Template per Scritture Contabili (multi-file)
+  const scrittureContabiliFields: any = [
+    // Definizioni per PNTESTA.TXT
+    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'id_registrazione', start: 11, length: 14 },
+    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'data_registrazione', start: 25, length: 8, type: 'date' },
+    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'codice_causale', start: 33, length: 6 },
+    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'data_documento', start: 56, length: 8, type: 'date' },
+    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'id_cliente_fornitore', start: 64, length: 16 },
+    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'numero_documento', start: 96, length: 16 },
+
+    // Definizioni per PNRIGCON.TXT
+    { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'id_registrazione_riga', start: 0, length: 15 },
+    { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'codice_conto', start: 32, length: 16 },
+    { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'importo_dare', start: 48, length: 16, type: 'number' },
+    { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'importo_avere', start: 64, length: 16, type: 'number' },
+    { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'descrizione_riga', start: 144, length: 81 },
+
+    // Definizioni per PNRIGIVA.TXT
+    { fileIdentifier: 'PNRIGIVA.TXT', nomeCampo: 'id_registrazione_riga', start: 0, length: 15 },
+    { fileIdentifier: 'PNRIGIVA.TXT', nomeCampo: 'codice_iva', start: 15, length: 5 },
+    { fileIdentifier: 'PNRIGIVA.TXT', nomeCampo: 'imponibile', start: 36, length: 16, type: 'number' },
+    { fileIdentifier: 'PNRIGIVA.TXT', nomeCampo: 'imposta', start: 52, length: 16, type: 'number' },
+
+    // Definizioni per MOVANAC.TXT
+    { fileIdentifier: 'MOVANAC.TXT', nomeCampo: 'id_registrazione_riga', start: 0, length: 15 },
+    { fileIdentifier: 'MOVANAC.TXT', nomeCampo: 'codice_commessa', start: 15, length: 12 },
+    { fileIdentifier: 'MOVANAC.TXT', nomeCampo: 'importo_allocato', start: 27, length: 16, type: 'number' },
+  ];
+
+  await prisma.importTemplate.create({
+    data: {
+      nome: 'scritture_contabili',
+      fields: {
+        create: scrittureContabiliFields,
+      }
+    }
+  });
+
+  // A.2 Inserisce anagrafiche di base (Clienti/Fornitori)
   console.log('Seeding Clienti e Fornitori...');
   const clienteDefault = await prisma.cliente.create({
     data: {
@@ -121,22 +219,24 @@ async function main() {
       },
     });
 
-    if (budget) {
-      for (const [voceAnaliticaId, importo] of Object.entries(budget)) {
-        await prisma.budgetVoce.upsert({
-          where: {
-            commessaId_voceAnaliticaId: {
-              commessaId: createdCommessa.id,
-              voceAnaliticaId: voceAnaliticaId,
+    if (budget && Array.isArray(budget)) {
+      for (const voce of budget) {
+        if (voce.voceAnaliticaId && voce.importo) {
+          await prisma.budgetVoce.upsert({
+            where: {
+              commessaId_voceAnaliticaId: {
+                commessaId: createdCommessa.id,
+                voceAnaliticaId: voce.voceAnaliticaId,
+              },
             },
-          },
-          update: { importo: importo as number },
-          create: {
-            importo: importo as number,
-            commessaId: createdCommessa.id,
-            voceAnaliticaId: voceAnaliticaId,
-          },
-        });
+            update: { importo: voce.importo },
+            create: {
+              importo: voce.importo,
+              commessaId: createdCommessa.id,
+              voceAnaliticaId: voce.voceAnaliticaId,
+            },
+          });
+        }
       }
     }
   }

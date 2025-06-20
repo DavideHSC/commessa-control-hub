@@ -101,47 +101,47 @@ export const commesse: Commessa[] = [
         nome: 'Comune di Sorrento (2025)',
         clienteId: 'CLI001',
         cliente: { id: 'CLI001', nome: 'COMUNE DI SORRENTO' },
-        budget: {
-            '1': 2274867, // Personale
-            '2': 358625,  // Gestione automezzi
-            '3': 17000,   // Gestione attrezzature
-            '4': 90000,   // Sacchi per raccolte Differenziate...
-            '5': 32880,   // Servizi esternalizzati
-            '6': 184875,  // Pulizia di strade rurali
-            '7': 80000,   // Spese gestione aree operative
-            '8': 222552,  // Ammortamento automezzi
-            '9': 71855,   // Ammortamento attrezzature
-            '10': 83759,  // Locazione sedi operative
-            '11': 220244, // Trasporti esternalizzati
-            '12': (307000 + 276056 + 30000 - 218370), // Spese Generali + Personale Amm. + Sensibilizzazione - CONAI
-            '13': 279900, // Oneri selezione e valorizzazione RD
-            '15': 50000,  // Fioriture e Verde Pubblico (valore inventato)
-        }
+        budget: [
+            { voceAnaliticaId: '1', importo: 2274867 },
+            { voceAnaliticaId: '2', importo: 358625 },
+            { voceAnaliticaId: '3', importo: 17000 },
+            { voceAnaliticaId: '4', importo: 90000 },
+            { voceAnaliticaId: '5', importo: 32880 },
+            { voceAnaliticaId: '6', importo: 184875 },
+            { voceAnaliticaId: '7', importo: 80000 },
+            { voceAnaliticaId: '8', importo: 222552 },
+            { voceAnaliticaId: '9', importo: 71855 },
+            { voceAnaliticaId: '10', importo: 83759 },
+            { voceAnaliticaId: '11', importo: 220244 },
+            { voceAnaliticaId: '12', importo: 307000 + 276056 + 30000 - 218370 },
+            { voceAnaliticaId: '13', importo: 279900 },
+            { voceAnaliticaId: '15', importo: 50000 },
+        ]
     },
     {
         id: 'PIANO_SORR_2025',
         nome: 'Comune di Piano di Sorrento (2025)',
         clienteId: 'CLI003',
         cliente: { id: 'CLI003', nome: 'COMUNE DI PIANO DI SORRENTO' },
-        budget: {
-            '1': 1000000,
-            '2': 150000,
-            '4': 50000,
-        }
+        budget: [
+            { voceAnaliticaId: '1', importo: 1000000 },
+            { voceAnaliticaId: '2', importo: 150000 },
+            { voceAnaliticaId: '4', importo: 50000 },
+        ]
     },
     {
         id: 'MASSA_LUB_2025',
         nome: 'Comune di Massa Lubrense (2025)',
         clienteId: 'CLI999',
         cliente: { id: 'CLI999', nome: 'CLIENTE GENERICO SPA' },
-        budget: {
-            '1': 1800000,
-            '2': 250000,
-            '8': 100000,
-        }
+        budget: [
+            { voceAnaliticaId: '1', importo: 1800000 },
+            { voceAnaliticaId: '2', importo: 250000 },
+            { voceAnaliticaId: '8', importo: 100000 },
+        ]
     },
-    { id: 'SORRENTO', nome: 'Comune di Sorrento', clienteId: 'CLI001', cliente: { id: 'CLI001', nome: 'COMUNE DI SORRENTO' }, budget: { '1': 10000, '2': 5000 } },
-    { id: 'NAPOLI', nome: 'Comune di Napoli', clienteId: 'CLI002', cliente: { id: 'CLI002', nome: 'COMUNE DI VICO EQUENSE' }, budget: { '1': 20000, '10': 8000 } },
+    { id: 'SORRENTO', nome: 'Comune di Sorrento', clienteId: 'CLI001', cliente: { id: 'CLI001', nome: 'COMUNE DI SORRENTO' }, budget: [ { voceAnaliticaId: '1', importo: 10000 }, { voceAnaliticaId: '2', importo: 5000 } ] },
+    { id: 'NAPOLI', nome: 'Comune di Napoli', clienteId: 'CLI002', cliente: { id: 'CLI002', nome: 'COMUNE DI VICO EQUENSE' }, budget: [ { voceAnaliticaId: '1', importo: 20000 }, { voceAnaliticaId: '10', importo: 8000 } ] },
 ];
 
 // ====================================================================
@@ -197,7 +197,28 @@ export const causaliContabili: CausaleContabile[] = [
     descrizione: 'Registrazione manuale non basata su template.',
     datiPrimari: [],
     templateScrittura: [],
-  }
+  },
+  {
+    id: 'COMM-001',
+    nome: 'Sito Web E-commerce',
+    descrizione: 'Sviluppo completo di una piattaforma e-commerce per cliente B2C',
+    clienteId: 'cl_rossi',
+    budget: [
+      { voceAnaliticaId: 'CONSULENZA_DIR', importo: 5000 },
+      { voceAnaliticaId: 'SVILUPPO_SW', importo: 15000 },
+      { voceAnaliticaId: 'LICENZE_SW', importo: 2000 },
+    ],
+  },
+  {
+    id: 'COMM-002',
+    nome: 'App Mobile iOS/Android',
+    descrizione: 'App per la gestione di prenotazioni eventi',
+    clienteId: 'cl_rossi',
+    budget: [
+      { voceAnaliticaId: 'SVILUPPO_SW', importo: 25000 },
+      { voceAnaliticaId: 'MARKETING', importo: 7000 },
+    ],
+  },
 ];
 
 // =================================================================================

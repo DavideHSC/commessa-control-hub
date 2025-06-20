@@ -3,7 +3,6 @@ import {
   vociAnalitiche, 
   pianoDeiConti, 
   scrittureContabili,
-  causaliContabili 
 } from '@/data/mock';
 import { 
   Commessa, 
@@ -12,6 +11,8 @@ import {
   ScritturaContabile,
   CausaleContabile
 } from '@/types';
+
+const API_BASE_URL = '/api';
 
 // Simula un ritardo di rete per un'esperienza più realistica
 const networkDelay = (ms: number) => new Promise(res => setTimeout(res, ms));
@@ -34,8 +35,11 @@ export const getPianoDeiConti = async (): Promise<Conto[]> => {
 };
 
 export const getCausaliContabili = async (): Promise<CausaleContabile[]> => {
-  await networkDelay(50);
-  return Promise.resolve(causaliContabili);
+  const response = await fetch(`${API_BASE_URL}/causali`);
+  if (!response.ok) {
+    throw new Error('Errore nel caricamento delle causali contabili');
+  }
+  return response.json();
 };
 
 export const getScrittureContabiliMock = async (): Promise<ScritturaContabile[]> => {

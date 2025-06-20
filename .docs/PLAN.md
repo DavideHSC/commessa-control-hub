@@ -122,13 +122,85 @@ Questo documento delinea le fasi e i task necessari per trasformare il prototipo
 - ✅ **Refactoring del Layer API:** Sostituita la logica mock nei file `src/api/*.ts` con chiamate reali al database tramite il client di Prisma. Questo include tutte le operazioni CRUD per le registrazioni e la logica di aggregazione dati per la dashboard.
 
 ---
-### ✅ Fase 7: Finalizzazione e Pulizia
 
-**Obiettivo:** Raffinare il codice, migliorare la documentazione e validare il comportamento dell'applicazione dopo il passaggio al database reale.
+### ✅ Fase 8: Refactoring Architetturale (Creazione API Server)
+
+**Obiettivo:** Centralizzare tutta la logica di accesso ai dati in un server API dedicato (Express.js) all'interno del progetto, disaccoppiando le responsabilità tra frontend e backend e preparando il terreno per una futura separazione.
 
 **Stato:** ✅ **Completata**
 
-- [x] **Task 7.1:** Eseguire un'attività di pulizia del codice per risolvere tutti i `linting error` residui.
-- [x] **Task 7.2:** Aggiornare la documentazione e le guide di utilizzo del progetto.
-- [x] **Task 7.3:** Eseguire test di regressione per garantire che il sistema funzioni correttamente con il nuovo database.
-- [ ] **Task 7.4:** (Opzionale) Aggiungere un grafico a barre o a torta per una rappresentazione visuale immediata della composizione dei costi. 
+- ✅ **Creazione Struttura Server:** Creata la cartella `server/` per ospitare tutta la logica backend, inclusa l'istanza di Express e le definizioni delle rotte.
+- ✅ **Sviluppo API Endpoints:** Implementate tutte le rotte API necessarie per servire i dati al frontend, sostituendo completamente l'accesso diretto ai dati mock o a funzioni simulate. Le rotte create includono:
+    - `/api/clienti` (CRUD completo)
+    - `/api/fornitori` (CRUD completo)
+    - `/api/dashboard`
+    - `/api/registrazioni` (CRUD completo)
+    - `/api/database` (per la visualizzazione delle tabelle)
+    - `/api/causali`
+- ✅ **Configurazione Proxy:** Modificato il file `vite.config.ts` per configurare un proxy che reindirizza tutte le chiamate da `/api` al server Express in esecuzione sulla porta `3001`, astraendo completamente l'URL del backend per il client.
+- ✅ **Refactoring del Frontend:** Aggiornate tutte le chiamate nel layer API del frontend (`src/api/*.ts`) per utilizzare percorsi relativi (`/api/...`), eliminando gli ultimi residui di dati mock (es. `causaliContabili`) e facendo affidamento esclusivamente sul nuovo server backend.
+- ✅ **Bug Fixing:** Risolto un errore critico 404 sulla pagina `/database` causato dalla mancanza di una rotta API dedicata, che è stata implementata e registrata correttamente.
+
+---
+
+### ✅ Fase 8.5: Implementazione Importazione Dati Esterni
+
+**Obiettivo:** Implementare una funzionalità robusta per l'importazione di dati contabili da file di testo a larghezza fissa, come specificato nel `PIANO_IMPORTAZIONE_DATI.md`.
+
+**Stato:** ✅ **Completata**
+
+- ✅ **Estensione Schema DB:** Modificato lo schema Prisma per supportare importazioni multi-file, aggiungendo un `fileIdentifier` alle definizioni dei campi.
+- ✅ **Logica di Parsing Avanzata:** Sviluppata una logica di backend per orchestrare il parsing di file multipli (`PNTESTA`, `PNRIGCON`, etc.), mappando correttamente le relazioni tra le varie entità.
+- ✅ **Importazione Transazionale:** Garantita l'integrità dei dati utilizzando `prisma.$transaction` per l'intero processo di salvataggio.
+- ✅ **Refactoring UI di Importazione:** Riscritto completamente il componente `Import.tsx` per supportare la selezione dinamica di template e il caricamento di file multipli, migliorando drasticamente l'usabilità della funzione.
+
+---
+
+### Fase 8.6: Aggiunta del Flusso di Anteprima per l'Importazione
+
+**Obiettivo:** Aumentare la sicurezza e il controllo del processo di importazione introducendo un passaggio di anteprima e conferma prima del salvataggio definitivo dei dati.
+
+**Stato:** 📝 **Pianificato**
+
+- [ ] **Task 8.6.1:** Modificare l'endpoint API di importazione per supportare una modalità "dry run" (esecuzione a secco) che analizzi i file e restituisca un riepilogo senza salvare i dati.
+- [ ] **Task 8.6.2:** Creare un nuovo endpoint API (o modificare l'esistente) per eseguire il "commit" dei dati pre-analizzati solo dopo la conferma dell'utente.
+- [ ] **Task 8.6.3:** Aggiornare l'interfaccia utente di `Import.tsx` per mostrare una vista di anteprima con il riepilogo dei dati e richiedere una conferma esplicita prima di avviare il salvataggio definitivo.
+
+---
+
+### ✅ Fase 8.7: Potenziamento Amministrazione Database (CRUD Completo)
+
+**Obiettivo:** Trasformare la pagina di amministrazione da una semplice visualizzazione a una vera interfaccia di gestione per le anagrafiche principali del sistema.
+
+**Stato:** ✅ **Completata**
+
+- ✅ **CRUD per Voci Analitiche:** Creazione delle rotte backend, del layer API frontend e del componente UI con tabella e modale di gestione.
+- ✅ **CRUD per Piano dei Conti:** Implementazione della logica completa, inclusa la gestione di tipi di dato complessi (enum, booleani, relazioni) nel form di modifica/creazione.
+- ✅ **CRUD per Commesse:** Sviluppo della gestione delle commesse, includendo la selezione del cliente e la visualizzazione del budget aggregato.
+- ✅ **Debugging Robusto:** Risoluzione di una serie di errori complessi legati alla configurazione di TypeScript, all'avvio del server (`dotenv`) e all'allineamento dei tipi di dato tra frontend, backend e script di seed, garantendo la stabilità della nuova funzionalità.
+
+---
+
+### Fase 9: Separazione Fisica Progetti (Decoupling)
+
+**Obiettivo:** Completare il processo di refactoring separando fisicamente il frontend (Vite/React) e il backend (Express/Prisma) in due progetti distinti con repository e pipeline di deployment individuali.
+
+**Stato:** 📝 **Pianificato**
+
+- [ ] **Task 9.1:** Creare un nuovo repository dedicato esclusivamente all'API backend (`commessa-control-hub-api`).
+- [ ] **Task 9.2:** Spostare la cartella `server`, lo schema `prisma`, il file `.env` e le relative dipendenze nel nuovo progetto backend.
+- [ ] **Task 9.3:** Configurare il server backend per gestire CORS in modo più granulare, accettando richieste solo dal dominio del frontend in produzione.
+- [ ] **Task 9.4:** Rimuovere la cartella `server` e tutte le dipendenze di backend dal progetto frontend originale.
+- [ ] **Task 9.5:** Aggiornare il layer API del frontend per effettuare chiamate a un URL assoluto definito tramite variabili d'ambiente (es. `process.env.VITE_API_URL`).
+- [ ] **Task 9.6:** Definire due pipeline di deployment separate: una per il frontend (su un servizio di hosting statico come Vercel/Netlify) e una per il backend (su una piattaforma come Render/Heroku).
+
+---
+
+### Fase 10: Miglioramenti Futuri e Quality of Life
+
+**Obiettivo:** Raccogliere idee e possibili miglioramenti non critici da implementare per migliorare l'usabilità e la manutenibilità dell'applicazione.
+
+**Stato:** 📝 **Pianificato**
+
+- [ ] **Task 10.1:** Rendere la lista delle tabelle nella pagina di **Amministrazione Database** dinamica, recuperando l'elenco direttamente dal backend per evitare aggiornamenti manuali del frontend quando lo schema del database cambia.
+- [ ] **Task 10.2:** Creare un'interfaccia utente nella sezione di **Amministrazione Database** per visualizzare e gestire i template di importazione (`ImportTemplate`) e le loro definizioni di campo (`FieldDefinition`), eliminando la necessità di gestirli tramite lo script di seed. 

@@ -30,27 +30,27 @@ const menuItems = [
     icon: FileText,
   },
   {
-    title: "Importa Dati",
-    url: "/import",
-    icon: Upload,
-  },
-  {
     title: "Report",
     url: "/report",
     icon: BarChart3,
-  },
-  {
-    title: "Impostazioni",
-    url: "/impostazioni",
-    icon: Settings,
   },
 ];
 
 const serviziItems = [
   {
+    title: "Importa Dati",
+    url: "/import",
+    icon: Upload,
+  },
+  {
     title: "Database",
     url: "/database",
     icon: Database,
+  },
+  {
+    title: "Impostazioni",
+    url: "/impostazioni",
+    icon: Settings,
   },
 ];
 

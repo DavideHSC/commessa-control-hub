@@ -47,25 +47,27 @@ enum FormulaImporto {
 // --- MODELLI DI BASE ---
 
 model Cliente {
-  id         String   @id @default(cuid())
-  externalId String?  @unique
-  nome       String
-  piva       String?  @unique
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id            String     @id @default(cuid())
+  externalId    String?    @unique
+  nome          String
+  piva          String?    @unique
+  codiceFiscale String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
-  commesse Commessa[]
+  commesse      Commessa[]
 }
 
 model Fornitore {
-  id         String   @id @default(cuid())
-  externalId String?  @unique
-  nome       String
-  piva       String?  @unique
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id            String     @id @default(cuid())
+  externalId    String?    @unique
+  nome          String
+  piva          String?    @unique
+  codiceFiscale String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
-  scritture ScritturaContabile[]
+  scritture     ScritturaContabile[]
 }
 
 model VoceAnalitica {
@@ -123,17 +125,19 @@ model BudgetVoce {
 // --- MODELLI TRANSAZIONALI (CONTABILITA') ---
 
 model ScritturaContabile {
-  id             String    @id @default(cuid())
-  externalId     String?   @unique
-  data           DateTime  @default(now())
-  causaleId      String
-  descrizione    String
-  datiAggiuntivi Json?
+  id              String    @id @default(cuid())
+  externalId      String?   @unique
+  data            DateTime  @default(now())
+  dataDocumento   DateTime?
+  numeroDocumento String?
+  causaleId       String
+  descrizione     String
+  datiAggiuntivi  Json?
 
-  fornitoreId    String?
-  fornitore      Fornitore? @relation(fields: [fornitoreId], references: [id])
+  fornitoreId     String?
+  fornitore       Fornitore? @relation(fields: [fornitoreId], references: [id])
 
-  righe          RigaScrittura[]
+  righe           RigaScrittura[]
 }
 
 model RigaScrittura {
@@ -149,6 +153,7 @@ model RigaScrittura {
   scritturaContabile   ScritturaContabile @relation(fields: [scritturaContabileId], references: [id], onDelete: Cascade)
 
   allocazioni          Allocazione[]
+  righeIva             RigaIva[]
 }
 
 model Allocazione {
@@ -164,6 +169,30 @@ model Allocazione {
 
   voceAnaliticaId   String
   voceAnalitica     VoceAnalitica @relation(fields: [voceAnaliticaId], references: [id])
+}
+
+model CodiceIva {
+  id          String    @id
+  externalId  String?   @unique
+  descrizione String
+  aliquota    Float
+  righeIva    RigaIva[]
+}
+
+model CondizionePagamento {
+  id          String  @id
+  externalId  String? @unique
+  descrizione String
+}
+
+model RigaIva {
+  id              String      @id @default(cuid())
+  imponibile      Float
+  imposta         Float
+  codiceIvaId     String
+  codiceIva       CodiceIva   @relation(fields: [codiceIvaId], references: [id])
+  rigaScritturaId String
+  rigaScrittura   RigaScrittura @relation(fields: [rigaScritturaId], references: [id], onDelete: Cascade)
 }
 
 // --- MODELLI PER LA CONFIGURAZIONE DEGLI AUTOMATISMI ---
@@ -199,4 +228,25 @@ model VoceTemplateScrittura {
 
   causaleId      String
   causale        CausaleContabile @relation(fields: [causaleId], references: [id], onDelete: Cascade)
+}
+
+// Modelli per l'importazione dinamica
+model ImportTemplate {
+  id     String @id @default(cuid())
+  nome   String @unique // Es. "causali", "clienti_fornitori"
+  
+  fields FieldDefinition[]
+}
+
+model FieldDefinition {
+  id        String  @id @default(cuid())
+  nomeCampo String  // Es. "externalId", "descrizione"
+  start     Int
+  length    Int
+  type      String  @default("string") // 'string' | 'number' | 'date'
+  
+  fileIdentifier String? // Es. "PNTESTA.TXT", "PNRIGCON.TXT"
+
+  templateId String
+  template   ImportTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
 }

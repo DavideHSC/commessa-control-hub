@@ -1,0 +1,21 @@
+    01      BONIFICO                                2205000100  TN  
+    02      assegno                                             TN  
+    03      CONTANTI                                            TD  
+    05                                                          TD  
+    06      COME CONVENUTO                                      TN  
+    1       COME CONVENUTO                                      TD  
+    2                                                           TN  
+    4       come convenuto                                      TD  
+    6       COME CONVENUTO                                      TD  
+    ASSEGNO ASSEGNO                                             TD1 
+    ASSEGNO2                                        2205000100  TD2 
+    B       bonifico a 30 gg                                    TD  
+    BON     BONIFICO                                            TD  
+    BONIF   BONIFICO BANCARIO                       2205000100  TD1 
+    COME    come convenuto                          2220000050  TD  
+    CON     PAG.CONTANTE                                        TN  
+    R       RIMESSA DIRETTA                                   X TD1 
+    RATE    3 RATE                                              TD3 
+    RIBA7   7 rate                                  2205000100X TF7 
+    RIM     RIMESSA DIRETTA                         2205000100  TN  
+    RIMESSA RIMESSA DIRETTA                                     TD1 

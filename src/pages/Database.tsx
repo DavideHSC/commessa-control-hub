@@ -44,6 +44,18 @@ import {
 } from "@/components/ui/form";
 import { createCliente, updateCliente, deleteCliente } from '@/api/clienti';
 import { createFornitore, updateFornitore, deleteFornitore } from '@/api/fornitori';
+import { createVoceAnalitica, deleteVoceAnalitica, updateVoceAnalitica } from '@/api/vociAnalitiche';
+import { createConto, deleteConto, updateConto } from '@/api/conti';
+import { createCommessa, deleteCommessa, updateCommessa } from '@/api/commesse';
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { TipoConto } from '@prisma/client';
 
 // Definiamo un'interfaccia aggregata per i dati del database
 interface DatabaseData {
@@ -370,107 +382,664 @@ const FornitoriTable = ({ data, onDataChange }: { data: Fornitore[], onDataChang
   );
 };
 
-const ScrittureTable = ({ data, onDataChange }: { data: ScritturaContabile[], onDataChange: () => void }) => {
-    const [scritturaDaEliminare, setScritturaDaEliminare] = useState<ScritturaContabile | null>(null);
-    const navigate = useNavigate();
+const VociAnaliticheTable = ({ data, onDataChange }: { data: VoceAnalitica[], onDataChange: () => void }) => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingVoce, setEditingVoce] = useState<VoceAnalitica | null>(null);
+  const [deletingVoce, setDeletingVoce] = useState<VoceAnalitica | null>(null);
 
-    const handleDelete = async () => {
-        if (!scritturaDaEliminare) return;
-        try {
-            await deleteRegistrazione(scritturaDaEliminare.id);
-            toast.success("Scrittura eliminata con successo.");
-            onDataChange();
-        } catch (error) {
-            toast.error("Errore durante l'eliminazione della scrittura.");
-        } finally {
-            setScritturaDaEliminare(null);
-        }
-    };
-    
-    return (
-        <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Scritture Contabili</CardTitle>
-              {/* Qui potrebbe andare un pulsante "Aggiungi" */}
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Descrizione</TableHead>
-                    <TableHead>Causale</TableHead>
-                    <TableHead>Totale</TableHead>
-                    <TableHead className="text-right">Azioni</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.map((scrittura) => {
-                    const totaleMovimento = scrittura.righe.reduce((sum: number, riga: RigaScrittura) => sum + riga.dare, 0);
-                    return (
-                      <TableRow key={scrittura.id}>
-                        <TableCell>{new Date(scrittura.data).toLocaleDateString('it-IT')}</TableCell>
-                        <TableCell className="max-w-xs truncate">{scrittura.descrizione}</TableCell>
-                        <TableCell>
-                          <Badge variant={scrittura.causaleId === 'IMPORT' ? 'secondary' : 'default'}>
-                            {scrittura.causaleId}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>€{totaleMovimento.toFixed(2)}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end space-x-1">
-                            <Button variant="ghost" size="icon" onClick={() => navigate(`/prima-nota/modifica/${scrittura.id}`)}>
-                                <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => setScritturaDaEliminare(scrittura)}>
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
+  const voceSchema = z.object({
+    id: z.string().min(1, { message: "L'ID è obbligatorio." }),
+    nome: z.string().min(2, { message: "Il nome deve essere di almeno 2 caratteri." }),
+    descrizione: z.string().optional(),
+    externalId: z.string().optional(),
+  });
+
+  const form = useForm<z.infer<typeof voceSchema>>({
+    resolver: zodResolver(voceSchema),
+    defaultValues: { id: "", nome: "", descrizione: "", externalId: "" },
+  });
+
+  const handleOpenDialog = (voce: VoceAnalitica | null = null) => {
+    setEditingVoce(voce);
+    if (voce) {
+      form.reset(voce);
+    } else {
+      form.reset({ id: "", nome: "", descrizione: "", externalId: "" });
+    }
+    setIsDialogOpen(true);
+  };
+
+  const onSubmit = async (values: z.infer<typeof voceSchema>) => {
+    try {
+      if (editingVoce) {
+        await updateVoceAnalitica(editingVoce.id, values);
+        toast.success("Voce analitica aggiornata con successo.");
+      } else {
+        await createVoceAnalitica(values as VoceAnalitica);
+        toast.success("Voce analitica creata con successo.");
+      }
+      onDataChange();
+      setIsDialogOpen(false);
+    } catch (error) {
+      toast.error((error as Error).message);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deletingVoce) return;
+    try {
+        await deleteVoceAnalitica(deletingVoce.id);
+        toast.success("Voce analitica eliminata con successo.");
+        onDataChange();
+    } catch(error) {
+        toast.error("Impossibile eliminare: la voce potrebbe essere in uso.");
+    } finally {
+        setDeletingVoce(null);
+    }
+  };
+
+  return (
+    <>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Voci Analitiche</CardTitle>
+          <Button onClick={() => handleOpenDialog()}>Aggiungi Voce</Button>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Nome</TableHead>
+                <TableHead>Descrizione</TableHead>
+                <TableHead className="text-right">Azioni</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((voce) => (
+                <TableRow key={voce.id}>
+                  <TableCell>
+                    <Badge variant="outline">{voce.id}</Badge>
+                  </TableCell>
+                  <TableCell>{voce.nome}</TableCell>
+                  <TableCell>{voce.descrizione || 'N/A'}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(voce)}><Edit className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => setDeletingVoce(voce)}><Trash2 className="h-4 w-4" /></Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent>
+              <DialogHeader>
+                  <DialogTitle>{editingVoce ? 'Modifica Voce Analitica' : 'Nuova Voce Analitica'}</DialogTitle>
+              </DialogHeader>
+              <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                      <FormField
+                          control={form.control}
+                          name="id"
+                          render={({ field }) => (
+                              <FormItem>
+                                  <FormLabel>ID</FormLabel>
+                                  <FormControl>
+                                      <Input placeholder="ID Voce (es. COSTI_SOFTWARE)" {...field} disabled={!!editingVoce} />
+                                  </FormControl>
+                                  <FormMessage />
+                              </FormItem>
+                          )}
+                      />
+                      <FormField
+                          control={form.control}
+                          name="nome"
+                          render={({ field }) => (
+                              <FormItem>
+                                  <FormLabel>Nome</FormLabel>
+                                  <FormControl>
+                                      <Input placeholder="Nome descrittivo" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                              </FormItem>
+                          )}
+                      />
+                      <FormField
+                          control={form.control}
+                          name="descrizione"
+                          render={({ field }) => (
+                              <FormItem>
+                                  <FormLabel>Descrizione (opzionale)</FormLabel>
+                                  <FormControl>
+                                      <Input placeholder="Descrizione dettagliata" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                              </FormItem>
+                          )}
+                      />
+                      <DialogFooter>
+                          <Button type="submit">Salva</Button>
+                      </DialogFooter>
+                  </form>
+              </Form>
+          </DialogContent>
+      </Dialog>
+      
+      <AlertDialog open={!!deletingVoce} onOpenChange={() => setDeletingVoce(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sei sicuro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Vuoi davvero eliminare la voce "{deletingVoce?.nome}"? L'operazione fallirà se la voce è già stata utilizzata.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">Elimina</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+};
+
+const ContiTable = ({ data, onDataChange, vociAnalitiche }: { data: Conto[], onDataChange: () => void, vociAnalitiche: VoceAnalitica[] }) => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingConto, setEditingConto] = useState<Conto | null>(null);
+  const [deletingConto, setDeletingConto] = useState<Conto | null>(null);
+
+  const contoSchema = z.object({
+    id: z.string().min(1, "L'ID è obbligatorio."),
+    codice: z.string().min(1, "Il codice è obbligatorio."),
+    nome: z.string().min(2, "Il nome è obbligatorio."),
+    tipo: z.nativeEnum(TipoConto),
+    richiedeVoceAnalitica: z.boolean().default(false),
+    voceAnaliticaSuggeritaId: z.string().optional().nullable(),
+    // Campi array non gestiti nel form per semplicità
+  });
+
+  const form = useForm<z.infer<typeof contoSchema>>({
+    resolver: zodResolver(contoSchema),
+    defaultValues: {
+      id: "",
+      codice: "",
+      nome: "",
+      tipo: TipoConto.Costo,
+      richiedeVoceAnalitica: false,
+      voceAnaliticaSuggeritaId: null,
+    },
+  });
+
+  const handleOpenDialog = (conto: Conto | null = null) => {
+    setEditingConto(conto);
+    if (conto) {
+      form.reset({
+        ...conto,
+        voceAnaliticaSuggeritaId: conto.voceAnaliticaSuggeritaId || null,
+      });
+    } else {
+      form.reset({
+        id: "",
+        codice: "",
+        nome: "",
+        tipo: TipoConto.Costo,
+        richiedeVoceAnalitica: false,
+        voceAnaliticaSuggeritaId: null,
+      });
+    }
+    setIsDialogOpen(true);
+  };
+
+  const onSubmit = async (values: z.infer<typeof contoSchema>) => {
+    try {
+      if (editingConto) {
+        await updateConto(editingConto.id, values);
+        toast.success("Conto aggiornato con successo.");
+      } else {
+        await createConto(values as Conto);
+        toast.success("Conto creato con successo.");
+      }
+      onDataChange();
+      setIsDialogOpen(false);
+    } catch (error) {
+      toast.error((error as Error).message);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deletingConto) return;
+    try {
+      await deleteConto(deletingConto.id);
+      toast.success("Conto eliminato con successo.");
+      onDataChange();
+    } catch (error) {
+      toast.error("Impossibile eliminare: il conto potrebbe essere in uso.");
+    } finally {
+      setDeletingConto(null);
+    }
+  };
+  
+  return (
+    <>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Piano dei Conti</CardTitle>
+          <Button onClick={() => handleOpenDialog()}>Aggiungi Conto</Button>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Codice</TableHead>
+                <TableHead>Nome</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Richiede Voce Analitica</TableHead>
+                <TableHead className="text-right">Azioni</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((conto) => (
+                <TableRow key={conto.id}>
+                  <TableCell><Badge variant="secondary">{conto.codice}</Badge></TableCell>
+                  <TableCell>{conto.nome}</TableCell>
+                  <TableCell>{conto.tipo}</TableCell>
+                  <TableCell>{conto.richiedeVoceAnalitica ? 'Sì' : 'No'}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(conto)}><Edit className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => setDeletingConto(conto)}><Trash2 className="h-4 w-4" /></Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                  <DialogTitle>{editingConto ? 'Modifica Conto' : 'Nuovo Conto'}</DialogTitle>
+              </DialogHeader>
+              <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField control={form.control} name="id" render={({ field }) => (
+                          <FormItem><FormLabel>ID</FormLabel><FormControl><Input {...field} disabled={!!editingConto} /></FormControl><FormMessage /></FormItem>
+                      )}/>
+                      <FormField control={form.control} name="codice" render={({ field }) => (
+                          <FormItem><FormLabel>Codice</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                      )}/>
+                    </div>
+                    <FormField control={form.control} name="nome" render={({ field }) => (
+                        <FormItem><FormLabel>Nome</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                    )}/>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <FormField control={form.control} name="tipo" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Tipo Conto</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                            <SelectContent>
+                              {Object.values(TipoConto).map(type => <SelectItem key={type} value={type}>{type}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}/>
+                      <FormField control={form.control} name="voceAnaliticaSuggeritaId" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Voce Analitica Suggerita</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value || ''}>
+                            <FormControl><SelectTrigger><SelectValue placeholder="Nessuna" /></SelectTrigger></FormControl>
+                            <SelectContent>
+                              <SelectItem value="">Nessuna</SelectItem>
+                              {vociAnalitiche.map(voce => <SelectItem key={voce.id} value={voce.id}>{voce.nome}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}/>
+                    </div>
+                    <FormField control={form.control} name="richiedeVoceAnalitica" render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                          <div className="space-y-0.5">
+                            <FormLabel>Richiede Voce Analitica</FormLabel>
                           </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </CardContent>
-            <AlertDialog open={!!scritturaDaEliminare} onOpenChange={() => setScritturaDaEliminare(null)}>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                      <AlertDialogTitle>Sei sicuro di voler eliminare questa scrittura?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                      Questa azione non può essere annullata.
-                      </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                      <AlertDialogCancel>Annulla</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
-                      Elimina
-                      </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-        </Card>
-    );
+                          <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                      </FormItem>
+                    )}/>
+                    <DialogFooter>
+                      <Button type="submit">Salva</Button>
+                    </DialogFooter>
+                  </form>
+              </Form>
+          </DialogContent>
+      </Dialog>
+      
+      <AlertDialog open={!!deletingConto} onOpenChange={() => setDeletingConto(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sei sicuro?</AlertDialogTitle>
+            <AlertDialogDescription>Vuoi davvero eliminare il conto "{deletingConto?.nome}"?</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">Elimina</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  )
+};
+
+const CommesseTable = ({ data, onDataChange, clienti }: { data: Commessa[], onDataChange: () => void, clienti: Cliente[] }) => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingCommessa, setEditingCommessa] = useState<Commessa | null>(null);
+  const [deletingCommessa, setDeletingCommessa] = useState<Commessa | null>(null);
+
+  const commessaSchema = z.object({
+    id: z.string().min(1, "L'ID è obbligatorio."),
+    nome: z.string().min(2, "Il nome è obbligatorio."),
+    descrizione: z.string().optional(),
+    clienteId: z.string().min(1, "È obbligatorio selezionare un cliente."),
+  });
+
+  const form = useForm<z.infer<typeof commessaSchema>>({
+    resolver: zodResolver(commessaSchema),
+    defaultValues: { id: "", nome: "", descrizione: "", clienteId: "" },
+  });
+
+  const handleOpenDialog = (commessa: Commessa | null = null) => {
+    setEditingCommessa(commessa);
+    if (commessa) {
+      form.reset(commessa);
+    } else {
+      form.reset({ id: "", nome: "", descrizione: "", clienteId: "" });
+    }
+    setIsDialogOpen(true);
+  };
+
+  const onSubmit = async (values: z.infer<typeof commessaSchema>) => {
+    try {
+      if (editingCommessa) {
+        await updateCommessa(editingCommessa.id, values);
+        toast.success("Commessa aggiornata con successo.");
+      } else {
+        await createCommessa({...values, budget: []});
+        toast.success("Commessa creata con successo.");
+      }
+      onDataChange();
+      setIsDialogOpen(false);
+    } catch (error) {
+      toast.error((error as Error).message);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deletingCommessa) return;
+    try {
+      await deleteCommessa(deletingCommessa.id);
+      toast.success("Commessa eliminata con successo.");
+      onDataChange();
+    } catch (error) {
+      toast.error("Impossibile eliminare: la commessa potrebbe avere registrazioni associate.");
+    } finally {
+      setDeletingCommessa(null);
+    }
+  };
+
+  return (
+    <>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>Commesse</CardTitle>
+        <Button onClick={() => handleOpenDialog()}>Aggiungi Commessa</Button>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>Cliente</TableHead>
+              <TableHead>Budget Totale</TableHead>
+              <TableHead className="text-right">Azioni</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.map((commessa) => (
+              <TableRow key={commessa.id}>
+                <TableCell>{commessa.nome}</TableCell>
+                <TableCell>{commessa.cliente?.nome || 'N/A'}</TableCell>
+                <TableCell>
+                  {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(
+                    commessa.budget?.reduce((sum, voce) => sum + voce.importo, 0) || 0
+                  )}
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(commessa)}><Edit className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => setDeletingCommessa(commessa)}><Trash2 className="h-4 w-4" /></Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+
+    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{editingCommessa ? 'Modifica Commessa' : 'Nuova Commessa'}</DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField control={form.control} name="id" render={({ field }) => (
+                <FormItem><FormLabel>ID</FormLabel><FormControl><Input {...field} disabled={!!editingCommessa} /></FormControl><FormMessage /></FormItem>
+            )}/>
+            <FormField control={form.control} name="nome" render={({ field }) => (
+                <FormItem><FormLabel>Nome</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+            )}/>
+            <FormField control={form.control} name="descrizione" render={({ field }) => (
+                <FormItem><FormLabel>Descrizione</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+            )}/>
+            <FormField control={form.control} name="clienteId" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Cliente</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl><SelectTrigger><SelectValue placeholder="Seleziona un cliente..." /></SelectTrigger></FormControl>
+                  <SelectContent>
+                    {clienti.map(cliente => <SelectItem key={cliente.id} value={cliente.id}>{cliente.nome}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}/>
+            <DialogFooter>
+              <Button type="submit">Salva</Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+    
+    <AlertDialog open={!!deletingCommessa} onOpenChange={() => setDeletingCommessa(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sei sicuro?</AlertDialogTitle>
+            <AlertDialogDescription>Vuoi davvero eliminare la commessa "{deletingCommessa?.nome}"?</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">Elimina</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  )
 }
+
+const GenericTable = ({ title, data }: { title: string, data: any[] }) => {
+  if (!data || data.length === 0) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{title}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Nessun dato da visualizzare in questa tabella.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Estrai le colonne dal primo oggetto (ignorando eventuali oggetti relazionali)
+  const columns = Object.keys(data[0]).filter(key => typeof data[0][key] !== 'object' || data[0][key] === null);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              {columns.map((col) => <TableHead key={col}>{col}</TableHead>)}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.map((row, rowIndex) => (
+              <TableRow key={rowIndex}>
+                {columns.map((col) => (
+                  <TableCell key={`${rowIndex}-${col}`}>
+                    {row[col] === null ? 'N/A' : String(row[col])}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+};
+
+const ScrittureTable = ({ data, onDataChange }: { data: ScritturaContabile[], onDataChange: () => void }) => {
+  const navigate = useNavigate();
+  const [deletingRegistrazione, setDeletingRegistrazione] = useState<ScritturaContabile | null>(null);
+
+  const handleDelete = async () => {
+    if (!deletingRegistrazione) return;
+    try {
+      await deleteRegistrazione(deletingRegistrazione.id);
+      toast.success("Registrazione eliminata con successo.");
+      onDataChange();
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setDeletingRegistrazione(null);
+    }
+  };
+
+  const handleEdit = (registrazione: ScritturaContabile) => {
+    navigate(`/app/prima-nota/modifica/${registrazione.id}`);
+  };
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Scritture Contabili</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Data</TableHead>
+                <TableHead>Descrizione</TableHead>
+                <TableHead>Causale</TableHead>
+                <TableHead>Totale</TableHead>
+                <TableHead className="text-right">Azioni</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((scrittura) => (
+                <TableRow key={scrittura.id}>
+                  <TableCell>{new Date(scrittura.data).toLocaleDateString()}</TableCell>
+                  <TableCell>{scrittura.descrizione}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{scrittura.causaleId}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(
+                      scrittura.righe.reduce((acc, riga) => acc + riga.dare, 0)
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="icon" onClick={() => handleEdit(scrittura)}>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-red-500 hover:text-red-600"
+                      onClick={() => setDeletingRegistrazione(scrittura)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+      
+      <AlertDialog open={!!deletingRegistrazione} onOpenChange={() => setDeletingRegistrazione(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Sei sicuro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Questa azione eliminerà la registrazione contabile e tutte le sue righe e allocazioni. Questa azione non può essere annullata.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annulla</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">Elimina</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+};
 
 const Database: React.FC = () => {
   const [data, setData] = useState<DatabaseData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<string>('');
   const [selectedTable, setSelectedTable] = useState<TableKey>('scritture');
 
   const fetchDatabaseData = async (showLoading = true) => {
-    if (showLoading) setIsLoading(true);
+    if (showLoading) {
+      setLoading(true);
+    }
     try {
-      const response = await fetch('http://localhost:3001/api/database');
-      const result = await response.json();
-      setData(result);
-      setLastUpdate(new Date());
+      const response = await fetch('/api/database');
+      if (!response.ok) {
+        throw new Error('Errore nel caricamento dei dati del database');
+      }
+      const dbData = await response.json();
+      setData(dbData);
+      setLastUpdated(new Date().toLocaleTimeString());
     } catch (error) {
-      console.error('Errore nel caricamento dati database:', error);
-      toast.error("Errore nel caricamento dei dati del database.");
+      toast.error((error as Error).message);
     } finally {
-      if (showLoading) setIsLoading(false);
+      if (showLoading) {
+        setLoading(false);
+      }
     }
   };
 
@@ -478,82 +1047,86 @@ const Database: React.FC = () => {
     fetchDatabaseData();
   }, []);
 
+  const handleDataChange = () => {
+    fetchDatabaseData(false); // Refresha i dati senza mostrare il loader
+  };
+
   const renderSelectedTable = () => {
     if (!data) return null;
+
     switch (selectedTable) {
-        case 'scritture':
-            return <ScrittureTable data={data.scritture} onDataChange={() => fetchDatabaseData(false)} />;
-        case 'commesse':
-            return <PlaceholderTable title="Commesse" />;
-        case 'clienti':
-            return <ClientiTable data={data.clienti} onDataChange={() => fetchDatabaseData(false)} />;
-        case 'fornitori':
-            return <FornitoriTable data={data.fornitori} onDataChange={() => fetchDatabaseData(false)} />;
-        case 'conti':
-            return <PlaceholderTable title="Piano dei Conti" />;
-        case 'vociAnalitiche':
-            return <PlaceholderTable title="Voci Analitiche" />;
-        default:
-            return <p>Seleziona una tabella</p>;
+      case 'scritture':
+        return <ScrittureTable data={data.scritture} onDataChange={handleDataChange} />;
+      case 'clienti':
+        return <ClientiTable data={data.clienti} onDataChange={handleDataChange} />;
+      case 'fornitori':
+        return <FornitoriTable data={data.fornitori} onDataChange={handleDataChange} />;
+      case 'commesse':
+        return <CommesseTable data={data.commesse} onDataChange={handleDataChange} clienti={data.clienti} />;
+      case 'conti':
+        return <ContiTable data={data.conti} onDataChange={handleDataChange} vociAnalitiche={data.vociAnalitiche} />;
+      case 'vociAnalitiche':
+        return <VociAnaliticheTable data={data.vociAnalitiche} onDataChange={handleDataChange} />;
+      default:
+        return <p>Seleziona una tabella per visualizzare i dati.</p>;
     }
-  }
+  };
 
-  if (isLoading) {
+  if (loading && !data) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <p>Caricamento dati...</p>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Amministrazione Database</h1>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="col-span-1">
+            <Skeleton className="h-48 w-full" />
+          </div>
+          <div className="col-span-3">
+            <Skeleton className="h-96 w-full" />
+          </div>
+        </div>
       </div>
-    )
-  }
-
-  if (!data) {
-    return <div className="p-4">Errore nel caricamento dei dati. Prova ad aggiornare.</div>;
+    );
   }
 
   return (
-    <div className="flex flex-col h-full bg-slate-50">
-        <header className="flex justify-between items-center p-4 border-b bg-white">
-            <div className="flex items-center gap-3">
-                <DatabaseIcon className="h-6 w-6" />
-                <div>
-                    <h1 className="text-xl font-bold">Amministrazione Database</h1>
-                    <p className="text-sm text-muted-foreground">
-                        Ultimo aggiornamento: {lastUpdate.toLocaleTimeString('it-IT')}
-                    </p>
-                </div>
-            </div>
-            <Button onClick={() => fetchDatabaseData(false)} variant="outline">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Aggiorna
-            </Button>
-        </header>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <div>
+            <h1 className="text-2xl font-bold">Amministrazione Database</h1>
+            {lastUpdated && <p className="text-sm text-slate-500">Ultimo aggiornamento: {lastUpdated}</p>}
+        </div>
+        <Button onClick={() => fetchDatabaseData()} variant="outline" size="sm">
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Aggiorna
+        </Button>
+      </div>
 
-        <ResizablePanelGroup direction="horizontal" className="flex-grow">
-            <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="bg-white">
-                <div className="p-4">
-                    <h2 className="text-lg font-semibold mb-4">Tabelle</h2>
-                    <nav className="flex flex-col space-y-1">
-                        {tableConfig.map(({ key, label, icon: Icon }) => (
-                            <Button
-                                key={key}
-                                variant={selectedTable === key ? 'secondary' : 'ghost'}
-                                className="w-full justify-start"
-                                onClick={() => setSelectedTable(key)}
-                            >
-                                <Icon className="mr-2 h-4 w-4" />
-                                {label}
-                            </Button>
-                        ))}
-                    </nav>
-                </div>
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={80}>
-                <div className="p-4 h-full overflow-auto">
-                    {renderSelectedTable()}
-                </div>
-            </ResizablePanel>
-        </ResizablePanelGroup>
+      <ResizablePanelGroup direction="horizontal" className="rounded-lg border">
+        <ResizablePanel defaultSize={25}>
+          <div className="p-4 space-y-2">
+            <h2 className="text-lg font-semibold mb-2">Tabelle</h2>
+            {tableConfig.map(({ key, label, icon: Icon }) => (
+              <Button
+                key={key}
+                variant={selectedTable === key ? 'secondary' : 'ghost'}
+                className="w-full justify-start"
+                onClick={() => setSelectedTable(key)}
+              >
+                <Icon className="h-4 w-4 mr-2" />
+                {label}
+              </Button>
+            ))}
+          </div>
+        </ResizablePanel>
+        <ResizableHandle withHandle />
+        <ResizablePanel defaultSize={75}>
+          <div className="p-4 h-full overflow-auto">
+            {renderSelectedTable()}
+          </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </div>
   );
 };

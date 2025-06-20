@@ -49,17 +49,23 @@ export interface Conto {
  * Rappresenta una Commessa di lavoro. Contiene i dati anagrafici
  * e la struttura di budget per il confronto con il consuntivo.
  */
+export interface BudgetVoce {
+  id: string;
+  importo: number;
+  commessaId: string;
+  voceAnaliticaId: string;
+  voceAnalitica: VoceAnalitica;
+}
+
 export interface Commessa {
   id: string;
   externalId?: string | null;
   nome: string;
   descrizione?: string | null;
   clienteId: string;
-  cliente: Cliente;
-  budget: { [key: string]: number };
+  cliente?: Cliente;
+  budget?: Partial<BudgetVoce>[];
   allocazioni?: Allocazione[];
-  // Nota: questa interfaccia ora è autonoma e non estende più CommessaPrisma
-  // per evitare conflitti di tipo con i dati mock e le relazioni di Prisma.
 }
 
 /**

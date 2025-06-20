@@ -9,11 +9,16 @@ export const getDashboardData = async (): Promise<DashboardData> => {
   console.log('Chiamata API dashboard...');
 
   try {
-    const response = await fetch('http://localhost:3001/api/dashboard');
+    const response = await fetch('/api/dashboard');
     
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || `Errore HTTP: ${response.status}`);
+      const errorText = await response.text();
+      try {
+        const errorData = JSON.parse(errorText);
+        throw new Error(errorData.message || `Errore HTTP: ${response.status}`);
+      } catch (e) {
+        throw new Error(`Risposta non JSON dal server: ${errorText}`);
+      }
     }
     
     const data = await response.json();

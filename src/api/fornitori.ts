@@ -1,6 +1,6 @@
 import { Fornitore } from '@/types';
 
-const API_URL = 'http://localhost:3001/api/fornitori';
+const API_URL = '/api/fornitori';
 
 export const getFornitori = async (): Promise<Fornitore[]> => {
   const response = await fetch(API_URL);
