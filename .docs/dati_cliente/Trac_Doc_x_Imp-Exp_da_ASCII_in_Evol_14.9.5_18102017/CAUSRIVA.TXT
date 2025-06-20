@@ -1,0 +1,39 @@
+     Data 19/12/2005                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  122 Bytes+CRLF =  124 Bytes 
+     Nome File:CAUSRIVA.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Generali                              |     |     |      |
+     |TABELLA ITALSTUDIO (X)                      |  A  |   1 |     4|
+     |     Campo Riservato Italstudio non         |     |     |      |
+     |     indicare nulla                         |     |     |      |
+     |                                            |     |     |      |
+     |CODICE CAUSALE                              |  A  |   6 |     5|
+     |NUMERO RIGO                                 |  N  |   5 |    11|
+     |CODICE IVA                                  |  A  |   4 |    16|
+     |TIPO CONTO                                  |  A  |   1 |    20|
+     |     C - Conto                              |     |     |      |
+     |     M - Manuale                            |     |     |      |
+     |     N - Natura Conto                       |     |     |      |
+     |                                            |     |     |      |
+     |CONTO IMPORTO POSITIVO                      |  A  |  10 |    21|
+     |CONTO IMPORTO NEGATIVO                      |  A  |  10 |    31|
+     |NATURA CONTO IMPORTO POSITIVO               |  A  |   4 |    41|
+     |NATURA CONTO IMPORTO NEGATIVO               |  A  |   4 |    45|
+     |CALCOLATO (X)                               |  A  |   1 |    49|
+     |IMPORTO                                     |  N  |  12 |    50|
+     |OBBLIGATORIO (X)                            |  A  |   1 |    62|
+     |NOTE                                        |  A  |  60 |    63|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   123|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

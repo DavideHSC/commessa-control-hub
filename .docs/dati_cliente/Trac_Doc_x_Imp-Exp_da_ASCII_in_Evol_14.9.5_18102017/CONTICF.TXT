@@ -1,0 +1,43 @@
+     Data 10/07/2007                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  155 Bytes+CRLF =  157 Bytes 
+     Nome File:CONTICF.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE AZIENDA                      |  A  |  16 |     4|
+     |SUBCODICE      AZIENDA                      |  A  |   1 |    20|
+     | Dati Generali                              |     |     |      |
+     |FILLER                                      |  A  |  10 |    21|
+     |NUMERO RIGO                                 |  N  |   5 |    31|
+     |CODICE IVA                                  |  A  |   4 |    36|
+     |TIPO CONTO                                  |  A  |   1 |    40|
+     |     C - Conto                              |     |     |      |
+     |     M - Manuale                            |     |     |      |
+     |     N - Natura Conto                       |     |     |      |
+     |                                            |     |     |      |
+     |CONTO IMPORTO POSITIVO                      |  A  |  10 |    41|
+     |CONTO IMPORTO NEGATIVO                      |  A  |  10 |    51|
+     |NATURA CONTO IMPORTO POSITIVO               |  A  |   4 |    61|
+     |NATURA CONTO IMPORTO NEGATIVO               |  A  |   4 |    65|
+     |CALCOLATO (X)                               |  A  |   1 |    69|
+     |IMPORTO                                     |  N  |  12 |    70|
+     |OBBLIGATORIO (X)                            |  A  |   1 |    82|
+     |NOTE                                        |  A  |  60 |    83|
+     |CODICE UNIVOCO DI SCARICAMENTO              |  A  |  12 |   143|
+     |TIPO CONTO                                  |  A  |   1 |   155|
+     |     C - Cliente                            |     |     |      |
+     |     F - Fornitore                          |     |     |      |
+     |                                            |     |     |      |
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   156|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

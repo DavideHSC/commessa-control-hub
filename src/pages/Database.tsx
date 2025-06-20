@@ -63,6 +63,17 @@ import { TipoConto } from '@prisma/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ImportTemplatesAdmin from '@/components/admin/ImportTemplatesAdmin';
 import { clearScrittureContabili } from '@/api/database';
+import {
+  getCommesse,
+  getClienti,
+  getFornitori,
+  getPianoDeiConti,
+  getVociAnalitiche,
+  getScrittureContabili,
+  getCausaliContabili,
+  getCodiciIva,
+  getCondizioniPagamento,
+} from '@/api';
 
 // Definiamo un'interfaccia aggregata per i dati del database
 interface DatabaseData {
@@ -1585,29 +1596,72 @@ const CondizioniPagamentoTable = ({ data, onDataChange }: { data: CondizionePaga
 const Database: React.FC = () => {
   const [data, setData] = useState<DatabaseData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedTable, setSelectedTable] = useState<TableKey>('scritture');
+  const navigate = useNavigate();
+  const [isClearing, setIsClearing] = useState(false);
+
+  const fetchDatabaseData = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
+    setError(null);
+
+    try {
+      const [
+        scritture,
+        commesse,
+        clienti,
+        fornitori,
+        conti,
+        vociAnalitiche,
+        causali,
+        codiciIva,
+        condizioniPagamento
+      ] = await Promise.all([
+        getScrittureContabili(),
+        getCommesse(),
+        getClienti(),
+        getFornitori(),
+        getPianoDeiConti(),
+        getVociAnalitiche(),
+        getCausaliContabili(),
+        getCodiciIva(),
+        getCondizioniPagamento(),
+      ]);
+
+      setData({
+        scritture,
+        commesse,
+        clienti,
+        fornitori,
+        conti,
+        vociAnalitiche,
+        causali,
+        codiciIva,
+        condizioniPagamento,
+        stats: {
+          totaleScrittureContabili: scritture.length,
+          totaleCommesse: commesse.length,
+          totaleClienti: clienti.length,
+          totaleFornitori: fornitori.length,
+          totaleConti: conti.length,
+          totaleVociAnalitiche: vociAnalitiche.length,
+          totaleCausali: causali.length,
+          totaleCodiciIva: codiciIva.length,
+          totaleCondizioniPagamento: condizioniPagamento.length,
+        },
+      });
+
+    } catch (err: any) {
+      setError(err.message || 'Si è verificato un errore imprevisto.');
+      toast.error('Errore nel caricamento dei dati', { description: err.message });
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchDatabaseData();
   }, []);
-
-  const fetchDatabaseData = async (showLoading = true) => {
-    if (showLoading) {
-      setLoading(true);
-    }
-    try {
-      const response = await fetch('/api/database');
-      const result = await response.json();
-      setData(result);
-    } catch (error) {
-      console.error("Errore nel recupero dei dati del database:", error);
-      toast.error("Impossibile caricare i dati dal database.");
-    } finally {
-      if (showLoading) {
-        setLoading(false);
-      }
-    }
-  };
 
   const handleDataChange = () => {
     fetchDatabaseData(false); // Ricarica i dati senza mostrare l'indicatore di caricamento principale

@@ -1,0 +1,82 @@
+     Data 13/07/2006                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  279 Bytes+CRLF =  281 Bytes 
+     Nome File:ATTIVCON.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE AZIENDA                      |  A  |  16 |     4|
+     |SUBCODICE      AZIENDA                      |  A  |   1 |    20|
+     | Dati Generali                              |     |     |      |
+     |CODICE                                      |  A  |   2 |    21|
+     |DESCRIZIONE                                 |  A  |  40 |    23|
+     |TIPO SOGGETTO                               |  A  |   1 |    63|
+     |     I - Impresa                            |     |     |      |
+     |     P - Professionista                     |     |     |      |
+     |                                            |     |     |      |
+     |ATTIVITA' PRINCIPALE                 (X)    |  A  |   1 |    64|
+     |GESTIONE PARTITE ATTIVA              (X)    |  A  |   1 |    65|
+     |GESTIONE PROFESSIONISTA PER CASSA    (X)    |  A  |   1 |    66|
+     |CODICE ATECOFIN                             |  A  |   5 |    67|
+     |DATA INIZIO ATTIVITA'                       |  N  |   8 |    72|
+     |DATA FINE ATTIVITA'                         |  N  |   8 |    80|
+     |CODICE TIPO AZIENDA                         |  A  |   4 |    88|
+     |ATTIVITA' STAGIONALE                 (X)    |  A  |   1 |    92|
+     |INDIRIZZO                                   |  A  |  30 |    93|
+     |SOCIETA' SPORTIVA PROFESSIONISTICA   (X)    |  A  |   1 |   123|
+     |CODICE CATASTALE COMUNE                     |  A  |   5 |   124|
+     |CAP                                         |  A  |   5 |   129|
+     |NAZIONE                                     |  A  |   3 |   134|
+     |TELEFONO                                    |  A  |  12 |   137|
+     |E-MAIL                                      |  A  |  50 |   149|
+     |REFERENTE                                   |  A  |  50 |   199|
+     |INCLUDI ATT. NEL GIORNALE RIEPILOG.  (X)    |  A  |   1 |   249|
+     | Beni Ammortizzabili                        |     |     |      |
+     |GRUPPO INDUSTRIE                            |  N  |   2 |   250|
+     |SPECIE INDUSTRIE                            |  A  |   3 |   252|
+     |AMMORTAMENTO NELL'ESERCIZIO DI VEND. (X)    |  A  |   1 |   255|
+     |AMMORTAMENTO DIRETTO IN CONTO IMMOB. (X)    |  A  |   1 |   256|
+     |AMM. CIVILE = FISCALE PER IMP. ORD.  (X)    |  A  |   1 |   257|
+     |TIPO MANUTENZIONI DEDUCIBILI                |  A  |   1 |   258|
+     |     N - Normale (5% 5 esercizi)            |     |     |      |
+     |     E - Estrattive (15% 5 esercizi)        |     |     |      |
+     |     S - Siderurgiche (11% 5 esercizi)      |     |     |      |
+     |                                            |     |     |      |
+     |NESSUNA GEN. FONDI CONTAB. SEMPLIF.  (X)    |  A  |   1 |   259|
+     |RIDUZIONE 50% AMM. PRIMO ESERC. PROF.(X)    |  A  |   1 |   260|
+     | Giorni chiusura settimanale                |     |     |      |
+     |LUNEDI                         (X)          |  A  |   1 |   261|
+     |MARTEDI                        (X)          |  A  |   1 |   262|
+     |MERCOLEDI                      (X)          |  A  |   1 |   263|
+     |GIOVEDI                        (X)          |  A  |   1 |   264|
+     |VENERDI                        (X)          |  A  |   1 |   265|
+     |SABATO                         (X)          |  A  |   1 |   266|
+     |DOMENICA                       (X)          |  A  |   1 |   267|
+     | Festivita' lavorate                        |     |     |      |
+     |CAPODANNO              (01/01) (X)          |  A  |   1 |   268|
+     |EPIFANIA               (06/01) (X)          |  A  |   1 |   269|
+     |PASQUA                         (X)          |  A  |   1 |   270|
+     |PASQUETTA                      (X)          |  A  |   1 |   271|
+     |LIBERAZIONE            (25/04) (X)          |  A  |   1 |   272|
+
+     Data 13/07/2006                                          Pag.  2
+
+     |FESTA DEL LAVORO       (01/05) (X)          |  A  |   1 |   273|
+     |FESTA DELLA REPUBBLICA (02/06) (X)          |  A  |   1 |   274|
+     |ASSUNZIONE             (15/08) (X)          |  A  |   1 |   275|
+     |OGNISSANTI             (01/11) (X)          |  A  |   1 |   276|
+     |IMMACOLATA CONCEZIONE  (08/12) (X)          |  A  |   1 |   277|
+     |NATALE                 (25/12) (X)          |  A  |   1 |   278|
+     |SANTO STEFANO          (26/12) (X)          |  A  |   1 |   279|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   280|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

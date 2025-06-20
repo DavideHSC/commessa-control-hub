@@ -1,0 +1,50 @@
+     Data 19/12/2005                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:   83 Bytes+CRLF =   85 Bytes 
+     Nome File:PNVERSRI.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Generali                              |     |     |      |
+     |CODICE UNIVOCO DI SCARICAMENTO              |  A  |  12 |     4|
+     |        E' il codice univoco di scaricamento|     |     |      |
+     |        della prima nota a cui fanno riferimento  |     |      |
+     |        i righi di versamento.              |     |     |      |
+     |                                            |     |     |      |
+     |CODICE TRIBUTO/CAPITOLO                     |  A  |   4 |    16|
+     |ARTICOLO                                    |  N  |   2 |    20|
+     |RITENUTE OPERATE                            |  N  |  12 |    22|
+     |RITENUTE VERSATE                            |  N  |  12 |    34|
+     |RITENUTE COMPENSATE                         |  N  |  12 |    46|
+     |INTERESSI                                   |  N  |  12 |    58|
+     |NOTE                                        |  A  |   1 |    70|
+     |EVENTI ECCEZIONALI                          |  A  |   1 |    71|
+     |CODICE REGIONE                              |  N  |   2 |    72|
+     |MESE DI RIFERIMENTO                         |  N  |   2 |    74|
+     |           =                                |     |     |      |
+     |        01 = Gennaio                        |     |     |      |
+     |        02 = Febbraio                       |     |     |      |
+     |        03 = Marzo                          |     |     |      |
+     |        04 = Aprile                         |     |     |      |
+     |        05 = Maggio                         |     |     |      |
+     |        06 = Giugno                         |     |     |      |
+     |        07 = Luglio                         |     |     |      |
+     |        08 = Agosto                         |     |     |      |
+     |        09 = Settembre                      |     |     |      |
+     |        10 = Ottobre                        |     |     |      |
+     |        11 = Novembre                       |     |     |      |
+     |        12 = Dicembre                       |     |     |      |
+     |                                            |     |     |      |
+     |ANNO DI RIFERIMENTO                         |  N  |   4 |    76|
+     |ANNO DI RIFERIMENTO 770                     |  N  |   4 |    80|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |    84|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

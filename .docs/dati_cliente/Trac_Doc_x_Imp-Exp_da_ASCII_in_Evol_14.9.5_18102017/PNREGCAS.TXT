@@ -1,0 +1,33 @@
+     Data 19/12/2005                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:   55 Bytes+CRLF =   57 Bytes 
+     Nome File:PNREGCAS.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Generali                              |     |     |      |
+     |CODICE UNIVOCO DI SCARICAMENTO              |  A  |  12 |     4|
+     |        E' il codice univoco di scaricamento|     |     |      |
+     |        della prima nota di cui si vogliono |     |     |      |
+     |        generare le rate.                   |     |     |      |
+     |                                            |     |     |      |
+     |NUMERO RIGO RATA                            |  N  |   2 |    16|
+     |        E' il numero di riferimento del rigo|     |     |      |
+     |        della rata a cui si vogliono associare    |     |      |
+     |        le registrazioni di cassa           |     |     |      |
+     |                                            |     |     |      |
+     |CONTROPARTITA                               |  A  |  10 |    18|
+     |IMPORTO DARE                                |  N  |  12 |    28|
+     |IMPORTO AVERE                               |  N  |  12 |    40|
+     |CODICE IVA                                  |  A  |   4 |    52|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |    56|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

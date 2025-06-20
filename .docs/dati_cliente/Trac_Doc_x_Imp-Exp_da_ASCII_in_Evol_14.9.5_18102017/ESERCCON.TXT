@@ -1,0 +1,125 @@
+     Data 13/07/2006                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  184 Bytes+CRLF =  186 Bytes 
+     Nome File:ESERCCON.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE AZIENDA                      |  A  |  16 |     4|
+     |SUBCODICE      AZIENDA                      |  A  |   1 |    20|
+     | Dati Esercizio                             |     |     |      |
+     |CODICE ATTIVITA                             |  A  |   2 |    21|
+     |CODICE ESERCIZIO                            |  A  |   5 |    23|
+     |TIPO CONTABILITA'                           |  A  |   1 |    28|
+     |     O - Ordinaria                          |     |     |      |
+     |     S - Semplificata                       |     |     |      |
+     |                                            |     |     |      |
+     |TIPO GIORNALE                               |  A  |   1 |    29|
+     |       -                                    |     |     |      |
+     |     G - Libro giornale                     |     |     |      |
+     |     R - Registro Cronologico               |     |     |      |
+     |                                            |     |     |      |
+     |     Questo campo è da impostare diverso da space |     |      |
+     |     in presenza di professionisti in ordinaria in|     |      |
+     |     tutti gli altri casi deve essere space |     |     |      |
+     |                                            |     |     |      |
+     |REGISTRI IVA INTEGRATI                      |  A  |   1 |    30|
+     |     Questo campo consente di impostare la stampa |     |      |
+     |     su registri Iva integrati per i professionisti     |      |
+     |     in semplificata                        |     |     |      |
+     |                                            |     |     |      |
+     |REGIME FISCALE                              |  A  |   1 |    31|
+     |       -                                    |     |     |      |
+     |     N - Normale                            |     |     |      |
+     |     I - Normale solo Irap                  |     |     |      |
+     |     P - Normale No Irap                    |     |     |      |
+     |     D - PF-Nuove iniziative produttive     |     |     |      |
+     |     F - PF-Forfetario 662/96               |     |     |      |
+     |     G - PF-Contribuente marginale          |     |     |      |
+     |     L - PF/Enc-Art. 56 bis c. 2 (agricoltura)    |     |      |
+     |     U - PF/Enc-Art. 56 bis c. 3 (agricoltura)    |     |      |
+     |     B - Enc-Attività non commerciale       |     |     |      |
+     |     E - Enc-Forfetario art. 145            |     |     |      |
+     |     O - Enc-Forfetari 398/91               |     |     |      |
+     |     H - SC-Soc. sport. dil. Art.90 c.1 L.289/2002|     |      |
+     |                                            |     |     |      |
+     |PERCENTUALE FORFETARIA     (999.99)         |  N  |   6 |    32|
+     |APERTURA DEFINITIVA             (X)         |  A  |   1 |    38|
+     |APERTURA PROVVISORIA            (X)         |  A  |   1 |    39|
+     |CONTO ECONOMICO CHIUSO          (X)         |  A  |   1 |    40|
+     |STATO PATRIMONIALE CHIUSO       (X)         |  A  |   1 |    41|
+     |CONTO UTILE/PERDITA                         |  A  |  10 |    42|
+     |IMPORTO UTILE/PERDITA                       |  N  |  12 |    52|
+     |CONTO STATO PATRIMONIALE                    |  A  |  10 |    64|
+     |SCRITTURE DI RETTIFICA          (X)         |  A  |   1 |    74|
+     |RIPORTO RISCONTI                (X)         |  A  |   1 |    75|
+     |CHIUSURA RIMANENZE              (X)         |  A  |   1 |    76|
+     |APERTURA RIMANENZE              (X)         |  A  |   1 |    77|
+     | Dati Stampa giornale/Reg. Cron.            |     |     |      |
+     |DATA FINE STAMPA                            |  N  |   8 |    78|
+     |PAGINA ANNO                                 |  N  |   4 |    86|
+
+     Data 13/07/2006                                          Pag.  2
+
+     |PAGINA NUMERO                               |  N  |   6 |    90|
+     |ULTIMA RIGA STAMPATA                        |  N  |   7 |    96|
+     |PROGRESSIVO DARE                            |  N  |  12 |   103|
+     |PROGRESSIVO AVERE                           |  N  |  12 |   115|
+     |DATA ULTIMO MOVIMENTO STAMPATO              |  N  |   8 |   127|
+     |ESERCIZIO ULTIMO MOVIMENTO STAMPATO         |  A  |   5 |   135|
+     |NUMERO RECORD ULTIMO MOVIMENTO STAMPATO     |  N  |   6 |   140|
+     | Dati Stampa libro mastro/mastro prof.      |     |     |      |
+     |STAMPATO                        (X)         |  A  |   1 |   146|
+     |PAGINA ANNO                                 |  N  |   4 |   147|
+     |PAGINA NUMERO                               |  N  |   6 |   151|
+     | Dati Stampa Registro Beni Ammortizzabili   |     |     |      |
+     |STAMPATO REGISTRO               (X)         |  A  |   1 |   157|
+     |PAGINA ANNO                                 |  N  |   4 |   158|
+     |PAGINA NUMERO                               |  N  |   6 |   162|
+     |STAMPATO PROSPETTO MANUTENZIONI (X)         |  A  |   1 |   168|
+     | Dati Stampa Bilancio Fiscale               |     |     |      |
+     |RATEIZZAZIONE PLUSVALENZE                   |  A  |   1 |   169|
+     |       -                                    |     |     |      |
+     |     1 - 1 Esercizio                        |     |     |      |
+     |     2 - 2 Esercizi                         |     |     |      |
+     |     3 - 3 Esercizi                         |     |     |      |
+     |     4 - 4 Esercizi                         |     |     |      |
+     |     5 - 5 Esercizi                         |     |     |      |
+     |                                            |     |     |      |
+     |RATEIZZAZIONE SPESE PER STUDI E RICERCHE    |  A  |   1 |   170|
+     |       -                                    |     |     |      |
+     |     1 - 1 Esercizio                        |     |     |      |
+     |     2 - 2 Esercizi                         |     |     |      |
+     |     3 - 3 Esercizi                         |     |     |      |
+     |     4 - 4 Esercizi                         |     |     |      |
+     |     5 - 5 Esercizi                         |     |     |      |
+     |                                            |     |     |      |
+     |RATEIZZAZIONE SPESE REL. A PIU' ESERCIZI    |  A  |   1 |   171|
+     |       -                                    |     |     |      |
+     |     1 - 1 Esercizio                        |     |     |      |
+     |     2 - 2 Esercizi                         |     |     |      |
+     |     3 - 3 Esercizi                         |     |     |      |
+     |     4 - 4 Esercizi                         |     |     |      |
+     |     5 - 5 Esercizi                         |     |     |      |
+     |                                            |     |     |      |
+     |RATEIZZAZIONE CONTRIBUTI E LIBERALITA'      |  A  |   1 |   172|
+     |       -                                    |     |     |      |
+     |     1 - 1 Esercizio                        |     |     |      |
+     |     2 - 2 Esercizi                         |     |     |      |
+     |     3 - 3 Esercizi                         |     |     |      |
+     |     4 - 4 Esercizi                         |     |     |      |
+     |     5 - 5 Esercizi                         |     |     |      |
+     |                                            |     |     |      |
+     |COMPENSI AGLI AMMINIST. NON CORRISPOSTI     |  N  |  12 |   173|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   185|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

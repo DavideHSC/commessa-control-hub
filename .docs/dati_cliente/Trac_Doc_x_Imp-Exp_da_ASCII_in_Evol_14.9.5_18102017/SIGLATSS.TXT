@@ -1,0 +1,51 @@
+     Data 19/12/2005                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:   91 Bytes+CRLF =   93 Bytes 
+     Nome File:SIGLATSS.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE AZIENDA                      |  A  |  16 |     4|
+     |SUBCODICE      AZIENDA                      |  A  |   1 |    20|
+     | Dati Generali                              |     |     |      |
+     |SIGLA ATTIVITA' STUDI                       |  A  |   4 |    21|
+     |DESCRIZIONE                                 |  A  |  40 |    25|
+     |NUMERO ATTIVITA' STUDI                      |  N  |   1 |    65|
+     |CAUSA ESCLUSIONE                            |  A  |   1 |    66|
+     |       -                                    |     |     |      |
+     |     1 - Iniz. o cess. att. nel corso del periodo d'imposta    |
+     |     2 - Periodo di non normale svolg. dell'attivita'   |      |
+     |     3 - Periodo imp. di durata sup. o inf. a 12 mesi   |      |
+     |     4 - Altre cause                        |     |     |      |
+     |                                            |     |     |      |
+     |PROMISCUA-QUADRO N (X)                      |  A  |   1 |    67|
+     |CAUSA INAPPLICABILITA'                      |  A  |   1 |    68|
+     |       -                                    |     |     |      |
+     |     1 - Produzione e vendita in luoghi diversi   |     |      |
+     |     2 - Esercizio di piu' attivita'        |     |     |      |
+     |     3 - Esercizio di piu' attivita' in luoghi diversi  |      |
+     |     4 - Altro                              |     |     |      |
+     |                                            |     |     |      |
+     |COMPILAZIONE PARAMETRI (X)                  |  A  |   1 |    69|
+     |NUMERO UNITA' PRODUTTIVA                    |  N  |   2 |    70|
+     |TRASFERIMENTO QUADRO M (X)                  |  A  |   1 |    72|
+     |REDDITO FORFETARIO (X)                      |  A  |   1 |    73|
+     |CONTRIBUTO MARGINALE                        |  A  |   1 |    74|
+     |OPZIONE CONTABILITA' ORDINARIA              |  A  |   1 |    75|
+     | Riferimenti                                |     |     |      |
+     |ATTIVITA'                                   |  A  |   2 |    76|
+     |SEDE                                        |  A  |   2 |    78|
+     |SIGLA ATTIVITA' PREVALENTE (RIC. < 20%)     |  A  |   4 |    80|
+     |DATA FINE VALIDITA' (GGMMAAAA)              |  N  |   8 |    84|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |    92|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

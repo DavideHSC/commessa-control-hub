@@ -1,0 +1,29 @@
+     Data 19/12/2005                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:   96 Bytes+CRLF =   98 Bytes 
+     Nome File:ANAPUBED.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE AZIENDA                      |  A  |  16 |     4|
+     |SUBCODICE      AZIENDA                      |  A  |   1 |    20|
+     | Dati Generali                              |     |     |      |
+     |CODICE PUBBLICAZIONE                        |  A  |  10 |    21|
+     |DESCRIZIONE                                 |  A  |  40 |    31|
+     |PREZZO DI VENDITA                           |  N  |  12 |    71|
+     |SISTEMA DELLE COPIE EFFETT. VENDUTE (X)     |  A  |   1 |    83|
+     |PERCENTUALE IMPOSTA (999.99)                |  N  |   6 |    84|
+     |SISTEMA DI FORFETIZZ. DELLA RESA (X)        |  A  |   1 |    90|
+     |PERCENTUALE FORFET. DELLA RESA (999.99)     |  N  |   6 |    91|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |    97|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

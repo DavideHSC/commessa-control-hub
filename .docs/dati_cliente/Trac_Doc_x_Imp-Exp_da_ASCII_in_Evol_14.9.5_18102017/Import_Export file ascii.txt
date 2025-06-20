@@ -1,0 +1,209 @@
+﻿Nel programma Contabilità Evolution, sono disponibili diverse funzioni per trasferire nel programma i dati tramite file ascii.
+
+Tali funzioni si trovano nel menù UTILITA': Import Anagrafiche, Import/Export Prime note, Import/Export Tabelle e nel menù Utility delle singole aziende: Import/Export Beni Ammortizzabili, Import/Export Archivi Azienda.
+
+Gli importi sono intesi in Euro è possibile passare il valore intero il punto e 2 decimali, ad esempio 1500.45 (Euro).
+
+
+
+Import Anagrafiche (Aziende e Clienti/Fornitori in contabilità Evolution):
+Questa utilità permette di poter importare i dati nell'anagrafica unica e da essi creare delle aziende o dei clienti/fornitori in contabilità evolution.
+Selezioni possibili:
+- Aziende: esegue l'import delle aziende.
+- Clienti/Fornitori: esegue l'import dei clienti/fornitori in contabilità evolution e consente anche di abilitarli per una determinata azienda.
+Nomi Files:
+- Aziende: per questo import è previsto l'utilizzo di un solo file.
+- Clienti/Fornitori: per questo import è previsto l'utilizzo di un solo file.
+
+Tracciati di Import:
+- Aziende:			File AZIENDE.TXT
+- Clienti/Fornitori:	File CLIFOR.TXT
+
+Note:
+Per poter passare un soggetto in contabilità come azienda e/o cliente/fornitore, è necessario che il soggetto sia presente in anagrafica unica. E' possibile passare i soggetti nell'anagrafica unica tramite l'apposito import anagrafiche presente in anagrafica evolution che legge i dati dai tracciati OMN-ANA, OMN-DATI, OMN-SEDE, OMN-ATTI, OMN-SOCI, OMN-PART, OMN-DASO.
+
+Questa suddivisione è stata concepita per effettuare le operazioni di importazione dei dati disgiuntamente, i files necessari devono essere creati seguendo i tracciati record da noi forniti.
+
+L'identificazione del soggetto avviene tramite codice fiscale + subcodice. 
+In mancanza del codice fiscale viene controllato il codice anagrafica, nel qual caso indicare nei file ascii il codice anagrafica presente in Anagrafica Evolution.
+
+Per abilitare lo stesso cliente/fornitore in più aziende occorre inserirlo più volte nel tracciato CLIFOR cambiando solamente l'identificativo dell'azienda ( codice fiscale + subcodice nei progressivi 16  e 32 o il codice anagrafica nel progressivo 4).
+
+Per ogni soggetto è possibile specificare se deve essere abilitato per quella azienda come cliente o fornitore oppure entrambi.
+Nel caso che il soggetto non sia già abilitato in contabilità per la tipologia richiesta è necessario specificare il conto (MMCC es. 1410 o 2010) per permettere alla procedura di calcolare automaticamente il sottoconto.
+Al fine di mantenere la numerazione presente nel pacchetto di provenienza è possibile specificare anche il sottoconto, in questo caso se il sottoconto è già occupato da un altro soggetto il trasferimento non avverrà.
+
+
+N.B. i tracciati di questa sezione non hanno subito variazioni rispetto a quelli rilasciati con la versione 2.0.
+Import/Export Tabelle:
+Questa utilità permette di poter passare i dati nelle tabelle: Causali Contabili, codici pagamento, piano dei conti generale e codici Iva.
+Selezioni possibili:
+- Causali Contabili: esegue l'import/Export delle causali contabili, sono previsti il file delle causali (obbligatorio) e due files opzionali per il passaggio dei righi contabili e righi Iva, i dati dei righi contabili valgono solo per causali di tipo contabile, i dati dei righi iva valgono solo per causali di tipo contabile che hanno la barratura di "Movimento su registro Iva non rilevante ai fini Iva".
+- Codici Pagamento: esegue l'import/export dei codici pagamento e si compone dei due files obbligatori uno per il passaggio dei dati della testata del codice pagamento ed uno per il passaggio dei dati delle rate.
+- Conti Generali: esegue l'import/export del piano dei conti generale sono previsti tre files, uno obbligatorio per il passaggio dei conti, uno opzionale per il passaggio dei righi iva associati ai sottoconti dei clienti/fornitori, un 'altro file opzionale per l'associazione dei conti ai tipi azienda.
+- Codici Iva: esegue l'import dei codici Iva, prevede un file obbligatorio per il passaggio dei codici Iva ed uno opzionale per il passaggio dei raccordi associati ai codici Iva.
+Opzioni:
+- Sezione Export: le opzioni di questa sezione valgono per tutti gli export e consentono di scaricare solo i dati delle tabelle effettivamente utilizzati nelle prime note di una azienda, è possibile specificare anche un range di date in cui deve essere compresa la data di registrazione delle prime note da considerare.
+- Sezione Export Causali Contabili: in questa sezione è possibile specificare dei filtri di scaricamento per le causali, si può specificare il range entro il quale deve essere compreso il codice causale, un periodo da data a data in cui la causale deve essere valida per essere considerata valida la causale deve avere un periodo di validità anche parziale compreso nel range specificato.
+- Sezione Export Codici Pagamento: in questa sezione è possibile specificare dei filtri di scaricamento per i codici pagamento, si può specificare il range entro il quale deve essere compreso il codice pagamento.
+- Sezione Export Conti Generali: in questa sezione è possibile specificare dei filtri di scaricamento per il piano dei conti generale, si può specificare il range entro il quale deve essere compreso il conto, si può inoltre filtrare il tipo di conto che si desidera scaricare.
+- Sezione Import Conti Generali: contiene l'opzione "Riassegna sottoconto se cli/for non presente e sottoconto già utilizzato", consente di riassegnare il sottoconto dei clienti/fornitori nel caso in cui non siano presenti nella procedura ma il sottoconto a cui sono assegnati nel file ascii sia già stato utilizzato per un altro soggetto.
+- Sezione Export Codici Iva: in questa sezione è possibile specificare dei filtri di scaricamento per i codici Iva, si può specificare il range entro il quale deve essere compreso il codice Iva, un periodo da data a data in cui il codice Iva deve essere valido per essere considerato valido il codice Iva deve avere un periodo di validità anche parziale compreso nel range specificato.
+
+
+
+
+
+Note:
+- è possibile selezionare anche il formato di import/export: Formato Txt vengono scaricati singolarmente i file ascii, formato Zip viene creato un unico file zip contenente tutti i files ascii.
+
+Tracciati di Import:
+- Causali Contabili:		File CAUSALI.TXT
+- Causali Righi Contabili:	File CAUSRCON.TXT
+- Causali Righi Iva:		File CAUSRIVA.TXT
+- Codici Pagamento:		File CODPAGAM.TXT
+- Codici Pagamento Rate:	File CODPRATE.TXT
+- Conti:				File CONTIGEN.TXT
+- Conti Tipi Azienda:		File TIAZICON.TXT
+- Conti Racc. C.I.:		File TABRACCI.TXT
+- Codici Iva:			File CODICIVA.TXT
+- Codici Iva Raccordi:		File CIVARACC.TXT
+
+N.B. i tracciati di questa sezione non hanno subito variazioni rispetto a quelli rilasciati con la versione 3.1.
+
+* 
+Import/Export Beni Ammortizzabili:
+Questa utilità permette di poter passare i dati nei beni ammortizzabili di una azienda.
+Selezioni possibili:
+- Beni Ammortizzabili: esegue l'import/Export dei beni ammortizzabili, si compone di 6 files: File anagrafica beni (obbligatorio), file oneri diretti (facoltativo), file variazioni di costo (facoltativo), file ammortamenti fiscali (facoltativo), file ammortamenti civili (facoltativo), file parti di bene (facoltativo).
+Opzioni:
+- Sezione Impostazioni per import: 
+- Gestione Codice:
+- Importa aggiornando i beni con lo stesso codice
+- Importa solo i beni il cui codice non è presente
+- Importa solo i beni assegnando un nuovo codice
+- Gestione Errori:
+- Importa solo se tutti i beni non hanno errori
+- Importa solo i beni che non hanno errori
+- Sezione Impostazioni per Export: Da Bene A bene è possibile indicare il range di Anno e codice dei beni da scaricare, barratura "Scaricamento riferimenti prime note" consente di scaricare il numero di registrazione delle prime note scaricate è da utilizzare solo se l'import avviene su un archivio prime note identico a quello da cui sono state scaricate.
+
+Tracciati di Import:
+- Beni Ammortizzabili:		File BENIAMM.TXT
+- Oneri Diretti:			File ONERIDIR.TXT
+- Variazioni Costo:		File VARIA.TXT
+- Ammortamenti Fiscali:	File AMMFISC.TXT
+- Ammortamenti Civili:		File AMMCIV.TXT
+- Pari di Bene:			File PARTI.TXT
+
+N.B. i tracciati di questa sezione hanno subito variazioni rispetto a quelli rilasciati con una release precedente alla 14.9.5, resta comunque la possibilità di utilizzare anche i vecchi tracciati per fare l'import nella procedura, mentre in fase di export la procedura esporta i dati col nuovo formato.
+Beni Ammortizzabili: sono stati aggiunti nuovi campi dal progressivo 591 al progressivo 605.
+Oneri Diretti: non hanno subito variazioni.
+Variazioni Costo: non hanno subito variazioni.
+Ammortamenti Fiscali: è stato aggiunto un nuovo campo dal progressivo 158 al progressivo 169.
+Ammortamenti Civili: non hanno subito variazioni.
+Parti di Bene: non hanno subito variazioni.
+
+
+Import/Export Archivi Azienda:
+Questa utilità permette di poter passare i dati in una azienda negli archivi: Esercizi azienda, Attività contabili, Esercizi Contabili, Attività Iva, Registri Iva, Dati Iva Annuali, Piano dei Conti, Anagrafica Beni Usati, Centi di costo (compresa periodicità) e Studi di settore (Attività, Sedi, Sigle attività).
+Selezioni possibili:
+- Dati Azienda: esegue l'import/Export degli Esercizi azienda, Attività contabili, Esercizi Contabili, Attività Iva, Registri Iva, Dati Iva Annuali tutti i singoli files non sono obbligatori, vengono presi in considerazione se specificati.
+- Conti Azienda: esegue l'import/Export del Piano dei conti azienda, sono previsti il file delle conti obbligatorio, uno opzionale per il passaggio dei righi iva associati ai sottoconti dei clienti/fornitori, un 'altro file opzionale per il dettaglio analitica dei centri di costo (i dati di questo file valgono solo per sottoconti di tipo economico).
+- Parametri Aziendali: esegue l'import/export dei parametri aziendali.
+- Beni Usati: esegue l'import/export delle anagrafiche dei beni usati (a cui poi saranno associati i movimenti scaricati nell'import/Export prime note).
+- Editoria: esegue l'import/export delle pubblicazioni editoria (a cui poi saranno associati i movimenti scaricati nell'import/Export prime note).
+- Centri di Costo: esegue l'import/export dei centri di costo sono previsti quattro files, uno obbligatorio per il passaggio delle anagrafiche centri di costo, uno obbligatorio per il passaggio delle periodicità centri di costo, un file opzionale per il passaggio dei dettagli ripartizione centri di costo e un altro file opzionale per il passaggio dei saldi centri di costo.
+- Studi di Settore: esegue l'import dei dati per la gestione degli studi di settore, prevede tre files obbligatori: uno per il passaggio delle attività degli studi di settore, uno per il passaggio delle sedi e uno per il passaggio delle sigle attività.
+Opzioni:
+- Sezione Export: le opzioni di questa sezione valgono per tutti gli export e consentono di scaricare solo i dati delle tabelle effettivamente utilizzati nelle prime note dell'azienda, è possibile specificare anche un range di date in cui deve essere compresa la data di registrazione delle prime note da considerare.
+- Sezione Export Dati Azienda: in questa sezione è possibile specificare dei filtri di scaricamento per i dati azienda, si può specificare il filtro dall'attività all'attività che ha effetto sullo scaricamento delle attività contabili, esercizi contabili, attività Iva, Registri Iva e Dati Iva annuali; il filtro dall'attività Iva all'attività Iva ha effetto sullo scaricamento delle attività Iva, Registri Iva e Dati Iva annuali; il filtro dall'esercizio all'esercizio ha effetto sullo scaricamento degli esercizi azienda ed esercizi contabili; il filtro dal registro Iva al registro Iva ha effetto sullo scaricamento dei registri Iva ed infine il filtro dall'anno all'anno ha effetto sullo scaricamento dei dati Iva Annuali.
+- Sezione Export Piano dei conti Azienda: in questa sezione è possibile specificare dei filtri di scaricamento per il piano dei conti generale, si può specificare il range entro il quale deve essere compreso il conto, si può inoltre filtrare il tipo di conto che si desidera scaricare (N.B. in questa sezione non vengono considerati i sottoconti dei clienti/fornitori) .
+- Sezione Export Clienti/Fornitori: in questa sezione è possibile specificare dei filtri di scaricamento per i clienti/fornitori, si può specificare il range entro il quale deve essere compreso il conto, si può inoltre filtrare il tipo soggetto che si desidera scaricare, è possibile esportare clienti/fornitori assegnando solo il conto (codifica MMCC) anziché il sottoconto, barratura "Non esportare il sottoconto (viene impostato solo il conto MMCC)"
+- Sezione Import Clienti/Fornitori: in questa sezione è possibile specificare se: Importare clienti/fornitori riassegnando il sottoconto anche se indicato per intero (resta inteso che il soggetto non deve già essere abilitato), barratura "Riassegna il sottoconto"; Importare clienti/fornitori assegnando in automatico un codice anagrafica se non specificato o modificandolo automaticamente se già utilizzato, barratura "Riassegna il codice anagrafica se mancante o già utilizzato"; Importare clienti/fornitori che non hanno codice fiscale ma in questo caso questi soggetti verranno sempre considerati come non presenti in anagrafica e reinseriti, barratura "Importa Clienti/Fornitori senza codice fiscale (saranno considerati come nuovi)".
+- Sezione Export Beni Usati: in questa sezione è possibile specificare dei filtri di scaricamento per le anagrafiche Beni Usati, si può specificare il range entro il quale deve essere compreso il codice anagrafica bene usato.
+- Sezione Export Editoria: in questa sezione è possibile specificare dei filtri di scaricamento per le Pubblicazioni editoria, si può specificare il range entro il quale deve essere compreso il codice Pubblicazione.
+- Sezione Export Centri di Costo: in questa sezione è possibile specificare dei filtri di scaricamento per i centri di costo, si può specificare il range entro il quale deve essere compreso il codice centro ed il range entro il quale deve essere compresa la periodicità, oltre che sull'anagrafica centro e sulla periodicità questi filtri vengono applicati sul dettaglio ripartizione e sui saldi.
+- Sezione Export Studi di Settore: in questa sezione è possibile specificare dei filtri di scaricamento per i dati degli studi di settore, si può specificare il range entro il quale deve essere compreso il codice Attività, si può specificare il range entro il quale deve essere compreso il codice Sede, un periodo da data a data in cui la Sigla Attività deve essere valida per essere considerata valida la Sigla Attività deve avere la data validità compresa nel periodo oppure data validità non indicata.
+
+Note:
+- è possibile selezionare anche il formato di import/export: Formato Txt vengono scaricati singolarmente i file ascii, formato Zip viene creato un unico file zip contenente tutti i files ascii.
+
+Tracciati di Import:
+- Esercizi Azienda:			File ESERCAZI.TXT
+- Attività Contabili:			File ATTIVCON.TXT
+- Esercizi Contabili:			File ESERCCON.TXT
+- Attività Iva:				File ATTIVIVA.TXT
+- Registri Iva:				File REGIVA.TXT
+- Numerazioni Iva:			File NUMIVA.TXT
+- Dati Iva Annuali:			File IVAANNO.TXT
+- Conti:					File CONTIAZI.TXT
+- Conti Analitica:				File DETTANAL.TXT
+- Tipi Azienda:				File AZITICON.TXT
+- Racc. C. I.:				File AZIRACCI.TXT
+- Clienti/Fornitori:			File A_CLIFOR.TXT
+- Mod. Con. Azi.:				File CONTICF.TXT
+- Mod. Con. Tab:				File MODCONCF.TXT
+- Parametri Aziendali:			File PARAMAZ.TXT
+- Beni Usati Anagrafica:		File ANABENUS.TXT
+- Pubblicazioni editoria:		File ANAPUBED.TXT
+- Centri di Costo:			File ANAGRACC.TXT
+- Periodicità centri di costo:		File PERIODCC.TXT
+- Ripartizione centri di costo:		File RIPARTCC.TXT
+- Saldi centri di costo:			File SALDICC.TXT
+- Attività studi di settore:		File ATTIVISS.TXT
+- Sedi studi di settore:			File SEDISS.TXT
+- Sigle attività studi di settore:	File SIGLATSS.TXT
+
+
+N.B. i tracciati di questa sezione non hanno subito variazioni rispetto a quelli rilasciati con la versione 4.3. 
+Import/Export Prime note:
+Questa utilità permette di poter passare i dati in una azienda negli archivi :Prime note e archivi collegati (partite, dati 770, intrastat movimenti analitici, dati di competenza, movimenti dei beni usati, movimenti di editoria (resa e copie vendute), studi di settore).
+Selezioni possibili:
+- Testata: file contenente le testate di prima nota (obbligatorio).
+- Righi Contabili: file contenente i righi contabili relativi alle prime note (obbligatorio).
+- Righi Iva: file contenente i righi Iva relativi alle prime note (obbligatorio).
+- Versamento Ritenute : è facoltativo e serve per passare i versamenti delle ritenute relative alle prime note.
+- Centri di Costo: è facoltativo e serve per passare i centri di costo relativi alle prime note.
+- Studi di Settore: è facoltativo e serve per passare gli studi di settore relativi alle prime note.
+- Rate: è facoltativo e serve per passare le rate delle partite collegate alle prime note.
+- Dati 770: è facoltativo e serve per passare i dati 770 collegati alle prime note.
+- Intrastat: è facoltativo e serve per passare i movimenti intrastat collegati alle prime note.
+- Beni Usati: è facoltativo e serve per passare i movimenti dei beni usati collegati alle prime note.
+- Editoria (resa): è facoltativo e serve per passare i movimenti di editoria relativi al metodo della resa forfetaria collegati alle prime note.
+- Editoria (copie vendute): è facoltativo e serve per passare i movimenti di editoria relativi al metodo delle copie effettivamente vendute collegati alle prime note.
+- Cointestatari: è facoltativo e serve per passare i cointestatari successivi al primo. I cointestatari devono essere presenti anche nei clienti/fornitori.
+Opzioni:
+- Sezione Import: esistono due tipologie di import. La prime consente di importare le prime note solamente se non si riscontrano errori bloccanti in nessuna delle prime note da importare (opzione 'Importa se tutte le prime note non hanno errori'). La seconda, invece, consente di importare solamente le prime note corrette (opzione 'Importa solo prime note corrette'). Infine è possibile specificare se devono essere cancellati i files di import al termine dell'elaborazione.
+- Sezione Export: le opzioni di questa sezione valgono per tutti gli export e consentono di scaricare solo i dati degli archivi effettivamente utilizzati nelle prime note dell'azienda, è possibile specificare anche un range di date in cui deve essere compresa la data di registrazione delle prime note da considerare,  l'attività contabile e l'esercizio da scaricare. Inoltre è possibile riscaricare le prime note già scaricate.
+
+
+Note:
+- Non è possibile passare singolarmente i files facoltativi ma devono sempre essere in relazione con la testata di prima nota.La chiave di collegamento tra i vari files è il CODICE UNIVOCO DI SCARICAMENTO.
+- In fase di import le rate relative alle partite vengono create in automatico se indicato uno dei valori A, B,  D, alla posizione 342 del file PNTESTA, altrimenti le rate devono essere presenti nel file PNRATE.
+- Per gli archivi collegati alle prime note vengono importati/esportati soli i movimenti. Le anagrafiche dei vari archivi vengono gestite dall'import/export delle tabelle.
+- Vengono importate solamente le prime note senza errori, non vengono considerati i messaggi di avvertimento (Warning).
+
+Tracciati:
+- Testate:					File PNTESTA.TXT
+- Righi Contabili:			File PNRIGCON.TXT
+- Righi Iva:				File PNRIGIVA.TXT
+- Versamento Ritenute:		File PNVERSRI.TXT
+- Centri di Costo:			File MOVANAC.TXT
+- Righi Studi:				File RIGSTUDI.TXT
+- Rate:					File PNRATE.TXT
+- Dati 770:					File PNDAT770.TXT
+- Intrastat:					File PNINTRA.TXT
+- Beni Usati:				File PNMOVBU.TXT
+- Editoria (resa):				File PNTIRFR.TXT
+- Editoria (copie vend.):		File PNTIRCV.TXT
+- Cointestatari:				File PNCOINT.TXT
+
+
+N.B. i tracciati di questa sezione non hanno subito variazioni rispetto a quelli rilasciati con la rel. 4.3, con esclusione dei tracciati Righi Contabili e Righi Iva; resta comunque la possibilità di utilizzare anche i vecchi tracciati per fare l'import nella procedura, mentre in fase di export la procedura esporta i dati col nuovo formato.
+Righi Contabili: sono stati aggiunti i nuovi campi dal progressivo 267 al progressivo 301
+Righi Iva: è stato aggiunto il nuovo campo al progressivo 162
+
+IMPORT/EXPORT FILE ASCII CONTABILITA' EVOLUTION 
+
+18 Ottobre 2017		Pagina 10 di 10
+

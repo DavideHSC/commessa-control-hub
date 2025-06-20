@@ -1,0 +1,89 @@
+     Data 19/10/2011                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  124 Bytes+CRLF =  126 Bytes 
+     Nome File:VARIA.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE    (CHIAVE)                  |  A  |  16 |     4|
+     |SUBCODICE FISCALE (CHIAVE)                  |  A  |   1 |    20|
+     | Dati Variazione                            |     |     |      |
+     |ANNO              (CHIAVE)                  |  N  |   4 |    21|
+     |CODICE            (CHIAVE)                  |  N  |   6 |    25|
+     |NUMERO VARIAZIONE (CHIAVE)                  |  N  |   2 |    31|
+     |CODICE ATTIVITA'                            |  A  |   2 |    33|
+     |ESERCIZIO                                   |  A  |   5 |    35|
+     |NUMERO RECORD PRIMA NOTA                    |  N  |   6 |    40|
+     |        Indicare Numero Record prima nota se|     |     |      |
+     |        si vuole collegare la variazione del|     |     |      |
+     |        bene a una prima nota esistente che |     |     |      |
+     |        ha come chiave attivita' esercizio e|     |     |      |
+     |        numero record.                      |     |     |      |
+     |                                            |     |     |      |
+     |CAUSALE                                     |  A  |   1 |    46|
+     |        C = - Contributi c/impianti         |     |     |      |
+     |        S = + Spese incrementative          |     |     |      |
+     |        O = + Oneri accessori indiretti     |     |     |      |
+     |        I = + Rivalutazioni economiche      |     |     |      |
+     |        R = + Rivalutazioni monetarie       |     |     |      |
+     |        L = + Rivalutazioni L. 342/2000     |     |     |      |
+     |        M = + Rivalutazioni L. 448/2001     |     |     |      |
+     |        H = + Rivalutazioni D.M.86/2002     |     |     |      |
+     |        T = + Rivalutazioni L. 289/2002     |     |     |      |
+     |        D = - Riduzione     L. 289/2002     |     |     |      |
+     |        N = + Rivalutazioni L. 350/2003     |     |     |      |
+     |        V = - Svalutazioni                  |     |     |      |
+     |        P = + Ripristino                    |     |     |      |
+     |        Q = - Disinquinamento bilancio      |     |     |      |
+     |        U = - Riduzione fondo ammortamento  |     |     |      |
+     |        A = - Riallineamento fiscale        |     |     |      |
+     |        F = + Rivalutazioni                 |     |     |      |
+     |        B = + Rivalutazioni civilistiche    |     |     |      |
+     |                                            |     |     |      |
+     |DATA (GGMMAAAA)                             |  N  |   8 |    47|
+     |VARIAZIONE COSTO                            |  N  |  12 |    55|
+     |        Indicare solo valori positivi e non |     |     |      |
+     |        indicare se CAUSALE = Q o U         |     |     |      |
+     |IMPOSTA IVA                                 |  N  |  12 |    67|
+     |        Indicare solo valori positivi e non |     |     |      |
+     |        indicare se CAUSALE <> da S e O     |     |     |      |
+     |                                            |     |     |      |
+     |VARIAZIONE FONDO                            |  N  |  12 |    79|
+     |        Si può indicare solo se CAUSALE =   |     |     |      |
+     |        L-M-H-T-D-N-Q-U-A-F-B               |     |     |      |
+     |        Se CAUSALE = Q o U non si possono   |     |     |      |
+     |        indicare valori negativi            |     |     |      |
+     |                                            |     |     |      |
+     |NOTE                                        |  A  |  30 |    91|
+     |                                            |     |     |      |
+     | *** Fine vecchio tracciato                 |     |     |      |
+     |                                            |     |     |      |
+
+     Data 19/10/2011                                          Pag.  2
+
+     |NUMERO ESERCIZI POSTICIPO RIVALUT.          |  N  |   2 |   121|
+     |        Indicare se CAUSALE = F             |     |     |      |
+     |POST. ANCHE RIVALUTAZIONE FONDO   (0/1)     |  N  |   1 |   123|
+     |        Indicare se CAUSALE = F             |     |     |      |
+     |CONSIDERA DOPO AMMORTAMENTO       (0/1)     |  N  |   1 |   124|
+     |        Indicare se CAUSALE = F o B         |     |     |      |
+     |                                            |     |     |      |
+     | Il programma in fase di import e' in grado |     |     |      |
+     | di supportare 2 formati diversi di tracciato,    |     |      |
+     | indicare fino al campo NOTE prog. 91 per   |     |     |      |
+     | una lunghezza totale di 120 bytes aggiungere     |     |      |
+     | i caratteri CRLF PIC 9(2) [0D0A] per utilizzare  |     |      |
+     | il vecchio tracciato altrimenti utilizzare |     |     |      |
+     | la nuova lunghezza record                  |     |     |      |
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   125|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

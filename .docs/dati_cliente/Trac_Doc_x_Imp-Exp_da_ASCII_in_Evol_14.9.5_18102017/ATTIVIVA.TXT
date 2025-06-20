@@ -1,0 +1,44 @@
+     Data 13/07/2006                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  114 Bytes+CRLF =  116 Bytes 
+     Nome File:ATTIVIVA.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE AZIENDA                      |  A  |  16 |     4|
+     |SUBCODICE      AZIENDA                      |  A  |   1 |    20|
+     | Dati Generali                              |     |     |      |
+     |CODICE ATTIVITA'                            |  A  |   2 |    21|
+     |CODICE ATTIVITA' IVA                        |  A  |   2 |    23|
+     |DESCRIZIONE                                 |  A  |  40 |    25|
+     |ATTIVITA' IVA PRINCIPALE (X)                |  A  |   1 |    65|
+     |REGIME IVA                                  |  A  |   1 |    66|
+     |     N - Normale                            |     |     |      |
+     |     Z - Ventilazione                       |     |     |      |
+     |     V - Agenzie di viaggio                 |     |     |      |
+     |     A - Agricoltura e pesca                |     |     |      |
+     |     T - Agriturismo                        |     |     |      |
+     |     S - Spettacoli                         |     |     |      |
+     |     F - Forfetario                         |     |     |      |
+     |     U - Margine                            |     |     |      |
+     |     I - Intrattenimenti                    |     |     |      |
+     |     E - Editoria                           |     |     |      |
+     |                                            |     |     |      |
+     |ATTIVITA' AGRICOLA CONN. ART.34 BIS (X)     |  A  |   1 |    67|
+     |NUMERO INTERCALARE                          |  N  |   2 |    68|
+     |INDIRIZZO                                   |  A  |  30 |    70|
+     |CODICE CATASTALE COMUNE                     |  A  |   5 |   100|
+     |CAP                                         |  A  |   5 |   105|
+     |CODICE ATECOFIN                             |  A  |   5 |   110|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   115|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

@@ -1,0 +1,84 @@
+     Data 12/10/2017                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  169 Bytes+CRLF =  171 Bytes 
+     Nome File:AMMFISC.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE    (CHIAVE)                  |  A  |  16 |     4|
+     |SUBCODICE FISCALE (CHIAVE)                  |  A  |   1 |    20|
+     | Dati Ammortamento Fiscale                  |     |     |      |
+     |ANNO              (CHIAVE)                  |  N  |   4 |    21|
+     |CODICE            (CHIAVE)                  |  N  |   6 |    25|
+     |ESERCIZIO         (CHIAVE)                  |  A  |   5 |    31|
+     |COSTO AMMORTIZZABILE                        |  N  |  12 |    36|
+     |FONDO INIZIALE                              |  N  |  12 |    48|
+     |TIPO                                        |  A  |   1 |    60|
+     |        O = Ordinario                       |     |     |      |
+     |        A = Anticipato                      |     |     |      |
+     |        C = Accelerato                      |     |     |      |
+     |        D = Decelerato                      |     |     |      |
+     |        S = Sospeso                         |     |     |      |
+     |        R = Riporto Amm. Precedenti         |     |     |      |
+     |                                            |     |     |      |
+     |        Il codice R e' da utilizzare quando |     |     |      |
+     |        si inserisce il riepilogo degli     |     |     |      |
+     |        ammortamenti precedenti anziche'    |     |     |      |
+     |        inserire i singoli righi            |     |     |      |
+     |                                            |     |     |      |
+     |PERCENTUALE AMMORTAMENTO(999.99 MAX 100)    |  N  |   6 |    61|
+     |AMMORTAMENTO                                |  N  |  12 |    67|
+     |        PERCENTUALE e AMMORTAMENTO non si   |     |     |      |
+     |        possono indicare quando TIPO = S    |     |     |      |
+     |                                            |     |     |      |
+     |PERCENTUALE AMM. ANT/ACC(999.99 MAX 100)    |  N  |   6 |    79|
+     |AMMORTAMENTO ANTICIPATO/ACCELERATO          |  N  |  12 |    85|
+     |        PERCENTUALE e                       |     |     |      |
+     |        AMMORTAMENTO ANTICIPATO/ACCELERATO  |     |     |      |
+     |        si possono indicare quando TIPO = A-C-R   |     |      |
+     |                                            |     |     |      |
+     |FONDO FINALE                                |  N  |  12 |    97|
+     |RESIDUO                                     |  N  |  12 |   109|
+     |UTILIZZO                                    |  A  |   1 |   121|
+     |        N = Normale                         |     |     |      |
+     |        M = Minore                          |     |     |      |
+     |        G = Maggiore                        |     |     |      |
+     |                                            |     |     |      |
+     |PERDITA                                     |  N  |  12 |   122|
+     |                                            |     |     |      |
+     | *** Fine vecchio tracciato                 |     |     |      |
+     |                                            |     |     |      |
+     |QUOTA NON DEDUCIBILE                        |  N  |  12 |   134|
+     |FONDO TERRENO                               |  N  |  12 |   146|
+     |                                            |     |     |      |
+     | *** Fine Tracciato prima revisione         |     |     |      |
+     |                                            |     |     |      |
+     |EXTRA DEDUZIONE                             |  N  |  12 |   158|
+     |                                            |     |     |      |
+     | Il programma in fase di import e' in grado |     |     |      |
+     | di supportare 3 formati diversi di tracciato,    |     |      |
+     | - Vecchio Tracciato: indicare fino al campo|     |     |      |
+
+     Data 12/10/2017                                          Pag.  2
+
+     |   PERDITA prog. 122 per una lunghezza totale     |     |      |
+     |   di 133 bytes                             |     |     |      |
+     | - Prima revisione: indicare fino al campo  |     |     |      |
+     |   FONDO TERRENO prog. 146 per una lunghezza|     |     |      |
+     |   totale di 157 bytes                      |     |     |      |
+     | aggiungere i caratteri CRLF PIC 9(2) [0D0A]|     |     |      |
+     | per utilizzare i vecchi tracciati altrimenti     |     |      |
+     | utilizzare la nuova lunghezza record       |     |     |      |
+     |                                            |     |     |      |
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   170|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

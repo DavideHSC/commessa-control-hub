@@ -1,0 +1,42 @@
+     Data 13/07/2006                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  101 Bytes+CRLF =  103 Bytes 
+     Nome File:ESERCAZI.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE AZIENDA                      |  A  |  16 |     4|
+     |SUBCODICE      AZIENDA                      |  A  |   1 |    20|
+     | Dati Esercizio                             |     |     |      |
+     |ESERCIZIO                                   |  A  |   5 |    21|
+     |DATA INIZIO                                 |  N  |   8 |    26|
+     |DATA FINE                                   |  N  |   8 |    34|
+     |MODELLO                                     |  A  |   1 |    42|
+     |     4 - Unico PF                           |     |     |      |
+     |     5 - Unico SP                           |     |     |      |
+     |     6 - Unico SC                           |     |     |      |
+     |     7 - Unico ENC                          |     |     |      |
+     |                                            |     |     |      |
+     | Dati Giornale Riepilogativo                |     |     |      |
+     |PAGINA ANNO                                 |  N  |   4 |    43|
+     |PAGINA NUMERO                               |  N  |   6 |    47|
+     |DATA FINE STAMPA                            |  N  |   8 |    53|
+     |RIGA                                        |  N  |   6 |    61|
+     |PROGRESSIVO DARE                            |  N  |  12 |    67|
+     |PROGRESSIVO AVERE                           |  N  |  12 |    79|
+     | Dati Inventario                            |     |     |      |
+     |STAMPATO (X)                                |  A  |   1 |    91|
+     |PAGINA ANNO                                 |  N  |   4 |    92|
+     |PAGINA NUMERO                               |  N  |   6 |    96|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   102|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

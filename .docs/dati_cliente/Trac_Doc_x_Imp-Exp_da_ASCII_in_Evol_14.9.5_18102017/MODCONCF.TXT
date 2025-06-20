@@ -1,0 +1,47 @@
+     Data 10/07/2007                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  162 Bytes+CRLF =  164 Bytes 
+     Nome File:MODCONCF.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE AZIENDA                      |  A  |  16 |     4|
+     |SUBCODICE      AZIENDA                      |  A  |   1 |    20|
+     | Dati Generali                              |     |     |      |
+     |FILLER                                      |  A  |  17 |    21|
+     |TIPO CONTO                                  |  A  |   1 |    38|
+     |     C - Cliente                            |     |     |      |
+     |     F - Fornitore                          |     |     |      |
+     |                                            |     |     |      |
+     |NUMERO RIGO                                 |  N  |   5 |    39|
+     |     E' possibile impostare per lo stesso conto   |     |      |
+     |     valori duplicati nel campo numero rigo |     |     |      |
+     |     purche' tipo modello contabile sia diverso   |     |      |
+     |                                            |     |     |      |
+     |CODICE IVA                                  |  A  |   4 |    44|
+     |TIPO CONTO                                  |  A  |   1 |    48|
+     |     C - Conto                              |     |     |      |
+     |     M - Manuale                            |     |     |      |
+     |     N - Natura Conto                       |     |     |      |
+     |                                            |     |     |      |
+     |CONTO IMPORTO POSITIVO                      |  A  |  10 |    49|
+     |CONTO IMPORTO NEGATIVO                      |  A  |  10 |    59|
+     |NATURA CONTO IMPORTO POSITIVO               |  A  |   4 |    69|
+     |NATURA CONTO IMPORTO NEGATIVO               |  A  |   4 |    73|
+     |CALCOLATO (X)                               |  A  |   1 |    77|
+     |IMPORTO                                     |  N  |  12 |    78|
+     |OBBLIGATORIO (X)                            |  A  |   1 |    90|
+     |NOTE                                        |  A  |  60 |    91|
+     |CODICE UNIVOCO DI SCARICAMENTO              |  A  |  12 |   151|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   163|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

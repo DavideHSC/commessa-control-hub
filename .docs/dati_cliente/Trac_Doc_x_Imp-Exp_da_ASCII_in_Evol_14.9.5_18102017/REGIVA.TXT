@@ -1,0 +1,43 @@
+     Data 10/01/2007                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:   81 Bytes+CRLF =   83 Bytes 
+     Nome File:REGIVA.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE AZIENDA                      |  A  |  16 |     4|
+     |SUBCODICE      AZIENDA                      |  A  |   1 |    20|
+     | Dati Generali                              |     |     |      |
+     |CODICE ATTIVITA'                            |  A  |   2 |    21|
+     |CODICE ATTIVITA' IVA                        |  A  |   2 |    23|
+     |TIPO REGISTRO IVA                           |  A  |   1 |    25|
+     |     A - Acquisti                           |     |     |      |
+     |     C - Corrispettivi                      |     |     |      |
+     |     V - Vendite                            |     |     |      |
+     |                                            |     |     |      |
+     |CODICE REGISTRO IVA                         |  A  |   3 |    26|
+     |DESCRIZIONE                                 |  A  |  40 |    29|
+     |REGIME SPECIALE                             |  A  |   1 |    69|
+     |     N - Nessuno                            |     |     |      |
+     |     A - Autotrasporto conto terzi          |     |     |      |
+     |     C - Corrispettivi Art. 74 ter          |     |     |      |
+     |                                            |     |     |      |
+     |PERIODICITA' RIEPILOGO REGISTRO             |  A  |   1 |    70|
+     |     M - Mensile                            |     |     |      |
+     |     T - Trimestrale                        |     |     |      |
+     |                                            |     |     |      |
+     |ST. RIEPILOGO ALIQUOTA FINE PERIODO  (X)    |  A  |   1 |    71|
+     |STAMPA PERIODO ANCHE SENZA MOVIMENTI (X)    |  A  |   1 |    72|
+     |FILLER                                      |  A  |   9 |    73|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |    82|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

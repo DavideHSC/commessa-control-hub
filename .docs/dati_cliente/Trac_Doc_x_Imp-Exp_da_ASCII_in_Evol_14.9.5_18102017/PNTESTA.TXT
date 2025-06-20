@@ -1,0 +1,228 @@
+     Data 10/01/2007                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  445 Bytes+CRLF =  447 Bytes 
+     Nome File:PNTESTA.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE                              |  A  |  16 |     4|
+     |SUBCODICE FISCALE                           |  A  |   1 |    20|
+     | Dati Generali                              |     |     |      |
+     |CODICE UNIVOCO DI SCARICAMENTO              |  A  |  12 |    21|
+     |CODICE ATTIVITA                             |  A  |   2 |    33|
+     |ESERCIZIO                                   |  A  |   5 |    35|
+     |CODICE CAUSALE                              |  A  |   6 |    40|
+     |    Il codice deve essere gia' presente nella     |     |      |
+     |    tabella causali                         |     |     |      |
+     |DESCRIZIONE CAUSALE                         |  A  |  40 |    46|
+     |    Facoltativa                             |     |     |      |
+     |DATA REGISTRAZIONE (GGMMAAAA)               |  N  |   8 |    86|
+     | Dati Iva                                   |     |     |      |
+     |CODICE ATTIVITA IVA                         |  A  |   2 |    94|
+     |TIPO REGISTRO IVA                           |  A  |   1 |    96|
+     |        A = Acquisti                        |     |     |      |
+     |        C = Corrispettivi                   |     |     |      |
+     |        V = Vendite                         |     |     |      |
+     |                                            |     |     |      |
+     |CODICE NUMERAZIONE IVA                      |  A  |   3 |    97|
+     |CLIENTE/FORNITORE CODICE FISCALE            |  A  |  16 |   100|
+     |CLIENTE/FORNITORE SUBCODICE FISCALE         |  A  |   1 |   116|
+     |CLIENTE/FORNITORE SIGLA                     |  A  |  12 |   117|
+     |        L'identificazione del cliente/fornitore   |     |      |
+     |        puo' essere effettuata o per codice |     |     |      |
+     |        fiscale (con eventuale subcodice) o |     |     |      |
+     |        per sigla. La preminenza viene comunque   |     |      |
+     |        data al codice fiscale.             |     |     |      |
+     |                                            |     |     |      |
+     |DOCUMENTO DATA (GGMMAAAA)                   |  N  |   8 |   129|
+     |DOCUMENTO NUMERO                            |  A  |  12 |   137|
+     |DOCUMENTO BIS                               |  A  |   1 |   149|
+     |        Se si tratta di documenti di vendita o    |     |      |
+     |        corrispettivi (escluse le fatture emesse  |     |      |
+     |        su registro corrispettivi) numero e bis   |     |      |
+     |        documento verranno impostati uguali a     |     |      |
+     |        numero e bis protocollo.            |     |     |      |
+     |                                            |     |     |      |
+     |DATA REGISTRO IVA (GGMMAAAA)                |  N  |   8 |   150|
+     |PROTOCOLLO NUMERO                           |  N  |   6 |   158|
+     |PROTOCOLLO BIS                              |  A  |   1 |   164|
+     |        Nel caso di documenti di acquisto e'|     |     |      |
+     |        possibile non indicare il numero e bis    |     |      |
+     |        protocollo in questo caso la procedura    |     |      |
+     |        lo assegnera' automaticamente.      |     |     |      |
+     |                                            |     |     |      |
+     |DATA COMPETENZA LIQUID. IVA (GGMMAAAA)      |  N  |   8 |   165|
+     |TOTALE DOCUMENTO                            |  N  |  12 |   173|
+     |        L'intera sezione dati Iva viene portata   |     |      |
+     |        solo se la causale ha Tipo documento|     |     |      |
+     |        Iva oppure se si tratta di un movimento   |     |      |
+     |        contabile con la barratura di "movimento  |     |      |
+     |        su registro Iva non rilevante ai fini Iva"|     |      |
+
+     Data 10/01/2007                                          Pag.  2
+
+     |        e nell'esercizio la contabilita' e' |     |     |      |
+     |        Semplificata impresa o professionista     |     |      |
+     |        con registri Iva integrati.         |     |     |      |
+     |        Nel caso dei suddetti movimenti contabili |     |      |
+     |        non sono presenti in prima nota numero e  |     |      |
+     |        bis documento e protocollo.         |     |     |      |
+     |                                            |     |     |      |
+     |DATA COMPETENZA CONTABILE (GGMMAAAA)        |  N  |   8 |   185|
+     |        Se non viene impostata verra' portata     |     |      |
+     |        la data di registrazione.           |     |     |      |
+     |                                            |     |     |      |
+     |NOTE MOVIMENTO                              |  A  |  60 |   193|
+     | Altri Dati                                 |     |     |      |
+     |DATA PLAFOND (GGMMAAAA)                     |  N  |   8 |   253|
+     |        Data plafond viene portata solo se si     |     |      |
+     |        tratta di un documento Iva di acquisto    |     |      |
+     |        nell'anno della data documento e' gestito |     |      |
+     |        il plafond (Anagrafica Azienda -Dati Iva  |     |      |
+     |        annuali).                           |     |     |      |
+     |                                            |     |     |      |
+     |ANNO PRO-RATA                               |  N  |   4 |   261|
+     |        Anno Pro-Rata viene portato solo se si    |     |      |
+     |        tratta di un documento Iva di acquisto    |     |      |
+     |        nell'anno della data documento e' gestito |     |      |
+     |        il Pro-Rata (Attivita'-Dati Iva annuali). |     |      |
+     |                                            |     |     |      |
+     | Ritenute Effettuate                        |     |     |      |
+     |RITENUTE                                    |  N  |  12 |   265|
+     |        Vengono importate solo se nella causale   |     |      |
+     |        Gest. Ritenute/Enasarco e' impostato|     |     |      |
+     |        su Ritenuta o Ritenuta/Enasarco.    |     |     |      |
+     |                                            |     |     |      |
+     |ENASARCO                                    |  N  |  12 |   277|
+     |        Vengono importate solo se nella causale   |     |      |
+     |        Gest. Ritenute/Enasarco e' impostato|     |     |      |
+     |        su Enasarco o Ritenuta/Enasarco.    |     |     |      |
+     |                                            |     |     |      |
+     | Valuta Estera                              |     |     |      |
+     |TOTALE IN VALUTA                            |  N  |  12 |   289|
+     |CODICE VALUTA                               |  A  |   4 |   301|
+     |        I dati valuta estera vengono importati    |     |      |
+     |        solo se nella causale c'e' la barratura   |     |      |
+     |        fattura in valuta estera.           |     |     |      |
+     |                                            |     |     |      |
+     | Dati Autofattura                           |     |     |      |
+     |CODICE NUMERAZIONE IVA VENDITE              |  A  |   3 |   305|
+     |PROTOCOLLO NUMERO                           |  N  |   6 |   308|
+     |PROTOCOLLO BIS                              |  A  |   1 |   314|
+     |        I dati dell'autofattura vengono importati |     |      |
+     |        solo se nella causale c'e' la barratura   |     |      |
+     |        generazione autofattura.            |     |     |      |
+     |                                            |     |     |      |
+     | Versamento ritenute                        |     |     |      |
+     |VERSAMENTO DATA (GGMMAAAA)                  |  N  |   8 |   315|
+     |VERSAMENTO TIPO                             |  A  |   1 |   323|
+     |        0 = F24 o F23                       |     |     |      |
+     |        1 = Tesoreria                       |     |     |      |
+     |                                            |     |     |      |
+     |VERSAMENTO MODELLO                          |  A  |   1 |   324|
+     |        0 = Nessuno                         |     |     |      |
+
+     Data 10/01/2007                                          Pag.  3
+
+     |        1 = Banca                           |     |     |      |
+     |        2 = Concessione                     |     |     |      |
+     |        3 = Posta                           |     |     |      |
+     |                                            |     |     |      |
+     |VERSAMENTO ESTREMI                          |  A  |  16 |   325|
+     |        I dati della sezione versamento ritenute  |     |      |
+     |        vengono importati solo se nella causale   |     |      |
+     |        c'e' la barratura versamento ritenute.    |     |      |
+     |                                            |     |     |      |
+     | Dati di Servizio                           |     |     |      |
+     |STATO                                       |  A  |   1 |   341|
+     |        D = Definitiva                      |     |     |      |
+     |        P = Provvisoria                     |     |     |      |
+     |        V = Da verificare                   |     |     |      |
+     |                                            |     |     |      |
+     | Dati per gestione partite                  |     |     |      |
+     |        La gestione partite viene utilizzata|     |     |      |
+     |        solo se l'attivita' ha gestione partite   |     |      |
+     |        e la causale ha gestione partite    |     |     |      |
+     |        diverso da nessuna.                 |     |     |      |
+     |                                            |     |     |      |
+     |TIPO GESTIONE PARTITE                       |  A  |   1 |   342|
+     |          = Nessuna                         |     |     |      |
+     |        A = Creazione Partita               |     |     |      |
+     |        B = Inserimento rata in una partita |     |     |      |
+     |            esistente                       |     |     |      |
+     |        C = Creazione Partita + rate        |     |     |      |
+     |        D = Automatica                      |     |     |      |
+     | Codice pagamento per il tipo Automatica (D)|     |     |      |
+     |CODICE PAGAMENTO                            |  A  |   8 |   343|
+     | Dati per Inserimento rata in una partita esistente (B) |      |
+     | Dati della fattura da incassare/pagare     |     |     |      |
+     |CODICE ATTIVITA IVA                         |  A  |   2 |   351|
+     |TIPO REGISTRO IVA                           |  A  |   1 |   353|
+     |        A = Acquisti                        |     |     |      |
+     |        C = Corrispettivi                   |     |     |      |
+     |        V = Vendite                         |     |     |      |
+     |                                            |     |     |      |
+     |CODICE NUMERAZIONE IVA                      |  A  |   3 |   354|
+     |CLIENTE/FORNITORE CODICE FISCALE            |  A  |  16 |   357|
+     |CLIENTE/FORNITORE SUBCODICE FISCALE         |  A  |   1 |   373|
+     |CLIENTE/FORNITORE SIGLA                     |  A  |  12 |   374|
+     |        L'identificazione del cliente/fornitore   |     |      |
+     |        puo' essere effettuata o per codice |     |     |      |
+     |        fiscale (con eventuale subcodice) o |     |     |      |
+     |        per sigla. La preminenza viene comunque   |     |      |
+     |        data al codice fiscale.             |     |     |      |
+     |                                            |     |     |      |
+     |DOCUMENTO DATA (GGMMAAAA)                   |  N  |   8 |   386|
+     |DOCUMENTO NUMERO                            |  A  |  12 |   394|
+     |DOCUMENTO BIS                               |  A  |   1 |   406|
+     |                                            |     |     |      |
+     |                                            |     |     |      |
+     | Dati per Intrastat                         |     |     |      |
+     |CLI/FOR (INTRA) CODICE FISCALE              |  A  |  16 |   407|
+     |CLI/FOR (INTRA) SUBCODICE FISCALE           |  A  |   1 |   423|
+     |CLI/FOR (INTRA) SIGLA                       |  A  |  12 |   424|
+     |        L'identificazione del cliente/fornitore   |     |      |
+     |        puo' essere effettuata o per codice |     |     |      |
+     |        fiscale (con eventuale subcodice) o |     |     |      |
+
+     Data 10/01/2007                                          Pag.  4
+
+     |        per sigla. La preminenza viene comunque   |     |      |
+     |        data al codice fiscale.             |     |     |      |
+     |                                            |     |     |      |
+     |TIPO MOVIMENTO INTRASTAT                    |  A  |   2 |   436|
+     |        AA = Acquisto                       |     |     |      |
+     |        AZ = Rettifica Acquisto             |     |     |      |
+     |        VV = Vendita                        |     |     |      |
+     |        VZ = Rettifica Vendita              |     |     |      |
+     |                                            |     |     |      |
+     |DOCUMENTO OPERAZIONE (GGMMAAAA)             |  N  |   8 |   438|
+     |                                            |     |     |      |
+     |                                            |     |     |      |
+     |        Modalita' di trasferimento delle sezioni  |     |      |
+     |        collegate:                          |     |     |      |
+     |                                            |     |     |      |
+     |        - Per i movimenti contabili ad eccezione  |     |      |
+     |          dei movimenti con barratura semplificata|     |      |
+     |          non vengono letti i righi Iva.    |     |     |      |
+     |                                            |     |     |      |
+     |        - I righi versamento ritenute vengono     |     |      |
+     |          letti se nella causale c'e' la    |     |     |      |
+     |          barratura versamento ritenute.    |     |     |      |
+     |                                            |     |     |      |
+     |        - Nei movimenti con Tipo Gestione Partite |     |      |
+     |          Creazione Partita + rate (C) le rate vanno    |      |
+     |          specificate nella sezione Rate Inc/Pag  |     |      |
+     |                                            |     |     |      |
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   446|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

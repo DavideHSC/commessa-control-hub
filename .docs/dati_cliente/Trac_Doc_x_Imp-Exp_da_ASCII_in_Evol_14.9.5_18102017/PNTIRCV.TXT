@@ -1,0 +1,40 @@
+     Data 19/12/2005                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  135 Bytes+CRLF =  137 Bytes 
+     Nome File:PNTIRCV.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Generali                              |     |     |      |
+     |CODICE UNIVOCO DI SCARICAMENTO              |  A  |  12 |     4|
+     |        E' il codice univoco di scaricamento|     |     |      |
+     |        della prima nota a cui fanno riferimento  |     |      |
+     |        i movimenti di editoria relativi al |     |     |      |
+     |        metodo delle copie effettivamente   |     |     |      |
+     |        vendute.                            |     |     |      |
+     |                                            |     |     |      |
+     |CODICE PUBBLICAZIONE                        |  A  |  10 |    16|
+     |PREZZO VENDITA                              |  N  |  12 |    26|
+     |PERCENTUALE IMPOSTA                         |  N  |   6 |    38|
+     |                                            |     |     |      |
+     | Annotazioni                                |     |     |      |
+     |DATA REGISTRAZIONE (GGMMAAAA)               |  N  |   8 |    44|
+     |DATA CONSEGNA (GGMMAAAA)                    |  N  |   8 |    52|
+     |DATA RESA (GGMMAAAA)                        |  N  |   8 |    60|
+     |COPIE CONSEGNATE                            |  N  |   6 |    68|
+     |COPIE RESE                                  |  N  |   6 |    74|
+     |IMPONIBILE                                  |  N  |  12 |    80|
+     |CODICE ATTIVITA'                            |  A  |   2 |    92|
+     |CODICE ATTIVITA' IVA                        |  A  |   2 |    94|
+     |PROMEMORIA                                  |  A  |  40 |    96|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   136|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

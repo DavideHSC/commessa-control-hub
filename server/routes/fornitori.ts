@@ -10,6 +10,19 @@ const isPrismaError = (error: unknown): error is PrismaClientKnownRequestError =
     return error instanceof PrismaClientKnownRequestError;
 };
 
+// GET - Recupera tutti i fornitori
+router.get('/', async (req: express.Request, res: express.Response): Promise<void> => {
+  try {
+    const fornitori = await prisma.fornitore.findMany({
+      orderBy: { nome: 'asc' },
+    });
+    res.json(fornitori);
+  } catch (error) {
+    console.error('Errore nel recupero dei fornitori:', error);
+    res.status(500).json({ error: "Errore durante il recupero dei fornitori." });
+  }
+});
+
 // --- CRUD Fornitori ---
 router.post('/', async (req: express.Request, res: express.Response): Promise<void> => {
   try {

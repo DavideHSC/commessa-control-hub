@@ -1,0 +1,28 @@
+     Data 19/12/2005                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:   38 Bytes+CRLF =   40 Bytes 
+     Nome File:PNRATE.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Generali                              |     |     |      |
+     |CODICE UNIVOCO DI SCARICAMENTO              |  A  |  12 |     4|
+     |        E' il codice univoco di scaricamento|     |     |      |
+     |        della prima nota di cui si vogliono |     |     |      |
+     |        generare le rate.                   |     |     |      |
+     |                                            |     |     |      |
+     |NUMERO RIGO RATA                            |  N  |   2 |    16|
+     |RATA DATA (GGMMAAAA)                        |  N  |   8 |    18|
+     |RATA IMPORTO                                |  N  |  12 |    26|
+     |RATA GIA' PAGATA (0/1)                      |  N  |   1 |    38|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |    39|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

@@ -1,0 +1,41 @@
+     Data 10/01/2007                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:   80 Bytes+CRLF =   82 Bytes 
+     Nome File:NUMIVA.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE AZIENDA                      |  A  |  16 |     4|
+     |SUBCODICE      AZIENDA                      |  A  |   1 |    20|
+     | Dati Generali                              |     |     |      |
+     |CODICE ATTIVITA'                            |  A  |   2 |    21|
+     |CODICE ATTIVITA' IVA                        |  A  |   2 |    23|
+     |TIPO REGISTRO IVA                           |  A  |   1 |    25|
+     |     A - Acquisti                           |     |     |      |
+     |     C - Corrispettivi                      |     |     |      |
+     |     V - Vendite                            |     |     |      |
+     |                                            |     |     |      |
+     |CODICE NUMERAZIONE IVA                      |  A  |   3 |    26|
+     |CODICE REGISTRO IVA                         |  A  |   3 |    29|
+     |DESCRIZIONE                                 |  A  |  40 |    32|
+     |UTILIZZATO PER GESTIONE NORMALE      (X)    |  A  |   1 |    72|
+     |UTILIZ. PER GESTIONE AUTOFAT. NORM.  (X)    |  A  |   1 |    73|
+     |UTILIZ. PER GESTIONE AUTOFAT. RSM    (X)    |  A  |   1 |    74|
+     |UTILIZ. PER GESTIONE AUTOFAT. CEE    (X)    |  A  |   1 |    75|
+     |UTILIZ. PER GEST. IVA ESIG. DIFFERITA(X)    |  A  |   1 |    76|
+     |UTILIZ. INC/PAG IVA ESIG. DIFFERITA  (X)    |  A  |   1 |    77|
+     |NUM. PER COSTI CONTAB. SEMPLIFICATA  (X)    |  A  |   1 |    78|
+     |NUM. PER RICAVI CONTAB. SEMPLIFICATA (X)    |  A  |   1 |    79|
+     |CODICE REGIONE (PER DICHIARAZIONE IVA)      |  A  |   1 |    80|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |    81|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

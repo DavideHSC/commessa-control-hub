@@ -1,0 +1,122 @@
+     Data 19/09/2012                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  312 Bytes+CRLF =  314 Bytes 
+     Nome File:PNRIGCON.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Generali                              |     |     |      |
+     |CODICE UNIVOCO DI SCARICAMENTO              |  A  |  12 |     4|
+     |        E' il codice univoco di scaricamento|     |     |      |
+     |        della prima nota a cui fanno riferimento  |     |      |
+     |        i righi Contabili.                  |     |     |      |
+     |                                            |     |     |      |
+     |PROGRESSIVO NUMERO RIGO                     |  N  |   3 |    16|
+     |        Da utilizzare solamente per movimenti     |     |      |
+     |        relativi agli Studi di Settore e per|     |     |      |
+     |        quelli analitici                    |     |     |      |
+     |                                            |     |     |      |
+     |TIPO CONTO                                  |  A  |   1 |    19|
+     |          =                                 |     |     |      |
+     |        C = Cliente                         |     |     |      |
+     |        F = Fornitore                       |     |     |      |
+     |                                            |     |     |      |
+     |CLIENTE/FORNITORE CODICE FISCALE            |  A  |  16 |    20|
+     |CLIENTE/FORNITORE SUBCODICE FISCALE         |  A  |   1 |    36|
+     |CLIENTE/FORNITORE SIGLA                     |  A  |  12 |    37|
+     |        L'identificazione del cliente/fornitore   |     |      |
+     |        puo' essere effettuata o per codice |     |     |      |
+     |        fiscale (con eventuale subcodice) o |     |     |      |
+     |        per sigla. La preminenza viene comunque   |     |      |
+     |        data al codice fiscale.             |     |     |      |
+     |                                            |     |     |      |
+     |        I dati del cliente/fornitore non vengono  |     |      |
+     |        considerati se Tipo Conto <> Cliente o    |     |      |
+     |        Fornitore.                          |     |     |      |
+     |                                            |     |     |      |
+     |CONTO                                       |  A  |  10 |    49|
+     |        Il codice conto non viene considerato     |     |      |
+     |        se Tipo Conto = Cliente o Fornitore.|     |     |      |
+     |                                            |     |     |      |
+     |IMPORTO DARE                                |  N  |  12 |    59|
+     |IMPORTO AVERE                               |  N  |  12 |    71|
+     |        L'importo dare e l'importo avere sono     |     |      |
+     |        alternativi quindi se e' presente   |     |     |      |
+     |        l'importo dare non viene portato    |     |     |      |
+     |        l'importo avere.                    |     |     |      |
+     |                                            |     |     |      |
+     |NOTE                                        |  A  |  60 |    83|
+     |                                            |     |     |      |
+     | Dati competenza contabile                  |     |     |      |
+     |INS. DATI COMPETENZA CONTABILE(0/1)         |  N  |   1 |   143|
+     |        Indicare 1 se sono presenti le date |     |     |      |
+     |        di competenza e compilare i dati    |     |     |      |
+     |        successivi                          |     |     |      |
+     |                                            |     |     |      |
+     |DATA INIZIO COMPETENZA                      |  N  |   8 |   144|
+     |DATA FINE COMPETENZA                        |  N  |   8 |   152|
+     |NOTE DI COMPETENZA                          |  A  |  60 |   160|
+     |                                            |     |     |      |
+     | Facoltativi                                |     |     |      |
+     |DATA REGISTRAZIONE APERTURA                 |  N  |   8 |   220|
+
+     Data 19/09/2012                                          Pag.  2
+
+     |CONTO DA RILEVARE (MOVIMENTO 1)             |  A  |  10 |   228|
+     |CONTO DA RILEVARE (MOVIMENTO 2)             |  A  |  10 |   238|
+     |                                            |     |     |      |
+     |                                            |     |     |      |
+     | Dati movimenti analitici                   |     |     |      |
+     |INS. DATI MOVIMENTI ANALITICI(0/1)          |  N  |   1 |   248|
+     |        Indicare 1 se sono presenti i centri|     |     |      |
+     |        di costo collegati alla prima nota e|     |     |      |
+     |        compilare i dati successivi e il    |     |     |      |
+     |        file MOVANAC.TXT                    |     |     |      |
+     |                                            |     |     |      |
+     |DATA INIZIO COMPETENZA                      |  N  |   8 |   249|
+     |DATA FINE COMPETENZA                        |  N  |   8 |   257|
+     |                                            |     |     |      |
+     |                                            |     |     |      |
+     | Dati studi di settore                      |     |     |      |
+     |INS. DATI STUDI DI SETTORE(0/1)             |  N  |   1 |   265|
+     |        Indicare 1 se sono associati studi  |     |     |      |
+     |        di settore alla prima nota e        |     |     |      |
+     |        compilare i dati successivi e il    |     |     |      |
+     |        file RIGSTUDI.TXT                   |     |     |      |
+     |                                            |     |     |      |
+     |STATO MOVIMENTO STUDI                       |  A  |   1 |   266|
+     |         G = Generato                       |     |     |      |
+     |         M = Manuale                        |     |     |      |
+     |                                            |     |     |      |
+     | *** Fine vecchio tracciato ***             |     |     |      |
+     |                                            |     |     |      |
+     |ESERCIZIO DI RILEVANZA FISCALE              |  A  |   5 |   267|
+     |DETTAGLIO CLI/FOR CODICE FISCALE            |  A  |  16 |   272|
+     |DETTAGLIO CLI/FOR SUBCODICE FISCALE         |  A  |   1 |   288|
+     |DETTAGLIO CLI/FOR SIGLA                     |  A  |  12 |   289|
+     |        L'identificazione del dettaglio cli/for   |     |      |
+     |        puo' essere effettuata o per codice |     |     |      |
+     |        fiscale (con eventuale subcodice) o |     |     |      |
+     |        per sigla. La preminenza viene comunque   |     |      |
+     |        data al codice fiscale.             |     |     |      |
+     |                                            |     |     |      |
+     | -------------------------------------------|     |     |      |
+     | Nuovo tracciato da Release 9.9.3           |     |     |      |
+     | -------------------------------------------|     |     |      |
+     |SIGLA CONTO                                 |  A  |  12 |   301|
+     |          La sigla conto viene utilizzata per     |     |      |
+     |          identificare il conto da inserire in    |     |      |
+     |          prima nota quando non è stato indicato  |     |      |
+     |          il CONTO (progressivo 49)         |     |     |      |
+     |                                            |     |     |      |
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   313|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

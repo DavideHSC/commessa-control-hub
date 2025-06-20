@@ -1,0 +1,27 @@
+     Data 19/12/2005                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  102 Bytes+CRLF =  104 Bytes 
+     Nome File:SEDISS.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE AZIENDA                      |  A  |  16 |     4|
+     |SUBCODICE      AZIENDA                      |  A  |   1 |    20|
+     | Dati Generali                              |     |     |      |
+     |CODICE SEDE                                 |  A  |   2 |    21|
+     |DESCRIZIONE                                 |  A  |  40 |    23|
+     |INDIRIZZO                                   |  A  |  30 |    63|
+     |CODICE CATASTALE COMUNE                     |  A  |   5 |    93|
+     |CAP                                         |  A  |   5 |    98|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   103|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

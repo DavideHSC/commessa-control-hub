@@ -1,0 +1,80 @@
+     Data 19/09/2012                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  173 Bytes+CRLF =  175 Bytes 
+     Nome File:PNRIGIVA.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Generali                              |     |     |      |
+     |CODICE UNIVOCO DI SCARICAMENTO              |  A  |  12 |     4|
+     |        E' il codice univoco di scaricamento|     |     |      |
+     |        della prima nota a cui fanno riferimento  |     |      |
+     |        i righi Iva.                        |     |     |      |
+     |                                            |     |     |      |
+     |CODICE IVA                                  |  A  |   4 |    16|
+     |        Il codice Iva deve essere presente in     |     |      |
+     |        tabella codici Iva                  |     |     |      |
+     |CONTROPARTITA                               |  A  |  10 |    20|
+     |IMPONIBILE                                  |  N  |  12 |    30|
+     |IMPOSTA                                     |  N  |  12 |    42|
+     |IMPOSTA INTRATTENIMENTI                     |  N  |  12 |    54|
+     |IMPONIBILE 50% CORRISPETTIVI NON CONS.      |  N  |  12 |    66|
+     |        Va specificato quando sul codice Iva|     |     |      |
+     |        e' presente la barratura di         |     |     |      |
+     |        "Imponibile 50% dei corrispettivi"  |     |     |      |
+     |        normalmente e' uguale all'imponibile|     |     |      |
+     |        tranne quando l'imponibile iniziale |     |     |      |
+     |        non e' divisibile per 2 e quindi ci |     |     |      |
+     |        sara' una differenza di 1 centesimo.|     |     |      |
+     |                                            |     |     |      |
+     |IMPOSTA NON CONSIDERATA                     |  N  |  12 |    78|
+     |        Va specificato quando sul codice Iva|     |     |      |
+     |        e' presente la barratura di         |     |     |      |
+     |        "Imponibile 50% dei corrispettivi"  |     |     |      |
+     |        e contiene l'eventuale differenza   |     |     |      |
+     |        fra imposta + imposta intrattenimenti     |     |      |
+     |        calcolate sull'imponibile originale |     |     |      |
+     |        Imposta + imposta intrattenimenti   |     |     |      |
+     |        calcolato sul 50% dell'importo      |     |     |      |
+     |        dimezzato.                          |     |     |      |
+     |                                            |     |     |      |
+     |        N.B. La somma dei campi:            |     |     |      |
+     |             - Imponibile                   |     |     |      |
+     |             - Imponibile 50% corr. non cons.     |     |      |
+     |             - Imposta                      |     |     |      |
+     |             - Imposta Intrattenimenti      |     |     |      |
+     |             - Imposta non considerata      |     |     |      |
+     |       deve corrispondere all'importo lordo |     |     |      |
+     |       del rigo Iva.                        |     |     |      |
+     |                                            |     |     |      |
+     |IMPORTO LORDO                               |  N  |  12 |    90|
+     |        Questo importo e' da utilizzare in  |     |     |      |
+     |        alternativa agli importi precedenti |     |     |      |
+     |        qualora si desideri far effettuare  |     |     |      |
+     |        tutti i calcoli alla procedura.     |     |     |      |
+     |                                            |     |     |      |
+     |NOTE                                        |  A  |  60 |   102|
+     |                                            |     |     |      |
+     | -------------------------------------------|     |     |      |
+     | Nuovo tracciato da Release 9.9.3           |     |     |      |
+     | -------------------------------------------|     |     |      |
+     |SIGLA CONTROPARTITA                         |  A  |  12 |   162|
+
+     Data 19/09/2012                                          Pag.  2
+
+     |          La sigla conto viene utilizzata per     |     |      |
+     |          identificare il conto da inserire in    |     |      |
+     |          prima nota quando non è stata indicata  |     |      |
+     |          la CONTROPARTITA (progressivo 20) |     |     |      |
+     |                                            |     |     |      |
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   174|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

@@ -1,0 +1,27 @@
+     Data 19/12/2005                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  156 Bytes+CRLF =  158 Bytes 
+     Nome File:ANAGRACC.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE AZIENDA                      |  A  |  16 |     4|
+     |SUBCODICE      AZIENDA                      |  A  |   1 |    20|
+     | Dati Generali                              |     |     |      |
+     |CODICE                                      |  A  |   4 |    21|
+     |DESCRIZIONE                                 |  A  |  40 |    25|
+     |RESPONSABILE                                |  A  |  40 |    65|
+     |LIVELLO                                     |  N  |   2 |   105|
+     |NOTE                                        |  A  |  50 |   107|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   157|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

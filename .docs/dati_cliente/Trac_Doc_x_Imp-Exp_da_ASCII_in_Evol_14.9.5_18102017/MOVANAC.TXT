@@ -1,0 +1,31 @@
+     Data 19/12/2005                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:   34 Bytes+CRLF =   36 Bytes 
+     Nome File:MOVANAC.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Generali                              |     |     |      |
+     |CODICE UNIVOCO DI SCARICAMENTO              |  A  |  12 |     4|
+     |        E' il codice univoco di scaricamento|     |     |      |
+     |        della prima nota a cui sono associati     |     |      |
+     |        i centri di costo.                  |     |     |      |
+     |                                            |     |     |      |
+     |PRPGRESSIVO NUMERO RIGO CONTABILE           |  N  |   3 |    16|
+     |        E' il numero di riferimento del rigo|     |     |      |
+     |        contabile al quale associare i      |     |     |      |
+     |        centri relativi ai movimenti analitici    |     |      |
+     |                                            |     |     |      |
+     |CENTRO DI COSTO                             |  A  |   4 |    19|
+     |PARAMETRO                                   |  N  |  12 |    23|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |    35|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

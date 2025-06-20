@@ -1,0 +1,158 @@
+     Data 10/01/2007                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  746 Bytes+CRLF =  748 Bytes 
+     Nome File:PARAMAZ.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE AZIENDA                      |  A  |  16 |     4|
+     |SUBCODICE      AZIENDA                      |  A  |   1 |    20|
+     | Dati Corrispettivi                         |     |     |      |
+     |CAUSALE CORRISPETTIVI                       |  A  |   6 |    21|
+     |CAUSALE INCASSI                             |  A  |   6 |    27|
+     |CONTO CORRISPETTIVI DA INCASSARE            |  A  |  10 |    33|
+     |CONTO CASSA CORRISPETTIVI                   |  A  |  10 |    43|
+     |CONTO RICAVI CORRISPETTIVI                  |  A  |  10 |    53|
+     |CONTO IMPOSTA INTRATTENIMENTI               |  A  |  10 |    63|
+     | Dati Stampa Reg. Iva Integrati             |     |     |      |
+     |STAMPA CONTO REG. IVA INTEG. PROF. (X)      |  A  |   1 |    73|
+     | Dati Import Parcelle/Fatture               |     |     |      |
+     |NUMERO ARCHIVIO OMNIBUS                     |  N  |   3 |    74|
+     |NUMERO PROFESSIONISTA/EMITTENTE             |  N  |   4 |    77|
+     |ATTIVITA'                                   |  A  |   2 |    81|
+     |ATTIVITA' IVA                               |  A  |   2 |    83|
+     |TIPO REGISTRO IVA PARCELLE/FATTURE          |  A  |   1 |    85|
+     |       -                                    |     |     |      |
+     |     C - Corrispettivi                      |     |     |      |
+     |     V - Vendite                            |     |     |      |
+     |                                            |     |     |      |
+     |CODICE NUMERAZIONE IVA PARCELLE/FATTURE     |  A  |   3 |    86|
+     |TIPO REGISTRO IVA NOTE DI CREDITO           |  A  |   1 |    89|
+     |       -                                    |     |     |      |
+     |     C - Corrispettivi                      |     |     |      |
+     |     V - Vendite                            |     |     |      |
+     |                                            |     |     |      |
+     |CODICE NUMERAZIONE IVA NOTE DI CREDITO      |  A  |   3 |    90|
+     |CONTO CLIENTI                               |  A  |  10 |    93|
+     | Dati Gestione partite                      |     |     |      |
+     |CAUSALE INCASSO                             |  A  |   6 |   103|
+     |CAUSALE PAGAMENTO                           |  A  |   6 |   109|
+     |CAUSALE PAGAMENTO IVA ESIGIBILITA' DIFF.    |  A  |   6 |   115|
+     |CAUSALE INCASSO IVA ESIGIBILITA' DIFF.      |  A  |   6 |   121|
+     |CAUSALE INSOLUTO                            |  A  |   6 |   127|
+     |CONTO INCASSO                               |  A  |  10 |   133|
+     |CONTO PAGAMENTO                             |  A  |  10 |   143|
+     |CONTO INSOLUTO                              |  A  |  10 |   153|
+     |CONTO ABBUONI ATTIVI                        |  A  |  10 |   163|
+     |CONTO ABBUONI PASSIVI                       |  A  |  10 |   173|
+     |CONTO SPESE INCASSO/PAGAMENTO               |  A  |  10 |   183|
+     |CONTO SPESE INSOLUTO                        |  A  |  10 |   193|
+     |CONTO RITENUTE                              |  A  |  10 |   203|
+     |CONTO ENASARCO                              |  A  |  10 |   213|
+     | Dati 770                                   |     |     |      |
+     |CAUSALE CONTRIBUTO                          |  A  |   6 |   223|
+     |CAUSALE INAIL                               |  A  |   6 |   229|
+     |CONTO RITENUTA                              |  A  |  10 |   235|
+     |CONTO INPS PATRIMONIALE                     |  A  |  10 |   245|
+     |CONTO INPS COSTO                            |  A  |  10 |   255|
+     |CONTO ENASARCO PATRIMONIALE                 |  A  |  10 |   265|
+     |CONTO ENASARCO COSTO                        |  A  |  10 |   275|
+     |CONTO INAIL PATRIMONIALE                    |  A  |  10 |   285|
+
+     Data 10/01/2007                                          Pag.  2
+
+     |CONTO INAIL COSTO                           |  A  |  10 |   295|
+     | Dati Intrastat                             |     |     |      |
+     |SOGG. DELEGATO UGUALE ANAGR. STUDIO  (X)    |  A  |   1 |   305|
+     |ELENCHI RIEP. INTRA NON GIA' PRES.   (X)    |  A  |   1 |   306|
+     |CESSAZIONE ATTIVITA' O VAR. PAR. IVA (X)    |  A  |   1 |   307|
+     | Dati Operazioni Annuali                    |     |     |      |
+     |CAUSALE APERTURA ESERCIZIO                  |  A  |   6 |   308|
+     |CAUSALE CHIUSURA STATO PATRIMONIALE         |  A  |   6 |   314|
+     |CAUSALE CHIUSURA CONTO ECONOMICO            |  A  |   6 |   320|
+     |CAUSALE REGISTRAZIONE UTILE/PERDITA         |  A  |   6 |   326|
+     |CONTO STATO PATRIMONIALE INIZIALE           |  A  |  10 |   332|
+     |CONTO STATO PATRIMONIALE FINALE             |  A  |  10 |   342|
+     |CONTO CONTO ECONOMICO                       |  A  |  10 |   352|
+     |CONTO UTILE                                 |  A  |  10 |   362|
+     |CONTO PERDITA                               |  A  |  10 |   372|
+     | Dati Rettifiche                            |     |     |      |
+     |CAUSALE RISCONTI ATTIVI                     |  A  |   6 |   382|
+     |CAUSALE RISCONTI PASSIVI                    |  A  |   6 |   388|
+     |CAUSALE RATEI ATTIVI                        |  A  |   6 |   394|
+     |CAUSALE RATEI PASSIVI                       |  A  |   6 |   400|
+     |CAUSALE FATTURE DA EMETTERE                 |  A  |   6 |   406|
+     |CAUSALE FATTURE DA RICEVERE                 |  A  |   6 |   412|
+     |CAUSALE NOTE DI CREDITO DA EMETTERE         |  A  |   6 |   418|
+     |CAUSALE NOTE DI CREDITO DA RICEVERE         |  A  |   6 |   424|
+     |CAUSALE COSTI ANTICIPATI                    |  A  |   6 |   430|
+     |CAUSALE RICAVI ANTICIPATI                   |  A  |   6 |   436|
+     |CONTO RISCONTI ATTIVI                       |  A  |  10 |   442|
+     |CONTO RISCONTI PASSIVI                      |  A  |  10 |   452|
+     |CONTO RATEI ATTIVI                          |  A  |  10 |   462|
+     |CONTO RATEI PASSIVI                         |  A  |  10 |   472|
+     |CONTO FATTURE DA EMETTERE                   |  A  |  10 |   482|
+     |CONTO FATTURE DA RICEVERE                   |  A  |  10 |   492|
+     |CONTO NOTE DI CREDITO DA EMETTERE           |  A  |  10 |   502|
+     |CONTO NOTE DI CREDITO DA RICEVERE           |  A  |  10 |   512|
+     |CONTO COSTI ANTICIPATI                      |  A  |  10 |   522|
+     |CONTO RICAVI ANTICIPATI                     |  A  |  10 |   532|
+     | Dati Contabilita' sempl.                   |     |     |      |
+     |CODICE IVA SEMPLIFICATA/REG. IVA INTEGR.    |  A  |   4 |   542|
+     | Dati Manutenzioni Deducibili               |     |     |      |
+     |CAUSALE MANUTENZIONI                        |  A  |   6 |   546|
+     |CONTO SPESE MANUTENZIONI DA DEDURRE         |  A  |  10 |   552|
+     |CONTO ERARIO C/MANUTENZIONI DA DEDURRE      |  A  |  10 |   562|
+     | Dati Plusvalenze Patrimoniali              |     |     |      |
+     |CAUSALE PLUSVALENZE PATRIMONIALI            |  A  |   6 |   572|
+     |CONTO PLUSVALENZE DA TASSARE                |  A  |  10 |   578|
+     |CONTO ERARIO C/PLUSVALENZE DA TASSARE       |  A  |  10 |   588|
+     | Dati Conversione Prima nota in valuta      |     |     |      |
+     |CODICE IVA ESENTE                           |  A  |   4 |   598|
+     |CONTO DIFFERENZA ATTIVA CAMBIO              |  A  |  10 |   602|
+     |CONTO DIFFERENZA PASSIVA CAMBIO             |  A  |  10 |   612|
+     | Dati Export in F24                         |     |     |      |
+     |VERS. CUMULATIVO RITENUTE/CONTRIBUTI (X)    |  A  |   1 |   622|
+     |NESSUN VERS. RITENUTE/CONTRIBUTI     (X)    |  A  |   1 |   623|
+     | Dati Controlli                             |     |     |      |
+     |QUADRATURA MOVIMENTI IVA PRIMA NOTA         |  A  |   1 |   624|
+     |       -                                    |     |     |      |
+     |     B - Si, bloccante                      |     |     |      |
+     |     C - Si, conferma                       |     |     |      |
+     |     N - No                                 |     |     |      |
+     |                                            |     |     |      |
+
+     Data 10/01/2007                                          Pag.  3
+
+     |MESS. QUADR. DARE/AVERE CONT. SEMP.  (X)    |  A  |   1 |   625|
+     | Dati Beni Usati                            |     |     |      |
+     |METODO BENI USATI                           |  A  |   1 |   626|
+     |       -                                    |     |     |      |
+     |     A - Analitico                          |     |     |      |
+     |     G - Globale                            |     |     |      |
+     |                                            |     |     |      |
+     | Dati Altri Programmi di Fatturazione       |     |     |      |
+     |CONTO IVA ESIGIBILITA' DIFFERITA            |  A  |  10 |   627|
+     |CONTO RICAVI                                |  A  |  10 |   637|
+     |CONTO COSTI                                 |  A  |  10 |   647|
+     |CONTO PORTAFOGLIO ATTIVO                    |  A  |  10 |   657|
+     |CONTO ACCONTI CLIENTI                       |  A  |  10 |   667|
+     |CONTO OMAGGI                                |  A  |  10 |   677|
+     |CONTO SPESE DI INCASSO                      |  A  |  10 |   687|
+     |CONTO SPESE DI IMBALLO                      |  A  |  10 |   697|
+     |CONTO SPESE DI TRASPORTO                    |  A  |  10 |   707|
+     |CONTO SPESE BANCARIE                        |  A  |  10 |   717|
+     |CONTO ALTRE SPESE                           |  A  |  10 |   727|
+     |CONTO BOLLI                                 |  A  |  10 |   737|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   747|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

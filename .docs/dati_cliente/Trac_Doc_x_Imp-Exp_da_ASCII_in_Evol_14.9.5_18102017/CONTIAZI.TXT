@@ -1,0 +1,126 @@
+     Data 04/07/2007                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  391 Bytes+CRLF =  393 Bytes 
+     Nome File:CONTIAZI.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE AZIENDA                      |  A  |  16 |     4|
+     |SUBCODICE      AZIENDA                      |  A  |   1 |    20|
+     | Dati Generali                              |     |     |      |
+     |TABELLA ITALSTUDIO (X)                      |  A  |   1 |    21|
+     |     Campo Riservato Italstudio non         |     |     |      |
+     |     indicare nulla                         |     |     |      |
+     |                                            |     |     |      |
+     |LIVELLO                                     |  A  |   1 |    22|
+     |      1 - Mastro                            |     |     |      |
+     |      2 - Conto                             |     |     |      |
+     |      3 - Sottoconto                        |     |     |      |
+     |                                            |     |     |      |
+     |CODIFICA (MM/MMCC/MMCCSSSSSS)               |  A  |  10 |    23|
+     |TIPO                                        |  A  |   1 |    33|
+     |      P - Patrimoniale                      |     |     |      |
+     |      E - Economico                         |     |     |      |
+     |      O - Conto d'ordine                    |     |     |      |
+     |      C - Cliente                           |     |     |      |
+     |      F - Fornitore                         |     |     |      |
+     |                                            |     |     |      |
+     | Dati Conto (*)                             |     |     |      |
+     |DESCRIZIONE                                 |  A  |  60 |    34|
+     |SIGLA                                       |  A  |  12 |    94|
+     |CONTROLLO SEGNO                             |  A  |   1 |   106|
+     |        -                                   |     |     |      |
+     |      A - Avere                             |     |     |      |
+     |      D - Dare                              |     |     |      |
+     |                                            |     |     |      |
+     |CONTO COSTI/RICAVI COLLEGATO                |  A  |  10 |   107|
+     |                                            |     |     |      |
+     | Tipo Contabilita' (*)                      |     |     |      |
+     |VALIDO PER IMPRESA ORDINARIA (X)            |  A  |   1 |   117|
+     |VALIDO PER IMPRESA SEMPLIFICATA (X)         |  A  |   1 |   118|
+     |VALIDO PER PROFESSIONISTA ORDINARIA (X)     |  A  |   1 |   119|
+     |VALIDO PER PROF. SEMPLIFICATA (X)           |  A  |   1 |   120|
+     |                                            |     |     |      |
+     | Tipo Dichiarazione (*)                     |     |     |      |
+     |VALIDO PER UNICO PF (X)                     |  A  |   1 |   121|
+     |VALIDO PER UNICO SP (X)                     |  A  |   1 |   122|
+     |VALIDO PER UNICO SC (X)                     |  A  |   1 |   123|
+     |VALIDO PER UNICO ENC (X)                    |  A  |   1 |   124|
+     |                                            |     |     |      |
+     | Raccordi                                   |     |     |      |
+     | Categorie Fiscali (*)                      |     |     |      |
+     |CODICE CLASSE IRPEF/IRES                    |  A  |  10 |   125|
+     |CODICE CLASSE IRAP                          |  A  |  10 |   135|
+     |CODICE CLASSE PROFESSIONISTA                |  A  |  10 |   145|
+     |CODICE CLASSE IRAP PROFESSIONISTA           |  A  |  10 |   155|
+     |CODICE CLASSE IVA                           |  A  |  10 |   165|
+     |CODICE CLASSE DATI EXTRACONT. STUDI SET.    |  A  |  10 |   175|
+     |                                            |     |     |      |
+     | Registro Professionisti (*)                |     |     |      |
+     |NUMERO COLONNA REG. CRONOLOGICO             |  N  |   4 |   185|
+
+     Data 04/07/2007                                          Pag.  2
+
+     |NUMERO COLONNA REG. INCASSI/PAGAMENTI       |  N  |   4 |   189|
+     |                                            |     |     |      |
+     | Piano dei Conti CEE (*)                    |     |     |      |
+     |CONTO DARE                                  |  A  |  12 |   193|
+     |CONTO AVERE                                 |  A  |  12 |   205|
+     |                                            |     |     |      |
+     | Altri Dati (*)                             |     |     |      |
+     |NATURA CONTO                                |  A  |   4 |   217|
+     |GESTIONE BENI AMMORTIZZABILI                |  A  |   1 |   221|
+     |        -                                   |     |     |      |
+     |      M - Immobilizzazioni Materiali        |     |     |      |
+     |      I - Immobilizzazioni Immateriali      |     |     |      |
+     |      S - Fondo Svalutazione                |     |     |      |
+     |                                            |     |     |      |
+     |PERC. DED. MANUT. SE <> 100 (999.99)        |  N  |   6 |   222|
+     |GRUPPO                                      |  A  |   1 |   228|
+     |        -                                   |     |     |      |
+     |      A - Attivita'                         |     |     |      |
+     |      C - Costo                             |     |     |      |
+     |      N - Patrimonio Netto     (**)         |     |     |      |
+     |      P - Passivita'                        |     |     |      |
+     |      R - Ricavo                            |     |     |      |
+     |      V - Rettifiche di Costo  (**)         |     |     |      |
+     |      Z - Rettifiche di Ricavo (**)         |     |     |      |
+     |                                            |     |     |      |
+     | Il campo gruppo non deve essere impostato se il campo  |      |
+     | tipo e' uguale a O-Conto d'ordine, C-Cliente e F-Fornitore    |
+     | i codici contrassegnati con (**) non devono essere utilizzati |
+     | se livello e' uguale a 1-Mastro            |     |     |      |
+     |                                            |     |     |      |
+     |DETTAGLIO CLIENTE/FORNITORE                 |  A  |   1 |   229|
+     |        -                                   |     |     |      |
+     |      1 - Cliente                           |     |     |      |
+     |      2 - Fornitore                         |     |     |      |
+     |      3 - Cliente/Fornitore                 |     |     |      |
+     |                                            |     |     |      |
+     |DESCRIZIONE BILANCIO DARE                   |  A  |  60 |   230|
+     |DESCRIZIONE BILANCIO AVERE                  |  A  |  60 |   290|
+     |                                            |     |     |      |
+     | Il campo dettaglio cliente/fornitore puo' essere indicato     |
+     | solo se livello e' 3 - Sottoconto ed il tipo non e' ne |      |
+     | C - Cliente ne F - Fornitore               |     |     |      |
+     |                                            |     |     |      |
+     | Dati Aziendali (*)                         |     |     |      |
+     |UTILIZZA DESCRIZIONE LOCALE (X)             |  A  |   1 |   350|
+     |DESCRIZIONE LOCALE                          |  A  |  40 |   351|
+     |CONSIDERA NEL BILANCIO PER SEMPLIF. (X)     |  A  |   1 |   391|
+     |                                            |     |     |      |
+     | Non passare i sottoconti Clienti/Fornitori ma utilizzare      |
+     | l'apposito tracciato                       |     |     |      |
+     |                                            |     |     |      |
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   392|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

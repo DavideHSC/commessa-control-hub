@@ -1,0 +1,37 @@
+     Data 19/12/2005                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  113 Bytes+CRLF =  115 Bytes 
+     Nome File:PNTIRFR.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Generali                              |     |     |      |
+     |CODICE UNIVOCO DI SCARICAMENTO              |  A  |  12 |     4|
+     |        E' il codice univoco di scaricamento|     |     |      |
+     |        della prima nota a cui fanno riferimento  |     |      |
+     |        i movimenti di editoria relativi al |     |     |      |
+     |        metodo della resa forfettaria.      |     |     |      |
+     |                                            |     |     |      |
+     |CODICE PUBBLICAZIONE                        |  A  |  10 |    16|
+     |PREZZO VENDITA                              |  N  |  12 |    26|
+     |PERCENTUALE FORFETTARIA RESA                |  N  |   6 |    38|
+     |                                            |     |     |      |
+     | Annotazioni                                |     |     |      |
+     |COPIE CONSEGNATE                            |  N  |   6 |    44|
+     |COPIE CONSEGNATE ABBONAMENTO                |  N  |   6 |    50|
+     |COPIE ESPORTATE                             |  N  |   6 |    56|
+     |DATA CONSEGNA (GGMMAAAA)                    |  N  |   8 |    62|
+     |CODICE ATTIVITA'                            |  A  |   2 |    70|
+     |CODICE ATTIVITA' IVA                        |  A  |   2 |    72|
+     |PROMEMORIA                                  |  A  |  40 |    74|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   114|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

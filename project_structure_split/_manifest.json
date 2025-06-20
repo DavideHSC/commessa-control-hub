@@ -1,0 +1,41 @@
+{
+  "project_name": "commessa-control-hub",
+  "total_project_tokens": 1978676,
+  "files": [
+    {
+      "file": "_docs.json",
+      "type": "directory",
+      "token_estimate": 535858
+    },
+    {
+      "file": "prisma.json",
+      "type": "directory",
+      "token_estimate": 12625
+    },
+    {
+      "file": "public.json",
+      "type": "directory",
+      "token_estimate": 252
+    },
+    {
+      "file": "server.json",
+      "type": "directory",
+      "token_estimate": 13704
+    },
+    {
+      "file": "src.json",
+      "type": "directory",
+      "token_estimate": 89167
+    },
+    {
+      "file": "uploads.json",
+      "type": "directory",
+      "token_estimate": 0
+    },
+    {
+      "file": "_root.json",
+      "type": "root_files",
+      "token_estimate": 1327070
+    }
+  ]
+}

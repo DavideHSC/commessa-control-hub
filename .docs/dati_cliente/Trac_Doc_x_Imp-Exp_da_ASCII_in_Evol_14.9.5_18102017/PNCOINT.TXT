@@ -1,0 +1,35 @@
+     Data 13/03/2008                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:   44 Bytes+CRLF =   46 Bytes 
+     Nome File:PNCOINT.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Generali                              |     |     |      |
+     |CODICE UNIVOCO DI SCARICAMENTO              |  A  |  12 |     4|
+     |        E' il codice univoco di scaricamento|     |     |      |
+     |        della prima nota a cui fanno riferimento  |     |      |
+     |        i cointestatari.                    |     |     |      |
+     |                                            |     |     |      |
+     | COINTESTATARIO                             |     |     |      |
+     |                                            |     |     |      |
+     |CLIENTE/FORNITORE CODICE FISCALE            |  A  |  16 |    16|
+     |CLIENTE/FORNITORE SUBCODICE FISCALE         |  A  |   1 |    32|
+     |CLIENTE/FORNITORE SIGLA                     |  A  |  12 |    33|
+     |        L'identificazione del cliente/fornitore   |     |      |
+     |        puo' essere effettuata o per codice |     |     |      |
+     |        fiscale (con eventuale subcodice) o |     |     |      |
+     |        per sigla. La preminenza viene comunque   |     |      |
+     |        data al codice fiscale.             |     |     |      |
+     |                                            |     |     |      |
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |    45|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

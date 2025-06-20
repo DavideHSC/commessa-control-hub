@@ -1,0 +1,40 @@
+     Data 19/12/2005                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:   68 Bytes+CRLF =   70 Bytes 
+     Nome File:CODPAGAM.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Generali                              |     |     |      |
+     |TABELLA ITALSTUDIO (X)                      |  A  |   1 |     4|
+     |     Campo Riservato Italstudio non         |     |     |      |
+     |     indicare nulla                         |     |     |      |
+     |                                            |     |     |      |
+     |CODICE PAGAMENTO                            |  A  |   8 |     5|
+     |DESCRIZIONE                                 |  A  |  40 |    13|
+     |CONTO INCASSO/PAGAMENTO                     |  A  |  10 |    53|
+     |CALCOLA CON GIORNI COMMERCIALI (X)          |  A  |   1 |    63|
+     |CONSIDERA PERIODI DI CHIUSURA (X)           |  A  |   1 |    64|
+     |SUDDIVISIONE                                |  A  |   1 |    65|
+     |      D - Dettaglio importi                 |     |     |      |
+     |      T - Totale documento                  |     |     |      |
+     |                                            |     |     |      |
+     |INIZIO SCADENZA                             |  A  |   1 |    66|
+     |      D - Data documento                    |     |     |      |
+     |      F - Fine Mese                         |     |     |      |
+     |      R - Data registrazione                |     |     |      |
+     |      P - Data registro Iva                 |     |     |      |
+     |      N - Non determinata                   |     |     |      |
+     |                                            |     |     |      |
+     |NUMERO RATE                                 |  N  |   2 |    67|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |    69|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

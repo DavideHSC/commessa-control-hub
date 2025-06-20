@@ -1,0 +1,102 @@
+     Data 10/01/2007                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  105 Bytes+CRLF =  107 Bytes 
+     Nome File:PNINTRA.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Generali                              |     |     |      |
+     |CODICE UNIVOCO DI SCARICAMENTO              |  A  |  12 |     4|
+     |        E' il codice univoco di scaricamento|     |     |      |
+     |        della prima nota di cui si vogliono |     |     |      |
+     |        associare i movimenti intrastat.    |     |     |      |
+     |                                            |     |     |      |
+     |IMPONIBILE EURO                             |  N  |  12 |    16|
+     |CODICE VALUTA                               |  A  |   4 |    28|
+     |IMPONIBILE VALUTA                           |  N  |  12 |    32|
+     |NATURA TRANSAZIONE                          |  A  |   1 |    44|
+     |NOMENCLATURA                                |  A  |   8 |    45|
+     |MASSA NETTA                                 |  N  |   9 |    53|
+     |UNITA' SUPPLEMENTARE                        |  N  |   9 |    62|
+     |VALORE STATISTICO                           |  N  |  12 |    71|
+     |CONDIZIONI DI CONSEGNA                      |  A  |   3 |    83|
+     |MODO DI TRASPORTO                           |  N  |   1 |    86|
+     |                                            |     |     |      |
+     |PAESE DESTINAZIONE                          |  A  |   2 |    87|
+     |PAESE PROVENIENZA                           |  A  |   2 |    89|
+     |PAESE ORIGINE                               |  A  |   2 |    91|
+     |   Per entrambi i campi 'Paese' indicare uno|     |     |      |
+     |   dei codici seguenti                      |     |     |      |
+     |      =                                     |     |     |      |
+     |   IT = IT - Italia                         |     |     |      |
+     |   AT = AT - Austria                        |     |     |      |
+     |   BE = BE - Belgio                         |     |     |      |
+     |   BG = BG - Bulgaria                       |     |     |      |
+     |   CY = CY - Cipro                          |     |     |      |
+     |   CZ = CZ - Rep. Ceca                      |     |     |      |
+     |   DE = DE - Germania                       |     |     |      |
+     |   DK = DK - Danimarca                      |     |     |      |
+     |   EE = EE - Estonia                        |     |     |      |
+     |   EL = EL - Grecia                         |     |     |      |
+     |   ES = ES - Spagna                         |     |     |      |
+     |   FI = FI - Finlandia                      |     |     |      |
+     |   FR = FR - Francia                        |     |     |      |
+     |   GB = GB - Gran Bretagna                  |     |     |      |
+     |   HU = HU - Ungheria                       |     |     |      |
+     |   IE = IE - Irlanda                        |     |     |      |
+     |   LT = LT - Lituania                       |     |     |      |
+     |   LU = LU - Lussemburgo                    |     |     |      |
+     |   LV = LV - Lettonia                       |     |     |      |
+     |   MT = MT - Malta                          |     |     |      |
+     |   NL = NL - Olanda                         |     |     |      |
+     |   PL = PL - Polonia                        |     |     |      |
+     |   PT = PT - Portogallo                     |     |     |      |
+     |   RO = RO - Romania                        |     |     |      |
+     |   SE = SE - Svezia                         |     |     |      |
+     |   SI = SI - Slovenia                       |     |     |      |
+     |   SK = SK - Rep. Slovacca                  |     |     |      |
+     |   SM = SM - Repubblica di San Marino       |     |     |      |
+     |                                            |     |     |      |
+     |PROVINCIA PROVENIENZA                       |  A  |   2 |    93|
+     |PROVINCIA DESTINAZIONE                      |  A  |   2 |    95|
+
+     Data 10/01/2007                                          Pag.  2
+
+     |SEGNO RETTIFICA                             |  A  |   2 |    97|
+     |      =                                     |     |     |      |
+     |    1 = +                                   |     |     |      |
+     |    2 = -                                   |     |     |      |
+     |                                            |     |     |      |
+     |MESE RIFERIMENTO                            |  A  |   2 |    99|
+     |      =                                     |     |     |      |
+     |   01 = Gennaio                             |     |     |      |
+     |   02 = Febbraio                            |     |     |      |
+     |   03 = Marzo                               |     |     |      |
+     |   04 = Aprile                              |     |     |      |
+     |   05 = Maggio                              |     |     |      |
+     |   06 = Giugno                              |     |     |      |
+     |   07 = Luglio                              |     |     |      |
+     |   08 = Agosto                              |     |     |      |
+     |   09 = Settembre                           |     |     |      |
+     |   10 = Ottobre                             |     |     |      |
+     |   11 = Novembre                            |     |     |      |
+     |   12 = Dicembre                            |     |     |      |
+     |                                            |     |     |      |
+     |TRIMESTRE RIFERIMENTO                       |  A  |   1 |   101|
+     |      =                                     |     |     |      |
+     |    1 = I Trimestre                         |     |     |      |
+     |    2 = II Trimestre                        |     |     |      |
+     |    3 = III Trimestre                       |     |     |      |
+     |    4 = IV Trimestre                        |     |     |      |
+     |ANNO RIFERIMENTO                            |  N  |   4 |   102|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   106|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

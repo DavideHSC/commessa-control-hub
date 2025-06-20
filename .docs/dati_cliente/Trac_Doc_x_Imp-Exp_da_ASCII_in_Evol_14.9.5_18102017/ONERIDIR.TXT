@@ -1,0 +1,48 @@
+     Data 19/10/2011                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  118 Bytes+CRLF =  120 Bytes 
+     Nome File:ONERIDIR.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE    (CHIAVE)                  |  A  |  16 |     4|
+     |SUBCODICE FISCALE (CHIAVE)                  |  A  |   1 |    20|
+     | Dati Oneri Diretti                         |     |     |      |
+     |ANNO              (CHIAVE)                  |  N  |   4 |    21|
+     |CODICE            (CHIAVE)                  |  N  |   6 |    25|
+     |NUMERO ONERE      (CHIAVE)                  |  N  |   2 |    31|
+     |CODICE ATTIVITA'                            |  A  |   2 |    33|
+     |ESERCIZIO                                   |  A  |   5 |    35|
+     |NUMERO RECORD PRIMA NOTA                    |  N  |   6 |    40|
+     |        Indicare Codice Attivita' ed        |     |     |      |
+     |        Esercizio e Numero Record prima nota|     |     |      |
+     |        se si vuole collegare l'onere diretto     |     |      |
+     |        del bene a una prima nota esistente |     |     |      |
+     |        che ha come chiave attivita' esercizio    |     |      |
+     |        e numero record.                    |     |     |      |
+     |                                            |     |     |      |
+     |DATA (GGMMAAAA)                             |  N  |   8 |    46|
+     |CAUSALE                                     |  A  |   1 |    54|
+     |        C = + Costi di Costruzione          |     |     |      |
+     |        O = + Oneri di diretta imputazione  |     |     |      |
+     |        P = + Interessi passivi patrimonializ.    |     |      |
+     |        S = - Sconti                        |     |     |      |
+     |        R = - Reso su Acquisti              |     |     |      |
+     |                                            |     |     |      |
+     |IMPORTO                                     |  N  |  12 |    55|
+     |IMPOSTA IVA                                 |  N  |  12 |    67|
+     |        Si puo' indicare se CAUSALE = C-O-S-R     |     |      |
+     |                                            |     |     |      |
+     |DESCRIZIONE                                 |  A  |  40 |    79|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   119|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

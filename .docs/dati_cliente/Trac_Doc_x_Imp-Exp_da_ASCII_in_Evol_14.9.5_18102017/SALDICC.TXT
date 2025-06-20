@@ -1,0 +1,32 @@
+     Data 19/12/2005                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  128 Bytes+CRLF =  130 Bytes 
+     Nome File:SALDICC.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE AZIENDA                      |  A  |  16 |     4|
+     |SUBCODICE      AZIENDA                      |  A  |   1 |    20|
+     | Dati Generali                              |     |     |      |
+     |CODICE CENTRO                               |  A  |   4 |    21|
+     |PERIODO                                     |  A  |   8 |    25|
+     |MOVIMENTI ANALITICI DARE                    |  N  |  12 |    33|
+     |MOVIMENTI ANALITICI AVERE                   |  N  |  12 |    45|
+     |CENTRO DI COSTO SUPERIORE DARE              |  N  |  12 |    57|
+     |CENTRO DI COSTO SUPERIORE AVERE             |  N  |  12 |    69|
+     |TOTALE DARE                                 |  N  |  12 |    81|
+     |TOTALE AVERE                                |  N  |  12 |    93|
+     |RESIDUO DARE                                |  N  |  12 |   105|
+     |RESIDUO AVERE                               |  N  |  12 |   117|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   129|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

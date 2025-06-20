@@ -1,0 +1,97 @@
+     Data 19/12/2005                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  136 Bytes+CRLF =  138 Bytes 
+     Nome File:CLIFOR.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE ANAGRAFICA                           |  A  |  12 |     4|
+     |CODICE FISCALE                              |  A  |  16 |    16|
+     |SUBCODICE FISCALE                           |  A  |   1 |    32|
+     |PARTITA IVA                                 |  A  |  12 |    33|
+     |        La PARTITA IVA non viene utilizzata |     |     |      |
+     |        in fase di import ma viene utilizzata     |     |      |
+     |        dal programma di trasferimento dagli|     |     |      |
+     |        spool di stampa per rilevare tale   |     |     |      |
+     |        valore da impostare nel codice fiscale    |     |      |
+     |        quando quest'ultimo e' assente      |     |     |      |
+     |                                            |     |     |      |
+     | Dati Cliente-Fornitore                     |     |     |      |
+     |CODICE ANAGRAFICA                           |  A  |  12 |    45|
+     |CODICE FISCALE                              |  A  |  16 |    57|
+     |SUBCODICE FISCALE                           |  A  |   1 |    73|
+     |PARTITA IVA                                 |  A  |  12 |    74|
+     |        La PARTITA IVA non viene utilizzata |     |     |      |
+     |        in fase di import ma viene utilizzata     |     |      |
+     |        dal programma di trasferimento dagli|     |     |      |
+     |        spool di stampa per rilevare tale   |     |     |      |
+     |        valore da impostare nel codice fiscale    |     |      |
+     |        quando quest'ultimo e' assente      |     |     |      |
+     |                                            |     |     |      |
+     |TIPO CLIENTE/FORNITORE                      |  A  |   1 |    86|
+     |        C = Cliente                         |     |     |      |
+     |        F = Fornitore                       |     |     |      |
+     |        E = Entrambi                        |     |     |      |
+     |        Il soggetto viene abilitato nell'azienda  |     |      |
+     |        come cliente se impostato C o E e/o |     |     |      |
+     |        fornitore se impostato F o E        |     |     |      |
+     |                                            |     |     |      |
+     |CONTO CLIENTE (MMCC)                        |  A  |   4 |    87|
+     |SOTTOCONTO CLIENTE (SSSSSS)                 |  A  |   6 |    91|
+     |        Il Conto e Sottoconto Cliente viene |     |     |      |
+     |        utilizzato se TIPO CLIENTE/FORNITORE|     |     |      |
+     |        = C o E e se il soggetto non e' gia'|     |     |      |
+     |        presente in contabilita' come cliente.    |     |      |
+     |                                            |     |     |      |
+     |        Se non viene passato il SOTTOCONTO  |     |     |      |
+     |        viene calcolato automaticamente.    |     |     |      |
+     |        In caso contrario se il sottoconto  |     |     |      |
+     |        e' gia' utilizzato per un altro     |     |     |      |
+     |        soggetto non viene importato.       |     |     |      |
+     |                                            |     |     |      |
+     |CONTO FORNITORE (MMCC)                      |  A  |   4 |    97|
+     |SOTTOCONTO FORNITORE (SSSSSS)               |  A  |   6 |   101|
+     |        Il Conto e Sottoconto Fornitore viene     |     |      |
+     |        utilizzato se TIPO CLIENTE/FORNITORE|     |     |      |
+     |        = F o E e se il soggetto non e' gia'|     |     |      |
+     |        presente in contabilita' come Fornitore.  |     |      |
+     |                                            |     |     |      |
+     |        Se non viene passato il SOTTOCONTO  |     |     |      |
+     |        viene calcolato automaticamente.    |     |     |      |
+
+     Data 19/12/2005                                          Pag.  2
+
+     |        In caso contrario se il sottoconto  |     |     |      |
+     |        e' gia' utilizzato per un altro     |     |     |      |
+     |        soggetto non viene importato.       |     |     |      |
+     |                                            |     |     |      |
+     |Codice pagamento                            |  A  |   8 |   107|
+     |Sigla valuta della nazione di appart.       |  A  |   4 |   115|
+     |Soggetto a ritenuta d'acconto               |  A  |   1 |   119|
+     |Soggetto a Inail                            |  A  |   1 |   120|
+     |Soggetto Contributo 12% / Enasarco          |  A  |   1 |   121|
+     |Codice Raccordo 770                         |  A  |   1 |   122|
+     |Quadro 770                                  |     |     |      |
+     | 0 = Lav. Autonomo                          |     |     |      |
+     | 1 = Provvigioni                            |     |     |      |
+     | 2 = Lav. Aut. Imposta                      |     |     |      |
+     |Codice ritenuta                             |  N  |   5 |   123|
+     |Contr. prov. L.335/95                       |  A  |   1 |   128|
+     | 0 = Non Soggetto                           |     |     |      |
+     | 1 = Soggetto                               |     |     |      |
+     | 2 = Sogg. con imponibile man.              |     |     |      |
+     | 3 = Sogg. con calcolo man.                 |     |     |      |
+     |Aliquota contributo                         |  N  |   6 |   129|
+     |Classificazione attività                    |  N  |   2 |   135|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   137|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

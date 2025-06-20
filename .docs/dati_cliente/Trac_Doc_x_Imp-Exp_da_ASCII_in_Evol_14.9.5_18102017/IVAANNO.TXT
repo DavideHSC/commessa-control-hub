@@ -1,0 +1,37 @@
+     Data 13/07/2006                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:   49 Bytes+CRLF =   51 Bytes 
+     Nome File:IVAANNO.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE AZIENDA                      |  A  |  16 |     4|
+     |SUBCODICE      AZIENDA                      |  A  |   1 |    20|
+     | Dati Iva Annuali                           |     |     |      |
+     |CODICE ATTIVITA' CONTABILE                  |  A  |   2 |    21|
+     |CODICE ATTIVITA' IVA                        |  A  |   2 |    23|
+     |ANNO SOLARE                                 |  N  |   4 |    25|
+     |PERIODICITA'                                |  A  |   1 |    29|
+     |     A - Annuale                            |     |     |      |
+     |     M - Mensile                            |     |     |      |
+     |     R - Trimestrale Art. 74                |     |     |      |
+     |     T - Trimestrale                        |     |     |      |
+     |                                            |     |     |      |
+     |PRO-RATA        (X)                         |  A  |   1 |    30|
+     |PERCENTUALE PRO-RATA PROVVISORIA (0-100)    |  N  |   3 |    31|
+     |PERCENTUALE PRO-RATA DEFINITIVA  (0-100)    |  N  |   3 |    34|
+     |ARTICOLO 36 BIS (X)                         |  A  |   1 |    37|
+     |PERC. SCORPORO AGENZIA VIAGGIO  (999.99)    |  N  |   6 |    38|
+     |PERC. FORFETARIA                (999.99)    |  N  |   6 |    44|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |    50|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

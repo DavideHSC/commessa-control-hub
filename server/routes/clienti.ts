@@ -10,6 +10,19 @@ const isPrismaError = (error: unknown): error is PrismaClientKnownRequestError =
     return error instanceof PrismaClientKnownRequestError;
 };
 
+// GET - Recupera tutti i clienti
+router.get('/', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const clienti = await prisma.cliente.findMany({
+      orderBy: { nome: 'asc' },
+    });
+    res.json(clienti);
+  } catch (error) {
+    console.error('Errore nel recupero dei clienti:', error);
+    res.status(500).json({ error: "Errore durante il recupero dei clienti." });
+  }
+});
+
 // --- CRUD Clienti ---
 router.post('/', async (req: Request, res: Response): Promise<void> => {
   try {

@@ -1,0 +1,143 @@
+     Data 19/12/2005                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  162 Bytes+CRLF =  164 Bytes 
+     Nome File:CODICIVA.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Generali                              |     |     |      |
+     |TABELLA ITALSTUDIO (X)                      |  A  |   1 |     4|
+     |     Campo Riservato Italstudio non         |     |     |      |
+     |     indicare nulla                         |     |     |      |
+     |                                            |     |     |      |
+     |CODICE IVA                                  |  A  |   4 |     5|
+     |DESCRIZIONE                                 |  A  |  40 |     9|
+     |TIPO CALCOLO                                |  A  |   1 |    49|
+     |     N - Nessuno                            |     |     |      |
+     |     O - Normale                            |     |     |      |
+     |     A - Solo imposta                       |     |     |      |
+     |     I - Imposta non assolta                |     |     |      |
+     |     S - Scorporo                           |     |     |      |
+     |     T - Scorporo per intrattenimento       |     |     |      |
+     |     E - Esente/Non imponibile/Escluso      |     |     |      |
+     |     V - Ventilazione corrispettivi         |     |     |      |
+     |                                            |     |     |      |
+     |ALIQUOTA IVA (999.99)                       |  N  |   6 |    50|
+     |PERCENTUALE D'INDETRAIBILITA'               |  N  |   3 |    56|
+     |NOTE                                        |  A  |  40 |    59|
+     |DATA INIZIO VALIDITA' (GGMMAAAA)            |  N  |   8 |    99|
+     |DATA FINE VALIDITA' (GGMMAAAA)              |  N  |   8 |   107|
+     |IMPONIBILE 50% DEI CORRISPETTIVI (X)        |  A  |   1 |   115|
+     |IMPOSTA INTRATTENIMENTI                     |  A  |   2 |   116|
+     |        -                                   |     |     |      |
+     |     6  - 6%                                |     |     |      |
+     |     8  - 8%                                |     |     |      |
+     |     10 - 10%                               |     |     |      |
+     |     16 - 16%                               |     |     |      |
+     |     60 - 60%                               |     |     |      |
+     |                                            |     |     |      |
+     |VENTILAZIONE ALIQUOTA DIVERSA (X)           |  A  |   1 |   118|
+     |ALIQUOTA DIVERSA (999.99)                   |  N  |   6 |   119|
+     |PLAFOND ACQUISTI                            |  A  |   1 |   125|
+     |       -                                    |     |     |      |
+     |     I - Interno/Intra                      |     |     |      |
+     |     E - Importazioni                       |     |     |      |
+     |                                            |     |     |      |
+     |MONTE ACQUISTI (X)                          |  A  |   1 |   126|
+     |PLAFOND VENDITE                             |  A  |   1 |   127|
+     |       -                                    |     |     |      |
+     |     E - Esportazioni                       |     |     |      |
+     |                                            |     |     |      |
+     |NO VOLUME D'AFFARI PLAFOND (X)              |  A  |   1 |   128|
+     |GESTIONE PRO RATA                           |  A  |   1 |   129|
+     |     D - Volume d'affari                    |     |     |      |
+     |     E - Esente                             |     |     |      |
+     |     N - Escluso                            |     |     |      |
+     |                                            |     |     |      |
+     |ACQ. OPERAZ. IMPONIBILI OCCASIONALI (X)     |  A  |   1 |   130|
+     |COMUNICAZIONE DATI IVA VENDITE              |  A  |   1 |   131|
+     |       -                                    |     |     |      |
+     |     1 - Op.Attive CD1.1                    |     |     |      |
+     |     3 - Op.Attive (di cui non impon.) CD1.2|     |     |      |
+
+     Data 19/12/2005                                          Pag.  2
+
+     |     4 - Op.Attive (di cui esenti) CD1.3    |     |     |      |
+     |     2 - Op.Attive (di cui intra) CD1.4     |     |     |      |
+     |                                            |     |     |      |
+     |AGEVOLAZIONI SUBFORNITURE (X)               |  A  |   1 |   132|
+     |COMUNICAZIONE DATI IVA ACQUISTI             |  A  |   1 |   133|
+     |       -                                    |     |     |      |
+     |     1 - Op.Passive CD2.1                   |     |     |      |
+     |     4 - Op.Passive (di cui non impon.) CD2.2     |     |      |
+     |     5 - Op.Passive (di cui esenti) CD2.3   |     |     |      |
+     |     2 - Op.Passive (di cui intra) CD2.4    |     |     |      |
+     |     3 - Importazioni oro/argento CD3.1 CD3.2     |     |      |
+     |     6 - Importazioni rottami CD3.3 CD3.4   |     |     |      |
+     |                                            |     |     |      |
+     |AUTOFATTURA REVERSE CHARGE (X)              |  A  |   1 |   134|
+     |OPERAZIONE ESENTE OCCASIONALE (X)           |  A  |   1 |   135|
+     |CES. ART.38 QUATER C.2 (STORNO IVA) (X)     |  A  |   1 |   136|
+     | Regimi Speciali                            |     |     |      |
+     |                                            |     |     |      |
+     | Agricoltura                                |     |     |      |
+     |PERC. DA DETRARRE SU EXPORT (999.99)        |  N  |   6 |   137|
+     |ACQUISTI/CESSIONI                           |  A  |   1 |   143|
+     |       -                                    |     |     |      |
+     |     A - Tabella A1                         |     |     |      |
+     |     B - Beni Attivita' connesse            |     |     |      |
+     |                                            |     |     |      |
+     |PERCENTUALE DI COMPENSAZIONE (999.99)       |  N  |   6 |   144|
+     |BENI AMMORTIZZABILI (X)                     |  A  |   1 |   150|
+     | Agenzie di viaggio                         |     |     |      |
+     |INDICATORE TERRITORIALE VENDITE             |  A  |   2 |   151|
+     |        -                                   |     |     |      |
+     |     VC - Vendita CEE                       |     |     |      |
+     |     VX - Vendita Extra CEE                 |     |     |      |
+     |     VM - Vendita Mista CEE/Extra CEE       |     |     |      |
+     |                                            |     |     |      |
+     |PROVVIGIONI DM 340/99 ART.7 C.3 (X)         |  A  |   1 |   153|
+     |INDICATORE TERRITORIALE ACQUISTI            |  A  |   2 |   154|
+     |        -                                   |     |     |      |
+     |     AC - Acquisto CEE                      |     |     |      |
+     |     AX - Acquisto Extra CEE                |     |     |      |
+     |     MC - Acquisto misto parte CEE          |     |     |      |
+     |     MX - Acquisto misto parte Extra CEE    |     |     |      |
+     |                                            |     |     |      |
+     | Beni Usati                                 |     |     |      |
+     |METODO DA APPLICARE                         |  A  |   1 |   156|
+     |       -                                    |     |     |      |
+     |     T - Analitico/Globale                  |     |     |      |
+     |     F - Forfetario                         |     |     |      |
+     |                                            |     |     |      |
+     |PERCENTUALE FORFETARIA                      |  A  |   2 |   157|
+     |       -                                    |     |     |      |
+     |     25 - 25%                               |     |     |      |
+     |     50 - 50%                               |     |     |      |
+     |     60 - 60%                               |     |     |      |
+     |                                            |     |     |      |
+     |ANALITICO (BENI AMMORTIZZABILI) (X)         |  A  |   1 |   159|
+     | Intrattenimenti                            |     |     |      |
+     |QUOTA FORFETARIA                            |  A  |   1 |   160|
+     |       -                                    |     |     |      |
+     |     1 - 1/10 dell'imposta                  |     |     |      |
+     |     2 - 1/2 dell'imposta                   |     |     |      |
+
+     Data 19/12/2005                                          Pag.  3
+
+     |     3 - 1/3 dell'imposta                   |     |     |      |
+     |                                            |     |     |      |
+     | Altri Dati                                 |     |     |      |
+     |ACQUISTI INTRACOMUNITARI (X)                |  A  |   1 |   161|
+     |CESSIONE PRODOTTI EDITORIALI                |  A  |   1 |   162|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   163|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

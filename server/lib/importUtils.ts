@@ -8,22 +8,22 @@ export async function processScrittureInBatches(data: { testate: any[], righeCon
     const { testate, righeContabili, righeIva, allocazioni } = data;
     
     // Mappe dati pre-elaborate per efficienza
-    const testateMap = new Map(testate.map(t => [t.id_registrazione.trim(), t]));
+    const testateMap = new Map(testate.map(t => [t.externalId.trim(), t]));
     const righeContabiliMap = new Map<string, any[]>();
     righeContabili.forEach(r => {
-        const testataId = r.id_registrazione_riga.substring(0, 12).trim();
+        const testataId = r.externalId.substring(0, 12).trim();
         if (!righeContabiliMap.has(testataId)) righeContabiliMap.set(testataId, []);
         righeContabiliMap.get(testataId)!.push(r);
     });
     const righeIvaMap = new Map<string, any[]>();
     righeIva.forEach(r => {
-        const rigaId = r.id_registrazione_riga.trim();
+        const rigaId = r.externalId.trim();
         if (!righeIvaMap.has(rigaId)) righeIvaMap.set(rigaId, []);
         righeIvaMap.get(rigaId)!.push(r);
     });
     const allocazioniMap = new Map<string, any[]>();
     allocazioni.forEach(a => {
-        const rigaId = a.id_registrazione_riga.trim();
+        const rigaId = a.externalId.trim();
         if (!allocazioniMap.has(rigaId)) allocazioniMap.set(rigaId, []);
         allocazioniMap.get(rigaId)!.push(a);
     });
@@ -37,7 +37,7 @@ export async function processScrittureInBatches(data: { testate: any[], righeCon
         try {
             // Ogni testata viene processata in una transazione separata
             await prisma.$transaction(async (tx) => {
-                const fornitoreId = testata.id_cliente_fornitore?.trim();
+                const fornitoreId = testata.clienteFornitoreCodiceFiscale?.trim();
                 if (fornitoreId) {
                     await tx.fornitore.upsert({
                         where: { id: fornitoreId },
@@ -51,11 +51,11 @@ export async function processScrittureInBatches(data: { testate: any[], righeCon
                 }
 
                 const scritturaData = {
-                    data: testata.data_registrazione,
+                    data: testata.dataRegistrazione,
                     descrizione: `Importazione - ${testataId}`,
-                    causaleId: testata.codice_causale.trim(),
-                    dataDocumento: testata.data_documento,
-                    numeroDocumento: testata.numero_documento.trim(),
+                    causaleId: testata.causaleId.trim(),
+                    dataDocumento: testata.dataDocumento,
+                    numeroDocumento: testata.numeroDocumento.trim(),
                     fornitoreId: fornitoreId || undefined
                 };
 
@@ -67,8 +67,8 @@ export async function processScrittureInBatches(data: { testate: any[], righeCon
 
                 const righeContabiliPerTestata = righeContabiliMap.get(testataId) || [];
                 for (const riga of righeContabiliPerTestata) {
-                    const rigaId = riga.id_registrazione_riga.trim();
-                    const contoId = riga.codice_conto.trim();
+                    const rigaId = riga.externalId.trim();
+                    const contoId = riga.conto.trim();
                     if (!contoId) continue;
 
                     await tx.conto.upsert({
@@ -86,16 +86,16 @@ export async function processScrittureInBatches(data: { testate: any[], righeCon
                     const rigaScrittura = await tx.rigaScrittura.create({
                         data: {
                             scritturaContabileId: scrittura.id,
-                            descrizione: riga.descrizione_riga.trim(),
-                            dare: riga.importo_dare,
-                            avere: riga.importo_avere,
+                            descrizione: riga.note.trim(),
+                            dare: riga.importoDare,
+                            avere: riga.importoAvere,
                             contoId: contoId,
                         }
                     });
 
                     const righeIvaPerRiga = righeIvaMap.get(rigaId) || [];
                     for (const rigaIva of righeIvaPerRiga) {
-                        const codiceIvaId = rigaIva.codice_iva.trim();
+                        const codiceIvaId = rigaIva.codiceIva.trim();
                         if (!codiceIvaId) continue;
                         await tx.codiceIva.upsert({
                             where: { id: codiceIvaId },
@@ -118,8 +118,8 @@ export async function processScrittureInBatches(data: { testate: any[], righeCon
 
                     const allocazioniPerRiga = allocazioniMap.get(rigaId) || [];
                     for (const alloc of allocazioniPerRiga) {
-                        const commessaId = alloc.codice_commessa.trim();
-                        const voceAnaliticaId = alloc.codice_voce_analitica.trim();
+                        const commessaId = alloc.centroDiCosto.trim();
+                        const voceAnaliticaId = alloc.parametro.toString().trim();
                         if (!commessaId || !voceAnaliticaId) continue;
 
                         await tx.voceAnalitica.upsert({
@@ -144,7 +144,7 @@ export async function processScrittureInBatches(data: { testate: any[], righeCon
                         await tx.allocazione.create({
                             data: {
                                 rigaScritturaId: rigaScrittura.id,
-                                importo: alloc.importo_allocato,
+                                importo: alloc.parametro,
                                 commessaId: commessaId,
                                 voceAnaliticaId: voceAnaliticaId, 
                             }

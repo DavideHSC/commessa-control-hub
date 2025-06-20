@@ -1,0 +1,44 @@
+     Data 04/12/2006                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:   60 Bytes+CRLF =   62 Bytes 
+     Nome File:AZIRACCI.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     |                                            |     |     |      |
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE AZIENDA                      |  A  |  16 |     4|
+     |SUBCODICE      AZIENDA                      |  A  |   1 |    20|
+     |                                            |     |     |      |
+     | Dati Generali                              |     |     |      |
+     |TABELLA ITALSTUDIO (X)                      |  A  |   1 |    21|
+     |     Campo Riservato Italstudio non         |     |     |      |
+     |     indicare nulla                         |     |     |      |
+     |                                            |     |     |      |
+     |CONTO                                       |  A  |  10 |    22|
+     |RIGO                                        |  A  |  20 |    32|
+     |OPERATIVITA                                 |  A  |   1 |    52|
+     |     I - Incrementa (+)                     |     |     |      |
+     |     D - Decrementa (-)                     |     |     |      |
+     |                                            |     |     |      |
+     |PERCENTUALE (999.99)                        |  N  |   6 |    53|
+     |PERCENTUALE DIVIDENDI                       |  A  |   1 |    59|
+     |       -                                    |     |     |      |
+     |     0 - SC/ENC  5% - PF/SP 40%             |     |     |      |
+     |     1 - SC/ENC 95% - PF/SP 60%             |     |     |      |
+     |                                            |     |     |      |
+     |     Questo campo puo' essere impostato solo|     |     |      |
+     |     per i codici N2005_RicavOtt e DivEsclusi     |     |      |
+     |                                            |     |     |      |
+     |NON CONS. DATI GIA PRES. BENI AMM. (X)      |  A  |   1 |    60|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |    61|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

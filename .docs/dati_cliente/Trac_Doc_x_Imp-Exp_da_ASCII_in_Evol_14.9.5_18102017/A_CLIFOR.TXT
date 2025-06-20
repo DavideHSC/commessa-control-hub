@@ -1,0 +1,132 @@
+     Data 10/07/2007                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  338 Bytes+CRLF =  340 Bytes 
+     Nome File:A_CLIFOR.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE AZIENDA                      |  A  |  16 |     4|
+     |SUBCODICE      AZIENDA                      |  A  |   1 |    20|
+     | Dati Generali                              |     |     |      |
+     |CODICE UNIVOCO DI SCARICAMENTO              |  A  |  12 |    21|
+     |CODICE FISCALE CLIENTE/FORNITORE            |  A  |  16 |    33|
+     |SUBCODICE CLIENTE/FORNITORE                 |  A  |   1 |    49|
+     |TIPO CONTO                                  |  A  |   1 |    50|
+     |      C - Cliente                           |     |     |      |
+     |      F - Fornitore                         |     |     |      |
+     |      E - Entrambi                          |     |     |      |
+     |SOTTOCONTO CLIENTE   (MMCC/MMCCSSSSSS)      |  A  |  10 |    51|
+     |SOTTOCONTO FORNITORE (MMCC/MMCCSSSSSS)      |  A  |  10 |    61|
+     | Se si specifica un conto (codifica MMCC) il|     |     |      |
+     | sottoconto verrà assegnato automaticamente |     |     |      |
+     |                                            |     |     |      |
+     |CODICE ANAGRAFICA                           |  A  |  12 |    71|
+     |PARTITA IVA                                 |  N  |  11 |    83|
+     |TIPO SOGGETTO                               |  N  |   1 |    94|
+     |      0 - Persona Fisica                    |     |     |      |
+     |      1 - Soggetto Diverso                  |     |     |      |
+     |                                            |     |     |      |
+     |DENOMINAZIONE/RAGIONE SOCIALE               |  A  |  60 |    95|
+     |                                            |     |     |      |
+     | Dati Anagrafici Persona Fisica (*)         |     |     |      |
+     |COGNOME                                     |  A  |  20 |   155|
+     |NOME                                        |  A  |  20 |   175|
+     |SESSO                                       |  A  |   1 |   195|
+     |      M - Maschio                           |     |     |      |
+     |      F - Femmina                           |     |     |      |
+     |                                            |     |     |      |
+     |DATA DI NASCITA (GGMMAAAA)                  |  N  |   8 |   196|
+     |CODICE CATASTALE COMUNE DI NASCITA          |  A  |   4 |   204|
+     |                                            |     |     |      |
+     | Dati Anagrafici Persona Fisica/Sogg. Div.  |     |     |      |
+     |COD. CAT. COMUNE DI RESID./SEDE LEGALE      |  A  |   4 |   208|
+     |CAP DI RESIDENZA/SEDE LEGALE                |  N  |   5 |   212|
+     |INDIRIZZO DI RESIDENZA/SEDE LEGALE          |  A  |  30 |   217|
+     |PREFISSO TELEFONO                           |  N  |   4 |   247|
+     |NUMERO DI TELEFONO                          |  N  |  11 |   251|
+     |IDENTIFICATIVO FISCALE ESTERO               |  A  |  20 |   262|
+     |CODICE ISO                                  |  A  |   2 |   282|
+     |      AT-Austria                            |     |     |      |
+     |      BE-Belgio                             |     |     |      |
+     |      CY-Cipro                              |     |     |      |
+     |      CZ-Repubblica Ceca                    |     |     |      |
+     |      DE-Germania                           |     |     |      |
+     |      DK-Danimarca                          |     |     |      |
+     |      EE-Estonia                            |     |     |      |
+     |      EL-Grecia                             |     |     |      |
+     |      ES-Spagna                             |     |     |      |
+     |      EX-Extra CEE                          |     |     |      |
+     |      FI-Finlandia                          |     |     |      |
+     |      FR-Francia                            |     |     |      |
+
+     Data 10/07/2007                                          Pag.  2
+
+     |      GB-Gran Bretagna                      |     |     |      |
+     |      HU-Ungheria                           |     |     |      |
+     |      IE-Irlanda                            |     |     |      |
+     |      IT-Italia                             |     |     |      |
+     |      LT-Lituania                           |     |     |      |
+     |      LU-Lussemburgo                        |     |     |      |
+     |      LV-Lettonia                           |     |     |      |
+     |      MT-Malta                              |     |     |      |
+     |      NL-Olanda                             |     |     |      |
+     |      PL-Polonia                            |     |     |      |
+     |      PT-Portogallo                         |     |     |      |
+     |      SE-Svezia                             |     |     |      |
+     |      SI-Slovenia                           |     |     |      |
+     |      SK-Repubb.Slovacca                    |     |     |      |
+     |      SM-Repubb.San Marino                  |     |     |      |
+     |                                            |     |     |      |
+     | Dati per sottoconto Cliente/Fornitore      |     |     |      |
+     |CODICE INCASSO/PAGAMENTO   (TABELLE)        |  A  |   8 |   284|
+     |CODICE INC./PAG. CLIENTE   (AZIENDA)        |  A  |   8 |   292|
+     |CODICE INC./PAG. FORNITORE (AZIENDA)        |  A  |   8 |   300|
+     |CODICE VALUTA                               |  A  |   4 |   308|
+     |                                            |     |     |      |
+     | Dati per sottoconto Fornitore              |     |     |      |
+     |GESTIONE DATI 770 (X)                       |  A  |   1 |   312|
+     |SOGGETTO A RITENUTA (X)                     |  A  |   1 |   313|
+     |QUADRO 770                                  |  A  |   1 |   314|
+     |        -                                   |     |     |      |
+     |      0 - Lavoro autonomo                   |     |     |      |
+     |      1 - Provvigioni                       |     |     |      |
+     |      2 - Lavoro autonomo imposta           |     |     |      |
+     |                                            |     |     |      |
+     |CONTRIBUTO PREVIDENZIALE (X)                |  A  |   1 |   315|
+     |CODICE RITENUTA                             |  A  |   5 |   316|
+     |ENASARCO (X)                                |  A  |   1 |   321|
+     |TIPO RITENUTA                               |  A  |   1 |   322|
+     |        -                                   |     |     |      |
+     |      A - a titolo d'acconto                |     |     |      |
+     |      I - a titolo d'imposta                |     |     |      |
+     |      M - Manuale                           |     |     |      |
+     |                                            |     |     |      |
+     |SOGGETTO INAIL (X)                          |  A  |   1 |   323|
+     |CONTRIBUTO PREVIDENZIALE L.335/95           |  A  |   1 |   324|
+     |      0 - Non soggetto                      |     |     |      |
+     |      1 - Soggetto                          |     |     |      |
+     |      2 - Soggetto con imponibile manuale   |     |     |      |
+     |      3 - Soggetto con calcolo manuale      |     |     |      |
+     |                                            |     |     |      |
+     |ALIQUOTA (999.99)                           |  N  |   6 |   325|
+     |% CONTRIBUTO CASSA PREVID. (999.99)         |  N  |   6 |   331|
+     |ATTIVITA' PER MENSILIZZAZIONE               |  N  |   2 |   337|
+     |                                            |     |     |      |
+     | Le sezioni contrassegnate da (*) devono essere   |     |      |
+     | impostate se TIPO SOGGETTO e' 0 - Persona Fisica |     |      |
+     |                                            |     |     |      |
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   339|
+     +--------------------------------------------+-----+-----+------+
+
+     Data 10/07/2007                                          Pag.  3
+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

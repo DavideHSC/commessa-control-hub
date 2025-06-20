@@ -12,6 +12,7 @@ const ANAGRAFICA_TEMPLATES = [
     { value: 'codici_iva', label: 'Anagrafica Codici IVA' },
     { value: 'condizioni_pagamento', label: 'Anagrafica Condizioni di Pagamento' },
     { value: 'clienti_fornitori', label: 'Anagrafica Clienti e Fornitori' },
+    { value: 'anagrafica_clifor', label: 'Anagrafica Clienti/Fornitori (A_CLIFOR.TXT)' },  // ← AGGIUNTO!
     { value: 'piano_dei_conti', label: 'Anagrafica Piano dei Conti' },
 ];
 

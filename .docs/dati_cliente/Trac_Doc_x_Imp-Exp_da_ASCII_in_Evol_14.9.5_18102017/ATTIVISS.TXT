@@ -1,0 +1,26 @@
+     Data 19/12/2005                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:   72 Bytes+CRLF =   74 Bytes 
+     Nome File:ATTIVISS.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE AZIENDA                      |  A  |  16 |     4|
+     |SUBCODICE      AZIENDA                      |  A  |   1 |    20|
+     | Dati Generali                              |     |     |      |
+     |CODICE ATTIVITA' STUDIO                     |  A  |   2 |    21|
+     |DESCRIZIONE                                 |  A  |  40 |    23|
+     |CODICE ATECOFIN                             |  A  |   5 |    63|
+     |ATTIVITA' (AL 31/12/2003)                   |  A  |   5 |    68|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |    73|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

@@ -1,0 +1,96 @@
+     Data 19/12/2005                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  171 Bytes+CRLF =  173 Bytes 
+     Nome File:CAUSALI.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Generali                              |     |     |      |
+     |TABELLA ITALSTUDIO (X)                      |  A  |   1 |     4|
+     |     Campo Riservato Italstudio non         |     |     |      |
+     |     indicare nulla                         |     |     |      |
+     |                                            |     |     |      |
+     |CODICE CAUSALE                              |  A  |   6 |     5|
+     |DESCRIZIONE CAUSALE                         |  A  |  40 |    11|
+     |TIPO MOVIMENTO                              |  A  |   1 |    51|
+     |     C - Contabile                          |     |     |      |
+     |     I - Contabile/Iva                      |     |     |      |
+     |                                            |     |     |      |
+     |TIPO AGGIORNAMENTO                          |  A  |   1 |    52|
+     |     I - Saldo Iniziale                     |     |     |      |
+     |     P - Saldo Progressivo                  |     |     |      |
+     |     F - Saldo Finale                       |     |     |      |
+     |                                            |     |     |      |
+     |DATA INIZIO VALIDITA'                       |  N  |   8 |    53|
+     |DATA FINE VALIDITA'                         |  N  |   8 |    61|
+     | Movimento Iva                              |     |     |      |
+     |TIPO REGISTRO IVA                           |  A  |   1 |    69|
+     |       -                                    |     |     |      |
+     |     A - Acquisti                           |     |     |      |
+     |     C - Corrispettivi                      |     |     |      |
+     |     V - Vendite                            |     |     |      |
+     |                                            |     |     |      |
+     |SEGNO MOVIMENTO IVA                         |  A  |   1 |    70|
+     |       -                                    |     |     |      |
+     |     I - Incrementa (+)                     |     |     |      |
+     |     D - Decrementa (-)                     |     |     |      |
+     |                                            |     |     |      |
+     |CONTO IVA                                   |  A  |  10 |    71|
+     | Altre Gestioni                             |     |     |      |
+     |GENERAZIONE AUTOFATTURA (X)                 |  A  |   1 |    81|
+     |TIPO AUTOFATTURA GENERATA                   |  A  |   1 |    82|
+     |     A - Altre Gestioni                     |     |     |      |
+     |     C - Cee                                |     |     |      |
+     |     E - Reverse Charge                     |     |     |      |
+     |     R - Rsm                                |     |     |      |
+     |                                            |     |     |      |
+     |CONTO IVA VENDITE                           |  A  |  10 |    83|
+     |FATTURA IMPORTO 0 (X)                       |  A  |   1 |    93|
+     |FATTURA IN VALUTA ESTERA (X)                |  A  |   1 |    94|
+     |NON COSIDERARE IN LIQUIDAZIONE IVA (X)      |  A  |   1 |    95|
+     |IVA ESIGIBILITA' DIFFERITA                  |  A  |   1 |    96|
+     |     N - Nessuna                            |     |     |      |
+     |     E - Emessa/Ricevuta Fattura            |     |     |      |
+     |     I - Incasso/Pagamento Fattura          |     |     |      |
+     |                                            |     |     |      |
+     |FAT. EMESSA SU REG. CORRISPETTIVI (X)       |  A  |   1 |    97|
+     |GESTIONE PARTITE                            |  A  |   1 |    98|
+     |     N - Nessuna                            |     |     |      |
+     |     A - Creazione + Chiusura automatica    |     |     |      |
+     |     C - Creazione                          |     |     |      |
+     |     H - Creazione + Chiusura               |     |     |      |
+
+     Data 19/12/2005                                          Pag.  2
+
+     |                                            |     |     |      |
+     |GESTIONE INTRASTAT (X)                      |  A  |   1 |    99|
+     |GESTIONE RITENUTE/ENASARCO                  |  A  |   1 |   100|
+     |       -                                    |     |     |      |
+     |     R - Ritenuta                           |     |     |      |
+     |     E - Enasarco                           |     |     |      |
+     |     T - Ritenuta/Enasarco                  |     |     |      |
+     |                                            |     |     |      |
+     |VERSAMENTO RITENUTE (X)                     |  A  |   1 |   101|
+     |NOTE MOVIMENTO                              |  A  |  60 |   102|
+     | Impostazioni per stampe                    |     |     |      |
+     |DESDCRIZIONE DOCUMENTO                      |  A  |   5 |   162|
+     |ST. IDENTIFICATIVO ESTERO CLI./FOR. (X)     |  A  |   1 |   167|
+     |SCRITTURA RETTIFICA/ASSESTAMENTO (X)        |  A  |   1 |   168|
+     |NON STAMPARE SU REG. CRON./INC. PAG. (X)    |  A  |   1 |   169|
+     | Contabilit… semplificata                   |     |     |      |
+     |MOV. SU REG.IVA NON RIL. AI FINI IVA (X)    |  A  |   1 |   170|
+     |TIPO MOVIMENTO                              |  A  |   1 |   171|
+     |       -                                    |     |     |      |
+     |     C - Costi                              |     |     |      |
+     |     R - Ricavi                             |     |     |      |
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   172|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

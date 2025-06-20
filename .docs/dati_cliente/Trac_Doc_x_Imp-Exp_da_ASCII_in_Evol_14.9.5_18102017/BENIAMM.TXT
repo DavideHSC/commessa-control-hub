@@ -1,0 +1,395 @@
+     Data 19/10/2017                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  605 Bytes+CRLF =  607 Bytes 
+     Nome File:BENIAMM.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE    (CHIAVE)                  |  A  |  16 |     4|
+     |SUBCODICE FISCALE (CHIAVE)                  |  A  |   1 |    20|
+     | Dati Anagrafici bene                       |     |     |      |
+     |ANNO              (CHIAVE)                  |  N  |   4 |    21|
+     |CODICE            (CHIAVE)                  |  N  |   6 |    25|
+     |DESCRIZIONE                                 |  A  |  60 |    31|
+     |GRUPPO DI BENI (0/1)                        |  N  |   1 |    91|
+     |CODICE ATTIVITA' CONTABILE                  |  A  |   2 |    92|
+     |TIPO BENE                                   |  A  |   1 |    94|
+     |        M = Materiale                       |     |     |      |
+     |        I = Immateriale                     |     |     |      |
+     |                                            |     |     |      |
+     |CODICE CATEGORIA                            |  A  |   7 |    95|
+     |        Cat. materiale   se TIPO BENE = M   |     |     |      |
+     |        Cat. immateriale se TIPO BENE = I   |     |     |      |
+     |                                            |     |     |      |
+     |CODICE RACCORDO                             |  N  |   3 |   102|
+     |CALCOLO                                     |  A  |   1 |   105|
+     |        A = Automatico                      |     |     |      |
+     |        M = Manuale                         |     |     |      |
+     |                                            |     |     |      |
+     |BENE NON STRUMENTALE (0/1)                  |  N  |   1 |   106|
+     |ISCRITTO AL PUBBLICO REGISTRO (0/1)         |  N  |   1 |   107|
+     |ATTREZZATURA INFERIORE A 516 EURO (0/1)     |  N  |   1 |   108|
+     |FABBRICATO O AREA FABBRICABILE (0/1)        |  N  |   1 |   109|
+     |CHIUSO (0/1)                                |  N  |   1 |   110|
+     | Dati Acquisto                              |     |     |      |
+     |TIPO ACQUISTO                               |  A  |   1 |   111|
+     |        A = Acquistato/Capitalizzato        |     |     |      |
+     |        T = Costruito                       |     |     |      |
+     |        R = Riscattato da leasing           |     |     |      |
+     |                                            |     |     |      |
+     |CODICE ATTIVITA'                            |  A  |   2 |   112|
+     |ESERCIZIO                                   |  A  |   5 |   114|
+     |NUMERO RECORD PRIMA NOTA                    |  N  |   6 |   119|
+     |        Indicare numero record prima nota se|     |     |      |
+     |        si vuole collegare l'acquisto del   |     |     |      |
+     |        bene a una prima nota esistente che |     |     |      |
+     |        ha come chiave attivita' esercizio e|     |     |      |
+     |        numero record.                      |     |     |      |
+     |                                            |     |     |      |
+     |USATO (0/1)                                 |  N  |   1 |   125|
+     |DATA ACQUISIZIONE (GGMMAAAA)                |  N  |   8 |   126|
+     |IMPORTO                                     |  N  |  12 |   134|
+     |DATA ENTRATA IN USO (GGMMAAAA)              |  N  |   8 |   146|
+     |TIPO MANUTENZIONI DEDUCIBILI                |  A  |   1 |   154|
+     |        U = Nessuna                         |     |     |      |
+     |        N = Normale (% da attivita' contabile)    |     |      |
+     |        A = Automezzi autotr. (25% 3 esercizi)    |     |      |
+     |                                            |     |     |      |
+     |IMPOSTA IVA                                 |  N  |  12 |   155|
+     |CODICE ATTIVITA' IVA                        |  A  |   2 |   167|
+     |TIPO REGISTRO IVA                           |  A  |   1 |   169|
+
+     Data 19/10/2017                                          Pag.  2
+
+     |        A = Acquisto                        |     |     |      |
+     |        C = Corrispettivi                   |     |     |      |
+     |        V = Vendite                         |     |     |      |
+     |                                            |     |     |      |
+     |CODICE NUMERAZIONE IVA                      |  A  |   3 |   170|
+     |DATA PROTOCOLLO (GGMMAAAA)                  |  N  |   8 |   173|
+     |NUMERO PROTOCOLLO                           |  N  |   6 |   181|
+     |BIS PROTOCOLLO                              |  A  |   1 |   187|
+     |CODICE FISCALE FORNITORE                    |  A  |  16 |   188|
+     |SUBCODICE FORNITORE                         |  A  |   1 |   204|
+     |DATA DOCUMENTO (GGMMAAAA)                   |  N  |   8 |   205|
+     |NUMERO DOCUMENTO                            |  A  |  12 |   213|
+     |BIS DOCUMENTO                               |  A  |   1 |   225|
+     |DATA DISPONIBILITA (GGMMAAAA)               |  N  |   8 |   226|
+     |        Indicare la data disponibilita' solo|     |     |      |
+     |        se diversa dalla data entrata in uso|     |     |      |
+     |        e se si tratta di un bene di una    |     |     |      |
+     |        impresa in contabilita' ordinaria   |     |     |      |
+     |        (l'ammortamento civile iniziera' da |     |     |      |
+     |        tale data)                          |     |     |      |
+     |                                            |     |     |      |
+     |NOTE ACQUISTO                               |  A  |  30 |   234|
+     |NOTE BENE                                   |  A  |  30 |   264|
+     | Dati Variazione - Leggi Speciali           |     |     |      |
+     |IMPOSTA SOST. VERS. RIV. 97/98/99 (0/1)     |  N  |   1 |   294|
+     |SANATORIA                                   |  A  |   1 |   295|
+     |        N = Nessuna                         |     |     |      |
+     |        C = Condono tombale L. 289/2002     |     |     |      |
+     |        D = Dich. integrativa attivita' estere    |     |      |
+     |        T = Dich. integrativa Art. 14 comma 2     |     |      |
+     |        I = Dich. integrativa Art. 14 comma 3     |     |      |
+     |                                            |     |     |      |
+     |EMERSO (0/1)                                |  N  |   1 |   296|
+     | Dati Ammortamento Fiscale                  |     |     |      |
+     |DEDUCIBILITA                                |  A  |   1 |   297|
+     |        N = Come da categoria               |     |     |      |
+     |        A = Autoveicoli - ded. 40%          |     |     |      |
+     |        U = Autoveicoli rapp. e agenti comm. - ded. 80% |      |
+     |        C = Ciclomotori - ded. 40%          |     |     |      |
+     |        I = Ciclomotori rapp. e agenti comm. - ded. 80% |      |
+     |        M = Motocicli - ded. 40%            |     |     |      |
+     |        O = Motocicli rapp. e agenti comm. - ded. 80%   |      |
+     |        T = Telefoni cellulari - ded. 80%   |     |     |      |
+     |        E = Telefoni cellulari fringe benefit     |     |      |
+     |            con addebito al dipendente - ded. 80% |     |      |
+     |        L = Telefoni cellulari autotrasp. - ded. 100%   |      |
+     |        R = Altri beni ad uso promiscuo - ded. 50%|     |      |
+     |        D = Indeducibile                    |     |     |      |
+     |        Z = Manuale                         |     |     |      |
+     |        P = Apparecchiature telefoniche - ded. 80%|     |      |
+     |        V = Autoveicoli in uso a dipendenti - ded. 90%  |      |
+     |                                            |     |     |      |
+     |PERCENTUALE DED. FISC. (999.99 MAX 100)     |  N  |   6 |   298|
+     |        Indicare se DEDUCIBILITA = Z        |     |     |      |
+     |                                            |     |     |      |
+     |VALORE MASSIMO AMMORTIZZABILE               |  N  |  12 |   304|
+     |        Si può indicare se DEDUCIBILITA = Z |     |     |      |
+     |                                            |     |     |      |
+     |UTILIZZO                                    |  A  |   1 |   316|
+     |        N = Normale                         |     |     |      |
+
+     Data 19/10/2017                                          Pag.  3
+
+     |        M = Minore                          |     |     |      |
+     |        G = Maggiore                        |     |     |      |
+     |                                            |     |     |      |
+     |TIPO AMMORTAMENTO                           |  A  |   1 |   317|
+     |        O = Ordinario                       |     |     |      |
+     |        A = Anticipato                      |     |     |      |
+     |        C = Accelerato                      |     |     |      |
+     |        D = Decelerato                      |     |     |      |
+     |        S = Sospeso                         |     |     |      |
+     |                                            |     |     |      |
+     |        Se TIPO BENE = I viene impostato Ordinario|     |      |
+     |                                            |     |     |      |
+     |PERCENTUALE MANUALE (0/1)                   |  N  |   1 |   318|
+     |PERCENTUALE AMMORTAMENTO(999.99 MAX 100)    |  N  |   6 |   319|
+     |        Indicare se PERCENTUALE MANUALE = 1 |     |     |      |
+     |                                            |     |     |      |
+     |NUMERO ESERCIZI AMMORTAMENTO                |  N  |   2 |   325|
+     |        Indicare se TIPO BENE = I           |     |     |      |
+     |                                            |     |     |      |
+     | Dati Ammortamento Civile                   |     |     |      |
+     |TIPO AMMORTAMENTO                           |  A  |   1 |   327|
+     |        F = Ammortamento fiscale            |     |     |      |
+     |        C = Costante in base alla vita utile|     |     |      |
+     |        A = Quote decrescenti (Aritmetico)  |     |     |      |
+     |        L = Quote decrescenti (Logaritmico) |     |     |      |
+     |        M = % Manuale                       |     |     |      |
+     |        S = Sospeso                         |     |     |      |
+     |                                            |     |     |      |
+     |PERCENTUALE AMMORTAMENTO(999.99 MAX 100)    |  N  |   6 |   328|
+     |        Indicare se TIPO AMMORTAMENTO = M   |     |     |      |
+     |                                            |     |     |      |
+     |NUMERO ESERCIZI AMMORTAMENTO                |  N  |   2 |   334|
+     |        Indicare se TIPO AMMORTAMENTO = C-A-L     |     |      |
+     |                                            |     |     |      |
+     |RICAVO RESIDUO PREVISTO                     |  N  |  12 |   336|
+     |        Indicare se TIPO AMMORTAMENTO = L   |     |     |      |
+     |                                            |     |     |      |
+     | Dati Vendita/Eliminazione                  |     |     |      |
+     |TIPO ELIMINAZIONE/VENDITA                   |  A  |   1 |   348|
+     |        U = Nessuna                         |     |     |      |
+     |        E = Eliminazione                    |     |     |      |
+     |        V = Vendita                         |     |     |      |
+     |        N = Eventi straordinari             |     |     |      |
+     |        S = Eventi straordinari rimb. nell'es.    |     |      |
+     |        R = Reso su acquisti                |     |     |      |
+     |                                            |     |     |      |
+     |CODICE ATTIVITA'                            |  A  |   2 |   349|
+     |ESERCIZIO                                   |  A  |   5 |   351|
+     |NUMERO RECORD PRIMA NOTA                    |  N  |   6 |   356|
+     |        Indicare numero record prima nota se|     |     |      |
+     |        si vuole collegare la vendita del   |     |     |      |
+     |        bene a una prima nota esistente che |     |     |      |
+     |        ha come chiave attivita' esercizio e|     |     |      |
+     |        numero record.                      |     |     |      |
+     |                                            |     |     |      |
+     |DATA VENDITA (GGMMAAAA)                     |  N  |   8 |   362|
+     |IMPORTO                                     |  N  |  12 |   370|
+     |CODICE ATTIVITA' IVA                        |  A  |   2 |   382|
+     |TIPO REGISTRO IVA                           |  A  |   2 |   384|
+     |        A = Acquisto                        |     |     |      |
+
+     Data 19/10/2017                                          Pag.  4
+
+     |        C = Corrispettivi                   |     |     |      |
+     |        V = Vendite                         |     |     |      |
+     |                                            |     |     |      |
+     |CODICE NUMERAZIONE IVA                      |  A  |   3 |   386|
+     |DATA PROTOCOLLO (GGMMAAAA)                  |  N  |   8 |   389|
+     |NUMERO PROTOCOLLO                           |  N  |   6 |   397|
+     |BIS PROTOCOLLO                              |  A  |   1 |   403|
+     |CODICE FISCALE CLIENTE                      |  A  |  16 |   404|
+     |SUBCODICE CLIENTE                           |  A  |   1 |   420|
+     |IMPOSTA IVA                                 |  N  |  12 |   421|
+     |NOTE VENDITA                                |  A  |  30 |   433|
+     |PLUSV./MINUSVALENZA STRAORDINARIA (0/1)     |  N  |   1 |   463|
+     |PLUSVALENZA/MINUSVALENZA CIVILE             |  N  |  12 |   464|
+     |PLUSVALENZA/MINUSVALENZA FISCALE            |  N  |  12 |   476|
+     |STORNO FONDO CIVILE                         |  N  |  12 |   488|
+     |STORNO FONDO FISCALE                        |  N  |  12 |   500|
+     |STORNO FONDO SVALUTAZIONI                   |  N  |  12 |   512|
+     | Dati per export fiscali                    |     |     |      |
+     |AUTOVEICOLI                                 |  A  |   1 |   524|
+     |          =                                 |     |     |      |
+     |        A = Auto utilizzate nell'attivita'  |     |     |      |
+     |        B = Motocicli effettivamente utilizzati   |     |      |
+     |                                            |     |     |      |
+     |        Si puo' indicare se TIPO BENE = M e |     |     |      |
+     |        la categoria indicata ha Tipo =     |     |     |      |
+     |        Autoveicoli                         |     |     |      |
+     |                                            |     |     |      |
+     |TIPO BENI MATERIALI PROSPETTO EC            |  A  |   1 |   525|
+     |          =                                 |     |     |      |
+     |        A = Altri beni divesi dai successivi|     |     |      |
+     |        I = Impianti e macchinari           |     |     |      |
+     |        F = Fabbricati                      |     |     |      |
+     |                                            |     |     |      |
+     |        Indicare se TIPO BENE = M           |     |     |      |
+     |                                            |     |     |      |
+     |BENI MOBILI DIGITALI (0/1)                  |  N  |   1 |   526|
+     |        Si puo' indicare se TIPO BENE = M e |     |     |      |
+     |        la categoria indicata ha Tipo =     |     |     |      |
+     |        Beni mobili in generale             |     |     |      |
+     |                                            |     |     |      |
+     |FILLER                                      |  N  |   1 |   527|
+     |COSTRUZIONI LEGGERE STABILI (0/1)           |  N  |   1 |   528|
+     |        Si puo' indicare se TIPO BENE = M e |     |     |      |
+     |        la categoria indicata ha Tipo =     |     |     |      |
+     |        Costruzioni leggere                 |     |     |      |
+     |                                            |     |     |      |
+     |VALORE NORMALE BENI IN COMODATO O LOCAZ.    |  N  |  12 |   529|
+     |MACCHINE D'UFFICIO                          |  A  |   1 |   541|
+     |          =                                 |     |     |      |
+     |        A = Hardware utilizzato             |     |     |      |
+     |        B = Beni digitali                   |     |     |      |
+     |        C = Modem/Fax                       |     |     |      |
+     |                                            |     |     |      |
+     |        Si puo' indicare se TIPO BENE = M e |     |     |      |
+     |        la categoria indicata ha Tipo =     |     |     |      |
+     |        Macchine d'ufficio elettromeccaniche|     |     |      |
+     |                                            |     |     |      |
+     | *** Fine vecchio tracciato                 |     |     |      |
+     |                                            |     |     |      |
+     | Dati Acquisto                              |     |     |      |
+
+     Data 19/10/2017                                          Pag.  5
+
+     |CODICE CENTRO DI COSTO                      |  A  |   4 |   542|
+     |                                            |     |     |      |
+     | Dati Ammortamento Fiscale                  |     |     |      |
+     |VALORE TERRENO FISCALE                      |  N  |  12 |   546|
+     |        Si puo' indicare se TIPO BENE = M e |     |     |      |
+     |        la categoria indicata ha Tipo =     |     |     |      |
+     |        Immobili e FABBRICATI STRUMENTALI/  |     |     |      |
+     |        TERRENI = F                         |     |     |      |
+     |                                            |     |     |      |
+     | Compilazione Unico/Nota Integrativa        |     |     |      |
+     |CONCESSO IN LEASING (0/1)                   |  N  |   1 |   558|
+     |NON CONS. PER SOGG. NON OPERATIVI (0/1)     |  N  |   1 |   559|
+     |IMMOBILI PART. SOGGETTI NON OPERATIVI       |  A  |   1 |   560|
+     |          =                                 |     |     |      |
+     |        A = Categoria A/10                  |     |     |      |
+     |        B = Abitativi                       |     |     |      |
+     |        C = Terreni da cons. immobili       |     |     |      |
+     |                                            |     |     |      |
+     |FABBRICATI STRUMENTALI/TERRENI              |  A  |   1 |   561|
+     |          =                                 |     |     |      |
+     |        F = Fabbricato Industriale          |     |     |      |
+     |        T = Terreno di fabbricato           |     |     |      |
+     |        I = Terreno di fabbricato industriale     |     |      |
+     |                                            |     |     |      |
+     |        Si puo' indicare se TIPO BENE = M e |     |     |      |
+     |        la categoria indicata ha Tipo =     |     |     |      |
+     |        Immobili o vuoto                    |     |     |      |
+     |                                            |     |     |      |
+     |BENI ART. 8-BIS C.1 LET. A (0/1)            |  N  |   1 |   562|
+     |        Si puo' indicare se TIPO BENE = M e |     |     |      |
+     |        la categoria indicata ha Tipo =     |     |     |      |
+     |        Beni mobili in generale             |     |     |      |
+     |                                            |     |     |      |
+     |AGEVOLAZIONE TREMONTI TER  (0/1)            |  N  |   1 |   563|
+     |        Si puo' indicare se TIPO BENE = M e |     |     |      |
+     |        la categoria indicata ha Tipo <>    |     |     |      |
+     |        Immobili o vuoto                    |     |     |      |
+     |                                            |     |     |      |
+     |IMP. TREMONTI TER SE <> COSTO STORICO       |  N  |  12 |   564|
+     |        Si puo' indicare se                 |     |     |      |
+     |        AGEVOLAZIONE TREMONTI TER = 1       |     |     |      |
+     |                                            |     |     |      |
+     |B.I.1) COSTI D'IMPIANTO E AMPLIAMENTO       |  A  |   1 |   576|
+     |          =                                 |     |     |      |
+     |        A = Costi di costituzione           |     |     |      |
+     |        B = Costi di aumento di capitale    |     |     |      |
+     |        C = Costi di trasformazione         |     |     |      |
+     |        D = Spese di impianto               |     |     |      |
+     |                                            |     |     |      |
+     |        Si puo' indicare se TIPO BENE = I e |     |     |      |
+     |        la categoria indicata ha Classificazione  |     |      |
+     |        per nota integrativa = B.I.1) Costi di    |     |      |
+     |        impianto e ampliamento              |     |     |      |
+     |                                            |     |     |      |
+     |B.I.2) COSTI DI RIC., SVIL. E PUBBL.        |  A  |   1 |   577|
+     |          =                                 |     |     |      |
+     |        A = Incremento produzione           |     |     |      |
+     |        B = Decrementi costi di produzione  |     |     |      |
+     |        C = Decrementi costi di distribuzione     |     |      |
+     |        D = Giornali                        |     |     |      |
+
+     Data 19/10/2017                                          Pag.  6
+
+     |        E = Periodici                       |     |     |      |
+     |        F = Radio                           |     |     |      |
+     |        G = Televisione                     |     |     |      |
+     |        H = Cinema                          |     |     |      |
+     |        I = Affissioni                      |     |     |      |
+     |        L = Insegne                         |     |     |      |
+     |        M = Opuscoli                        |     |     |      |
+     |        N = Fiere                           |     |     |      |
+     |        O = Mostre                          |     |     |      |
+     |        P = Sponsor                         |     |     |      |
+     |                                            |     |     |      |
+     |        Si puo' indicare se TIPO BENE = I e |     |     |      |
+     |        la categoria indicata ha Classificazione  |     |      |
+     |        per nota integrativa = B.I.2) Costi di    |     |      |
+     |        ricerca, sviluppo e pubblicita'     |     |     |      |
+     |                                            |     |     |      |
+     |BENI MATERIALI NOTA INTEGRATIVA             |  A  |   1 |   578|
+     |          =                                 |     |     |      |
+     |        A = B.II.1) Terreni e fabbricati    |     |     |      |
+     |        B = B.II.2) Impianti e macchinari   |     |     |      |
+     |        C = B.II.3) Attrezzature industriali e commerciali     |
+     |        D = B.II.4) Altri beni              |     |     |      |
+     |                                            |     |     |      |
+     |        Si puo' indicare se TIPO BENE = M   |     |     |      |
+     |                                            |     |     |      |
+     | Compilazione Studi di Settore              |     |     |      |
+     |SIGLA ATTIVITA' STUDI                       |  A  |   4 |   579|
+     |NON CONS. NEGLI STUDI DI SETTORE (0/1)      |  N  |   1 |   583|
+     |                                            |     |     |      |
+     | Beni Riscattati da Leasing                 |     |     |      |
+     |BENE ACQUISITO IN LEASING                   |  N  |   6 |   584|
+     |                                            |     |     |      |
+     | Vendita/Eliminazione                       |     |     |      |
+     |GENERATA PRIMA NOTA CESSIONE (0/1)          |  N  |   1 |   590|
+     |                                            |     |     |      |
+     | *** Fine Tracciato prima revisione         |     |     |      |
+     |                                            |     |     |      |
+     |EXTRA DEDUZIONE LEGGE 208/2015              |  A  |   1 |   591|
+     |          =                                 |     |     |      |
+     |        A = Impostazioni Azienda            |     |     |      |
+     |        C = Considerare                     |     |     |      |
+     |        N = Non considerare                 |     |     |      |
+     |                                            |     |     |      |
+     |        Si puo' indicare se il bene è soggetto a Extradeduzione|
+     |                                            |     |     |      |
+     |VALORE TERRENO CIVILE                       |  N  |  12 |   592|
+     |        Si puo' indicare se TIPO BENE = M e |     |     |      |
+     |        la categoria indicata ha Tipo =     |     |     |      |
+     |        Immobili e FABBRICATI STRUMENTALI/  |     |     |      |
+     |        TERRENI = F                         |     |     |      |
+     |                                            |     |     |      |
+     |BENE SOG. AMM. DEL 250% DEL VALORE (0/1)    |  N  |   1 |   604|
+     |ACC. 20% O SUP. VERSATO L. 208/2015(0/1)    |  N  |   1 |   605|
+     |                                            |     |     |      |
+     | Il programma in fase di import e' in grado |     |     |      |
+     | di supportare 3 formati diversi di tracciato,    |     |      |
+     | - Vecchio Tracciato: indicare fino al campo|     |     |      |
+     |   MACCHINE D'UFFICIO prog. 541 per una     |     |     |      |
+     |   lunghezza totale di 541 bytes            |     |     |      |
+     | - Prima revisione: indicare fino al campo  |     |     |      |
+
+     Data 19/10/2017                                          Pag.  7
+
+     |   GENERATA PRIMA NOTA CESSIONE prog. 590   |     |     |      |
+     |   per una lunghezza totale di 590 bytes    |     |     |      |
+     | aggiungere i caratteri CRLF PIC 9(2) [0D0A]|     |     |      |
+     | per utilizzare il vecchio tracciato altrimenti   |     |      |
+     | utilizzare la nuova lunghezza record       |     |     |      |
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   606|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

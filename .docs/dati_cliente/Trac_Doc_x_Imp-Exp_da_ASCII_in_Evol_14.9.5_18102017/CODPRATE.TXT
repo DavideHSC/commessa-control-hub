@@ -1,0 +1,36 @@
+     Data 19/12/2005                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:   47 Bytes+CRLF =   49 Bytes 
+     Nome File:CODPRATE.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Generali                              |     |     |      |
+     |TABELLA ITALSTUDIO (X)                      |  A  |   1 |     4|
+     |     Campo Riservato Italstudio non         |     |     |      |
+     |     indicare nulla                         |     |     |      |
+     |                                            |     |     |      |
+     |CODICE PAGAMENTO                            |  A  |   8 |     5|
+     |NUMERO RATA                                 |  N  |   5 |    13|
+     |INIZIO SCADENZA                             |  A  |   1 |    18|
+     |      D - Data documento                    |     |     |      |
+     |      F - Fine Mese                         |     |     |      |
+     |      R - Data registrazione                |     |     |      |
+     |      P - Data registro Iva                 |     |     |      |
+     |      N - Non determinata                   |     |     |      |
+     |                                            |     |     |      |
+     |NUMERO GIORNI                               |  N  |   5 |    19|
+     |PERCENTUALE IMPONIBILE (999.9999)           |  N  |   8 |    24|
+     |PERCENTUALE IMPOSTA (999.9999)              |  N  |   8 |    32|
+     |PERCENTUALE TOTALE (999.9999)               |  N  |   8 |    40|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |    48|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

@@ -32,43 +32,74 @@ router.post('/:templateName', upload.single('file'), async (req: Request, res: R
         const fieldDefinitions = importTemplate.fields.map(f => ({ name: f.nomeCampo, start: f.start, length: f.length, type: f.type as any }));
         const parsedData = parseFixedWidth<any>(fileContent, fieldDefinitions);
 
-        // Gestione speciale per clienti/fornitori
-        if (templateName === 'clienti_fornitori') {
+        // Gestione speciale per anagrafica clienti/fornitori
+        if (templateName === 'anagrafica_clifor') {
             await prisma.$transaction(async (tx) => {
                 for (const record of parsedData) {
-                    const piva = record.piva?.trim();
-
-                    // Se la P.IVA non è valida o è vuota, salta il record per sicurezza
-                    if (!piva || piva.length < 11) { 
-                        continue;
+                    const externalId = record.externalId?.trim();
+                    if (!externalId) {
+                        continue; // Salta record senza un ID esterno valido
                     }
 
                     const dataToUpsert = {
-                        id: record.externalId.trim(),
-                        externalId: record.externalId.trim(),
-                        nome: record.nome.trim(),
-                        piva: piva,
+                        id: externalId,
+                        externalId: externalId,
+                        nome: record.nome?.trim() || 'N/A',
+                        piva: record.piva?.trim(),
                         codiceFiscale: record.codiceFiscale?.trim(),
                     };
-                    
-                    const targetModel = record.tipo === 'C' ? tx.cliente : tx.fornitore;
-                    
-                    // Controlla se esiste già un record con questa PIVA prima di fare upsert
-                    const existing = await (targetModel as any).findUnique({
-                        where: { piva: dataToUpsert.piva },
-                    });
 
-                    // Se non esiste, procedi con l'upsert usando l'ID esterno come chiave principale
-                    if (!existing) {
-                        await (targetModel as any).upsert({
+                    const createInCliente = async () => {
+                        // Se la P.IVA è fornita, controlla che non esista già per un ID diverso
+                        if (dataToUpsert.piva) {
+                            const existing = await tx.cliente.findUnique({
+                                where: { piva: dataToUpsert.piva },
+                            });
+                            // Se esiste un cliente con questa P.IVA e ID diverso, salta per evitare conflitti
+                            if (existing && existing.id !== dataToUpsert.id) {
+                                console.warn(`Cliente con P.IVA ${dataToUpsert.piva} già esistente (ID: ${existing.id}). Record con ID ${dataToUpsert.id} saltato.`);
+                                return;
+                            }
+                        }
+                        await tx.cliente.upsert({
                             where: { id: dataToUpsert.id },
                             update: dataToUpsert,
                             create: dataToUpsert,
                         });
+                    };
+
+                    const createInFornitore = async () => {
+                        // Se la P.IVA è fornita, controlla che non esista già per un ID diverso
+                        if (dataToUpsert.piva) {
+                            const existing = await tx.fornitore.findUnique({
+                                where: { piva: dataToUpsert.piva },
+                            });
+                            // Se esiste un fornitore con questa P.IVA e ID diverso, salta per evitare conflitti
+                            if (existing && existing.id !== dataToUpsert.id) {
+                                console.warn(`Fornitore con P.IVA ${dataToUpsert.piva} già esistente (ID: ${existing.id}). Record con ID ${dataToUpsert.id} saltato.`);
+                                return;
+                            }
+                        }
+                        await tx.fornitore.upsert({
+                            where: { id: dataToUpsert.id },
+                            update: dataToUpsert,
+                            create: dataToUpsert,
+                        });
+                    };
+
+                    const tipoAnagrafica = record.tipo?.trim().toUpperCase();
+
+                    if (tipoAnagrafica === 'C') {
+                        await createInCliente();
+                    } else if (tipoAnagrafica === 'F') {
+                        await createInFornitore();
+                    } else if (tipoAnagrafica === 'E') {
+                        await createInCliente();
+                        await createInFornitore();
                     }
                 }
             });
-             return res.status(200).json({ message: `Importazione per '${templateName}' completata. Record duplicati o non validi sono stati ignorati.` });
+             return res.status(200).json({ message: `Importazione per '${templateName}' completata con successo.` });
         }
 
         // Gestione per Piano dei Conti

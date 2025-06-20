@@ -1,0 +1,42 @@
+     Data 19/12/2005                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  185 Bytes+CRLF =  187 Bytes 
+     Nome File:PNMOVBU.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Generali                              |     |     |      |
+     |CODICE UNIVOCO DI SCARICAMENTO              |  A  |  12 |     4|
+     |        E' il codice univoco di scaricamento|     |     |      |
+     |        della prima nota a cui fanno riferimento  |     |      |
+     |        i movimenti dei beni usati.         |     |     |      |
+     |                                            |     |     |      |
+     |CODICE BENE                                 |  A  |   6 |    16|
+     |DESCRIZIONE MOVIMENTO                       |  A  |  40 |    22|
+     |DATA MOVIMENTO (GGMMAAAA)                   |  N  |   8 |    62|
+     |TIPO MOVIMENTO                              |  A  |   1 |    70|
+     |        C = Carico                          |     |     |      |
+     |        S = Scarico                         |     |     |      |
+     |IMPORTO                                     |  N  |  12 |    71|
+     |                                            |     |     |      |
+     | Estremi                                    |     |     |      |
+     |CODICE ATTIVITA'                            |  A  |   2 |    83|
+     |CODICE ATTIVITA' IVA                        |  A  |   2 |    85|
+     |CODICE IVA                                  |  A  |   4 |    87|
+     |ESTREMI DOCUMENTO                           |  A  |  40 |    91|
+     |PROMEMORIA                                  |  A  |  40 |   131|
+     |COSTO D'ACQUISTO                            |  N  |  12 |   171|
+     |ANALITICO (BENI AMMORTIZZABILI)(0/1)        |  N  |   1 |   183|
+     |SPESA ACCESSORIA (0/1)                      |  N  |   1 |   184|
+     |ESPORTAZIONE (0/1)                          |  N  |   1 |   185|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   186|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

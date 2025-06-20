@@ -1,0 +1,100 @@
+     Data 19/12/2005                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  573 Bytes+CRLF =  575 Bytes 
+     Nome File:PNDAT770.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Generali                              |     |     |      |
+     |CODICE UNIVOCO DI SCARICAMENTO              |  A  |  12 |     4|
+     |        E' il codice univoco di scaricamento|     |     |      |
+     |        della prima nota di cui si vogliono |     |     |      |
+     |        generare i dati 770.                |     |     |      |
+     |                                            |     |     |      |
+     |DESCRIZIONE DATI 770                        |  A  |  60 |    16|
+     |                                            |     |     |      |
+     | Altri Dati                                 |     |     |      |
+     |        I campi seguenti sono facoltativi   |     |     |      |
+     |        se presenti nei parametri aziendali |     |     |      |
+     |CONTO RITENUTE                              |  A  |  10 |    76|
+     |CONTO INPS PATRIMONIALE                     |  A  |  10 |    86|
+     |CONTO INPS COSTO                            |  A  |  10 |    96|
+     |CONTO ENASARCO PATRIMONIALE                 |  A  |  10 |   106|
+     |CONTO ENASARCO COSTO                        |  A  |  10 |   116|
+     |CONTO INAIL PATRIMONIALE                    |  A  |  10 |   126|
+     |CONTO INAIL COSTO                           |  A  |  10 |   136|
+     |CAUSALE REGISTRAZIONE CONTRIBUTI            |  A  |   6 |   146|
+     |CAUSALE REGISTRAZIONE INAIL                 |  A  |   6 |   152|
+     |                                            |     |     |      |
+     | Dati facoltativi per stampa certificazioni |     |     |      |
+     |DATA VERSAMENTO                             |  N  |   8 |   158|
+     |ESTREMI VERSAMENTO                          |  A  |  16 |   166|
+     |                                            |     |     |      |
+     | Dati 770                                   |     |     |      |
+     |SOGGETTO A RITENUTA (0/1)                   |  N  |   1 |   182|
+     |CONTRIBUTO PREVIDENZIALE (0/1)              |  N  |   1 |   183|
+     |ENASARCO (0/1)                              |  N  |   1 |   184|
+     |SOGGETTO INAIL (0/1)                        |  N  |   1 |   185|
+     |DATA PAGAMENTO                              |  N  |   8 |   186|
+     |DATA INIZIO ATTIVITA'                       |  N  |   8 |   194|
+     |DATA FINE ATTIVITA'                         |  N  |   8 |   202|
+     |DESCRIZIONE STAMPA CERTIFICAZIONI           |  A  |  37 |   210|
+     |CAUSALE 770                                 |  A  |   1 |   247|
+     |                                            |     |     |      |
+     | Soggetto a Ritenuta                        |     |     |      |
+     |CODICE RITENUTA                             |  A  |   5 |   248|
+     |TIPO RITENUTA                               |  A  |   1 |   253|
+     |         A = a titolo d'acconto             |     |     |      |
+     |         I = a titolo d'imposta             |     |     |      |
+     |         M = Manuale                        |     |     |      |
+     |                                            |     |     |      |
+     |IMPONIBILE IVA                              |  N  |  12 |   254|
+     |IVA                                         |  N  |  12 |   266|
+     |SPESE ANTICIPATE ESCL. ART. 15              |  N  |  12 |   278|
+     |SPESE IMP. IVA NON SOGGETTE A RITENUTA      |  N  |  12 |   290|
+     |SPESE NO RIT. CONV. INT.                    |  N  |  12 |   302|
+     |RITENUTE SOSPESE                            |  N  |  12 |   314|
+     |COMP. NON SOGGETTE A RITENUTA               |  N  |  12 |   326|
+     |CONTRIBUTO CASSA PREVIDENZIALE              |  N  |  12 |   338|
+     |TOTALE SOGGETTO A RITENUTA                  |  N  |  12 |   350|
+     |RITENUTA A TITOLO D'ACCONTO                 |  N  |  12 |   362|
+     |RITENUTA A TITOLO D'IMPOSTA                 |  N  |  12 |   374|
+
+     Data 19/12/2005                                          Pag.  2
+
+     |FRINGE BENEFIT                              |  N  |  12 |   386|
+     |NETTO DA PAGARE                             |  N  |  12 |   398|
+     |ADD. REGIONALE TITOLO D'ACCONTO             |  N  |  12 |   410|
+     |ADD. REGIONALE TITOLO D'IMPOSTA             |  N  |  12 |   422|
+     |ADD. REGIONALE SOSPESA                      |  N  |  12 |   434|
+     |IMPONIBILE ANNI PRECEDENTI                  |  N  |  12 |   446|
+     |RITENUTE OPERATE ANNI PRECEDENTI            |  N  |  12 |   458|
+     |                                            |     |     |      |
+     | Contributo previdenziale                   |     |     |      |
+     |RIVALSA 4% (0/1)                            |  N  |   1 |   470|
+     |TIPO IMPONIBILE CONTRIB. PREVIDENZIALE      |  A  |   1 |   471|
+     |         0 = Non Soggetto                   |     |     |      |
+     |         1 = Soggetto                       |     |     |      |
+     |                                            |     |     |      |
+     |IMPONIBILE CONTRIBUTO PREVIDENZIALE         |  N  |  12 |   472|
+     |ALIQUOTA                                    |  N  |   6 |   484|
+     |TOTALE CONTRIBUTO                           |  N  |  12 |   490|
+     |CONTR. CAR. TERZI, RIVALSA 4%               |  N  |  12 |   502|
+     |CONTRIBUTO CARICO DITTA                     |  N  |  12 |   514|
+     |                                            |     |     |      |
+     | Enasarco / Inail                           |     |     |      |
+     |ENASARCO                                    |  N  |  12 |   526|
+     |ENASARCO DITTA                              |  N  |  12 |   538|
+     |PREMIO INAIL                                |  N  |  12 |   550|
+     |PREMIO INAIL DITTA                          |  N  |  12 |   562|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   574|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

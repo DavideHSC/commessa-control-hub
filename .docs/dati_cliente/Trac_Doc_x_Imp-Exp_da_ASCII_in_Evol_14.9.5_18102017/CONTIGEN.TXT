@@ -1,0 +1,118 @@
+     Data 07/12/2006                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  388 Bytes+CRLF =  390 Bytes 
+     Nome File:CONTIGEN.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     |                                            |     |     |      |
+     | Dati Generali                              |     |     |      |
+     |TABELLA ITALSTUDIO (X)                      |  A  |   1 |     4|
+     |     Campo Riservato Italstudio non         |     |     |      |
+     |     indicare nulla                         |     |     |      |
+     |                                            |     |     |      |
+     |LIVELLO                                     |  A  |   1 |     5|
+     |      1 - Mastro                            |     |     |      |
+     |      2 - Conto                             |     |     |      |
+     |      3 - Sottoconto                        |     |     |      |
+     |                                            |     |     |      |
+     |CODIFICA (MM/MMCC/MMCCSSSSSS)               |  A  |  10 |     6|
+     |DESCRIZIONE                                 |  A  |  60 |    16|
+     |TIPO                                        |  A  |   1 |    76|
+     |      P - Patrimoniale                      |     |     |      |
+     |      E - Economico                         |     |     |      |
+     |      O - Conto d'ordine                    |     |     |      |
+     |      C - Cliente                           |     |     |      |
+     |      F - Fornitore                         |     |     |      |
+     |                                            |     |     |      |
+     |SIGLA                                       |  A  |  12 |    77|
+     |CONTROLLO SEGNO                             |  A  |   1 |    89|
+     |        -                                   |     |     |      |
+     |      A - Avere                             |     |     |      |
+     |      D - Dare                              |     |     |      |
+     |                                            |     |     |      |
+     |CONTO COSTI/RICAVI COLLEGATO                |  A  |  10 |    90|
+     |                                            |     |     |      |
+     | Tipo Contabilita'                          |     |     |      |
+     |VALIDO PER IMPRESA ORDINARIA (X)            |  A  |   1 |   100|
+     |VALIDO PER IMPRESA SEMPLIFICATA (X)         |  A  |   1 |   101|
+     |VALIDO PER PROFESSIONISTA ORDINARIA (X)     |  A  |   1 |   102|
+     |VALIDO PER PROF. SEMPLIFICATA (X)           |  A  |   1 |   103|
+     |                                            |     |     |      |
+     | Tipo Dichiarazione                         |     |     |      |
+     |VALIDO PER UNICO PF (X)                     |  A  |   1 |   104|
+     |VALIDO PER UNICO SP (X)                     |  A  |   1 |   105|
+     |VALIDO PER UNICO SC (X)                     |  A  |   1 |   106|
+     |VALIDO PER UNICO ENC (X)                    |  A  |   1 |   107|
+     | Raccordi                                   |     |     |      |
+     |                                            |     |     |      |
+     | Categorie Fiscali                          |     |     |      |
+     |CODICE CLASSE IRPEF/IRES                    |  A  |  10 |   108|
+     |CODICE CLASSE IRAP                          |  A  |  10 |   118|
+     |CODICE CLASSE PROFESSIONISTA                |  A  |  10 |   128|
+     |CODICE CLASSE IRAP PROFESSIONISTA           |  A  |  10 |   138|
+     |CODICE CLASSE IVA                           |  A  |  10 |   148|
+     |                                            |     |     |      |
+     | Registro Professionisti                    |     |     |      |
+     |NUMERO COLONNA REG. CRONOLOGICO             |  N  |   4 |   158|
+     |NUMERO COLONNA REG. INCASSI/PAGAMENTI       |  N  |   4 |   162|
+     |                                            |     |     |      |
+     | Piano dei Conti CEE                        |     |     |      |
+     |CONTO DARE                                  |  A  |  12 |   166|
+
+     Data 07/12/2006                                          Pag.  2
+
+     |CONTO AVERE                                 |  A  |  12 |   178|
+     |                                            |     |     |      |
+     | Altri Dati                                 |     |     |      |
+     |NATURA CONTO                                |  A  |   4 |   190|
+     |GESTIONE BENI AMMORTIZZABILI                |  A  |   1 |   194|
+     |        -                                   |     |     |      |
+     |      M - Immobilizzazioni Materiali        |     |     |      |
+     |      I - Immobilizzazioni Immateriali      |     |     |      |
+     |      S - Fondo Svalutazione                |     |     |      |
+     |                                            |     |     |      |
+     |PERC. DED. MANUT. SE <> 100 (999.99)        |  N  |   6 |   195|
+     |FILLER                                      |  A  |  56 |   201|
+     |GRUPPO                                      |  A  |   1 |   257|
+     |        -                                   |     |     |      |
+     |      A - Attivita'                         |     |     |      |
+     |      C - Costo                             |     |     |      |
+     |      N - Patrimonio Netto     (*)          |     |     |      |
+     |      P - Passivita'                        |     |     |      |
+     |      R - Ricavo                            |     |     |      |
+     |      V - Rettifiche di Costo  (*)          |     |     |      |
+     |      Z - Rettifiche di Ricavo (*)          |     |     |      |
+     |                                            |     |     |      |
+     | Il campo gruppo non deve essere impostato se il campo  |      |
+     | tipo e' uguale a O-Conto d'ordine, C-Cliente e F-Fornitore    |
+     | i codici contrassegnati con (*) non devono essere utilizzati  |
+     | se livello e' uguale a 1-Mastro            |     |     |      |
+     |                                            |     |     |      |
+     | Categorie Fiscali                          |     |     |      |
+     |CODICE CLASSE DATI EXTRACONT. STUDI SET.    |  A  |  10 |   258|
+     |                                            |     |     |      |
+     | Altri Dati                                 |     |     |      |
+     |DETTAGLIO CLI./FOR. PRIMA NOTA              |  A  |   1 |   268|
+     |        -                                   |     |     |      |
+     |      1 - Cliente                           |     |     |      |
+     |      2 - Fornitore                         |     |     |      |
+     |      3 - Cliente/Fornitore                 |     |     |      |
+     |                                            |     |     |      |
+     |DESCRIZIONE BILANCIO DARE                   |  A  |  60 |   269|
+     |DESCRIZIONE BILANCIO AVERE                  |  A  |  60 |   329|
+     |                                            |     |     |      |
+     | Non e' consentito impostare livello Sottoconto se|     |      |
+     | il Tipo e' Cliente o Fornitore             |     |     |      |
+     |                                            |     |     |      |
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   389|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

@@ -59,16 +59,7 @@ async function main() {
     data: {
       nome: 'causali',
       modelName: 'CausaleContabile',
-      fields: { create: [
-        { nomeCampo: 'externalId', start: 4, length: 6, type: 'string' },             // [5-10] Codice causale
-        { nomeCampo: 'nome', start: 10, length: 40, type: 'string' },                 // [11-50] Descrizione
-        { nomeCampo: 'tipoMovimento', start: 50, length: 1, type: 'string' },         // [51-51] C=Contabile, I=Contabile/Iva
-        { nomeCampo: 'tipoAggiornamento', start: 51, length: 1, type: 'string' },     // [52-52] I/P/F
-        { nomeCampo: 'dataInizio', start: 52, length: 8, type: 'date' },              // [53-60] GGMMAAAA
-        { nomeCampo: 'dataFine', start: 60, length: 8, type: 'date' },                // [61-68] GGMMAAAA
-        { nomeCampo: 'tipoRegistroIva', start: 68, length: 1, type: 'string' },       // [69-69] A/C/V
-        { nomeCampo: 'noteMovimento', start: 101, length: 60, type: 'string' }        // [102-161]
-      ] },
+      fields: { create: [ { nomeCampo: 'id', start: 0, length: 8 }, { nomeCampo: 'externalId', start: 0, length: 8 }, { nomeCampo: 'descrizione', start: 8, length: 40 } ] },
     }
   });
 
@@ -76,14 +67,7 @@ async function main() {
     data: {
       nome: 'condizioni_pagamento',
       modelName: 'CondizionePagamento',
-      fields: { create: [
-        { nomeCampo: 'externalId', start: 4, length: 8, type: 'string' },             // [5-12] Codice pagamento
-        { nomeCampo: 'descrizione', start: 12, length: 40, type: 'string' },          // [13-52] Descrizione
-        { nomeCampo: 'contoIncassoPagamento', start: 52, length: 10, type: 'string' }, // [53-62]
-        { nomeCampo: 'suddivisione', start: 64, length: 1, type: 'string' },          // [65-65] D/T
-        { nomeCampo: 'inizioScadenza', start: 65, length: 1, type: 'string' },        // [66-66] D/F/R/P/N
-        { nomeCampo: 'numeroRate', start: 66, length: 2, type: 'number' }             // [67-68]
-      ] },
+      fields: { create: [ { nomeCampo: 'id', start: 0, length: 8 }, { nomeCampo: 'externalId', start: 0, length: 8 }, { nomeCampo: 'descrizione', start: 8, length: 40 } ] },
     }
   });
 
@@ -91,29 +75,37 @@ async function main() {
     data: {
       nome: 'codici_iva',
       modelName: 'CodiceIva',
-      fields: { create: [
-        { nomeCampo: 'externalId', start: 4, length: 4, type: 'string' },             // [5-8] Codice IVA
-        { nomeCampo: 'descrizione', start: 8, length: 40, type: 'string' },           // [9-48] Descrizione
-        { nomeCampo: 'tipoCalcolo', start: 48, length: 1, type: 'string' },           // [49-49] N/O/A/I/S/T/E/V
-        { nomeCampo: 'aliquota', start: 49, length: 6, type: 'number' },              // [50-55] 999.99
-        { nomeCampo: 'indetraibilita', start: 55, length: 3, type: 'number' },        // [56-58] Percentuale
-        { nomeCampo: 'note', start: 58, length: 40, type: 'string' },                 // [59-98]
-        { nomeCampo: 'dataInizio', start: 98, length: 8, type: 'date' },              // [99-106] GGMMAAAA
-        { nomeCampo: 'dataFine', start: 106, length: 8, type: 'date' }                // [107-114] GGMMAAAA
-      ] },
+      fields: { create: [ { nomeCampo: 'id', start: 0, length: 5 }, { nomeCampo: 'externalId', start: 0, length: 5 }, { nomeCampo: 'descrizione', start: 5, length: 45 } ] },
+    }
+  });
+
+  await prisma.importTemplate.create({
+    data: {
+      nome: 'clienti_fornitori',
+      modelName: 'Cliente', // Gestirà entrambi tramite logica custom
+      fields: { create: [ { nomeCampo: 'externalId', start: 11, length: 11 }, { nomeCampo: 'codiceFiscale', start: 22, length: 16 }, { nomeCampo: 'tipo', start: 38, length: 1 }, { nomeCampo: 'piva', start: 50, length: 16 }, { nomeCampo: 'nome', start: 66, length: 50 } ] },
     }
   });
 
   await prisma.importTemplate.create({
     data: {
       nome: 'anagrafica_clifor',
-      modelName: null,
-      fields: { create: [
-        { nomeCampo: 'externalId', start: 20, length: 12, type: 'string' },      // Posizione 21-32 del tracciato
-        { nomeCampo: 'codiceFiscale', start: 32, length: 16, type: 'string' },   // Posizione 33-48 del tracciato
-        { nomeCampo: 'tipo', start: 49, length: 1, type: 'string' },             // Posizione 50-50 del tracciato (C/F/E)
-        { nomeCampo: 'piva', start: 82, length: 11, type: 'string' },             // Posizione 83-93 del tracciato
-        { nomeCampo: 'nome', start: 94, length: 60, type: 'string' }              // Posizione 95-154 del tracciato
+      modelName: 'Cliente', // Gestirà entrambi tramite logica custom
+      fields: { create: [ 
+        { nomeCampo: 'id_interno', start: 16, length: 12 }, 
+        { nomeCampo: 'codice_fiscale_piva', start: 28, length: 16 }, 
+        { nomeCampo: 'tipo_soggetto', start: 44, length: 1 }, 
+        { nomeCampo: 'conto_contabile', start: 57, length: 10 }, 
+        { nomeCampo: 'codice_esterno', start: 67, length: 12 }, 
+        { nomeCampo: 'codice_numerico', start: 79, length: 12 }, 
+        { nomeCampo: 'ragione_sociale', start: 91, length: 50 }, 
+        { nomeCampo: 'cognome', start: 141, length: 20 }, 
+        { nomeCampo: 'nome', start: 161, length: 20 }, 
+        { nomeCampo: 'sesso', start: 181, length: 1 }, 
+        { nomeCampo: 'data_nascita', start: 182, length: 8, type: 'date' }, 
+        { nomeCampo: 'comune_nascita', start: 190, length: 4 }, 
+        { nomeCampo: 'cap', start: 194, length: 8 }, 
+        { nomeCampo: 'indirizzo', start: 202, length: 50 } 
       ] },
     }
   });
@@ -122,54 +114,34 @@ async function main() {
     data: {
       nome: 'piano_dei_conti',
       modelName: 'Conto',
-      fields: { create: [
-        { nomeCampo: 'livello', start: 4, length: 1, type: 'string' },                // [5-5] 1=Mastro, 2=Conto, 3=Sottoconto
-        { nomeCampo: 'codice', start: 5, length: 10, type: 'string' },                // [6-15] MMCCSSSSSS
-        { nomeCampo: 'nome', start: 15, length: 60, type: 'string' },                 // [16-75] Descrizione
-        { nomeCampo: 'tipo', start: 75, length: 1, type: 'string' },                  // [76-76] P/E/O/C/F
-        { nomeCampo: 'sigla', start: 76, length: 12, type: 'string' },                // [77-88]
-        { nomeCampo: 'controlloSegno', start: 88, length: 1, type: 'string' },        // [89-89] A=Avere, D=Dare
-        { nomeCampo: 'gruppo', start: 256, length: 1, type: 'string' }                // [257-257] A/C/N/P/R/V/Z
+      fields: { create: [ 
+        { nomeCampo: 'id', start: 45, length: 10 }, 
+        { nomeCampo: 'nome', start: 91, length: 50 }, 
+        { nomeCampo: 'tipo_soggetto', start: 44, length: 1 } // Usato per filtrare
       ] },
     }
   });
 
   const scrittureContabiliFields: any = [
-    // === PNTESTA.TXT (445 bytes) ===
-    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'externalId', start: 20, length: 12, type: 'string' },              // [21-32]
-    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'causaleId', start: 39, length: 6, type: 'string' },                // [40-45]
-    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'dataRegistrazione', start: 85, length: 8, type: 'date' },          // [86-93] GGMMAAAA
-    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'clienteFornitoreCodiceFiscale', start: 99, length: 16, type: 'string' }, // [100-115]
-    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'dataDocumento', start: 128, length: 8, type: 'date' },             // [129-136] GGMMAAAA
-    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'numeroDocumento', start: 136, length: 12, type: 'string' },        // [137-148]
-    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'totaleDocumento', start: 172, length: 12, type: 'number' },        // [173-184]
-    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'noteMovimento', start: 192, length: 60, type: 'string' },          // [193-252]
-
-    // === PNRIGCON.TXT (312 bytes) ===
-    { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'externalId', start: 3, length: 12, type: 'string' },              // [4-15]
-    { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'progressivoRigo', start: 15, length: 3, type: 'number' },         // [16-18]
-    { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'tipoConto', start: 18, length: 1, type: 'string' },               // [19-19] C/F/spazio
-    { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'clienteFornitoreCodiceFiscale', start: 19, length: 16, type: 'string' }, // [20-35]
-    { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'conto', start: 48, length: 10, type: 'string' },                  // [49-58]
-    { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'importoDare', start: 58, length: 12, type: 'number' },            // [59-70]
-    { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'importoAvere', start: 70, length: 12, type: 'number' },           // [71-82]
-    { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'note', start: 82, length: 60, type: 'string' },                   // [83-142]
-    { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'movimentiAnalitici', start: 247, length: 1, type: 'string' },     // [248-248] 0/1
-
-    // === PNRIGIVA.TXT (173 bytes) ===
-    { fileIdentifier: 'PNRIGIVA.TXT', nomeCampo: 'externalId', start: 3, length: 12, type: 'string' },              // [4-15]
-    { fileIdentifier: 'PNRIGIVA.TXT', nomeCampo: 'codiceIva', start: 15, length: 4, type: 'string' },               // [16-19]
-    { fileIdentifier: 'PNRIGIVA.TXT', nomeCampo: 'contropartita', start: 19, length: 10, type: 'string' },          // [20-29]
-    { fileIdentifier: 'PNRIGIVA.TXT', nomeCampo: 'imponibile', start: 29, length: 12, type: 'number' },             // [30-41]
-    { fileIdentifier: 'PNRIGIVA.TXT', nomeCampo: 'imposta', start: 41, length: 12, type: 'number' },                // [42-53]
-    { fileIdentifier: 'PNRIGIVA.TXT', nomeCampo: 'importoLordo', start: 89, length: 12, type: 'number' },           // [90-101]
-    { fileIdentifier: 'PNRIGIVA.TXT', nomeCampo: 'note', start: 101, length: 60, type: 'string' },                  // [102-161]
-
-    // === MOVANAC.TXT (34 bytes) ===
-    { fileIdentifier: 'MOVANAC.TXT', nomeCampo: 'externalId', start: 3, length: 12, type: 'string' },               // [4-15]
-    { fileIdentifier: 'MOVANAC.TXT', nomeCampo: 'progressivoRigoContabile', start: 15, length: 3, type: 'number' }, // [16-18]
-    { fileIdentifier: 'MOVANAC.TXT', nomeCampo: 'centroDiCosto', start: 18, length: 4, type: 'string' },            // [19-22]
-    { fileIdentifier: 'MOVANAC.TXT', nomeCampo: 'parametro', start: 22, length: 12, type: 'number' }                // [23-34]
+    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'id_registrazione', start: 20, length: 12 },
+    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'data_registrazione', start: 33, length: 8, type: 'date' },
+    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'codice_causale', start: 41, length: 6 },
+    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'data_documento', start: 56, length: 8, type: 'date' },
+    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'id_cliente_fornitore', start: 64, length: 16 },
+    { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'numero_documento', start: 96, length: 16 },
+    { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'id_registrazione_riga', start: 0, length: 15 },
+    { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'codice_conto', start: 32, length: 16 },
+    { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'importo_dare', start: 48, length: 16, type: 'number' },
+    { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'importo_avere', start: 64, length: 16, type: 'number' },
+    { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'descrizione_riga', start: 144, length: 81 },
+    { fileIdentifier: 'PNRIGIVA.TXT', nomeCampo: 'id_registrazione_riga', start: 0, length: 15 },
+    { fileIdentifier: 'PNRIGIVA.TXT', nomeCampo: 'codice_iva', start: 15, length: 5 },
+    { fileIdentifier: 'PNRIGIVA.TXT', nomeCampo: 'imponibile', start: 36, length: 16, type: 'number' },
+    { fileIdentifier: 'PNRIGIVA.TXT', nomeCampo: 'imposta', start: 52, length: 16, type: 'number' },
+    { fileIdentifier: 'MOVANAC.TXT', nomeCampo: 'id_registrazione_riga', start: 0, length: 15 },
+    { fileIdentifier: 'MOVANAC.TXT', nomeCampo: 'codice_commessa', start: 15, length: 12 },
+    { fileIdentifier: 'MOVANAC.TXT', nomeCampo: 'codice_voce_analitica', start: 27, length: 12 },
+    { fileIdentifier: 'MOVANAC.TXT', nomeCampo: 'importo_allocato', start: 39, length: 16, type: 'number' },
   ];
 
   await prisma.importTemplate.create({
@@ -253,7 +225,7 @@ async function main() {
       templateScrittura: [ 
         { sezione: SezioneScrittura.Dare, contoId: '60100001', formulaImporto: FormulaImporto.imponibile }, 
         { sezione: SezioneScrittura.Dare, contoId: '45.01.001', formulaImporto: FormulaImporto.iva }, 
-        { sezione: SezioneScrittura.Avere, contoId: null, contoRiferimentoDatiPrimari: 'fornitoreId', formulaImporto: FormulaImporto.totale } 
+        { sezione: SezioneScrittura.Avere, contoRiferimentoDatiPrimari: 'fornitoreId', formulaImporto: FormulaImporto.totale } 
       ],
     },
     {
@@ -262,7 +234,7 @@ async function main() {
       descrizione: 'Registrazione fattura di vendita',
       datiPrimari: [ { fieldId: 'clienteId', label: 'Cliente', tipo: TipoCampo.select, riferimentoConto: TipoConto.Cliente }, { fieldId: 'totaleDocumento', label: 'Totale Fattura', tipo: TipoCampo.number } ],
       templateScrittura: [ 
-        { sezione: SezioneScrittura.Dare, contoId: null, contoRiferimentoDatiPrimari: 'clienteId', formulaImporto: FormulaImporto.totale }, 
+        { sezione: SezioneScrittura.Dare, contoRiferimentoDatiPrimari: 'clienteId', formulaImporto: FormulaImporto.totale }, 
         { sezione: SezioneScrittura.Avere, contoId: '45.02.001', formulaImporto: FormulaImporto.iva }, 
         { sezione: SezioneScrittura.Avere, contoId: '5510001122', formulaImporto: FormulaImporto.imponibile } 
       ],

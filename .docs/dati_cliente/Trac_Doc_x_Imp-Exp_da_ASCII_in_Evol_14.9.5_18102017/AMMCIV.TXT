@@ -1,0 +1,63 @@
+     Data 19/10/2011                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  115 Bytes+CRLF =  117 Bytes 
+     Nome File:AMMCIV.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE    (CHIAVE)                  |  A  |  16 |     4|
+     |SUBCODICE FISCALE (CHIAVE)                  |  A  |   1 |    20|
+     | Dati Ammortamento Civile                   |     |     |      |
+     |ANNO              (CHIAVE)                  |  N  |   4 |    21|
+     |CODICE            (CHIAVE)                  |  N  |   6 |    25|
+     |ESERCIZIO         (CHIAVE)                  |  A  |   5 |    31|
+     |COSTO AMMORTIZZABILE                        |  N  |  12 |    36|
+     |FONDO INIZIALE                              |  N  |  12 |    48|
+     |TIPO                                        |  A  |   1 |    60|
+     |        F = Ammortamento fiscale            |     |     |      |
+     |        C = Costante in base alla vita utile|     |     |      |
+     |        A = Quote decrescenti (Aritmetico)  |     |     |      |
+     |        L = Quote decrescenti (Logaritmico) |     |     |      |
+     |        M = % Manuale                       |     |     |      |
+     |        S = Sospeso                         |     |     |      |
+     |        R = Riporto Amm. Precedenti         |     |     |      |
+     |                                            |     |     |      |
+     |        Il codice R e' da utilizzare quando |     |     |      |
+     |        si inserisce il riepilogo degli     |     |     |      |
+     |        ammortamenti precedenti anziche'    |     |     |      |
+     |        inserire i singoli righi            |     |     |      |
+     |                                            |     |     |      |
+     |PERCENTUALE AMMORTAMENTO(999.99 MAX 100)    |  N  |   6 |    61|
+     |AMMORTAMENTO                                |  N  |  12 |    67|
+     |        PERCENTUALE e AMMORTAMENTO non si   |     |     |      |
+     |        possono indicare quando TIPO = S    |     |     |      |
+     |                                            |     |     |      |
+     |FONDO FINALE                                |  N  |  12 |    79|
+     |RESIDUO                                     |  N  |  12 |    91|
+     |PRIMA NOTA GENERATA (0/1)                   |  N  |   1 |   103|
+     |                                            |     |     |      |
+     | *** Fine vecchio tracciato                 |     |     |      |
+     |                                            |     |     |      |
+     |FONDO TERRENO                               |  N  |  12 |   104|
+     |                                            |     |     |      |
+     | Il programma in fase di import e' in grado |     |     |      |
+     | di supportare 2 formati diversi di tracciato,    |     |      |
+     | indicare fino al campo PRIMA NOTA GENERATA |     |     |      |
+     | prog. 103 per una lunghezza totale di 104  |     |     |      |
+     | bytes aggiungere i caratteri CRLF PIC 9(2) |     |     |      |
+     | [0D0A] per utilizzare il vecchio tracciato |     |     |      |
+     | altrimenti utilizzare la nuova lunghezza   |     |     |      |
+     | record                                     |     |     |      |
+     |                                            |     |     |      |
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   116|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

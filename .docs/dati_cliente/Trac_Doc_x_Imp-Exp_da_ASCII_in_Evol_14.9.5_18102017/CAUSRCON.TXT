@@ -1,0 +1,41 @@
+     Data 19/12/2005                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  105 Bytes+CRLF =  107 Bytes 
+     Nome File:CAUSRCON.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Generali                              |     |     |      |
+     |TABELLA ITALSTUDIO (X)                      |  A  |   1 |     4|
+     |     Campo Riservato Italstudio non         |     |     |      |
+     |     indicare nulla                         |     |     |      |
+     |                                            |     |     |      |
+     |CODICE CAUSALE                              |  A  |   6 |     5|
+     |NUMERO RIGO                                 |  N  |   5 |    11|
+     |TIPO CONTO                                  |  A  |   1 |    16|
+     |     C - Conto                              |     |     |      |
+     |     M - Manuale                            |     |     |      |
+     |     N - Natura Conto                       |     |     |      |
+     |                                            |     |     |      |
+     |CONTO                                       |  A  |  10 |    17|
+     |NATURA CONTO                                |  A  |   4 |    27|
+     |SEGNO                                       |  A  |   1 |    31|
+     |     A - Avere                              |     |     |      |
+     |     D - Dare                               |     |     |      |
+     |     U - Automatico                         |     |     |      |
+     |                                            |     |     |      |
+     |CALCOLATO (X)                               |  A  |   1 |    32|
+     |IMPORTO                                     |  N  |  12 |    33|
+     |OBBLIGATORIO (X)                            |  A  |   1 |    45|
+     |NOTE                                        |  A  |  60 |    46|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   106|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

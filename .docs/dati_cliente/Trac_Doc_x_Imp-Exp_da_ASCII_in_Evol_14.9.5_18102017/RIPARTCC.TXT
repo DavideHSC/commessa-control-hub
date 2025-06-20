@@ -1,0 +1,27 @@
+     Data 19/12/2005                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:   58 Bytes+CRLF =   60 Bytes 
+     Nome File:RIPARTCC.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE AZIENDA                      |  A  |  16 |     4|
+     |SUBCODICE      AZIENDA                      |  A  |   1 |    20|
+     | Dati Generali                              |     |     |      |
+     |CODICE CENTRO                               |  A  |   4 |    21|
+     |PERIODO                                     |  A  |   8 |    25|
+     |CODICE CENTRO RICEVENTE                     |  A  |   4 |    33|
+     |PARAMETRO (999999999.9999)                  |  N  |  14 |    37|
+     |PERCENTUALE (999.9999)                      |  N  |   8 |    51|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |    59|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

@@ -1,0 +1,161 @@
+     Data 19/10/2011                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:  406 Bytes+CRLF =  408 Bytes 
+     Nome File:PARTI.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Anagrafica Azienda                    |     |     |      |
+     |CODICE FISCALE    (CHIAVE)                  |  A  |  16 |     4|
+     |SUBCODICE FISCALE (CHIAVE)                  |  A  |   1 |    20|
+     | Dati Generali                              |     |     |      |
+     |ANNO              (CHIAVE)                  |  N  |   4 |    21|
+     |CODICE            (CHIAVE)                  |  N  |   6 |    25|
+     |NUMERO PARTE      (CHIAVE)                  |  N  |   6 |    31|
+     |TIPO PARTE                                  |  A  |   1 |    37|
+     |        P = Parte                           |     |     |      |
+     |        B = Bene                            |     |     |      |
+     |                                            |     |     |      |
+     |        Il Codice B puo' essere usato solo  |     |     |      |
+     |        se nell'anagrafica del bene e'      |     |     |      |
+     |        impostato gruppo di beni            |     |     |      |
+     |                                            |     |     |      |
+     |DESCRIZIONE                                 |  A  |  40 |    38|
+     |INCLUSO NEL COSTO INIZIALE (0/1)            |  N  |   1 |    78|
+     | Dati Acquisto                              |     |     |      |
+     |CODICE ATTIVITA'                            |  A  |   2 |    79|
+     |ESERCIZIO                                   |  A  |   5 |    81|
+     |NUMERO RECORD PRIMA NOTA                    |  N  |   6 |    86|
+     |        Indicare numero record prima nota se|     |     |      |
+     |        si vuole collegare l'acquisto della |     |     |      |
+     |        parte/bene a una prima nota esistente     |     |      |
+     |        che ha come chiave attivita'        |     |     |      |
+     |        esercizio e numero record.          |     |     |      |
+     |                                            |     |     |      |
+     |IMPORTO                                     |  N  |  12 |    92|
+     |CODICE ATTIVITA' IVA                        |  A  |   2 |   104|
+     |TIPO REGISTRO IVA                           |  A  |   2 |   106|
+     |        A = Acquisto                        |     |     |      |
+     |        C = Corrispettivi                   |     |     |      |
+     |        V = Vendite                         |     |     |      |
+     |                                            |     |     |      |
+     |CODICE NUMERAZIONE IVA                      |  A  |   3 |   108|
+     |DATA PROTOCOLLO (GGMMAAAA)                  |  N  |   8 |   111|
+     |NUMERO PROTOCOLLO                           |  N  |   6 |   119|
+     |BIS PROTOCOLLO                              |  A  |   1 |   125|
+     |DATA DOCUMENTO (GGMMAAAA)                   |  N  |   8 |   126|
+     |NUMERO DOCUMENTO                            |  A  |  12 |   134|
+     |BIS DOCUMENTO                               |  A  |   1 |   146|
+     |CODICE FISCALE FORNITORE                    |  A  |  16 |   147|
+     |SUBCODICE FORNITORE                         |  A  |   1 |   163|
+     |IMPOSTA IVA                                 |  N  |  12 |   164|
+     |NOTE ACQUISTO                               |  A  |  30 |   176|
+     |        I dati della sezione acquisto ad    |     |     |      |
+     |        eccezione dell'IMPORTO che e'       |     |     |      |
+     |        obbligatorio sempre e dell'IMPOSTA IVA    |     |      |
+     |        che e' facoltativa possono essere   |     |     |      |
+     |        indicati solo se                    |     |     |      |
+     |        COMPRESO NEL COSTO INIZIALE = 0     |     |     |      |
+     |                                            |     |     |      |
+     | Dati Vendita                               |     |     |      |
+     |CODICE ATTIVITA'                            |  A  |   2 |   206|
+
+     Data 19/10/2011                                          Pag.  2
+
+     |ESERCIZIO                                   |  A  |   5 |   208|
+     |NUMERO RECORD PRIMA NOTA                    |  N  |   6 |   213|
+     |        Indicare numero record prima nota se|     |     |      |
+     |        si vuole collegare la vendita della |     |     |      |
+     |        parte/bene a una prima nota         |     |     |      |
+     |        esistente che ha come chiave        |     |     |      |
+     |        attivita' esercizio e numero record.|     |     |      |
+     |                                            |     |     |      |
+     |DATA VENDITA (GGMMAAAA)                     |  N  |   8 |   219|
+     |        Come data di vendita si intende la  |     |     |      |
+     |        data documento se si tratta di un   |     |     |      |
+     |        movimento Iva o contabile da        |     |     |      |
+     |        stampare su registro Iva integrato  |     |     |      |
+     |        (semplificate) oppure la data di    |     |     |      |
+     |        registrazione per i movimenti       |     |     |      |
+     |        contabili                           |     |     |      |
+     |                                            |     |     |      |
+     |IMPORTO                                     |  N  |  12 |   227|
+     |CODICE ATTIVITA' IVA                        |  A  |   2 |   239|
+     |TIPO REGISTRO IVA                           |  A  |   2 |   241|
+     |        A = Acquisto                        |     |     |      |
+     |        C = Corrispettivi                   |     |     |      |
+     |        V = Vendite                         |     |     |      |
+     |                                            |     |     |      |
+     |CODICE NUMERAZIONE IVA                      |  A  |   3 |   243|
+     |DATA PROTOCOLLO (GGMMAAAA)                  |  N  |   8 |   246|
+     |NUMERO PROTOCOLLO                           |  N  |   6 |   254|
+     |BIS PROTOCOLLO                              |  A  |   1 |   260|
+     |CODICE FISCALE CLIENTE                      |  A  |  16 |   261|
+     |SUBCODICE CLIENTE                           |  A  |   1 |   277|
+     |IMPOSTA IVA                                 |  N  |  12 |   278|
+     |NOTE VENDITA                                |  A  |  30 |   290|
+     |PLUSV./MINUSVALENZA STRAORDINARIA (0/1)     |  N  |   1 |   320|
+     |PLUSVALENZA/MINUSVALENZA CIVILE             |  N  |  12 |   321|
+     |PLUSVALENZA/MINUSVALENZA FISCALE            |  N  |  12 |   333|
+     |STORNO COSTO AMMORTIZZABILE CIVILE          |  N  |  12 |   345|
+     |STORNO COSTO AMMORTIZZABILE FISCALE         |  N  |  12 |   357|
+     |STORNO FONDO CIVILE                         |  N  |  12 |   369|
+     |STORNO FONDO FISCALE                        |  N  |  12 |   381|
+     |STORNO FONDO SVALUTAZIONI                   |  N  |  12 |   393|
+     |        I campi della sezione vendita       |     |     |      |
+     |        IMPORTO e IMPOSTA IVA si possono    |     |     |      |
+     |        indicare se VENDITA TIPO = S-R-V    |     |     |      |
+     |                                            |     |     |      |
+     |        I campi della sezione vendita       |     |     |      |
+     |        TIPO REGISTRO IVA, CODICE NUMERAZIONE     |     |      |
+     |        IVA, DATA PROTOCOLLO, NUMERO PROTOCOLLO,  |     |      |
+     |        BIS PROTOCOLLO, CODICE FISCALE CLIENTE,   |     |      |
+     |        SUBCODICE CLIENTE e NOTE VENDITA    |     |     |      |
+     |        si possono indicare se              |     |     |      |
+     |        VENDITA TIPO = R-V                  |     |     |      |
+     |                                            |     |     |      |
+     |        I restanti campi della sezione      |     |     |      |
+     |        vendita, ad eccezione del campo     |     |     |      |
+     |        PLUSV./MINUSVALENZA STRAORDINARIA   |     |     |      |
+     |        che si può indicare sempre, si      |     |     |      |
+     |        possono indicare se                 |     |     |      |
+     |        VENDITA TIPO <> U                   |     |     |      |
+     |                                            |     |     |      |
+     |        Nel caso si utilizzi il vecchio     |     |     |      |
+
+     Data 19/10/2011                                          Pag.  3
+
+     |        tracciato VENDITA TIPO sara'        |     |     |      |
+     |        impostato a V se presente           |     |     |      |
+     |        IMPORTO o DATA VENDITA              |     |     |      |
+     |                                            |     |     |      |
+     | *** Fine vecchio tracciato                 |     |     |      |
+     |                                            |     |     |      |
+     |VENDITA TIPO                                |  A  |   1 |   405|
+     |        U = Nessuna                         |     |     |      |
+     |        E = Eliminazione                    |     |     |      |
+     |        V = Vendita                         |     |     |      |
+     |        N = Eventi straordinari             |     |     |      |
+     |        S = Eventi straordinari rimb. nell'es.    |     |      |
+     |        R = Reso su acquisti                |     |     |      |
+     |                                            |     |     |      |
+     |GENERATA PRIMA NOTA (0/1)                   |  N  |   1 |   406|
+     |                                            |     |     |      |
+     | Il programma in fase di import e' in grado |     |     |      |
+     | di supportare 2 formati diversi di tracciato,    |     |      |
+     | indicare fino al campo STORNO FONDO SVALUTAZIONI |     |      |
+     | prog. 393 per una lunghezza totale di 404 bytes  |     |      |
+     | aggiungere i caratteri CRLF PIC 9(2) [0D0A]|     |     |      |
+     | per utilizzare il vecchio tracciato altrimenti   |     |      |
+     | utilizzare la nuova lunghezza record       |     |     |      |
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |   407|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+

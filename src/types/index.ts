@@ -88,9 +88,9 @@ export interface CausaleContabile {
   nome: string; // Nome breve, es. "Fattura Acquisto"
   descrizione: string; // Es. 'Registrazione Fattura Acquisto Merce'
   // Lista dei dati che l'utente deve inserire per usare il template
-  datiPrimari: CampoDatiPrimari[]; 
+  datiPrimari: any[]; // Semplificato per ora
   // Il template vero e proprio per generare le righe
-  templateScrittura: VoceTemplateScrittura[];
+  templateScrittura: any[]; // Semplificato per ora
 }
 
 /**
@@ -230,6 +230,19 @@ export interface ImportTemplate {
   id: string;
   nome: string;
   fields: FieldDefinition[];
+}
+
+export interface CodiceIva {
+  id: string;
+  externalId?: string;
+  descrizione: string;
+  aliquota: number;
+}
+
+export interface CondizionePagamento {
+  id: string;
+  externalId?: string;
+  descrizione: string;
 }
 
 export {}; 

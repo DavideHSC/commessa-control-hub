@@ -1,0 +1,34 @@
+     Data 19/12/2005                                          Pag.  1
+
+     File Sequenziale a lunghezza fissa:   36 Bytes+CRLF =   38 Bytes 
+     Nome File:CIVARACC.TXT
+     +--------------------------------------------+-----+-----+------+
+     |                                            |     |     |      |
+     |                                            |TIPO | LUN | PRG  |
+     |       FILLER                               |  A  |   3 |     1|
+     | Dati Generali                              |     |     |      |
+     |TABELLA ITALSTUDIO (X)                      |  A  |   1 |     4|
+     |     Campo Riservato Italstudio non         |     |     |      |
+     |     indicare nulla                         |     |     |      |
+     |                                            |     |     |      |
+     |CODICE IVA                                  |  A  |   4 |     5|
+     |CODICE RIGO DICHIARAZIONE IVA               |  A  |  20 |     9|
+     |TIPO DOCUMENTI DA RACCORDARE                |  A  |   1 |    29|
+     |     A - Acquisti                           |     |     |      |
+     |     V - Vendite                            |     |     |      |
+     |                                            |     |     |      |
+     |OPERATIVITA' RACCORDO                       |  A  |   1 |    30|
+     |     I - Incrementa (+)                     |     |     |      |
+     |     D - Decrementa (-)                     |     |     |      |
+     |                                            |     |     |      |
+     |PERCENTUALE DI RIPORTO (999.99)             |  N  |   6 |    31|
+     |       CRLF  PIC 9(2) [0D0A]                |  E  |   2 |    37|
+     +--------------------------------------------+-----+-----+------+
+     
+     TIPO CAMPO:  A - Alfanumerico
+                  N - Numerico ASCII
+                  E - Campo chiusura record ( codici esadecimali 0D0A )
+                      Questo campo e' impostato automaticamente se si
+                      tratta il file in oggetto in maniera sequenziale.
+     
+
