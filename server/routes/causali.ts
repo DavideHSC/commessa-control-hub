@@ -1,5 +1,5 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -7,16 +7,55 @@ const prisma = new PrismaClient();
 // GET - Recupera tutte le causali contabili
 router.get('/', async (req, res) => {
   try {
-    const causali = await prisma.causaleContabile.findMany({
-        include: {
-            datiPrimari: true,
-            templateScrittura: true,
-        },
-        orderBy: {
-            nome: 'asc'
+    const { 
+        page = '1', 
+        limit = '25', 
+        search = '',
+        sortBy = 'nome',
+        sortOrder = 'asc'
+    } = req.query;
+
+    const pageNumber = parseInt(page as string, 10);
+    const pageSize = parseInt(limit as string, 10);
+    const skip = (pageNumber - 1) * pageSize;
+    const take = pageSize;
+
+    const where: Prisma.CausaleContabileWhereInput = search ? {
+        OR: [
+            { nome: { contains: search as string, mode: 'insensitive' } },
+            { descrizione: { contains: search as string, mode: 'insensitive' } },
+            { externalId: { contains: search as string, mode: 'insensitive' } },
+        ],
+    } : {};
+
+    const orderBy: Prisma.CausaleContabileOrderByWithRelationInput = {
+        [(sortBy as string) || 'nome']: (sortOrder as 'asc' | 'desc') || 'asc'
+    };
+
+    const [causali, totalCount] = await prisma.$transaction([
+        prisma.causaleContabile.findMany({
+            where,
+            orderBy,
+            skip,
+            take,
+            include: {
+                datiPrimari: true,
+                templateScrittura: true,
+            },
+        }),
+        prisma.causaleContabile.count({ where }),
+    ]);
+    
+    res.json({
+        data: causali,
+        pagination: {
+            page: pageNumber,
+            limit: pageSize,
+            total: totalCount,
+            totalPages: Math.ceil(totalCount / pageSize),
         }
     });
-    res.json(causali);
+
   } catch (error) {
     console.error('Errore nel caricamento delle causali contabili:', error);
     res.status(500).json({ error: 'Errore interno del server' });

@@ -1,68 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Database as DatabaseIcon, RefreshCw, Edit, Trash2, Users, Building, FileText, Landmark, Library } from 'lucide-react';
+import { Database as DatabaseIcon, RefreshCw, Users, Building, FileText, Landmark, Library } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { deleteRegistrazione } from '@/api/registrazioni';
-import { useNavigate } from 'react-router-dom';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
-import { ScritturaContabile, Commessa, Cliente, Fornitore, Conto, VoceAnalitica, RigaScrittura, CausaleContabile } from '@/types';
-import { CodiceIva } from '@/api/codiciIva';
-import { CondizionePagamento } from '@/api/condizioniPagamento';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { createCliente, updateCliente, deleteCliente } from '@/api/clienti';
-import { createFornitore, updateFornitore, deleteFornitore } from '@/api/fornitori';
-import { createVoceAnalitica, deleteVoceAnalitica, updateVoceAnalitica } from '@/api/vociAnalitiche';
-import { createConto, deleteConto, updateConto } from '@/api/conti';
-import { createCommessa, deleteCommessa, updateCommessa } from '@/api/commesse';
-import { createCausale, deleteCausale, updateCausale } from '@/api/causali';
-import { createCodiceIva, deleteCodiceIva, updateCodiceIva } from '@/api/codiciIva';
-import { createCondizionePagamento, deleteCondizionePagamento, updateCondizionePagamento } from '@/api/condizioniPagamento';
-import { Switch } from "@/components/ui/switch";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { TipoConto } from '@prisma/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ImportTemplatesAdmin from '@/components/admin/ImportTemplatesAdmin';
-import { clearScrittureContabili } from '@/api/database';
 import {
   getCommesse,
   getClienti,
@@ -83,143 +25,92 @@ import { VociAnaliticheTable } from '@/components/database/VociAnaliticheTable';
 import { ContiTable } from '@/components/database/ContiTable';
 import { CommesseTable } from '@/components/database/CommesseTable';
 import { ScrittureTable } from '@/components/database/ScrittureTable';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 
-// Definiamo un'interfaccia aggregata per i dati del database
-interface DatabaseData {
-  scritture: ScritturaContabile[];
-  commesse: Commessa[];
-  clienti: Cliente[];
-  fornitori: Fornitore[];
-  conti: Conto[];
-  vociAnalitiche: VoceAnalitica[];
-  causali: CausaleContabile[];
-  codiciIva: CodiceIva[];
-  condizioniPagamento: CondizionePagamento[];
-  stats: {
-    totaleScrittureContabili: number;
-    totaleCommesse: number;
-    totaleClienti: number;
-    totaleFornitori: number;
-    totaleConti: number;
-    totaleVociAnalitiche: number;
-    totaleCausali: number;
-    totaleCodiciIva: number;
-    totaleCondizioniPagamento: number;
-  };
+interface TableStats {
+  scritture: number;
+  commesse: number;
+  clienti: number;
+  fornitori: number;
+  conti: number;
+  vociAnalitiche: number;
+  causali: number;
+  codiciIva: number;
+  condizioniPagamento: number;
 }
 
-type TableKey = 'scritture' | 'commesse' | 'clienti' | 'fornitori' | 'conti' | 'vociAnalitiche' | 'causali' | 'codiciIva' | 'condizioniPagamento';
+type TableKey = keyof TableStats;
 
-const tableConfig: { key: TableKey; label: string; icon: React.ElementType; statsKey: keyof DatabaseData['stats'] }[] = [
-    { key: 'scritture', label: 'Scritture', icon: FileText, statsKey: 'totaleScrittureContabili' },
-    { key: 'commesse', label: 'Commesse', icon: Building, statsKey: 'totaleCommesse' },
-    { key: 'clienti', label: 'Clienti', icon: Users, statsKey: 'totaleClienti' },
-    { key: 'fornitori', label: 'Fornitori', icon: Landmark, statsKey: 'totaleFornitori' },
-    { key: 'conti', label: 'Piano dei Conti', icon: Library, statsKey: 'totaleConti' },
-    { key: 'vociAnalitiche', label: 'Voci Analitiche', icon: Landmark, statsKey: 'totaleVociAnalitiche' },
-    { key: 'causali', label: 'Causali', icon: FileText, statsKey: 'totaleCausali' },
-    { key: 'codiciIva', label: 'Codici IVA', icon: Library, statsKey: 'totaleCodiciIva' },
-    { key: 'condizioniPagamento', label: 'Condizioni Pagamento', icon: Library, statsKey: 'totaleCondizioniPagamento' },
+const tableConfig: { key: TableKey; label: string; icon: React.ElementType }[] = [
+    { key: 'scritture', label: 'Scritture', icon: FileText },
+    { key: 'commesse', label: 'Commesse', icon: Building },
+    { key: 'clienti', label: 'Clienti', icon: Users },
+    { key: 'fornitori', label: 'Fornitori', icon: Landmark },
+    { key: 'conti', label: 'Piano dei Conti', icon: Library },
+    { key: 'vociAnalitiche', label: 'Voci Analitiche', icon: Landmark },
+    { key: 'causali', label: 'Causali', icon: FileText },
+    { key: 'codiciIva', label: 'Codici IVA', icon: Library },
+    { key: 'condizioniPagamento', label: 'Condizioni Pagamento', icon: Library },
 ];
 
 const Database: React.FC = () => {
-  const [data, setData] = useState<DatabaseData | null>(null);
+  const [stats, setStats] = useState<TableStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedTable, setSelectedTable] = useState<TableKey>('scritture');
-  const navigate = useNavigate();
 
-  const fetchDatabaseData = async (showLoading = true) => {
+  const fetchCounts = async (showLoading = true) => {
     if (showLoading) setLoading(true);
-    setError(null);
 
     try {
-      const [
-        scritture,
-        commesse,
-        clienti,
-        fornitori,
-        conti,
-        vociAnalitiche,
-        causali,
-        codiciIva,
-        condizioniPagamento
-      ] = await Promise.all([
-        getScrittureContabili(),
-        getCommesse(),
-        getClienti(),
-        getFornitori(),
-        getPianoDeiConti(),
-        getVociAnalitiche(),
-        getCausaliContabili(),
-        getCodiciIva(),
-        getCondizioniPagamento(),
+      const results = await Promise.all([
+        getScrittureContabili({ limit: 1 }),
+        getCommesse({ limit: 1 }),
+        getClienti({ limit: 1 }),
+        getFornitori({ limit: 1 }),
+        getPianoDeiConti({ limit: 1 }),
+        getVociAnalitiche({ limit: 1 }),
+        getCausaliContabili({ limit: 1 }),
+        getCodiciIva({ limit: 1 }),
+        getCondizioniPagamento({ limit: 1 }),
       ]);
 
-      setData({
-        scritture,
-        commesse,
-        clienti,
-        fornitori,
-        conti,
-        vociAnalitiche,
-        causali,
-        codiciIva,
-        condizioniPagamento,
-        stats: {
-          totaleScrittureContabili: scritture.length,
-          totaleCommesse: commesse.length,
-          totaleClienti: clienti.length,
-          totaleFornitori: fornitori.length,
-          totaleConti: conti.length,
-          totaleVociAnalitiche: vociAnalitiche.length,
-          totaleCausali: causali.length,
-          totaleCodiciIva: codiciIva.length,
-          totaleCondizioniPagamento: condizioniPagamento.length,
-        },
+      setStats({
+        scritture: results[0].pagination.total,
+        commesse: results[1].pagination.total,
+        clienti: results[2].pagination.total,
+        fornitori: results[3].pagination.total,
+        conti: results[4].pagination.total,
+        vociAnalitiche: results[5].pagination.total,
+        causali: results[6].pagination.total,
+        codiciIva: results[7].pagination.total,
+        condizioniPagamento: results[8].pagination.total,
       });
 
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Si è verificato un errore imprevisto.';
-      setError(message);
-      toast.error('Errore nel caricamento dei dati', { description: message });
+      toast.error('Errore nel caricamento dei contatori', { description: message });
     } finally {
       if (showLoading) setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDatabaseData();
+    fetchCounts();
   }, []);
 
-  const handleDataChange = () => {
-    fetchDatabaseData(false); // Ricarica i dati senza mostrare l'indicatore di caricamento principale
-  };
-
   const renderSelectedTable = () => {
-    if (!data) return <p>Dati non disponibili.</p>;
-
     switch (selectedTable) {
-        case 'clienti':
-            return <ClientiTable data={data.clienti} onDataChange={handleDataChange} />;
-        case 'fornitori':
-            return <FornitoriTable data={data.fornitori} onDataChange={handleDataChange} />;
-        case 'vociAnalitiche':
-            return <VociAnaliticheTable data={data.vociAnalitiche} onDataChange={handleDataChange} />;
-        case 'conti':
-            return <ContiTable data={data.conti} onDataChange={handleDataChange} vociAnalitiche={data.vociAnalitiche} />;
-        case 'commesse':
-            return <CommesseTable data={data.commesse} onDataChange={handleDataChange} clienti={data.clienti}/>;
-        case 'scritture':
-             return <ScrittureTable data={data.scritture} onDataChange={handleDataChange} />;
-        case 'causali':
-            return <CausaliTable data={data.causali} onDataChange={handleDataChange} />;
-        case 'codiciIva':
-            return <CodiciIvaTable data={data.codiciIva} onDataChange={handleDataChange} />;
-        case 'condizioniPagamento':
-            return <CondizioniPagamentoTable data={data.condizioniPagamento} onDataChange={handleDataChange} />;
-        default:
-            return <p>Seleziona una tabella da visualizzare.</p>;
+        case 'clienti': return <ClientiTable />;
+        case 'fornitori': return <FornitoriTable />;
+        case 'vociAnalitiche': return <VociAnaliticheTable />;
+        case 'conti': return <ContiTable />;
+        case 'commesse': return <CommesseTable />;
+        case 'scritture': return <ScrittureTable />;
+        case 'causali': return <CausaliTable />;
+        case 'codiciIva': return <CodiciIvaTable />;
+        case 'condizioniPagamento': return <CondizioniPagamentoTable />;
+        default: return <p>Seleziona una tabella</p>;
     }
   };
 
@@ -230,7 +121,7 @@ const Database: React.FC = () => {
           <DatabaseIcon className="h-6 w-6 mr-2" />
           <h1 className="text-2xl font-bold">Amministrazione Database</h1>
         </div>
-        <Button onClick={() => fetchDatabaseData()} disabled={loading}>
+        <Button onClick={() => fetchCounts()} disabled={loading}>
           <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           Aggiorna Dati
         </Button>
@@ -242,35 +133,39 @@ const Database: React.FC = () => {
             <TabsTrigger value="template-management">Gestione Template Import</TabsTrigger>
           </TabsList>
           <TabsContent value="data-management">
-            {loading ? (
+            {loading && !stats ? (
               <div className="space-y-4">
                 <Skeleton className="h-12 w-1/4" />
                 <Skeleton className="h-64 w-full" />
               </div>
             ) : (
               <ResizablePanelGroup direction="horizontal" className="rounded-lg border">
-                <ResizablePanel defaultSize={20}>
-                  <div className="flex h-full flex-col p-4 space-y-2">
-                    <h2 className="text-lg font-semibold">Tabelle</h2>
-                    {tableConfig.map((table) => (
-                      <Button
-                        key={table.key}
-                        variant={selectedTable === table.key ? 'secondary' : 'ghost'}
-                        onClick={() => setSelectedTable(table.key)}
-                        className="w-full justify-start"
-                      >
-                        <table.icon className="mr-2 h-4 w-4" />
-                        {table.label}
-                        <Badge variant="outline" className="ml-auto">
-                          {data?.stats[table.statsKey] ?? 0}
-                        </Badge>
-                      </Button>
-                    ))}
+                <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+                  <div className="p-4">
+                    <h2 className="text-lg font-semibold mb-4">Tabelle</h2>
+                    <nav className="flex flex-col space-y-1">
+                      {tableConfig.map(table => (
+                        <Button
+                          key={table.key}
+                          variant={selectedTable === table.key ? "secondary" : "ghost"}
+                          className="w-full justify-start"
+                          onClick={() => setSelectedTable(table.key)}
+                        >
+                          <table.icon className="mr-2 h-4 w-4" />
+                          <span>{table.label}</span>
+                          {stats && (
+                            <Badge variant="outline" className="ml-auto">
+                              {stats[table.key]}
+                            </Badge>
+                          )}
+                        </Button>
+                      ))}
+                    </nav>
                   </div>
                 </ResizablePanel>
                 <ResizableHandle withHandle />
                 <ResizablePanel defaultSize={80}>
-                  <div className="p-4">
+                  <div className="p-4 h-full overflow-auto">
                     {renderSelectedTable()}
                   </div>
                 </ResizablePanel>

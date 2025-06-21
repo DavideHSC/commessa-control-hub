@@ -3,7 +3,7 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { ImportTemplate } from "@/types"
 import { Button } from "@/components/ui/button"
-import { ArrowUpDown, MoreHorizontal, Edit, Trash2 } from "lucide-react"
+import { MoreHorizontal, Edit, Trash2 } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { DataTableColumnHeader } from "../ui/data-table-column-header"
 
 export const getColumns = (
     onEdit: (template: ImportTemplate) => void,
@@ -21,13 +22,7 @@ export const getColumns = (
     accessorKey: "nome",
     header: ({ column }) => {
       return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Nome Template
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+        <DataTableColumnHeader column={column} title="Nome Template" />
       )
     },
   },

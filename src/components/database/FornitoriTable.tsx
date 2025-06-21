@@ -1,6 +1,5 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -34,10 +33,32 @@ import { createFornitore, updateFornitore, deleteFornitore } from '@/api/fornito
 import { Fornitore } from '@/types';
 import { baseSchema } from '@/schemas/database';
 import { useCrudTable } from '@/hooks/useCrudTable';
+import { useAdvancedTable } from '@/hooks/useAdvancedTable';
+import { AdvancedDataTable } from '../ui/advanced-data-table';
+import { ColumnDef } from '@tanstack/react-table';
+import { DataTableColumnHeader } from '../ui/data-table-column-header';
 
 type FornitoreFormValues = z.infer<typeof baseSchema>;
 
-export const FornitoriTable = ({ data, onDataChange }: { data: Fornitore[], onDataChange: () => void }) => {
+export const FornitoriTable = () => {
+
+  const {
+    data,
+    totalCount,
+    page,
+    pageSize,
+    search,
+    sorting,
+    loading,
+    onPageChange,
+    onPageSizeChange,
+    onSearchChange,
+    onSortingChange,
+    fetchData: refreshData,
+  } = useAdvancedTable<Fornitore>({
+    endpoint: '/api/fornitori',
+    initialSorting: [{ id: 'nome', desc: false }]
+  });
 
   const {
     isDialogOpen,
@@ -52,12 +73,43 @@ export const FornitoriTable = ({ data, onDataChange }: { data: Fornitore[], onDa
   } = useCrudTable<Fornitore, FornitoreFormValues>({
     schema: baseSchema,
     api: { create: createFornitore, update: updateFornitore, delete: deleteFornitore },
-    onDataChange,
+    onDataChange: () => refreshData(),
     resourceName: "Fornitore",
     defaultValues: { nome: "", externalId: "" },
     getId: (fornitore) => fornitore.id,
   });
 
+  const columns: ColumnDef<Fornitore>[] = [
+    {
+      accessorKey: "nome",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />
+    },
+    {
+      accessorKey: "externalId",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="ID Esterno" />,
+      cell: ({ row }) => row.getValue("externalId") || 'N/A'
+    },
+    {
+        accessorKey: "piva",
+        header: ({ column }) => <DataTableColumnHeader column={column} title="P.IVA" />,
+        cell: ({ row }) => row.original.piva || 'N/A'
+    },
+    {
+        accessorKey: "codiceFiscale",
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Codice Fiscale" />,
+        cell: ({ row }) => row.original.codiceFiscale || 'N/A'
+    },
+    {
+        id: "actions",
+        cell: ({ row }) => (
+            <div className="text-right">
+                <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(row.original)}><Edit className="h-4 w-4" /></Button>
+                <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => setDeletingItem(row.original)}><Trash2 className="h-4 w-4" /></Button>
+            </div>
+        )
+    }
+  ];
+  
   return (
     <>
       <Card>
@@ -66,27 +118,21 @@ export const FornitoriTable = ({ data, onDataChange }: { data: Fornitore[], onDa
           <Button onClick={() => handleOpenDialog()}>Aggiungi Fornitore</Button>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>ID Esterno</TableHead>
-                <TableHead className="text-right">Azioni</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((fornitore) => (
-                <TableRow key={fornitore.id}>
-                  <TableCell>{fornitore.nome}</TableCell>
-                  <TableCell>{fornitore.externalId || 'N/A'}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(fornitore)}><Edit className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => setDeletingItem(fornitore)}><Trash2 className="h-4 w-4" /></Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <AdvancedDataTable
+            columns={columns}
+            data={data}
+            totalCount={totalCount}
+            page={page}
+            pageSize={pageSize}
+            onPageChange={onPageChange}
+            onPageSizeChange={onPageSizeChange}
+            searchValue={search}
+            onSearchChange={onSearchChange}
+            sorting={sorting}
+            onSortingChange={onSortingChange}
+            loading={loading}
+            emptyMessage="Nessun fornitore trovato."
+          />
         </CardContent>
       </Card>
 

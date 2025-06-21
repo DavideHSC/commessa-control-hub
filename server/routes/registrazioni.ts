@@ -37,15 +37,65 @@ interface Allocazione {
 const router = express.Router();
 const prisma = new PrismaClient();
 
-// GET all
+// GET all with pagination, search, and sort
 router.get('/', async (req, res) => {
   try {
-    const scritture = await prisma.scritturaContabile.findMany({
-      include: { righe: { include: { conto: true, allocazioni: true } } },
-      orderBy: { data: 'desc' },
+    const { 
+      page = '1', 
+      limit = '25', 
+      search = '',
+      sortBy = 'data',
+      sortOrder = 'desc',
+      dateFrom = '',
+      dateTo = ''
+    } = req.query;
+
+    const pageNumber = parseInt(page as string, 10);
+    const pageSize = parseInt(limit as string, 10);
+    const skip = (pageNumber - 1) * pageSize;
+    const take = pageSize;
+
+    const where: Prisma.ScritturaContabileWhereInput = {
+      ...(search && {
+        descrizione: { contains: search as string, mode: 'insensitive' }
+      }),
+      ...(dateFrom && dateTo && {
+        data: {
+          gte: new Date(dateFrom as string),
+          lte: new Date(dateTo as string)
+        }
+      })
+    };
+
+    const orderBy: Prisma.ScritturaContabileOrderByWithRelationInput = {
+        [(sortBy as string) || 'data']: (sortOrder as 'asc' | 'desc') || 'desc'
+    };
+
+    const [scritture, totalCount] = await prisma.$transaction([
+      prisma.scritturaContabile.findMany({
+        where,
+        orderBy,
+        skip,
+        take,
+        include: { 
+          righe: { include: { conto: true, allocazioni: true } },
+          fornitore: true
+        },
+      }),
+      prisma.scritturaContabile.count({ where }),
+    ]);
+
+    res.json({
+      data: scritture,
+      pagination: {
+        page: pageNumber,
+        limit: pageSize,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / pageSize),
+      }
     });
-    res.json(scritture);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Errore nel caricamento delle scritture' });
   }
 });

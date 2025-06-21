@@ -1,6 +1,5 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -34,10 +33,33 @@ import {
 import { createCondizionePagamento, updateCondizionePagamento, deleteCondizionePagamento, CondizionePagamento } from '@/api/condizioniPagamento';
 import { condizioneSchema } from '@/schemas/database';
 import { useCrudTable } from '@/hooks/useCrudTable';
+import { useAdvancedTable } from '@/hooks/useAdvancedTable';
+import { AdvancedDataTable } from '../ui/advanced-data-table';
+import { ColumnDef } from '@tanstack/react-table';
+import { DataTableColumnHeader } from '../ui/data-table-column-header';
 
 type CondizioneFormValues = z.infer<typeof condizioneSchema>;
 
-export const CondizioniPagamentoTable = ({ data, onDataChange }: { data: CondizionePagamento[], onDataChange: () => void }) => {
+export const CondizioniPagamentoTable = () => {
+
+  const {
+    data,
+    totalCount,
+    page,
+    pageSize,
+    search,
+    sorting,
+    loading,
+    onPageChange,
+    onPageSizeChange,
+    onSearchChange,
+    onSortingChange,
+    fetchData: refreshData,
+  } = useAdvancedTable<CondizionePagamento>({
+    endpoint: '/api/condizioni-pagamento',
+    initialSorting: [{ id: 'id', desc: false }]
+  });
+
   const {
     isDialogOpen,
     setIsDialogOpen,
@@ -55,11 +77,37 @@ export const CondizioniPagamentoTable = ({ data, onDataChange }: { data: Condizi
       update: updateCondizionePagamento,
       delete: deleteCondizionePagamento,
     },
-    onDataChange,
+    onDataChange: () => refreshData(),
     resourceName: "Condizione di pagamento",
     defaultValues: { id: "", descrizione: "", externalId: "" },
     getId: (condizione) => condizione.id,
   });
+
+  const columns: ColumnDef<CondizionePagamento>[] = [
+    {
+      accessorKey: "id",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
+      cell: ({ row }) => <Badge variant="outline">{row.getValue("id")}</Badge>
+    },
+    {
+      accessorKey: "descrizione",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Descrizione" />,
+    },
+    {
+      accessorKey: "externalId",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="ID Esterno" />,
+      cell: ({ row }) => row.getValue("externalId") || 'N/A'
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+          <div className="text-right">
+              <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(row.original)}><Edit className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => setDeletingItem(row.original)}><Trash2 className="h-4 w-4" /></Button>
+          </div>
+      )
+    }
+  ];
 
   return (
     <>
@@ -69,29 +117,21 @@ export const CondizioniPagamentoTable = ({ data, onDataChange }: { data: Condizi
           <Button onClick={() => handleOpenDialog()}>Aggiungi Condizione</Button>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Descrizione</TableHead>
-                <TableHead>ID Esterno</TableHead>
-                <TableHead className="text-right">Azioni</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((condizione) => (
-                <TableRow key={condizione.id}>
-                  <TableCell><Badge variant="outline">{condizione.id}</Badge></TableCell>
-                  <TableCell>{condizione.descrizione}</TableCell>
-                  <TableCell>{condizione.externalId || 'N/A'}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(condizione)}><Edit className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => setDeletingItem(condizione)}><Trash2 className="h-4 w-4" /></Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <AdvancedDataTable
+            columns={columns}
+            data={data}
+            totalCount={totalCount}
+            page={page}
+            pageSize={pageSize}
+            onPageChange={onPageChange}
+            onPageSizeChange={onPageSizeChange}
+            searchValue={search}
+            onSearchChange={onSearchChange}
+            sorting={sorting}
+            onSortingChange={onSortingChange}
+            loading={loading}
+            emptyMessage="Nessuna condizione di pagamento trovata."
+          />
         </CardContent>
       </Card>
 

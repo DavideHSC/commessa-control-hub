@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { ImportTemplate } from '@/types';
-import { getImportTemplates, deleteImportTemplate } from '@/api/importTemplates';
+import { deleteImportTemplate } from '@/api/importTemplates';
 import { getColumns } from './import-templates-columns';
-import { DataTable } from '@/components/ui/data-table'; // Assuming a generic DataTable component exists
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -18,34 +17,32 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-// We will create this component next
 import { TemplateFormDialog } from './TemplateFormDialog'; 
+import { useAdvancedTable } from '@/hooks/useAdvancedTable';
+import { AdvancedDataTable } from '../ui/advanced-data-table';
 
 const ImportTemplatesAdmin: React.FC = () => {
-    const [templates, setTemplates] = useState<ImportTemplate[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState<ImportTemplate | null>(null);
     const [deletingTemplate, setDeletingTemplate] = useState<ImportTemplate | null>(null);
 
-    const fetchTemplates = async () => {
-        try {
-            setLoading(true);
-            const data = await getImportTemplates();
-            setTemplates(data);
-            setError(null);
-        } catch (err) {
-            setError('Impossibile caricare i template.');
-            toast.error((err as Error).message);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchTemplates();
-    }, []);
+    const {
+      data: templates,
+      totalCount,
+      page,
+      pageSize,
+      search,
+      sorting,
+      loading,
+      onPageChange,
+      onPageSizeChange,
+      onSearchChange,
+      onSortingChange,
+      fetchData: refreshData,
+    } = useAdvancedTable<ImportTemplate>({
+      endpoint: '/api/import-templates',
+      initialSorting: [{ id: 'nome', desc: false }]
+    });
 
     const handleEdit = (template: ImportTemplate) => {
         setEditingTemplate(template);
@@ -57,7 +54,7 @@ const ImportTemplatesAdmin: React.FC = () => {
         try {
             await deleteImportTemplate(deletingTemplate.id);
             toast.success(`Template "${deletingTemplate.nome}" eliminato con successo.`);
-            fetchTemplates(); // Refresh data
+            refreshData();
         } catch (error) {
             toast.error((error as Error).message);
         } finally {
@@ -69,19 +66,11 @@ const ImportTemplatesAdmin: React.FC = () => {
         setIsFormOpen(false);
         setEditingTemplate(null);
         if (refresh) {
-            fetchTemplates();
+            refreshData();
         }
     }
 
     const columns = getColumns(handleEdit, (template) => setDeletingTemplate(template));
-
-    if (loading) {
-        return <div>Caricamento in corso...</div>;
-    }
-
-    if (error) {
-        return <div className="text-red-500">{error}</div>;
-    }
 
     return (
         <div>
@@ -92,10 +81,22 @@ const ImportTemplatesAdmin: React.FC = () => {
                 </Button>
             </div>
             
-            <DataTable columns={columns} data={templates} />
+            <AdvancedDataTable
+              columns={columns}
+              data={templates}
+              totalCount={totalCount}
+              page={page}
+              pageSize={pageSize}
+              onPageChange={onPageChange}
+              onPageSizeChange={onPageSizeChange}
+              searchValue={search}
+              onSearchChange={onSearchChange}
+              sorting={sorting}
+              onSortingChange={onSortingChange}
+              loading={loading}
+              emptyMessage="Nessun template trovato."
+            />
 
-            {/* Placeholder for the Form Dialog */}
-            
             <TemplateFormDialog
                 isOpen={isFormOpen}
                 onClose={handleFormClose}

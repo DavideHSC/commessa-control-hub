@@ -141,6 +141,21 @@ Response:
 - **Report.tsx** - Se presente, tabelle di report
 - **Import.tsx** - Log importazioni (futuro)
 
+### **FASE 7: Correzioni e Internazionalizzazione UI**
+**Obiettivo:** Migliorare l'usabilità e tradurre i componenti della tabella.
+
+**Operazioni Completate:**
+- **Traduzione etichette:**
+  - "View" -> "Vista"
+  - "Toggle columns" -> "Seleziona Colonne"
+  - "Rows per page" -> "Righe per pagina"
+  - "Page X of Y" -> "Pagina X di Y"
+- **Correzione selettore righe:**
+  - Il selettore "Righe per pagina" ora è pre-selezionato sul valore di default (5).
+  - Impostato il valore iniziale di righe per pagina a 5 per tutte le tabelle.
+- **Correzione testo risultati:**
+  - La paginazione ora mostra correttamente "X risultati totali" invece del conteggio delle righe della pagina corrente.
+
 ## 🔧 IMPLEMENTAZIONE TECNICA
 
 ### **Componente AdvancedDataTable**

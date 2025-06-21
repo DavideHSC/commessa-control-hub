@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Edit, Trash2 } from 'lucide-react';
 import {
@@ -19,23 +18,40 @@ import { toast } from "sonner";
 import { deleteRegistrazione } from '@/api/registrazioni';
 import { clearScrittureContabili } from '@/api/database';
 import { ScritturaContabile, RigaScrittura } from '@/types';
+import { useAdvancedTable } from '@/hooks/useAdvancedTable';
+import { AdvancedDataTable } from '../ui/advanced-data-table';
+import { ColumnDef } from '@tanstack/react-table';
+import { DataTableColumnHeader } from '../ui/data-table-column-header';
 
-interface ScrittureTableProps {
-  data: ScritturaContabile[];
-  onDataChange: () => void;
-}
-
-export const ScrittureTable: React.FC<ScrittureTableProps> = ({ data, onDataChange }) => {
+export const ScrittureTable: React.FC = () => {
   const [deletingRegistrazione, setDeletingRegistrazione] = useState<ScritturaContabile | null>(null);
   const [isClearing, setIsClearing] = useState(false);
   const navigate = useNavigate();
+
+  const {
+    data,
+    totalCount,
+    page,
+    pageSize,
+    search,
+    sorting,
+    loading,
+    onPageChange,
+    onPageSizeChange,
+    onSearchChange,
+    onSortingChange,
+    fetchData: refreshData,
+  } = useAdvancedTable<ScritturaContabile>({
+    endpoint: '/api/registrazioni',
+    initialSorting: [{ id: 'data', desc: true }]
+  });
 
   const handleDelete = async () => {
     if (!deletingRegistrazione) return;
     try {
       await deleteRegistrazione(deletingRegistrazione.id);
       toast.success("Registrazione eliminata con successo.");
-      onDataChange();
+      refreshData();
     } catch (error) {
       toast.error((error as Error).message);
     } finally {
@@ -47,7 +63,7 @@ export const ScrittureTable: React.FC<ScrittureTableProps> = ({ data, onDataChan
     try {
       await clearScrittureContabili();
       toast.success("Tutte le scritture sono state eliminate.");
-      onDataChange();
+      refreshData();
     } catch (error) {
       toast.error((error as Error).message);
     }
@@ -63,6 +79,45 @@ export const ScrittureTable: React.FC<ScrittureTableProps> = ({ data, onDataChan
   const calculateTotal = (righe: RigaScrittura[] = []) => {
     return righe.reduce((acc, riga) => acc + (riga.dare || 0), 0);
   };
+
+  const columns: ColumnDef<ScritturaContabile>[] = [
+    {
+      accessorKey: "data",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Data" />,
+      cell: ({ row }) => new Date(row.getValue("data")).toLocaleDateString()
+    },
+    {
+      accessorKey: "descrizione",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Descrizione" />,
+    },
+    {
+      accessorKey: "causaleId",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Causale" />,
+      cell: ({ row }) => <Badge variant="outline">{row.getValue("causaleId")}</Badge>
+    },
+    {
+        accessorKey: 'fornitore.nome',
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Fornitore" />,
+        cell: ({ row }) => row.original.fornitore?.nome || 'N/A'
+    },
+    {
+      id: "totale",
+      header: "Totale",
+      cell: ({ row }) => {
+        const total = calculateTotal(row.original.righe);
+        return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(total);
+      }
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+        <div className="text-right">
+            <Button variant="ghost" size="icon" onClick={() => handleEdit(row.original)}><Edit className="h-4 w-4" /></Button>
+            <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => setDeletingRegistrazione(row.original)}><Trash2 className="h-4 w-4" /></Button>
+        </div>
+      )
+    }
+  ];
   
   return (
     <>
@@ -75,44 +130,21 @@ export const ScrittureTable: React.FC<ScrittureTableProps> = ({ data, onDataChan
             </Button>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Data</TableHead>
-                <TableHead>Descrizione</TableHead>
-                <TableHead>Causale</TableHead>
-                <TableHead>Totale</TableHead>
-                <TableHead className="text-right">Azioni</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((scrittura) => (
-                <TableRow key={scrittura.id}>
-                  <TableCell>{new Date(scrittura.data).toLocaleDateString()}</TableCell>
-                  <TableCell>{scrittura.descrizione}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{scrittura.causaleId}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    {new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(calculateTotal(scrittura.righe))}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => handleEdit(scrittura)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-red-500 hover:text-red-600"
-                      onClick={() => setDeletingRegistrazione(scrittura)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <AdvancedDataTable
+            columns={columns}
+            data={data}
+            totalCount={totalCount}
+            page={page}
+            pageSize={pageSize}
+            onPageChange={onPageChange}
+            onPageSizeChange={onPageSizeChange}
+            searchValue={search}
+            onSearchChange={onSearchChange}
+            sorting={sorting}
+            onSortingChange={onSortingChange}
+            loading={loading}
+            emptyMessage="Nessuna scrittura trovata."
+          />
         </CardContent>
       </Card>
 

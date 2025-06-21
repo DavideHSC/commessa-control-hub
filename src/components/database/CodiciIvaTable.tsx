@@ -1,6 +1,5 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -34,10 +33,33 @@ import {
 import { createCodiceIva, updateCodiceIva, deleteCodiceIva, CodiceIva } from '@/api/codiciIva';
 import { codiceIvaSchema } from '@/schemas/database';
 import { useCrudTable } from '@/hooks/useCrudTable';
+import { useAdvancedTable } from '@/hooks/useAdvancedTable';
+import { AdvancedDataTable } from '../ui/advanced-data-table';
+import { ColumnDef } from '@tanstack/react-table';
+import { DataTableColumnHeader } from '../ui/data-table-column-header';
 
 type CodiceIvaFormValues = z.infer<typeof codiceIvaSchema>;
 
-export const CodiciIvaTable = ({ data, onDataChange }: { data: CodiceIva[], onDataChange: () => void }) => {
+export const CodiciIvaTable = () => {
+
+  const {
+    data,
+    totalCount,
+    page,
+    pageSize,
+    search,
+    sorting,
+    loading,
+    onPageChange,
+    onPageSizeChange,
+    onSearchChange,
+    onSortingChange,
+    fetchData: refreshData,
+  } = useAdvancedTable<CodiceIva>({
+    endpoint: '/api/codici-iva',
+    initialSorting: [{ id: 'id', desc: false }]
+  });
+
   const {
     isDialogOpen,
     setIsDialogOpen,
@@ -55,11 +77,42 @@ export const CodiciIvaTable = ({ data, onDataChange }: { data: CodiceIva[], onDa
       update: updateCodiceIva,
       delete: deleteCodiceIva,
     },
-    onDataChange,
+    onDataChange: () => refreshData(),
     resourceName: "Codice IVA",
     defaultValues: { id: "", descrizione: "", aliquota: 22, externalId: "" },
     getId: (codice) => codice.id,
   });
+
+  const columns: ColumnDef<CodiceIva>[] = [
+    {
+      accessorKey: "id",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
+      cell: ({ row }) => <Badge variant="outline">{row.getValue("id")}</Badge>
+    },
+    {
+      accessorKey: "descrizione",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Descrizione" />,
+    },
+    {
+      accessorKey: "aliquota",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Aliquota" />,
+      cell: ({ row }) => `${row.getValue("aliquota")}%`
+    },
+    {
+      accessorKey: "externalId",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="ID Esterno" />,
+      cell: ({ row }) => row.getValue("externalId") || 'N/A'
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+          <div className="text-right">
+              <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(row.original)}><Edit className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => setDeletingItem(row.original)}><Trash2 className="h-4 w-4" /></Button>
+          </div>
+      )
+    }
+  ];
 
   return (
     <>
@@ -69,31 +122,21 @@ export const CodiciIvaTable = ({ data, onDataChange }: { data: CodiceIva[], onDa
           <Button onClick={() => handleOpenDialog()}>Aggiungi Codice IVA</Button>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Descrizione</TableHead>
-                <TableHead>Aliquota</TableHead>
-                <TableHead>ID Esterno</TableHead>
-                <TableHead className="text-right">Azioni</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((codice) => (
-                <TableRow key={codice.id}>
-                  <TableCell><Badge variant="outline">{codice.id}</Badge></TableCell>
-                  <TableCell>{codice.descrizione}</TableCell>
-                  <TableCell>{codice.aliquota}%</TableCell>
-                  <TableCell>{codice.externalId || 'N/A'}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(codice)}><Edit className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => setDeletingItem(codice)}><Trash2 className="h-4 w-4" /></Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <AdvancedDataTable
+            columns={columns}
+            data={data}
+            totalCount={totalCount}
+            page={page}
+            pageSize={pageSize}
+            onPageChange={onPageChange}
+            onPageSizeChange={onPageSizeChange}
+            searchValue={search}
+            onSearchChange={onSearchChange}
+            sorting={sorting}
+            onSortingChange={onSortingChange}
+            loading={loading}
+            emptyMessage="Nessun codice IVA trovato."
+          />
         </CardContent>
       </Card>
 

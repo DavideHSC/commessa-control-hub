@@ -10,13 +10,54 @@ const isPrismaError = (error: unknown): error is PrismaClientKnownRequestError =
     return error instanceof PrismaClientKnownRequestError;
 };
 
-// GET - Recupera tutti i clienti
+// GET - Recupera tutti i clienti con paginazione
 router.get('/', async (req: Request, res: Response): Promise<void> => {
   try {
-    const clienti = await prisma.cliente.findMany({
-      orderBy: { nome: 'asc' },
+    const { 
+      page = '1', 
+      limit = '25', 
+      search = '',
+      sortBy = 'nome',
+      sortOrder = 'asc'
+    } = req.query;
+
+    const pageNumber = parseInt(page as string, 10);
+    const pageSize = parseInt(limit as string, 10);
+    const skip = (pageNumber - 1) * pageSize;
+    const take = pageSize;
+
+    const where: Prisma.ClienteWhereInput = search ? {
+      OR: [
+        { nome: { contains: search as string, mode: 'insensitive' } },
+        { externalId: { contains: search as string, mode: 'insensitive' } },
+        { piva: { contains: search as string, mode: 'insensitive' } },
+        { codiceFiscale: { contains: search as string, mode: 'insensitive' } },
+      ],
+    } : {};
+
+    const orderBy: Prisma.ClienteOrderByWithRelationInput = {
+        [(sortBy as string) || 'nome']: (sortOrder as 'asc' | 'desc') || 'asc'
+    };
+    
+    const [clienti, totalCount] = await prisma.$transaction([
+        prisma.cliente.findMany({
+            where,
+            orderBy,
+            skip,
+            take,
+        }),
+        prisma.cliente.count({ where }),
+    ]);
+
+    res.json({
+        data: clienti,
+        pagination: {
+            page: pageNumber,
+            limit: pageSize,
+            total: totalCount,
+            totalPages: Math.ceil(totalCount / pageSize),
+        }
     });
-    res.json(clienti);
   } catch (error) {
     console.error('Errore nel recupero dei clienti:', error);
     res.status(500).json({ error: "Errore durante il recupero dei clienti." });

@@ -10,13 +10,54 @@ const isPrismaError = (error: unknown): error is PrismaClientKnownRequestError =
     return error instanceof PrismaClientKnownRequestError;
 };
 
-// GET - Recupera tutti i fornitori
+// GET - Recupera tutti i fornitori con paginazione
 router.get('/', async (req: express.Request, res: express.Response): Promise<void> => {
   try {
-    const fornitori = await prisma.fornitore.findMany({
-      orderBy: { nome: 'asc' },
+    const { 
+      page = '1', 
+      limit = '25', 
+      search = '',
+      sortBy = 'nome',
+      sortOrder = 'asc'
+    } = req.query;
+
+    const pageNumber = parseInt(page as string, 10);
+    const pageSize = parseInt(limit as string, 10);
+    const skip = (pageNumber - 1) * pageSize;
+    const take = pageSize;
+
+    const where: Prisma.FornitoreWhereInput = search ? {
+      OR: [
+        { nome: { contains: search as string, mode: 'insensitive' } },
+        { externalId: { contains: search as string, mode: 'insensitive' } },
+        { piva: { contains: search as string, mode: 'insensitive' } },
+        { codiceFiscale: { contains: search as string, mode: 'insensitive' } },
+      ],
+    } : {};
+
+    const orderBy: Prisma.FornitoreOrderByWithRelationInput = {
+        [(sortBy as string) || 'nome']: (sortOrder as 'asc' | 'desc') || 'asc'
+    };
+    
+    const [fornitori, totalCount] = await prisma.$transaction([
+        prisma.fornitore.findMany({
+            where,
+            orderBy,
+            skip,
+            take,
+        }),
+        prisma.fornitore.count({ where }),
+    ]);
+
+    res.json({
+        data: fornitori,
+        pagination: {
+            page: pageNumber,
+            limit: pageSize,
+            total: totalCount,
+            totalPages: Math.ceil(totalCount / pageSize),
+        }
     });
-    res.json(fornitori);
   } catch (error) {
     console.error('Errore nel recupero dei fornitori:', error);
     res.status(500).json({ error: "Errore durante il recupero dei fornitori." });

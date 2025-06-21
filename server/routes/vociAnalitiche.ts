@@ -1,5 +1,5 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
 const router = express.Router();
@@ -7,8 +7,51 @@ const router = express.Router();
 // GET all voci analitiche
 router.get('/', async (req, res) => {
   try {
-    const vociAnalitiche = await prisma.voceAnalitica.findMany();
-    res.json(vociAnalitiche);
+    const { 
+        page = '1', 
+        limit = '25', 
+        search = '',
+        sortBy = 'nome',
+        sortOrder = 'asc'
+    } = req.query;
+
+    const pageNumber = parseInt(page as string, 10);
+    const pageSize = parseInt(limit as string, 10);
+    const skip = (pageNumber - 1) * pageSize;
+    const take = pageSize;
+
+    const where: Prisma.VoceAnaliticaWhereInput = search ? {
+        OR: [
+            { id: { contains: search as string, mode: 'insensitive' } },
+            { nome: { contains: search as string, mode: 'insensitive' } },
+            { descrizione: { contains: search as string, mode: 'insensitive' } },
+        ],
+    } : {};
+
+    const orderBy: Prisma.VoceAnaliticaOrderByWithRelationInput = {
+        [(sortBy as string) || 'nome']: (sortOrder as 'asc' | 'desc') || 'asc'
+    };
+
+    const [vociAnalitiche, totalCount] = await prisma.$transaction([
+        prisma.voceAnalitica.findMany({
+            where,
+            orderBy,
+            skip,
+            take,
+        }),
+        prisma.voceAnalitica.count({ where }),
+    ]);
+
+    res.json({
+        data: vociAnalitiche,
+        pagination: {
+            page: pageNumber,
+            limit: pageSize,
+            total: totalCount,
+            totalPages: Math.ceil(totalCount / pageSize),
+        }
+    });
+
   } catch (error) {
     res.status(500).json({ error: 'Errore nel recupero delle voci analitiche.' });
   }

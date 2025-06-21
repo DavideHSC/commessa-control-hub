@@ -1,15 +1,57 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 const router = express.Router();
 
-// GET all conti
+// GET all conti with pagination, search, and sort
 router.get('/', async (req, res) => {
   try {
-    const conti = await prisma.conto.findMany();
-    res.json(conti);
+    const { 
+      page = '1', 
+      limit = '25', 
+      search = '',
+      sortBy = 'codice',
+      sortOrder = 'asc'
+    } = req.query;
+
+    const pageNumber = parseInt(page as string, 10);
+    const pageSize = parseInt(limit as string, 10);
+    const skip = (pageNumber - 1) * pageSize;
+    const take = pageSize;
+
+    const where: Prisma.ContoWhereInput = search ? {
+      OR: [
+        { codice: { contains: search as string, mode: 'insensitive' } },
+        { nome: { contains: search as string, mode: 'insensitive' } },
+      ],
+    } : {};
+
+    const orderBy: Prisma.ContoOrderByWithRelationInput = {
+        [(sortBy as string) || 'codice']: (sortOrder as 'asc' | 'desc') || 'asc'
+    };
+
+    const [conti, totalCount] = await prisma.$transaction([
+      prisma.conto.findMany({
+        where,
+        orderBy,
+        skip,
+        take,
+      }),
+      prisma.conto.count({ where }),
+    ]);
+
+    res.json({
+      data: conti,
+      pagination: {
+        page: pageNumber,
+        limit: pageSize,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / pageSize),
+      }
+    });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Errore nel recupero dei conti.' });
   }
 });

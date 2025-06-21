@@ -1,5 +1,5 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -7,12 +7,50 @@ const prisma = new PrismaClient();
 // GET - Recupera tutte le condizioni di pagamento
 router.get('/', async (req, res) => {
   try {
-    const condizioniPagamento = await prisma.condizionePagamento.findMany({
-      orderBy: {
-        id: 'asc'
-      }
+    const { 
+        page = '1', 
+        limit = '25', 
+        search = '',
+        sortBy = 'id',
+        sortOrder = 'asc'
+    } = req.query;
+
+    const pageNumber = parseInt(page as string, 10);
+    const pageSize = parseInt(limit as string, 10);
+    const skip = (pageNumber - 1) * pageSize;
+    const take = pageSize;
+
+    const where: Prisma.CondizionePagamentoWhereInput = search ? {
+        OR: [
+            { id: { contains: search as string, mode: 'insensitive' } },
+            { descrizione: { contains: search as string, mode: 'insensitive' } },
+            { externalId: { contains: search as string, mode: 'insensitive' } },
+        ],
+    } : {};
+
+    const orderBy: Prisma.CondizionePagamentoOrderByWithRelationInput = {
+        [(sortBy as string) || 'id']: (sortOrder as 'asc' | 'desc') || 'asc'
+    };
+    
+    const [condizioniPagamento, totalCount] = await prisma.$transaction([
+        prisma.condizionePagamento.findMany({
+            where,
+            orderBy,
+            skip,
+            take,
+        }),
+        prisma.condizionePagamento.count({ where }),
+    ]);
+    
+    res.json({
+        data: condizioniPagamento,
+        pagination: {
+            page: pageNumber,
+            limit: pageSize,
+            total: totalCount,
+            totalPages: Math.ceil(totalCount / pageSize),
+        }
     });
-    res.json(condizioniPagamento);
   } catch (error) {
     console.error('Errore nel caricamento delle condizioni di pagamento:', error);
     res.status(500).json({ error: 'Errore interno del server' });

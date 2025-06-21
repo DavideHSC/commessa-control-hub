@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -39,13 +38,50 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { createCommessa, updateCommessa, deleteCommessa } from '@/api/commesse';
+import { getClienti } from '@/api';
 import { Commessa, Cliente } from '@/types';
 import { commessaSchema } from '@/schemas/database';
 import { useCrudTable } from '@/hooks/useCrudTable';
+import { useAdvancedTable } from '@/hooks/useAdvancedTable';
+import { AdvancedDataTable } from '../ui/advanced-data-table';
+import { ColumnDef } from '@tanstack/react-table';
+import { DataTableColumnHeader } from '../ui/data-table-column-header';
 
 type CommessaFormValues = z.infer<typeof commessaSchema>;
 
-export const CommesseTable = ({ data, onDataChange, clienti }: { data: Commessa[], onDataChange: () => void, clienti: Cliente[] }) => {
+export const CommesseTable = () => {
+  const [clienti, setClienti] = useState<Cliente[]>([]);
+
+  const {
+    data,
+    totalCount,
+    page,
+    pageSize,
+    search,
+    sorting,
+    loading,
+    onPageChange,
+    onPageSizeChange,
+    onSearchChange,
+    onSortingChange,
+    fetchData: refreshData,
+  } = useAdvancedTable<Commessa>({
+    endpoint: '/api/commesse',
+    initialSorting: [{ id: 'nome', desc: false }]
+  });
+
+  useEffect(() => {
+    const fetchClienti = async () => {
+      try {
+        const clientiData = await getClienti({ limit: 1000 });
+        setClienti(clientiData.data);
+      } catch (error) {
+        console.error("Failed to fetch clienti:", error);
+      }
+    };
+    fetchClienti();
+  }, []);
+
   const {
     isDialogOpen,
     setIsDialogOpen,
@@ -63,11 +99,36 @@ export const CommesseTable = ({ data, onDataChange, clienti }: { data: Commessa[
       update: updateCommessa,
       delete: deleteCommessa,
     },
-    onDataChange,
+    onDataChange: () => refreshData(),
     resourceName: "Commessa",
     defaultValues: { id: "", nome: "", descrizione: "", clienteId: "" },
     getId: (commessa) => commessa.id,
   });
+
+  const columns: ColumnDef<Commessa>[] = [
+    {
+      accessorKey: "id",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
+    },
+    {
+      accessorKey: "nome",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />,
+    },
+    {
+      accessorKey: "cliente.nome",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Cliente" />,
+      cell: ({ row }) => row.original.cliente?.nome || 'N/A'
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+          <div className="text-right">
+              <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(row.original)}><Edit className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => setDeletingItem(row.original)}><Trash2 className="h-4 w-4" /></Button>
+          </div>
+      )
+    }
+  ];
 
   return (
     <>
@@ -79,29 +140,21 @@ export const CommesseTable = ({ data, onDataChange, clienti }: { data: Commessa[
           </Button>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Nome</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead className="text-right">Azioni</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((commessa) => (
-                <TableRow key={commessa.id}>
-                  <TableCell>{commessa.id}</TableCell>
-                  <TableCell>{commessa.nome}</TableCell>
-                  <TableCell>{clienti.find(c => c.id === commessa.clienteId)?.nome || 'N/A'}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(commessa)}><Edit className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => setDeletingItem(commessa)}><Trash2 className="h-4 w-4" /></Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <AdvancedDataTable
+            columns={columns}
+            data={data}
+            totalCount={totalCount}
+            page={page}
+            pageSize={pageSize}
+            onPageChange={onPageChange}
+            onPageSizeChange={onPageSizeChange}
+            searchValue={search}
+            onSearchChange={onSearchChange}
+            sorting={sorting}
+            onSortingChange={onSortingChange}
+            loading={loading}
+            emptyMessage="Nessuna commessa trovata."
+          />
         </CardContent>
       </Card>
 

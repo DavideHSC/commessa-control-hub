@@ -1,5 +1,5 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -7,11 +7,49 @@ const prisma = new PrismaClient();
 // GET all import templates
 router.get('/', async (req, res) => {
     try {
-        const templates = await prisma.importTemplate.findMany({
-            include: { fields: true },
-            orderBy: { nome: 'asc' }
+        const { 
+            page = '1', 
+            limit = '25', 
+            search = '',
+            sortBy = 'nome',
+            sortOrder = 'asc'
+        } = req.query;
+
+        const pageNumber = parseInt(page as string, 10);
+        const pageSize = parseInt(limit as string, 10);
+        const skip = (pageNumber - 1) * pageSize;
+        const take = pageSize;
+
+        const where: Prisma.ImportTemplateWhereInput = search ? {
+            OR: [
+                { nome: { contains: search as string, mode: 'insensitive' } },
+            ],
+        } : {};
+
+        const orderBy: Prisma.ImportTemplateOrderByWithRelationInput = {
+            [(sortBy as string) || 'nome']: (sortOrder as 'asc' | 'desc') || 'asc'
+        };
+
+        const [templates, totalCount] = await prisma.$transaction([
+            prisma.importTemplate.findMany({
+                where,
+                orderBy,
+                skip,
+                take,
+                include: { fields: true },
+            }),
+            prisma.importTemplate.count({ where }),
+        ]);
+        
+        res.json({
+            data: templates,
+            pagination: {
+                page: pageNumber,
+                limit: pageSize,
+                total: totalCount,
+                totalPages: Math.ceil(totalCount / pageSize),
+            }
         });
-        res.json(templates);
     } catch (error) {
         console.error("Errore nel recupero dei template di importazione:", error);
         res.status(500).json({ error: "Errore interno del server." });

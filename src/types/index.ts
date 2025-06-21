@@ -8,6 +8,8 @@ export interface Cliente {
   id: string;
   nome: string;
   externalId?: string | null;
+  piva?: string | null;
+  codiceFiscale?: string | null;
 }
 
 /**
@@ -17,6 +19,8 @@ export interface Fornitore {
   id: string;
   nome: string;
   externalId?: string | null;
+  piva?: string | null;
+  codiceFiscale?: string | null;
 }
 
 /**
@@ -138,6 +142,7 @@ export interface ScritturaContabile {
   causaleId: string; // ID della causale usata (obbligatorio se si usa un automatismo)
   descrizione: string;
   righe: RigaScrittura[];
+  fornitore?: Fornitore | null;
   datiAggiuntivi?: {
     fornitoreId?: string | null;
     clienteId?: string | null;

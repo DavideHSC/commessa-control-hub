@@ -1,6 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -44,10 +43,48 @@ import { Conto, VoceAnalitica } from '@/types';
 import { TipoConto } from '@prisma/client';
 import { contoSchema } from '@/schemas/database';
 import { useCrudTable } from '@/hooks/useCrudTable';
+import { useAdvancedTable } from '@/hooks/useAdvancedTable';
+import { AdvancedDataTable } from '../ui/advanced-data-table';
+import { ColumnDef } from '@tanstack/react-table';
+import { DataTableColumnHeader } from '../ui/data-table-column-header';
+import { getVociAnalitiche } from '@/api';
 
 type ContoFormValues = z.infer<typeof contoSchema>;
 
-export const ContiTable = ({ data, onDataChange, vociAnalitiche }: { data: Conto[], onDataChange: () => void, vociAnalitiche: VoceAnalitica[] }) => {
+export const ContiTable = () => {
+  const [vociAnalitiche, setVociAnalitiche] = useState<VoceAnalitica[]>([]);
+
+  useEffect(() => {
+    const fetchVoci = async () => {
+      try {
+        // Carichiamo *tutte* le voci analitiche per la dropdown, quindi usiamo un limite alto
+        const result = await getVociAnalitiche({ limit: 1000 }); 
+        setVociAnalitiche(result.data);
+      } catch (error) {
+        console.error("Failed to fetch voci analitiche", error);
+      }
+    };
+    fetchVoci();
+  }, []);
+
+  const {
+    data,
+    totalCount,
+    page,
+    pageSize,
+    search,
+    sorting,
+    loading,
+    onPageChange,
+    onPageSizeChange,
+    onSearchChange,
+    onSortingChange,
+    fetchData: refreshData,
+  } = useAdvancedTable<Conto>({
+    endpoint: '/api/conti',
+    initialSorting: [{ id: 'codice', desc: false }]
+  });
+
   const {
     isDialogOpen,
     setIsDialogOpen,
@@ -65,7 +102,7 @@ export const ContiTable = ({ data, onDataChange, vociAnalitiche }: { data: Conto
         update: updateConto,
         delete: deleteConto,
     },
-    onDataChange,
+    onDataChange: () => refreshData(),
     resourceName: "Conto",
     defaultValues: {
       id: "",
@@ -77,6 +114,39 @@ export const ContiTable = ({ data, onDataChange, vociAnalitiche }: { data: Conto
     },
     getId: (conto) => conto.id,
   });
+
+  const columns: ColumnDef<Conto>[] = [
+    {
+        accessorKey: "codice",
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Codice" />,
+        cell: ({ row }) => <Badge variant="secondary">{row.getValue("codice")}</Badge>
+    },
+    {
+        accessorKey: "nome",
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />,
+    },
+    {
+        accessorKey: "tipo",
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Tipo" />,
+    },
+    {
+        accessorKey: "richiedeVoceAnalitica",
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Richiede Voce Analitica" />,
+        cell: ({ row }) => row.getValue("richiedeVoceAnalitica") ? 'Sì' : 'No'
+    },
+    {
+        id: "actions",
+        cell: ({ row }) => {
+            const conto = row.original;
+            return (
+                <div className="text-right">
+                    <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(conto)}><Edit className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => setDeletingItem(conto)}><Trash2 className="h-4 w-4" /></Button>
+                </div>
+            )
+        }
+    }
+  ];
   
   return (
     <>
@@ -86,31 +156,21 @@ export const ContiTable = ({ data, onDataChange, vociAnalitiche }: { data: Conto
           <Button onClick={() => handleOpenDialog()}>Aggiungi Conto</Button>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Codice</TableHead>
-                <TableHead>Nome</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Richiede Voce Analitica</TableHead>
-                <TableHead className="text-right">Azioni</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((conto) => (
-                <TableRow key={conto.id}>
-                  <TableCell><Badge variant="secondary">{conto.codice}</Badge></TableCell>
-                  <TableCell>{conto.nome}</TableCell>
-                  <TableCell>{conto.tipo}</TableCell>
-                  <TableCell>{conto.richiedeVoceAnalitica ? 'Sì' : 'No'}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(conto)}><Edit className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => setDeletingItem(conto)}><Trash2 className="h-4 w-4" /></Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <AdvancedDataTable
+            columns={columns}
+            data={data}
+            totalCount={totalCount}
+            page={page}
+            pageSize={pageSize}
+            onPageChange={onPageChange}
+            onPageSizeChange={onPageSizeChange}
+            searchValue={search}
+            onSearchChange={onSearchChange}
+            sorting={sorting}
+            onSortingChange={onSortingChange}
+            loading={loading}
+            emptyMessage="Nessun conto trovato."
+          />
         </CardContent>
       </Card>
 

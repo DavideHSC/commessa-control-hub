@@ -1,6 +1,5 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -35,10 +34,32 @@ import { createVoceAnalitica, updateVoceAnalitica, deleteVoceAnalitica } from '@
 import { VoceAnalitica } from '@/types';
 import { voceSchema } from '@/schemas/database';
 import { useCrudTable } from '@/hooks/useCrudTable';
+import { useAdvancedTable } from '@/hooks/useAdvancedTable';
+import { AdvancedDataTable } from '../ui/advanced-data-table';
+import { ColumnDef } from '@tanstack/react-table';
+import { DataTableColumnHeader } from '../ui/data-table-column-header';
 
 type VoceAnaliticaFormValues = z.infer<typeof voceSchema>;
 
-export const VociAnaliticheTable = ({ data, onDataChange }: { data: VoceAnalitica[], onDataChange: () => void }) => {
+export const VociAnaliticheTable = () => {
+  const {
+    data,
+    totalCount,
+    page,
+    pageSize,
+    search,
+    sorting,
+    loading,
+    onPageChange,
+    onPageSizeChange,
+    onSearchChange,
+    onSortingChange,
+    fetchData: refreshData,
+  } = useAdvancedTable<VoceAnalitica>({
+    endpoint: '/api/voci-analitiche',
+    initialSorting: [{ id: 'nome', desc: false }]
+  });
+
   const {
     isDialogOpen,
     setIsDialogOpen,
@@ -56,11 +77,37 @@ export const VociAnaliticheTable = ({ data, onDataChange }: { data: VoceAnalitic
       update: updateVoceAnalitica,
       delete: deleteVoceAnalitica,
     },
-    onDataChange,
+    onDataChange: () => refreshData(),
     resourceName: "Voce analitica",
     defaultValues: { id: "", nome: "", descrizione: "", externalId: "" },
     getId: (voce) => voce.id,
   });
+
+  const columns: ColumnDef<VoceAnalitica>[] = [
+    {
+      accessorKey: "id",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
+      cell: ({ row }) => <Badge variant="outline">{row.getValue("id")}</Badge>
+    },
+    {
+      accessorKey: "nome",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />,
+    },
+    {
+      accessorKey: "descrizione",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Descrizione" />,
+      cell: ({ row }) => row.getValue("descrizione") || 'N/A'
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+          <div className="text-right">
+              <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(row.original)}><Edit className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => setDeletingItem(row.original)}><Trash2 className="h-4 w-4" /></Button>
+          </div>
+      )
+    }
+  ];
 
   return (
     <>
@@ -70,31 +117,21 @@ export const VociAnaliticheTable = ({ data, onDataChange }: { data: VoceAnalitic
           <Button onClick={() => handleOpenDialog()}>Aggiungi Voce</Button>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Nome</TableHead>
-                <TableHead>Descrizione</TableHead>
-                <TableHead className="text-right">Azioni</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.map((voce) => (
-                <TableRow key={voce.id}>
-                  <TableCell>
-                    <Badge variant="outline">{voce.id}</Badge>
-                  </TableCell>
-                  <TableCell>{voce.nome}</TableCell>
-                  <TableCell>{voce.descrizione || 'N/A'}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(voce)}><Edit className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => setDeletingItem(voce)}><Trash2 className="h-4 w-4" /></Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <AdvancedDataTable
+            columns={columns}
+            data={data}
+            totalCount={totalCount}
+            page={page}
+            pageSize={pageSize}
+            onPageChange={onPageChange}
+            onPageSizeChange={onPageSizeChange}
+            searchValue={search}
+            onSearchChange={onSearchChange}
+            sorting={sorting}
+            onSortingChange={onSortingChange}
+            loading={loading}
+            emptyMessage="Nessuna voce analitica trovata."
+          />
         </CardContent>
       </Card>
 

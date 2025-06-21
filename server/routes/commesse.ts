@@ -4,16 +4,57 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 const router = express.Router();
 
-// GET all commesse
+// GET all commesse with pagination
 router.get('/', async (req, res) => {
   try {
-    const commesse = await prisma.commessa.findMany({
-      include: { 
-        cliente: true, 
-        budget: true 
-      }
+    const { 
+      page = '1', 
+      limit = '25', 
+      search = '',
+      sortBy = 'nome',
+      sortOrder = 'asc'
+    } = req.query;
+
+    const pageNumber = parseInt(page as string, 10);
+    const pageSize = parseInt(limit as string, 10);
+    const skip = (pageNumber - 1) * pageSize;
+    const take = pageSize;
+
+    const where: Prisma.CommessaWhereInput = search ? {
+      OR: [
+        { nome: { contains: search as string, mode: 'insensitive' } },
+        { descrizione: { contains: search as string, mode: 'insensitive' } },
+        { cliente: { nome: { contains: search as string, mode: 'insensitive' } } },
+      ],
+    } : {};
+
+    const orderBy: Prisma.CommessaOrderByWithRelationInput = {
+        [(sortBy as string) || 'nome']: (sortOrder as 'asc' | 'desc') || 'asc'
+    };
+
+    const [commesse, totalCount] = await prisma.$transaction([
+      prisma.commessa.findMany({
+        where,
+        orderBy,
+        skip,
+        take,
+        include: { 
+          cliente: true, 
+          budget: true 
+        }
+      }),
+      prisma.commessa.count({ where })
+    ]);
+    
+    res.json({
+        data: commesse,
+        pagination: {
+            page: pageNumber,
+            limit: pageSize,
+            total: totalCount,
+            totalPages: Math.ceil(totalCount / pageSize),
+        }
     });
-    res.json(commesse);
   } catch (error) {
     res.status(500).json({ error: 'Errore nel recupero delle commesse.' });
   }
