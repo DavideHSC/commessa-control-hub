@@ -1,0 +1,30 @@
+    01      1    N                     100     
+    02      1    N                     100     
+    03      1    P                     100     
+    05      1    P                     100     
+    06      1    N                     100     
+    1       1    P                     100     
+    2       1    N                     100     
+    4       1    P                     100     
+    6       1    P                     100     
+    ASSEGNO 1    D                     100     
+    ASSEGNO21    D30                   50      
+    ASSEGNO22    D60                   50      
+    B       1    D30                   100     
+    BON     1    P                     100     
+    BONIF   1    D                     100     
+    COME    1    P                     100     
+    CON     1    N                     100     
+    R       2    P                     100     
+    RATE    1    D30                   33.3333 
+    RATE    2    D60                   33.3333 
+    RATE    3    D90                   33.3334 
+    RIBA7   1    D30                   14.2857 
+    RIBA7   2    D                     14.2857 
+    RIBA7   3    D                     14.2857 
+    RIBA7   4    D                     14.2857 
+    RIBA7   5    D                     14.2857 
+    RIBA7   6    D                     14.2857 
+    RIBA7   7    D                     14.2858 
+    RIM     1    N                     100     
+    RIMESSA 1    D                     100     

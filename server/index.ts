@@ -2,6 +2,7 @@ import 'dotenv/config'; // Carica le variabili d'ambiente
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
+import { Router } from 'express';
 
 // Importa le rotte
 import clientiRoutes from './routes/clienti';
@@ -18,6 +19,7 @@ import commesseRoutes from './routes/commesse';
 import importTemplatesRoutes from './routes/importTemplates';
 import codiciIvaRoutes from './routes/codiciIva';
 import condizioniPagamentoRoutes from './routes/condizioniPagamento';
+import systemRoutes from './routes/system';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -43,7 +45,7 @@ app.use('/api/commesse', commesseRoutes);
 app.use('/api/import-templates', importTemplatesRoutes);
 app.use('/api/codici-iva', codiciIvaRoutes);
 app.use('/api/condizioni-pagamento', condizioniPagamentoRoutes);
-
+app.use('/api/system', systemRoutes);
 
 // Endpoint di base per testare il server
 app.get('/api', (req: Request, res: Response) => {
@@ -65,4 +67,13 @@ app.listen(PORT, () => {
 process.on('SIGINT', async () => {
   await prisma.$disconnect();
   process.exit(0);
-}); 
+});
+
+const router = Router();
+router.use('/dashboard', dashboardRoutes);
+router.use('/voci-analitiche', vociAnaliticheRoutes);
+router.use('/import-templates', importTemplatesRoutes);
+router.use('/import-scritture', importScrittureRoutes);
+router.use('/system', systemRoutes);
+
+export default router; 

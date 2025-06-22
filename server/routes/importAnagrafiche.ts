@@ -45,7 +45,7 @@ router.post('/:templateName', upload.single('file'), async (req: Request, res: R
                         id: externalId,
                         externalId: externalId,
                         nome: record.nome?.trim() || 'N/A',
-                        piva: record.piva?.trim(),
+                        piva: record.piva?.trim() || null,
                         codiceFiscale: record.codiceFiscale?.trim(),
                     };
 
@@ -191,6 +191,58 @@ router.post('/:templateName', upload.single('file'), async (req: Request, res: R
                     error: `Errore durante importazione piano dei conti: ${(error as Error).message}. Processati: ${processedCount} record.` 
                 });
             }
+        }
+
+        // Gestione per Codici IVA
+        if (templateName === 'codici_iva') {
+            await prisma.$transaction(async (tx) => {
+                for (const record of parsedData) {
+                    const externalId = record.externalId?.trim();
+                    if (!externalId) continue;
+
+                    const data = {
+                        descrizione: record.descrizione?.trim() || 'N/A',
+                        aliquota: record.aliquota != null ? record.aliquota / 100 : 0,
+                        tipoCalcolo: record.tipoCalcolo?.trim(),
+                        note: record.note?.trim(),
+                        indetraibilita: record.indetraibilita ?? undefined,
+                    };
+                    
+                    const existing = await tx.codiceIva.findUnique({ where: { externalId } });
+                    if (existing) {
+                        await tx.codiceIva.update({ where: { externalId }, data });
+                    } else {
+                        await tx.codiceIva.create({ data: { id: externalId, externalId, ...data } });
+                    }
+                }
+            });
+            return res.status(200).json({ message: `Importazione per '${templateName}' completata con successo.` });
+        }
+
+        // Gestione per Condizioni di Pagamento
+        if (templateName === 'condizioni_pagamento') {
+             await prisma.$transaction(async (tx) => {
+                for (const record of parsedData) {
+                    const externalId = record.externalId?.trim();
+                    if (!externalId) continue;
+
+                    const data = {
+                        descrizione: record.descrizione?.trim() || 'N/A',
+                        contoIncassoPagamento: record.contoIncassoPagamento?.trim(),
+                        suddivisione: record.suddivisione?.trim(),
+                        inizioScadenza: record.inizioScadenza?.trim(),
+                        numeroRate: record.numeroRate ?? undefined,
+                    };
+
+                    const existing = await tx.condizionePagamento.findUnique({ where: { externalId } });
+                    if (existing) {
+                        await tx.condizionePagamento.update({ where: { externalId }, data });
+                    } else {
+                        await tx.condizionePagamento.create({ data: { id: externalId, externalId, ...data } });
+                    }
+                }
+            });
+            return res.status(200).json({ message: `Importazione per '${templateName}' completata con successo.` });
         }
 
         if (!modelName || !(prisma as any)[modelName]) {

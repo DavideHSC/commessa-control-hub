@@ -12,6 +12,7 @@ import NuovaRegistrazionePrimaNota from "./pages/NuovaRegistrazionePrimaNota";
 import NotFound from "./pages/NotFound";
 import ImportPage from './pages/Import';
 import Database from './pages/Database';
+import ImpostazioniPage from "./pages/Impostazioni";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/prima-nota/modifica/:id" element={<NuovaRegistrazionePrimaNota />} />
             <Route path="/import" element={<ImportPage />} />
             <Route path="/database" element={<Database />} />
+            <Route path="/impostazioni" element={<ImpostazioniPage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

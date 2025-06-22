@@ -1,0 +1,1763 @@
+   X10  E22Ins              VI100   
+   X10  F11Imp              AI100   
+   X1010E22Ins              VI100   
+   X1010F11Imp              AI100   
+   X1010F48c1               VI100   
+   X101FE22Ins              VI100   
+   X101FF48c1               VI100   
+   X101FT1c3                VI100   
+   X101FT1c4                VI100   
+   X102 E22Ins              VI100   
+   X102 F11Imp              AI100   
+   X102 F39c1               VI100   
+   X102FE22Ins              VI100   
+   X102FF39c1               VI100   
+   X102FT1c3                VI100   
+   X102FT1c4                VI100   
+   X103FE22Ins              VI100   
+   X103FF43c1               VI100   
+   X103FT1c3                VI100   
+   X103FT1c4                VI100   
+   X104 E22Ins              VI100   
+   X104 F11Imp              AI100   
+   X104 F40c1               VI100   
+   X1046A13                 VI100   
+   X1046E22Ins              VI100   
+   X104FE22Ins              VI100   
+   X104FF40c1               VI100   
+   X104FT1c3                VI100   
+   X104FT1c4                VI100   
+   X105FE22Ins              VI100   
+   X105FF44c1               VI100   
+   X105FT1c3                VI100   
+   X105FT1c4                VI100   
+   X106 E22Ins              VI100   
+   X106 F11Imp              AI100   
+   X1064E22Ins              VI100   
+   X1064F11Imp              AI100   
+   X1064F41c1               VI100   
+   X106FE22Ins              VI100   
+   X106FT1c3                VI100   
+   X106FT1c4                VI100   
+   X106GE22Ins              VI100   
+   X106GF41c1               VI100   
+   X106GT1c3                VI100   
+   X106GT1c4                VI100   
+   X107 E22Ins              VI100   
+   X107 F11Imp              AI100   
+   X107 F42c1               VI100   
+   X1073E22Ins              VI100   
+   X1073F11Imp              AI100   
+   X1073F43c1               VI100   
+   X1075E22Ins              VI100   
+   X1075F11Imp              AI100   
+   X1075F44c1               VI100   
+   X1076E22Ins              VI100   
+   X1076F11Imp              AI100   
+   X1079E22Ins              VI100   
+   X1079F11Imp              AI100   
+   X107FE22Ins              VI100   
+   X107FT1c3                VI100   
+   X107FT1c4                VI100   
+   X107PE22Ins              VI100   
+   X107PT1c3                VI100   
+   X107PT1c4                VI100   
+   X107RE22Ins              VI100   
+   X107RT1c3                VI100   
+   X107RT1c4                VI100   
+   X1083E22Ins              VI100   
+   X1083F11Imp              AI100   
+   X1083F45c1               VI100   
+   X1085E22Ins              VI100   
+   X1085F11Imp              AI100   
+   X1085F46c1               VI100   
+   X1088E22Ins              VI100   
+   X1088F11Imp              AI100   
+   X1088F47c1               VI100   
+   X108AE22Ins              VI100   
+   X108AF47c1               VI100   
+   X108AT1c3                VI100   
+   X108AT1c4                VI100   
+   X108FE22Ins              VI100   
+   X108FF46c1               VI100   
+   X108FT1c3                VI100   
+   X108FT1c4                VI100   
+   X108PE22Ins              VI100   
+   X108PF45c1               VI100   
+   X108PT1c3                VI100   
+   X108PT1c4                VI100   
+   X109 E22Ins              VI100   
+   X109 F11Imp              AI100   
+   X1095E22Ins              VI100   
+   X1095F11Imp              AI100   
+   X109FE22Ins              VI100   
+   X109FT1c3                VI100   
+   X109FT1c4                VI100   
+   X109PE22Ins              VI100   
+   X109PT1c3                VI100   
+   X109PT1c4                VI100   
+   X10AAF11Imp              AI100   
+   X10ABF11Imp              AI100   
+   X10ABJ3c1                VI100   
+   X10ABJ3c2                VI100   
+   X10ACE22Ins              VI100   
+   X10ACF11Imp              AI100   
+   X10AFF11Imp              AI100   
+   X10AFJ13c1               VI100   
+   X10AFJ13c2               VI100   
+   X10AGE10Imp              VI100   
+   X10AGF11Imp              AI100   
+   X10AGF48c1               VI100   
+   X10AIF11Imp              AI100   
+   X10AOE22Ins              VI100   
+   X10AOF18Ins              AI100   
+   X10AOF62c1               VI100   
+   X10AOF62c2               VI100   
+   X10APE22Ins              VI100   
+   X10APT1c3                VI100   
+   X10APT1c4                VI100   
+   X10ASE22Ins              VI100   
+   X10ASF11Imp              AI100   
+   X10BAE22Ins              VI100   
+   X10BAF35_StudiA          VI100   
+   X10C A13                 VI100   
+   X10C E22Ins              VI100   
+   X10C T1c3                VI100   
+   X10C T1c4                VI100   
+   X10CCE22Ins              VI100   
+   X10CCT1c3                VI100   
+   X10CCT1c4                VI100   
+   X10CSE22Ins              VI100   
+   X10CST1c3                VI100   
+   X10CST1c4                VI100   
+   X10GDF11Imp              AI100   
+   X10GSJ18c2               VI100   
+   X10IFF21                 AI100   
+   X10IFJ16c1               VI100   
+   X10IFJ16c2               VI100   
+   X10LFF22                 AI100   
+   X10LFJ16c1               VI100   
+   X10LFJ16c2               VI100   
+   X10NAE22Ins              VI100   
+   X10NAF11Imp              AI100   
+   X10NAF38c1               VI100   
+   X10NAF38c2               VI100   
+   X10NAF53                 AI100   
+   X10NPE22Ins              VI100   
+   X10NPF11Imp              AI100   
+   X10NPF38c1               VI100   
+   X10NPF38c2               VI100   
+   X10NPF53                 AI100   
+   X10NPT1c3                VI100   
+   X10NPT1c4                VI100   
+   X10P1F21                 AI100   
+   X10P1J3c1                VI100   
+   X10P1J3c2                VI100   
+   X10PFF11Imp              AI100   
+   X10PFJ16c1               VI100   
+   X10PFJ16c2               VI100   
+   X10PIE22Ins              VI100   
+   X10PIE40                 VI100   
+   X10PIF11Imp              AI100   
+   X10PSF11Imp              AI100   
+   X10PSJ3c1                VI100   
+   X10PSJ3c2                VI100   
+   X10PTF22                 AI100   
+   X10PTJ3c1                VI100   
+   X10PTJ3c2                VI100   
+   X10R1F21                 AI100   
+   X10R1F28AcqRsmC2         AI100   
+   X10R1J1c1                VI100   
+   X10R1J1c2                VI100   
+   X10R2F21                 AI100   
+   X10R2F28AcqRsmC1         AI100   
+   X10R6F22                 AI100   
+   X10R6F28AcqRsmC1         AI100   
+   X10REF11Imp              AI100   
+   X10REJ12c1               VI100   
+   X10REJ12c2               VI100   
+   X10RIF22                 AI100   
+   X10RIJ12c1               VI100   
+   X10RIJ12c2               VI100   
+   X10RMF11Imp              AI100   
+   X10RMF28AcqRsmC2         AI100   
+   X10RMJ1c1                VI100   
+   X10RMJ1c2                VI100   
+   X10RSF11Imp              AI100   
+   X10RSF28AcqRsmC1         AI100   
+   X10RVF11Imp              AI100   
+   X10RVF28AcqRsmC2         AI100   
+   X10RVJ1c1                VI100   
+   X10RVJ1c2                VI100   
+   X10S E38                 VI100   
+   X10S F25_Studi_c1        VI100   
+   X10S X4ImpArt17ter_daContVI100   
+   X10S1E22Ins              VI100   
+   X10S1F11Imp              AI100   
+   X10S2E22Ins              VI100   
+   X10S2F11Imp              AI100   
+   X10SBE22Ins              VI100   
+   X10SBF11Imp              AI100   
+   X10SIE22Ins              VI100   
+   X10SIF11Imp              AI100   
+   X10SLF11Imp              AI100   
+   X10SLJ18c1               VI100   
+   X10SLJ18c2               VI100   
+   X10SNE38                 VI100   
+   X10SNF25_Studi_c1        VI100   
+   X10SNX4ImpArt17ter_daContVI100   
+   X10SOE22Ins              VI100   
+   X10SOF11Imp              AI100   
+   X10SPE22Ins              VI100   
+   X10SPF11Imp              AI100   
+   X10SPT1c3                VI100   
+   X10SPT1c4                VI100   
+   X10TEF11Imp              AI100   
+   X10TEJ17c1               VI100   
+   X10TEJ17c2               VI100   
+   X1212F12Imp              AI100   
+   X1313E11Imp              VI100   
+   X1313F12Imp              AI100   
+   X1313F49c1               VI100   
+   X20  E23Ins              VI100   
+   X20  F13Imp              AI100   
+   X2010F21                 AI90    
+   X2013F49c1               VI100   
+   X2015F21                 AI85    
+   X201CF49c1               VI100   
+   X201CT1c3                VI100   
+   X201CT1c4                VI100   
+   X201FT1c3                VI100   
+   X201FT1c4                VI100   
+   X202 F39c1               VI100   
+   X202FF39c1               VI100   
+   X202FT1c3                VI100   
+   X202FT1c4                VI100   
+   X204 F40c1               VI100   
+   X2040F13Imp              AI40    
+   X2040F21                 AI60    
+   X2046A13                 VI100   
+   X204FF40c1               VI100   
+   X204FT1c3                VI100   
+   X204FT1c4                VI100   
+   X2088F47c1               VI100   
+   X208FF47c1               VI100   
+   X208FT1c3                VI100   
+   X208FT1c4                VI100   
+   X209FT1c3                VI100   
+   X209FT1c4                VI100   
+   X20AFJ13c1               VI100   
+   X20AFJ13c2               VI100   
+   X20AOF18Ins              AI100   
+   X20AOF62c1               VI100   
+   X20AOF62c2               VI100   
+   X20APT1c3                VI100   
+   X20APT1c4                VI100   
+   X20AUJ2c1                VI100   
+   X20AUJ2c2                VI100   
+   X20BAF35_StudiA          VI100   
+   X20C A13                 VI100   
+   X20C T1c3                VI100   
+   X20C T1c4                VI100   
+   X20CBF35_StudiA          VI100   
+   X20CBT1c3                VI100   
+   X20CBT1c4                VI100   
+   X20CCE23Ins              VI100   
+   X20CCF13Imp              AI100   
+   X20CCT1c3                VI100   
+   X20CCT1c4                VI100   
+   X20CDJ14c1               AI100   
+   X20CDJ14c2               AI100   
+   X20CEF21                 AI50    
+   X20CEJ14c1               AI100   
+   X20CEJ14c2               AI100   
+   X20CIE30CessIntr         VI100   
+   X20COE35c3               VI100   
+   X20CPJ15c1               AI100   
+   X20CPJ15c2               AI100   
+   X20CSE23Ins              VI100   
+   X20CSF13Imp              AI100   
+   X20CST1c3                VI100   
+   X20CST1c4                VI100   
+   X20FCT1c3                VI100   
+   X20FCT1c4                VI100   
+   X20I5F21                 AI50    
+   X20I5J9c1                VI100   
+   X20I5J9c2                VI100   
+   X20NAF38c1               VI100   
+   X20NAF38c2               VI100   
+   X20NAF53                 AI100   
+   X20NPF38c1               VI100   
+   X20NPF38c2               VI100   
+   X20NPF53                 AI100   
+   X20NPT1c3                VI100   
+   X20NPT1c4                VI100   
+   X20PIE40                 VI100   
+   X20PRJ5c1                VI100   
+   X20PRJ5c2                VI100   
+   X20PSJ3c1                VI100   
+   X20PSJ3c2                VI100   
+   X20R1F21                 AI100   
+   X20R1F28AcqRsmC2         AI100   
+   X20R1J1c1                VI100   
+   X20R1J1c2                VI100   
+   X20R5F21                 AI50    
+   X20R5F28AcqRsmC2         AI100   
+   X20R5J1c1                VI100   
+   X20R5J1c2                VI100   
+   X20REJ12c1               VI100   
+   X20REJ12c2               VI100   
+   X20RIF22                 AI100   
+   X20RIJ12c1               VI100   
+   X20RIJ12c2               VI100   
+   X20RMF28AcqRsmC2         AI100   
+   X20RMJ1c1                VI100   
+   X20RMJ1c2                VI100   
+   X20RSF28AcqRsmC1         AI100   
+   X20RVF28AcqRsmC2         AI100   
+   X20RVJ1c1                VI100   
+   X20RVJ1c2                VI100   
+   X20S1E23Ins              VI100   
+   X20S1F13Imp              AI100   
+   X20S5F21                 AI50    
+   X20S5F28AcqRsmC1         AI100   
+   X20SAF53                 AI100   
+   X20SAJ3c1                VI100   
+   X20SAJ3c2                VI100   
+   X20SCE23Ins              VI100   
+   X20SCF13Imp              AI100   
+   X20SIE23Ins              VI100   
+   X20SIF13Imp              AI100   
+   X20SOE23Ins              VI100   
+   X20SOF13Imp              AI100   
+   X20SPT1c3                VI100   
+   X20SPT1c4                VI100   
+   X20TAF21                 AI100   
+   X21  E23Ins              VI100   
+   X21  F13Imp              AI100   
+   X2110F13Imp              AI10    
+   X2110F21                 AI90    
+   X2113E23Ins              VI100   
+   X2113F13Imp              AI100   
+   X2113F49c1               VI100   
+   X211CE23Ins              VI100   
+   X211CF13Imp              AI100   
+   X211CF49c1               VI100   
+   X211CT1c3                VI100   
+   X211CT1c4                VI100   
+   X212 E23Ins              VI100   
+   X212 F13Imp              AI100   
+   X212 F39c1               VI100   
+   X212FE23Ins              VI100   
+   X212FF39c1               VI100   
+   X212FT1c3                VI100   
+   X212FT1c4                VI100   
+   X214 E23Ins              VI100   
+   X214 F13Imp              AI100   
+   X214 F40c1               VI100   
+   X2140F13Imp              AI40    
+   X2140F21                 AI60    
+   X2146A13                 VI100   
+   X2146E23Ins              VI100   
+   X214FE23Ins              VI100   
+   X214FF40c1               VI100   
+   X214FT1c3                VI100   
+   X214FT1c4                VI100   
+   X2188E23Ins              VI100   
+   X2188F13Imp              AI100   
+   X2188F47c1               VI100   
+   X218FE23Ins              VI100   
+   X218FF47c1               VI100   
+   X218FT1c3                VI100   
+   X218FT1c4                VI100   
+   X21AAF13Imp              AI100   
+   X21ACE23Ins              VI100   
+   X21ACF13Imp              AI100   
+   X21AFF13Imp              AI100   
+   X21AFJ13c1               VI100   
+   X21AFJ13c2               VI100   
+   X21AIF13Imp              AI100   
+   X21AOE23Ins              VI100   
+   X21AOF18Ins              AI100   
+   X21AOF62c1               VI100   
+   X21AOF62c2               VI100   
+   X21APE23Ins              VI100   
+   X21APT1c3                VI100   
+   X21APT1c4                VI100   
+   X21ASE23Ins              VI100   
+   X21ASF13Imp              AI100   
+   X21AUJ2c1                VI100   
+   X21AUJ2c2                VI100   
+   X21BAE23Ins              VI100   
+   X21BAF35_StudiA          VI100   
+   X21C A13                 VI100   
+   X21C E23Ins              VI100   
+   X21C T1c3                VI100   
+   X21C T1c4                VI100   
+   X21CAE23Ins              VI100   
+   X21CBE23Ins              VI100   
+   X21CBF35_StudiA          VI100   
+   X21CBT1c3                VI100   
+   X21CBT1c4                VI100   
+   X21CCE23Ins              VI100   
+   X21CCT1c3                VI100   
+   X21CCT1c4                VI100   
+   X21CDF13Imp              AI100   
+   X21CDJ14c1               AI100   
+   X21CDJ14c2               AI100   
+   X21CEF13Imp              AI50    
+   X21CEF21                 AI50    
+   X21CEJ14c1               AI100   
+   X21CEJ14c2               AI100   
+   X21CPF13Imp              AI100   
+   X21CPJ15c1               AI100   
+   X21CPJ15c2               AI100   
+   X21CSE23Ins              VI100   
+   X21CST1c3                VI100   
+   X21CST1c4                VI100   
+   X21DEA3_21               AI100   
+   X21DEE23Ins              VI100   
+   X21DEF13Imp              AI100   
+   X21I5A3_4Imp             AI100   
+   X21I5F13Imp              AI50    
+   X21I5F21                 AI50    
+   X21I5J9c1                VI100   
+   X21I5J9c2                VI100   
+   X21IPF21                 AI100   
+   X21IPJ15c1               AI100   
+   X21IPJ15c2               AI100   
+   X21NAE23Ins              VI100   
+   X21NAF13Imp              AI100   
+   X21NAF38c1               VI100   
+   X21NAF38c2               VI100   
+   X21NAF53                 AI100   
+   X21NPE23Ins              VI100   
+   X21NPF13Imp              AI100   
+   X21NPF38c1               VI100   
+   X21NPF38c2               VI100   
+   X21NPF53                 AI100   
+   X21NPT1c3                VI100   
+   X21NPT1c4                VI100   
+   X21P1F21                 AI100   
+   X21P1J3c1                VI100   
+   X21P1J3c2                VI100   
+   X21PIE23Ins              VI100   
+   X21PIE40                 VI100   
+   X21PIF13Imp              AI100   
+   X21PRF13Imp              AI100   
+   X21PRJ5c1                VI100   
+   X21PRJ5c2                VI100   
+   X21PSF13Imp              AI100   
+   X21PSJ3c1                VI100   
+   X21PSJ3c2                VI100   
+   X21PTF22                 AI100   
+   X21PTJ3c1                VI100   
+   X21PTJ3c2                VI100   
+   X21R1F21                 AI100   
+   X21R1F28AcqRsmC2         AI100   
+   X21R1J1c1                VI100   
+   X21R1J1c2                VI100   
+   X21R2F21                 AI100   
+   X21R2F28AcqRsmC1         AI100   
+   X21R5F13Imp              AI100   
+   X21R5F21                 AI50    
+   X21R5F28AcqRsmC2         AI100   
+   X21R5J1c1                VI100   
+   X21R5J1c2                VI100   
+   X21REF13Imp              AI100   
+   X21REJ12c1               VI100   
+   X21REJ12c2               VI100   
+   X21RIF22                 AI100   
+   X21RIJ12c1               VI100   
+   X21RIJ12c2               VI100   
+   X21RMF13Imp              AI100   
+   X21RMF28AcqRsmC2         AI100   
+   X21RMJ1c1                VI100   
+   X21RMJ1c2                VI100   
+   X21RSF13Imp              AI100   
+   X21RSF28AcqRsmC1         AI100   
+   X21RVF13Imp              AI100   
+   X21RVF28AcqRsmC2         AI100   
+   X21RVJ1c1                VI100   
+   X21RVJ1c2                VI100   
+   X21S1E23Ins              VI100   
+   X21S1F13Imp              AI100   
+   X21S2E23Ins              VI100   
+   X21S2F13Imp              AI100   
+   X21S4F13Imp              AI40    
+   X21S4F21                 AI60    
+   X21S4F28AcqRsmC1         AI100   
+   X21S5F13Imp              AI50    
+   X21S5F21                 AI50    
+   X21S5F28AcqRsmC1         AI100   
+   X21SAF13Imp              AI100   
+   X21SAF53                 AI100   
+   X21SAJ3c1                VI100   
+   X21SAJ3c2                VI100   
+   X21SBE23Ins              VI100   
+   X21SBF13Imp              AI100   
+   X21SCE23Ins              VI100   
+   X21SCF13Imp              AI100   
+   X21SIE23Ins              VI100   
+   X21SIF13Imp              AI100   
+   X21SOE23Ins              VI100   
+   X21SOF13Imp              AI100   
+   X21SPE23Ins              VI100   
+   X21SPT1c3                VI100   
+   X21SPT1c4                VI100   
+   X21TAF21                 AI100   
+   X21VVF13Imp              AI100   
+   X21VVJ1c1                VI100   
+   X21VVJ1c2                VI100   
+   X22  E23Ins              VI100   
+   X22  F13Imp              AI100   
+   X2210E23Ins              VI100   
+   X2210F13Imp              AI100   
+   X2210F48c1               VI100   
+   X2213E23Ins              VI100   
+   X2213F13Imp              AI100   
+   X2213F49c1               VI100   
+   X221CE23Ins              VI100   
+   X221CF49c1               VI100   
+   X221CT1c3                VI100   
+   X221CT1c4                VI100   
+   X221FE23Ins              VI100   
+   X221FF48c1               VI100   
+   X221FT1c3                VI100   
+   X221FT1c4                VI100   
+   X222AE23Ins              VI100   
+   X222AF13Imp              AI100   
+   X222AF39c1               VI100   
+   X222FE23Ins              VI100   
+   X222FF39c1               VI100   
+   X222FT1c3                VI100   
+   X222FT1c4                VI100   
+   X224 E23Ins              VI100   
+   X224 F13Imp              AI100   
+   X224 F40c1               VI100   
+   X2240F13Imp              AI40    
+   X2240F21                 AI60    
+   X2246A13                 VI100   
+   X2246E23Ins              VI100   
+   X224CF13Imp              AI40    
+   X224CF21                 AI60    
+   X224FE23Ins              VI100   
+   X224FF40c1               VI100   
+   X224FT1c3                VI100   
+   X224FT1c4                VI100   
+   X226 E23Ins              VI100   
+   X226 F13Imp              AI100   
+   X2264E23Ins              VI100   
+   X2264F13Imp              AI100   
+   X2264F41c1               VI100   
+   X226FE23Ins              VI100   
+   X226FT1c3                VI100   
+   X226FT1c4                VI100   
+   X226GE23Ins              VI100   
+   X226GF41c1               VI100   
+   X226GT1c3                VI100   
+   X226GT1c4                VI100   
+   X2288E23Ins              VI100   
+   X2288F13Imp              AI100   
+   X2288F47c1               VI100   
+   X228FE23Ins              VI100   
+   X228FF47c1               VI100   
+   X228FT1c3                VI100   
+   X228FT1c4                VI100   
+   X22AAF13Imp              AI100   
+   X22ABF13Imp              AI100   
+   X22ABJ3c1                VI100   
+   X22ABJ3c2                VI100   
+   X22ACE23Ins              VI100   
+   X22ACF13Imp              AI100   
+   X22AEF13Imp              AI100   
+   X22AEJ3c1                VI100   
+   X22AEJ3c2                VI100   
+   X22AFF13Imp              AI100   
+   X22AFJ13c1               VI100   
+   X22AFJ13c2               VI100   
+   X22AIF13Imp              AI100   
+   X22AOE23Ins              VI100   
+   X22AOF18Ins              AI100   
+   X22AOF62c1               VI100   
+   X22AOF62c2               VI100   
+   X22APE23Ins              VI100   
+   X22APT1c3                VI100   
+   X22APT1c4                VI100   
+   X22ASE23Ins              VI100   
+   X22ASF13Imp              AI100   
+   X22AUJ2c1                VI100   
+   X22AUJ2c2                VI100   
+   X22BAE23Ins              VI100   
+   X22BAF35_StudiA          VI100   
+   X22C A13                 VI100   
+   X22C E23Ins              VI100   
+   X22C T1c3                VI100   
+   X22C T1c4                VI100   
+   X22CAE23Ins              VI100   
+   X22CBE23Ins              VI100   
+   X22CBF35_StudiA          VI100   
+   X22CBT1c3                VI100   
+   X22CBT1c4                VI100   
+   X22CCE23Ins              VI100   
+   X22CCT1c3                VI100   
+   X22CCT1c4                VI100   
+   X22CDF13Imp              AI100   
+   X22CDJ14c1               AI100   
+   X22CDJ14c2               AI100   
+   X22CEF13Imp              AI50    
+   X22CEF21                 AI50    
+   X22CEJ14c1               AI100   
+   X22CEJ14c2               AI100   
+   X22CFF21                 AI100   
+   X22CFJ14c1               AI100   
+   X22CFJ14c2               AI100   
+   X22CPF13Imp              AI100   
+   X22CPJ15c1               AI100   
+   X22CPJ15c2               AI100   
+   X22CSE23Ins              VI100   
+   X22CST1c3                VI100   
+   X22CST1c4                VI100   
+   X22DEA3_21               AI100   
+   X22DEE23Ins              VI100   
+   X22DEF13Imp              AI100   
+   X22GDF13Imp              AI100   
+   X22GSJ18c2               VI100   
+   X22I5A3_4Imp             AI100   
+   X22I5F13Imp              AI50    
+   X22I5F21                 AI50    
+   X22I5J9c1                VI100   
+   X22I5J9c2                VI100   
+   X22I6F13Imp              AI50    
+   X22I6F21                 AI50    
+   X22I6J3c1                VI100   
+   X22I6J3c2                VI100   
+   X22I7A3_18Imp            AI100   
+   X22I7F13Imp              AI40    
+   X22I7F21                 AI60    
+   X22I7J3c1                VI100   
+   X22I7J3c2                VI100   
+   X22ICF13Imp              AI50    
+   X22ICF21                 AI50    
+   X22IFF21                 AI100   
+   X22IFJ16c1               VI100   
+   X22IFJ16c2               VI100   
+   X22IPF21                 AI100   
+   X22IPJ15c1               AI100   
+   X22IPJ15c2               AI100   
+   X22LFF22                 AI100   
+   X22LFJ16c1               VI100   
+   X22LFJ16c2               VI100   
+   X22LPF22                 AI100   
+   X22LPJ15c1               AI100   
+   X22LPJ15c2               AI100   
+   X22NAE23Ins              VI100   
+   X22NAF13Imp              AI100   
+   X22NAF38c1               VI100   
+   X22NAF38c2               VI100   
+   X22NAF53                 AI100   
+   X22NPE23Ins              VI100   
+   X22NPF13Imp              AI100   
+   X22NPF38c1               VI100   
+   X22NPF38c2               VI100   
+   X22NPF53                 AI100   
+   X22NPT1c3                VI100   
+   X22NPT1c4                VI100   
+   X22NSF13Imp              AI100   
+   X22NSF38c1               VI100   
+   X22NSF38c2               VI100   
+   X22NSF53                 AI100   
+   X22NSJ3c1                VI100   
+   X22NSJ3c2                VI100   
+   X22P1F21                 AI100   
+   X22P1J3c1                VI100   
+   X22P1J3c2                VI100   
+   X22P5F13Imp              AI50    
+   X22P5F21                 AI50    
+   X22P5J16c1               VI100   
+   X22P5J16c2               VI100   
+   X22PAF13Imp              AI100   
+   X22PAJ16c1               VI100   
+   X22PAJ16c2               VI100   
+   X22PFF13Imp              AI100   
+   X22PFJ16c1               VI100   
+   X22PFJ16c2               VI100   
+   X22PIE23Ins              VI100   
+   X22PIE40                 VI100   
+   X22PIF13Imp              AI100   
+   X22PRF13Imp              AI100   
+   X22PRJ5c1                VI100   
+   X22PRJ5c2                VI100   
+   X22PSF13Imp              AI100   
+   X22PSJ3c1                VI100   
+   X22PSJ3c2                VI100   
+   X22PTF22                 AI100   
+   X22PTJ3c1                VI100   
+   X22PTJ3c2                VI100   
+   X22PVF13Imp              AI100   
+   X22PVJ4c1                VI100   
+   X22PVJ4c2                VI100   
+   X22R1F21                 AI100   
+   X22R1F28AcqRsmC2         AI100   
+   X22R1J1c1                VI100   
+   X22R1J1c2                VI100   
+   X22R2F21                 AI100   
+   X22R2F28AcqRsmC1         AI100   
+   X22R3F21                 AI100   
+   X22R3J3c1                VI100   
+   X22R3J3c2                VI100   
+   X22R5F13Imp              AI50    
+   X22R5F21                 AI50    
+   X22R5F28AcqRsmC2         AI100   
+   X22R5J1c1                VI100   
+   X22R5J1c2                VI100   
+   X22R6F22                 AI100   
+   X22R6F28AcqRsmC1         AI100   
+   X22REF13Imp              AI100   
+   X22REJ12c1               VI100   
+   X22REJ12c2               VI100   
+   X22RIF22                 AI100   
+   X22RIJ12c1               VI100   
+   X22RIJ12c2               VI100   
+   X22RLF21                 AI100   
+   X22RLJ12c1               VI100   
+   X22RLJ12c2               VI100   
+   X22RMF13Imp              AI100   
+   X22RMF28AcqRsmC2         AI100   
+   X22RMJ1c1                VI100   
+   X22RMJ1c2                VI100   
+   X22ROF22                 AI100   
+   X22ROJ6c1                VI100   
+   X22ROJ6c2                VI100   
+   X22RSF13Imp              AI100   
+   X22RSF28AcqRsmC1         AI100   
+   X22RVF13Imp              AI100   
+   X22RVF28AcqRsmC2         AI100   
+   X22RVJ1c1                VI100   
+   X22RVJ1c2                VI100   
+   X22S E38                 VI100   
+   X22S F25_Studi_c1        VI100   
+   X22S X4ImpArt17ter_daContVI100   
+   X22S1E23Ins              VI100   
+   X22S1F13Imp              AI100   
+   X22S2E23Ins              VI100   
+   X22S2F13Imp              AI100   
+   X22S4F13Imp              AI40    
+   X22S4F21                 AI60    
+   X22S4F28AcqRsmC1         AI100   
+   X22S5F13Imp              AI50    
+   X22S5F21                 AI50    
+   X22S5F28AcqRsmC1         AI100   
+   X22SAF13Imp              AI100   
+   X22SAF53                 AI100   
+   X22SAJ3c1                VI100   
+   X22SAJ3c2                VI100   
+   X22SBE23Ins              VI100   
+   X22SBF13Imp              AI100   
+   X22SCE23Ins              VI100   
+   X22SCF13Imp              AI100   
+   X22SIE23Ins              VI100   
+   X22SIF13Imp              AI100   
+   X22SLF13Imp              AI100   
+   X22SLJ18c1               VI100   
+   X22SLJ18c2               VI100   
+   X22SMF13Imp              AI100   
+   X22SMJ3c1                VI100   
+   X22SMJ3c2                VI100   
+   X22SNE38                 VI100   
+   X22SNF25_Studi_c1        VI100   
+   X22SNX4ImpArt17ter_daContVI100   
+   X22SOE23Ins              VI100   
+   X22SOF13Imp              AI100   
+   X22SPE23Ins              VI100   
+   X22SPT1c3                VI100   
+   X22SPT1c4                VI100   
+   X22TAF21                 AI100   
+   X22TEF13Imp              AI100   
+   X22TEJ17c1               VI100   
+   X22TEJ17c2               VI100   
+   X22VVF13Imp              AI100   
+   X22VVJ1c1                VI100   
+   X22VVJ1c2                VI100   
+   X4   E20Ins              VI100   
+   X4   F2Imp               AI100   
+   X4 ACE20Ins              VI100   
+   X4 ACF2Imp               AI100   
+   X4 AOE20Ins              VI100   
+   X4 AOF18Ins              AI100   
+   X4 AOF62c1               VI100   
+   X4 AOF62c2               VI100   
+   X4 NAE20Ins              VI100   
+   X4 NAF2Imp               AI100   
+   X4 NAF38c1               VI100   
+   X4 NAF38c2               VI100   
+   X4 NAF53                 AI100   
+   X4 PSF2Imp               AI100   
+   X4 PSJ3c1                VI100   
+   X4 PSJ3c2                VI100   
+   X4 RSF28AcqRsmC1         AI100   
+   X4 RSF2Imp               AI100   
+   X4 SPE20Ins              VI100   
+   X4 SPT1c3                VI100   
+   X4 SPT1c4                VI100   
+   X44  E2Imp               VI100   
+   X44  F2Imp               AI100   
+   X44  F40c1               VI100   
+   X442 E20Ins              VI100   
+   X442 F2Imp               AI100   
+   X442 F40c1               VI100   
+   X44CFE20Ins              VI100   
+   X44CFF40c1               VI100   
+   X44CFT1c3                VI100   
+   X44CFT1c4                VI100   
+   X4AA F2Imp               AI100   
+   X4AB F2Imp               AI100   
+   X4AB J3c1                VI100   
+   X4AB J3c2                VI100   
+   X4AF F2Imp               AI100   
+   X4AF J13c1               VI100   
+   X4AF J13c2               VI100   
+   X4AI F2Imp               AI100   
+   X4AP E20Ins              VI100   
+   X4AP T1c3                VI100   
+   X4AP T1c4                VI100   
+   X4AS E20Ins              VI100   
+   X4AS F2Imp               AI100   
+   X4BA E20Ins              VI100   
+   X4BA F35_StudiA          VI100   
+   X4C  A13                 VI100   
+   X4C  E20Ins              VI100   
+   X4C  T1c3                VI100   
+   X4C  T1c4                VI100   
+   X4CC E20Ins              VI100   
+   X4CC T1c3                VI100   
+   X4CC T1c4                VI100   
+   X4CS E20Ins              VI100   
+   X4CS T1c3                VI100   
+   X4CS T1c4                VI100   
+   X4GD F2Imp               AI100   
+   X4GS J18c2               VI100   
+   X4IF F21                 AI100   
+   X4IF J16c1               VI100   
+   X4IF J16c2               VI100   
+   X4NP E20Ins              VI100   
+   X4NP F2Imp               AI100   
+   X4NP F38c1               VI100   
+   X4NP F38c2               VI100   
+   X4NP F53                 AI100   
+   X4NP T1c3                VI100   
+   X4NP T1c4                VI100   
+   X4P1 F21                 AI100   
+   X4P1 J3c1                VI100   
+   X4P1 J3c2                VI100   
+   X4PF F2Imp               AI100   
+   X4PF J16c1               VI100   
+   X4PF J16c2               VI100   
+   X4PI E20Ins              VI100   
+   X4PI E40                 VI100   
+   X4PI F2Imp               AI100   
+   X4PT F22                 AI100   
+   X4PT J3c1                VI100   
+   X4PT J3c2                VI100   
+   X4R1 F21                 AI100   
+   X4R1 F28AcqRsmC2         AI100   
+   X4R1 J1c1                VI100   
+   X4R1 J1c2                VI100   
+   X4R2 F21                 AI100   
+   X4R2 F28AcqRsmC1         AI100   
+   X4R6 F22                 AI100   
+   X4R6 F28AcqRsmC1         AI100   
+   X4RE F2Imp               AI100   
+   X4RE J12c1               VI100   
+   X4RE J12c2               VI100   
+   X4RI F22                 AI100   
+   X4RI J12c1               VI100   
+   X4RI J12c2               VI100   
+   X4RM F28AcqRsmC2         AI100   
+   X4RM F2Imp               AI100   
+   X4RM J1c1                VI100   
+   X4RM J1c2                VI100   
+   X4RV F28AcqRsmC2         AI100   
+   X4RV F2Imp               AI100   
+   X4RV J1c1                VI100   
+   X4RV J1c2                VI100   
+   X4S  E38                 VI100   
+   X4S  F25_Studi_c1        VI100   
+   X4S  X4ImpArt17ter_daContVI100   
+   X4S1 E20Ins              VI100   
+   X4S1 F2Imp               AI100   
+   X4S2 E20Ins              VI100   
+   X4S2 F2Imp               AI100   
+   X4SB E20Ins              VI100   
+   X4SB F2Imp               AI100   
+   X4SI E20Ins              VI100   
+   X4SI F2Imp               AI100   
+   X4SL F2Imp               AI100   
+   X4SL J18c1               VI100   
+   X4SL J18c2               VI100   
+   X4SN E38                 VI100   
+   X4SN F25_Studi_c1        VI100   
+   X4SN X4ImpArt17ter_daContVI100   
+   X4SO E20Ins              VI100   
+   X4SO F2Imp               AI100   
+   X5   E21Imp              VI100   
+   X5   F3Imp               AI100   
+   X5 ACE21Imp              VI100   
+   X5 ACF3Imp               AI100   
+   X54  E21Imp              VI100   
+   X54  F3Imp               AI100   
+   X540 F21                 AI60    
+   X540 F3Imp               AI40    
+   X54CFE21Imp              VI100   
+   X54CFF3Imp               AI100   
+   X54CFT1c3                VI100   
+   X54CFT1c4                VI100   
+   X5AA F3Imp               AI100   
+   X5AI F3Imp               AI100   
+   X5C  A13                 VI100   
+   X5C  E21Imp              VI100   
+   X5C  T1c3                VI100   
+   X5C  T1c4                VI100   
+   X5CC E21Imp              VI100   
+   X5CC T1c3                VI100   
+   X5CC T1c4                VI100   
+   X5CS E21Imp              VI100   
+   X5CS T1c3                VI100   
+   X5CS T1c4                VI100   
+   X5GS J18c2               VI100   
+   X5PI E21Imp              VI100   
+   X5PI E40                 VI100   
+   X5PI F3Imp               AI100   
+   X5PS F3Imp               AI100   
+   X5PS J3c1                VI100   
+   X5PS J3c2                VI100   
+   X5RS F28AcqRsmC1         AI100   
+   X5RS F3Imp               AI100   
+   X5S  E38                 VI100   
+   X5S  F25_Studi_c1        VI100   
+   X5S  X4ImpArt17ter_daContVI100   
+   X5S2 E21Imp              VI100   
+   X5S2 F3Imp               AI100   
+   X5SI E21Imp              VI100   
+   X5SI F3Imp               AI100   
+   X5SL F3Imp               AI100   
+   X5SL J18c1               VI100   
+   X5SL J18c2               VI100   
+   X5SN E38                 VI100   
+   X5SN F25_Studi_c1        VI100   
+   X5SN X4ImpArt17ter_daContVI100   
+   X6464E3Imp               VI100   
+   X6464F41c1               VI100   
+   X6464F4Imp               AI100   
+   X6Q  F32_Studi           VI100   
+   X7373E5Imp               VI100   
+   X7373F43c1               VI100   
+   X7373F6Imp               AI100   
+   X7575E6Imp               VI100   
+   X7575F44c1               VI100   
+   X7575F7Imp               AI100   
+   X77  E4Imp               VI100   
+   X77  F42c1               VI100   
+   X77  F5Imp               AI100   
+   X8383E7Imp               VI100   
+   X8383F45c1               VI100   
+   X8383F8Imp               AI100   
+   X8585E8Imp               VI100   
+   X8585F46c1               VI100   
+   X8585F9Imp               AI100   
+   X8888E9Imp               VI100   
+   X8888F10Imp              AI100   
+   X8888F47c1               VI100   
+   X99  F10Imp              AI100   
+   XAA20G2_5                AI100   
+   XAA21G2_5                AI100   
+   XAA22G2_5                AI100   
+   XAC20A5Acqc1             AI100   
+   XAC20A5Acqc2             AI100   
+   XAC21A5Acqc1             AI100   
+   XAC21A5Acqc2             AI100   
+   XAC21F13Imp              AI100   
+   XAC22A5Acqc1             AI100   
+   XAC22A5Acqc2             AI100   
+   XAC22F13Imp              AI100   
+   XACBUF18Ins              AI100   
+   XAF10G2_5                AI100   
+   XAF10G2_5_DiCuiArt1      AI100   
+   XAF22G2_5                AI100   
+   XAF22G2_5_DiCuiArt1      AI100   
+   XAF4 G2_5                AI100   
+   XAF4 G2_5_DiCuiArt1      AI100   
+   XAG22E1Imp               VI100   
+   XAG22F1Imp               AI100   
+   XAG22F39c1               VI100   
+   XAI20G2_5                AI100   
+   XAI21G2_5                AI100   
+   XAI22G2_5                AI100   
+   XAN 4G2_5                AI100   
+   XAN10G2_5                AI100   
+   XAN20G2_5                AI100   
+   XAN21G2_5                AI100   
+   XAN22G2_5                AI100   
+   XAP10G2_5                AI100   
+   XAP20G2_5                AI100   
+   XAP21G2_5                AI100   
+   XAP22G2_5                AI100   
+   XAP4 G2_5                AI100   
+   XAU22G2_5                AI100   
+   XCC20A5Acqc1             AI100   
+   XCC20A5Acqc2             AI100   
+   XCC20J9c1                VI100   
+   XCC20J9c2                VI100   
+   XCC21A3_4Imp             AI100   
+   XCC21A5Acqc1             AI100   
+   XCC21A5Acqc2             AI100   
+   XCC21F13Imp              AI100   
+   XCC21J9c1                VI100   
+   XCC21J9c2                VI100   
+   XCC22A3_4Imp             AI100   
+   XCC22A5Acqc1             AI100   
+   XCC22A5Acqc2             AI100   
+   XCC22F13Imp              AI100   
+   XCC22J9c1                VI100   
+   XCC22J9c2                VI100   
+   XCE10A3_3Imp             AI100   
+   XCE10F11Imp              AI100   
+   XCE10J9c1                VI100   
+   XCE10J9c2                VI100   
+   XCE14A3_4Imp             AI100   
+   XCE14F13Imp              AI40    
+   XCE14F21                 AI60    
+   XCE14J9c1                VI100   
+   XCE14J9c2                VI100   
+   XCE1AA3_3Imp             AI100   
+   XCE1AF11Imp              AI100   
+   XCE1AJ9c1                VI100   
+   XCE1AJ9c2                VI100   
+   XCE20J9c1                VI100   
+   XCE20J9c2                VI100   
+   XCE21A3_4Imp             AI100   
+   XCE21F13Imp              AI100   
+   XCE21J9c1                VI100   
+   XCE21J9c2                VI100   
+   XCE22A3_4Imp             AI100   
+   XCE22F13Imp              AI100   
+   XCE22J9c1                VI100   
+   XCE22J9c2                VI100   
+   XCE24F21                 AI60    
+   XCE24J9c1                VI100   
+   XCE24J9c2                VI100   
+   XCE2AJ9c1                VI100   
+   XCE2AJ9c2                VI100   
+   XCE34A3_4Imp             AI100   
+   XCE34F13Imp              AI40    
+   XCE34F21                 AI60    
+   XCE34J9c1                VI100   
+   XCE34J9c2                VI100   
+   XCE3AA3_4Imp             AI100   
+   XCE3AF13Imp              AI100   
+   XCE3AJ9c1                VI100   
+   XCE3AJ9c2                VI100   
+   XCE4 A3_1Imp             AI100   
+   XCE4 F2Imp               AI100   
+   XCE4 J9c1                VI100   
+   XCE4 J9c2                VI100   
+   XCE44F13Imp              AI40    
+   XCE44F21                 AI60    
+   XCE44J3c1                VI100   
+   XCE44J3c2                VI100   
+   XCE4AA3_1Imp             AI100   
+   XCE4AF2Imp               AI100   
+   XCE4AJ9c1                VI100   
+   XCE4AJ9c2                VI100   
+   XCE5 A3_2Imp             AI100   
+   XCE5 F3Imp               AI100   
+   XCE5 J9c1                VI100   
+   XCE5 J9c2                VI100   
+   XCE5AA3_4Imp             AI100   
+   XCE5AF13Imp              AI100   
+   XCE5AJ9c1                VI100   
+   XCE5AJ9c2                VI100   
+   XCE74G1_1Cor             VI100   
+   XCEAGA3_4Imp             AI100   
+   XCEAGF13Imp              AI100   
+   XCEAGJ3c1                VI100   
+   XCEAGJ3c2                VI100   
+   XCEEEF18c2               AI100   
+   XCEESA3_8                AI100   
+   XCEESF18c2               AI100   
+   XCEFAE35c5               VI100   
+   XCEFOJ9c1                VI100   
+   XCEFOJ9c2                VI100   
+   XCES4F13Imp              AI40    
+   XCES4F21                 AI60    
+   XCES4J3c1                VI100   
+   XCES4J3c2                VI100   
+   XCI10F21                 AI100   
+   XCI10J3c1                VI100   
+   XCI10J3c2                VI100   
+   XCI20F21                 AI100   
+   XCI20J3c1                VI100   
+   XCI20J3c2                VI100   
+   XCI21F21                 AI100   
+   XCI21J3c1                VI100   
+   XCI21J3c2                VI100   
+   XCI22F21                 AI100   
+   XCI22J3c1                VI100   
+   XCI22J3c2                VI100   
+   XCI2BF21                 AI100   
+   XCI2BG2_5                AI100   
+   XCI2BJ3c1                VI100   
+   XCI2BJ3c2                VI100   
+   XCI2CF21                 AI100   
+   XCI2CG2_5                AI100   
+   XCI2CJ3c1                VI100   
+   XCI2CJ3c2                VI100   
+   XCI2GF21                 AI100   
+   XCI2GJ3c1                VI100   
+   XCI2GJ3c2                VI100   
+   XCN 4A3_11               AI100   
+   XCN 4A3_11Ind            AI100   
+   XCN 4F21                 AI100   
+   XCN 4J9c1                VI100   
+   XCN 4J9c2                VI100   
+   XCN 5A3_11               AI100   
+   XCN 5A3_11Ind            AI100   
+   XCN 5F21                 AI100   
+   XCN 5J9c1                VI100   
+   XCN 5J9c2                VI100   
+   XCN10A3_11               AI100   
+   XCN10A3_11Ind            AI100   
+   XCN10F21                 AI100   
+   XCN10J9c1                VI100   
+   XCN10J9c2                VI100   
+   XCN20F21                 AI100   
+   XCN20J9c1                VI100   
+   XCN20J9c2                VI100   
+   XCN21A3_4Imp             AI100   
+   XCN21F21                 AI100   
+   XCN21J9c1                VI100   
+   XCN21J9c2                VI100   
+   XCN22A3_11               AI100   
+   XCN22A3_11Ind            AI100   
+   XCN22F21                 AI100   
+   XCN22J9c1                VI100   
+   XCN22J9c2                VI100   
+   XCOCEG1_1Cos             AI100   
+   XCOEXG1_2Cor             VI100   
+   XCOMIG1_3Cor             VI100   
+   XCS 4F2Imp               AI100   
+   XCS 4J3c1                VI100   
+   XCS 4J3c2                VI100   
+   XCS10F11Imp              AI100   
+   XCS10J3c1                VI100   
+   XCS10J3c2                VI100   
+   XCS20J3c1                VI100   
+   XCS20J3c2                VI100   
+   XCS21F13Imp              AI100   
+   XCS21J3c1                VI100   
+   XCS21J3c2                VI100   
+   XCS22F13Imp              AI100   
+   XCS22J3c1                VI100   
+   XCS22J3c2                VI100   
+   XCSEXG1_2Cos             AI100   
+   XCSMCG1_3Cos             AI100   
+   XCSMXG1_3Cos             AI100   
+   XCSMXG1_6                AI100   
+   XCT21F22                 AI100   
+   XCT21J3c1                VI100   
+   XCT21J3c2                VI100   
+   XCT22F22                 AI100   
+   XCT22J3c1                VI100   
+   XCT22J3c2                VI100   
+   XCV10A3_3Imp             AI100   
+   XCV10F11Imp              AI100   
+   XCV10J9c1                VI100   
+   XCV10J9c2                VI100   
+   XCV20J9c1                VI100   
+   XCV20J9c2                VI100   
+   XCV21A3_4Imp             AI100   
+   XCV21F13Imp              AI100   
+   XCV21J9c1                VI100   
+   XCV21J9c2                VI100   
+   XCV22A3_4Imp             AI100   
+   XCV22F13Imp              AI100   
+   XCV22J9c1                VI100   
+   XCV22J9c2                VI100   
+   XCV4 A3_1Imp             AI100   
+   XCV4 F2Imp               AI100   
+   XCV4 J9c1                VI100   
+   XCV4 J9c2                VI100   
+   XCX10A3_11               AI100   
+   XCX10A3_11Ind            AI100   
+   XCX10F22                 AI100   
+   XCX10J9c1                VI100   
+   XCX10J9c2                VI100   
+   XCX20F22                 AI100   
+   XCX20J9c1                VI100   
+   XCX20J9c2                VI100   
+   XCX21A3_4Imp             AI100   
+   XCX21F22                 AI100   
+   XCX21J9c1                VI100   
+   XCX21J9c2                VI100   
+   XCX22A3_11               AI100   
+   XCX22A3_11Ind            AI100   
+   XCX22F22                 AI100   
+   XCX22J9c1                VI100   
+   XCX22J9c2                VI100   
+   XCX4 A3_11               AI100   
+   XCX4 A3_11Ind            AI100   
+   XCX4 F22                 AI100   
+   XCX4 J9c1                VI100   
+   XCX4 J9c2                VI100   
+   XDE21A3_18Imp            AI100   
+   XDE21F13Imp              AI100   
+   XE124E33                 VI100   
+   XE124F18c2               AI100   
+   XE12CE33                 VI100   
+   XE12CF34OpEsentiEsc      VI100   
+   XE13CE33                 VI100   
+   XE13CF34OpEsentiEsc      VI100   
+   XE14CE33                 VI100   
+   XE14CF34OpEsentiEsc      VI100   
+   XE18CE33                 VI100   
+   XE18CF34OpEsentiEsc      VI100   
+   XE196F32_Studi           VI100   
+   XE19CE33                 VI100   
+   XE19CF34OpEsentiEsc      VI100   
+   XE1C E33                 VI100   
+   XE1C F34OpEsentiEsc      VI100   
+   XE20CE33                 VI100   
+   XE20CF34OpEsentiEsc      VI100   
+   XE21CE33                 VI100   
+   XE21CF34OpEsentiEsc      VI100   
+   XE22CE33                 VI100   
+   XE22CF34OpEsentiEsc      VI100   
+   XE23CE33                 VI100   
+   XE23CF34OpEsentiEsc      VI100   
+   XE27CE33                 VI100   
+   XE27CF34OpEsentiEsc      VI100   
+   XE27FE33                 VI100   
+   XE27FF18c2               AI100   
+   XE27FF34OpEsentiEsc      VI100   
+   XE6C E33                 VI100   
+   XE6C F34OpEsentiEsc      VI100   
+   XE741F24_Studi           VI100   
+   XE74DF24_Studi           VI100   
+   XE74EF24_Studi           VI100   
+   XE74PF24_Studi           VI100   
+   XE74PF34c6               VI100   
+   XE7C E33                 VI100   
+   XE7C F34OpEsentiEsc      VI100   
+   XE7EPF24_Studi           VI100   
+   XE7EPF34c6               VI100   
+   XE8C E33                 VI100   
+   XE8C F34OpEsentiEsc      VI100   
+   XEA27E33                 VI100   
+   XEA27F34c4               VI100   
+   XEB27E33                 VI100   
+   XEB27F34c4               VI100   
+   XEC11E33                 VI100   
+   XEC11F34c1               VI100   
+   XEC27E33                 VI100   
+   XEC27F34c3               VI100   
+   XEL01F32_Studi           VI100   
+   XEL1 F19c1Man            AI100   
+   XEL12F19c1Man            AI100   
+   XEL13F32_Studi           VI100   
+   XEL15F32_Studi           VI100   
+   XEL2 F24_Studi           VI100   
+   XEL22F32_Studi           VI100   
+   XEL3 F24_Studi           VI100   
+   XEL4 F32_Studi           VI100   
+   XEL5 F32_Studi           VI100   
+   XEL67F32_Studi           VI100   
+   XEL7 F32_Studi           VI100   
+   XEL7PF32_Studi           VI100   
+   XEL7PF34c5               VI100   
+   XELRFF19c2Man            AI100   
+   XES1 E33                 VI100   
+   XES1 F18c2               AI100   
+   XES1 F34OpEsentiEsc      VI100   
+   XES10E33                 VI100   
+   XES10F18c2               AI100   
+   XES11E33                 VI100   
+   XES11F18c2               AI100   
+   XES11F34c1               VI100   
+   XES12E33                 VI100   
+   XES12F18c2               AI100   
+   XES12F34OpEsentiEsc      VI100   
+   XES13E33                 VI100   
+   XES13F18c2               AI100   
+   XES13F34OpEsentiEsc      VI100   
+   XES14E33                 VI100   
+   XES14F18c2               AI100   
+   XES14F34OpEsentiEsc      VI100   
+   XES15E33                 VI100   
+   XES15F18c2               AI100   
+   XES15F34OpEsentiEsc      VI100   
+   XES16E33                 VI100   
+   XES16F18c2               AI100   
+   XES18E33                 VI100   
+   XES18F18c2               AI100   
+   XES18F34OpEsentiEsc      VI100   
+   XES19E33                 VI100   
+   XES19F18c2               AI100   
+   XES19F34OpEsentiEsc      VI100   
+   XES1EE33                 VI100   
+   XES1EF34c7               VI100   
+   XES1PE33                 VI100   
+   XES1PF34OpEsentiEsc      VI100   
+   XES2 E33                 VI100   
+   XES2 F34OpEsentiEsc      VI100   
+   XES20E33                 VI100   
+   XES20F18c2               AI100   
+   XES20F34OpEsentiEsc      VI100   
+   XES21E33                 VI100   
+   XES21F18c2               AI100   
+   XES21F34OpEsentiEsc      VI100   
+   XES22E33                 VI100   
+   XES22F18c2               AI100   
+   XES22F34OpEsentiEsc      VI100   
+   XES23E33                 VI100   
+   XES23F18c2               AI100   
+   XES23F34OpEsentiEsc      VI100   
+   XES27E33                 VI100   
+   XES27F18c2               AI100   
+   XES27F34c3               VI100   
+   XES6 E33                 VI100   
+   XES6 F18c2               AI100   
+   XES6 F34OpEsentiEsc      VI100   
+   XES7 E33                 VI100   
+   XES7 F18c2               AI100   
+   XES7 F34OpEsentiEsc      VI100   
+   XES8 E33                 VI100   
+   XES8 F18c2               AI100   
+   XES8 F34OpEsentiEsc      VI100   
+   XES9 E33                 VI100   
+   XES9 F18c2               AI100   
+   XES9 F34c2               VI100   
+   XES9CE33                 VI100   
+   XES9CF34c2               VI100   
+   XESBAE33                 VI100   
+   XESBAF34c4               VI100   
+   XESBCE33                 VI100   
+   XESBCF34c4               VI100   
+   XESOCE33                 VI100   
+   XESOCF18c2               AI100   
+   XESOFE33                 VI100   
+   XESR E33                 VI100   
+   XESR F18c2               AI100   
+   XESR F34OpEsentiEsc      VI100   
+   XESRBE33                 VI100   
+   XESRBF18c2               AI100   
+   XESRBF34OpEsentiEsc      VI100   
+   XESRCE33                 VI100   
+   XESRCF34OpEsentiEsc      VI100   
+   XESRSE33                 VI100   
+   XESRSF18c2               AI100   
+   XESRSF34OpEsentiEsc      VI100   
+   XESRXE33                 VI100   
+   XESRXF18c2               AI100   
+   XESRXF34OpEsentiEsc      VI100   
+   XESXCE33                 VI100   
+   XESXCF18c2               AI100   
+   XF21 E23Ins              VI100   
+   XF21 F13Imp              AI100   
+   XF22 E23Ins              VI100   
+   XF22 F13Imp              AI100   
+   XFC17F32_Studi           VI100   
+   XFCI F32_Studi           VI100   
+   XGF10G2_12_DiCuiArt1     AI100   
+   XGF22G2_12_DiCuiArt1     AI100   
+   XGF4 G2_12_DiCuiArt1     AI100   
+   XID20F22                 AI100   
+   XID20J7c1                AI100   
+   XID20J7c2                AI100   
+   XID21F22                 AI100   
+   XID21J7c1                AI100   
+   XID21J7c2                AI100   
+   XID22F22                 AI100   
+   XID22J7c1                AI100   
+   XID22J7c2                AI100   
+   XII22A3_24               AI100   
+   XII22F21                 AI100   
+   XIM10A3_17Imp            AI100   
+   XIM10F11Imp              AI100   
+   XIM21A3_18Imp            AI100   
+   XIM21F13Imp              AI100   
+   XIM22A3_18Imp            AI100   
+   XIM22F13Imp              AI100   
+   XIM4 A3_15Imp            AI100   
+   XIM4 F2Imp               AI100   
+    IM5 A3_16Imp            AI100   
+    IM5 F3Imp               AI100   
+   XIMC2E23Ins              VI100   
+   XIMC2F13Imp              AI100   
+   XIMC2F31c1               AI100   
+   XIMC2F31c2               AI100   
+   XIMC2T1c3                VI100   
+   XIMC2T1c4                VI100   
+   XIMCFE23Ins              VI100   
+   XIMCFF13Imp              AI100   
+   XIMCFF31c1               AI100   
+   XIMCFF31c2               AI100   
+   XIMCFT1c3                VI100   
+   XIMCFT1c4                VI100   
+   XIMO1E23Ins              VI100   
+   XIMO1F13Imp              AI100   
+   XIMO1F31c1               AI100   
+   XIMO1F31c2               AI100   
+   XIMO2E22Ins              VI100   
+   XIMO2F11Imp              AI100   
+   XIMO2F31c1               AI100   
+   XIMO2F31c2               AI100   
+   XIMO3E23Ins              VI100   
+   XIMO3F13Imp              AI100   
+   XIMO3F31c1               AI100   
+   XIMO3F31c2               AI100   
+   XIMO4E20Ins              VI100   
+   XIMO4F2Imp               AI100   
+   XIMO4F31c1               AI100   
+   XIMO4F31c2               AI100   
+   XIMOCF31c1               AI100   
+   XIMOCF31c2               AI100   
+   XIN10F11Imp              AI50    
+   XIN10F21                 AI50    
+   XIN20F21                 AI50    
+   XIN21F13Imp              AI50    
+   XIN21F21                 AI50    
+   XIN22F13Imp              AI50    
+   XIN22F21                 AI50    
+   XIN4 F21                 AI50    
+   XIN4 F2Imp               AI50    
+   XIN5 F21                 AI50    
+   XIN5 F3Imp               AI50    
+   XIS22F13Imp              AI50    
+   XIS22F21                 AI50    
+   XIS22J18c1               VI100   
+   XIS22J18c2               VI100   
+   XMA10G2_1                VI100   
+   XMA10G2_2Ali10           VI100   
+   XMA20G2_1                VI100   
+   XMA21G2_1                VI100   
+   XMA22G2_1                VI100   
+   XMA22G2_2Ali22           VI100   
+   XMA4 G2_1                VI100   
+   XMA4 G2_2Ali4            VI100   
+   XN124E33                 VI100   
+   XN124F18c2               AI100   
+   XN17CE35c6               VI100   
+   XN17EE35c4               VI100   
+   XN17FE35c5               VI100   
+   XN17ME35c5               VI100   
+   XN17PE35c7               VI100   
+   XN17SE35c8               VI100   
+   XN17TE35c9               VI100   
+   XN36 G2_1                VI100   
+   XN36CG2_1                VI100   
+   XN385E34OpNoSogg         VI100   
+   XN38QE32Ins              VI100   
+   XN402A3_7                AI100   
+   XN402F18Ins              AI100   
+   XN402J9c1                VI100   
+   XN404E30Div              VI100   
+   XN405A3_7                AI100   
+   XN405E30Div              VI100   
+   XN405F18Ins              AI100   
+   XN409E30Div              VI100   
+   XN41 E30CessIntr         VI100   
+   XN412E30CessIntr         VI100   
+   XN413E30CessIntr         VI100   
+   XN414E30CessIntr         VI100   
+   XN417E30CessIntr         VI100   
+   XN41BE30CessIntr         VI100   
+   XN473E30CessIntr         VI100   
+   XN475E30CessIntr         VI100   
+   XN483E30CessIntr         VI100   
+   XN485E30CessIntr         VI100   
+   XN488E30CessIntr         VI100   
+   XN49 E32Ins              VI100   
+   XN50BA3_21               AI100   
+   XN50BE32Ins              VI100   
+   XN58 E30CessIntr         VI100   
+   XN58 F18Ins              AI100   
+   XN58AF18Ins              AI100   
+   XN68 A3_21               AI100   
+   XN68 F18c2               AI100   
+   XN71 E30CessRSM          VI100   
+   XN71 F18Ins              AI100   
+   XN72 E30Div              VI100   
+   XN72 F18Ins              AI100   
+   XN72IE31                 VI100   
+   XN72IF17                 AI100   
+   XN74 E35c2               VI100   
+   XN747E35c2               VI100   
+   XN748E35c2               VI100   
+   XN74DE35c2               VI100   
+   XN74NF18Ins              AI100   
+   XN74TE32Ins              VI100   
+   XN74UE34OpNoSogg         VI100   
+   XN74XE34OpNoSogg         VI100   
+   XN75UE34OpNoSogg         VI100   
+   XN75XE34OpNoSogg         VI100   
+   XN76XE34OpNoSogg         VI100   
+   XN77XE34OpNoSogg         VI100   
+   XN7B F32_Studi           VI100   
+   XN7BUF32_Studi           VI100   
+   XN7E E34OpNoSogg         VI100   
+   XN7EEE34OpNoSogg         VI100   
+   XN7N1E34OpNoSogg         VI100   
+   XN7NUE34OpNoSogg         VI100   
+   XN7T E34OpNoSogg         VI100   
+   XN7U1E34OpNoSogg         VI100   
+   XN7UEE34OpNoSogg         VI100   
+   XN8  A3_20               AI100   
+   XN8  E30Art8             VI100   
+   XN8  F18Ins              AI100   
+   XN8A E30Art8             VI100   
+   XN8ABE30Art8             VI100   
+   XN8B E30Div              VI100   
+   XN8B F18Ins              AI100   
+   XN8B2E31                 VI100   
+   XN8B2F17                 AI100   
+   XN8C E31                 VI100   
+   XN8C F17                 AI100   
+   XN8MME30Art8             VI100   
+   XN8MMF17                 AI100   
+   XN8MMF49c1               VI100   
+   XN8NPA3_20               AI100   
+   XN8NPE30Art8             VI100   
+   XN8NPF18Ins              AI100   
+   XN8TRE30Art8             VI100   
+   XN8TRF18Ins              AI100   
+   XN8ZAE31                 VI100   
+   XN8ZAF17                 AI100   
+   XN8ZAF39c1               VI100   
+   XN8ZBE31                 VI100   
+   XN8ZBF17                 AI100   
+   XN8ZBF40c1               VI100   
+   XN8ZCE31                 VI100   
+   XN8ZCF17                 AI100   
+   XN8ZCF43c1               VI100   
+   XN8ZDE31                 VI100   
+   XN8ZDF17                 AI100   
+   XN8ZDF44c1               VI100   
+   XN8ZEE31                 VI100   
+   XN8ZEF17                 AI100   
+   XN8ZFE31                 VI100   
+   XN8ZFF17                 AI100   
+   XN8ZGE31                 VI100   
+   XN8ZGF17                 AI100   
+   XN8ZGF45c1               VI100   
+   XN8ZHE31                 VI100   
+   XN8ZHF17                 AI100   
+   XN8ZHF46c1               VI100   
+   XN8ZIE31                 VI100   
+   XN8ZIF17                 AI100   
+   XN8ZIF47c1               VI100   
+   XN8ZLE31                 VI100   
+   XN8ZLF17                 AI100   
+   XN8ZLF48c1               VI100   
+   XN8ZME31                 VI100   
+   XN8ZMF17                 AI100   
+   XN8ZMF49c1               VI100   
+   XN9  E30Div              VI100   
+   XN9  F18Ins              AI100   
+   XN92 E31                 VI100   
+   XN92 F17                 AI100   
+   XN9P E30Div              VI100   
+   XN9RCF18Ins              AI100   
+   XN9RIF18Ins              AI100   
+   XND10F21                 AI100   
+   XND20F21                 AI100   
+   XND21F21                 AI100   
+   XND22F21                 AI100   
+   XND4 F21                 AI100   
+   XND5 F21                 AI100   
+   XNE10F22                 AI100   
+   XNE20F22                 AI100   
+   XNE21F22                 AI100   
+   XNE22F22                 AI100   
+   XNE4 F22                 AI100   
+   XNE5 F22                 AI100   
+   XNS10F21                 AI100   
+   XNS10J18c1               VI100   
+   XNS10J18c2               VI100   
+   XNS22F21                 AI100   
+   XNS22J18c1               VI100   
+   XNS22J18c2               VI100   
+   XNS38F32_Studi           VI100   
+   XNS4 F21                 AI100   
+   XNS4 J18c1               VI100   
+   XNS4 J18c2               VI100   
+   XNS5 F21                 AI100   
+   XNS5 J18c1               VI100   
+   XNS5 J18c2               VI100   
+   XNSOTE36                 VI100   
+   XNSOTF20                 AI100   
+   XNT38E34OpNoSogg         VI100   
+   XO10 F21                 AI100   
+   XO20 F21                 AI100   
+   XO21 F21                 AI100   
+   XO22 F21                 AI100   
+   XO4  F21                 AI100   
+   XOA20J8c1                AI100   
+   XOA20J8c2                AI100   
+   XOA21F13Imp              AI100   
+   XOA21J8c1                AI100   
+   XOA21J8c2                AI100   
+   XOA22F13Imp              AI100   
+   XOA22J8c1                AI100   
+   XOA22J8c2                AI100   
+   XOI20J9c1                AI100   
+   XOI20J9c2                AI100   
+   XOI21A3_4Imp             AI100   
+   XOI21F13Imp              AI100   
+   XOI21J9c1                AI100   
+   XOI21J9c2                AI100   
+   XOI22A3_4Imp             AI100   
+   XOI22F13Imp              AI100   
+   XOI22J9c1                AI100   
+   XOI22J9c2                AI100   
+   XOM20J11c1               AI100   
+   XOM20J11c2               AI100   
+   XOM21A3_18Imp            AI100   
+   XOM21F13Imp              AI100   
+   XOM21J11c1               AI100   
+   XOM21J11c2               AI100   
+   XOM22A3_18Imp            AI100   
+   XOM22F13Imp              AI100   
+   XOM22J11c1               AI100   
+   XOM22J11c2               AI100   
+   XOO21E23Ins              VI100   
+   XOO21F13Imp              AI100   
+   XOO22E23Ins              VI100   
+   XOO22F13Imp              AI100   
+   XOR20J7c1                AI100   
+   XOR20J7c2                AI100   
+   XOR21F13Imp              AI100   
+   XOR21J7c1                AI100   
+   XOR21J7c2                AI100   
+   XOR22F13Imp              AI100   
+   XOR22J7c1                AI100   
+   XOR22J7c2                AI100   
+   XPA 4F17                 AI100   
+   XPA10F17                 AI100   
+   XPA20F17                 AI100   
+   XPA21F17                 AI100   
+   XPA22F17                 AI100   
+   XPE  E30Div              VI100   
+   XPE 4A3_6                AI100   
+   XPE 4F17                 AI100   
+   XPE 4J9c1                AI100   
+   XPE10A3_6                AI100   
+   XPE10F17                 AI100   
+   XPE10J9c1                AI100   
+   XPE20A3_6                AI100   
+   XPE20F17                 AI100   
+   XPE20J9c1                AI100   
+   XPE21A3_6                AI100   
+   XPE21F17                 AI100   
+   XPE21J9c1                AI100   
+   XPE22A3_6                AI100   
+   XPE22F17                 AI100   
+   XPE22J9c1                AI100   
+   XPI  E30CessIntr         VI100   
+   XPI 4A3_20               AI100   
+   XPI 4F17                 AI100   
+   XPI10A3_20               AI100   
+   XPI10F17                 AI100   
+   XPI20A3_20               AI100   
+   XPI20F17                 AI100   
+   XPI21A3_20               AI100   
+   XPI21F17                 AI100   
+   XPI22A3_20               AI100   
+   XPI22F17                 AI100   
+   XPIS E30CessIntr         VI100   
+   XPLS1F17                 AI100   
+   XPLS2F17                 AI100   
+   XPLSAF17                 AI100   
+   XPLSCF17                 AI100   
+   XPX  E30Art8             VI100   
+   XRE20F_3                 AI100   
+   XRE21F_3                 AI100   
+   XRE2NF_3                 AI100   
+   XRE3NF_3                 AI100   
+   XRI20J9c1                VI100   
+   XRI20J9c2                VI100   
+   XRI21A3_4Imp             AI100   
+   XRI21F13Imp              AI100   
+   XRI21J9c1                VI100   
+   XRI21J9c2                VI100   
+   XRI22A3_4Imp             AI100   
+   XRI22F13Imp              AI100   
+   XRI22J9c1                VI100   
+   XRI22J9c2                VI100   
+   XRM20J10c1               VI100   
+   XRM20J10c2               VI100   
+   XRM21A3_18Imp            AI100   
+   XRM21F13Imp              AI100   
+   XRM21J10c1               VI100   
+   XRM21J10c2               VI100   
+   XRM22A3_18Imp            AI100   
+   XRM22F13Imp              AI100   
+   XRM22J10c1               VI100   
+   XRM22J10c2               VI100   
+   XRO10F11Imp              AI100   
+   XRO10J6c1                VI100   
+   XRO10J6c2                VI100   
+   XRO20J6c1                VI100   
+   XRO20J6c2                VI100   
+   XRO21F13Imp              AI100   
+   XRO21J6c1                VI100   
+   XRO21J6c2                VI100   
+   XRO22F13Imp              AI100   
+   XRO22J6c1                VI100   
+   XRO22J6c2                VI100   
+   XROA2F13Imp              AI100   
+   XROA2J6c1                VI100   
+   XROA2J6c2                VI100   
+   XSG20A5Serc1             AI100   
+   XSG20A5Serc2             AI100   
+   XSG21A5Serc1             AI100   
+   XSG21A5Serc2             AI100   
+   XSG21F13Imp              AI100   
+   XSG22A5Serc1             AI100   
+   XSG22A5Serc2             AI100   
+   XSG22F13Imp              AI100   
+   XV0  F18c2               AI100   
+   XV10 F11Imp              AI100   
+   XV10PF11Imp              AI100   
+   XV10PJ18c1               VI100   
+   XV10PJ18c2               VI100   
+   XV10SF11Imp              AI100   
+   XV10SF28AcqRsmC1         AI100   
+   XV123F12Imp              AI100   
+   XV2  F1Imp               AI100   
+   XV20SF28AcqRsmC1         AI100   
+   XV21 F13Imp              AI100   
+   XV21SF13Imp              AI100   
+   XV21SF28AcqRsmC1         AI100   
+   XV22 F13Imp              AI100   
+   XV22PF13Imp              AI100   
+   XV22PJ18c1               VI100   
+   XV22PJ18c2               VI100   
+   XV22SF13Imp              AI100   
+   XV22SF28AcqRsmC1         AI100   
+   XV4  F2Imp               AI100   
+   XV4P F2Imp               AI100   
+   XV4P J18c1               VI100   
+   XV4P J18c2               VI100   
+   XV4S F28AcqRsmC1         AI100   
+   XV4S F2Imp               AI100   
+   XV5  F3Imp               AI100   
+   XV5P F3Imp               AI100   
+   XV5P J18c1               VI100   
+   XV5P J18c2               VI100   
+   XV5S F28AcqRsmC1         AI100   
+   XV5S F3Imp               AI100   
+   XV73 F6Imp               AI100   
+   XV75 F7Imp               AI100   
+   XV83 F8Imp               AI100   
+   XV85 F9Imp               AI100   
+   XV88 F10Imp              AI100   

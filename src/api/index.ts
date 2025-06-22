@@ -51,7 +51,31 @@ export const getImportTemplates = (params?: Record<string, any>) => fetchPaginat
 
 export const getDashboardData = () => fetchData<any>('/dashboard', 'Errore nel caricamento dei dati della dashboard');
 
+export const resetDatabase = async () => {
+  const response = await fetch('/api/system/reset-database', { method: 'POST' });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'Errore generico durante il reset del database.' }));
+    throw new Error(errorData.message || 'Errore di rete');
+  }
+  return response.json();
+};
+
 // In futuro aggiungeremo qui le funzioni per recuperare e salvare le scritture contabili. 
 
 // Qui potremmo aggiungere funzioni per creare/aggiornare/eliminare dati,
 // che in un'app reale farebbero chiamate a un backend API. 
+
+export * as causali from './causali';
+export * as clienti from './clienti';
+export * as codiciIva from './codiciIva';
+export * as fornitori from './fornitori';
+export * as importTemplates from './importTemplates';
+export * as registrazioni from './registrazioni';
+export * as vociAnalitiche from './vociAnalitiche';
+
+export const fetchJson = async (url: string, options?: RequestInit) => {
+  const response = await fetch(url, {
+    // ... existing code ...
+  });
+  // ... existing code ...
+}; 

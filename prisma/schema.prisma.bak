@@ -176,12 +176,6 @@ model CodiceIva {
   externalId  String?   @unique
   descrizione String
   aliquota    Float
-  
-  // Campi aggiunti per completare l'anagrafica
-  tipoCalcolo   String?
-  indetraibilita Float?
-  note          String?
-
   righeIva    RigaIva[]
 }
 
@@ -189,12 +183,6 @@ model CondizionePagamento {
   id          String  @id
   externalId  String? @unique
   descrizione String
-
-  // Campi aggiunti per completare l'anagrafica
-  contoIncassoPagamento String?
-  suddivisione          String?
-  inizioScadenza        String?
-  numeroRate            Int?
 }
 
 model RigaIva {

@@ -1,0 +1,56 @@
+    COMM  1    C6015004700    D              PAGATE COMMISSIONI BANCARIE                                 
+    COMM  2    C2205000100    A              PAGATE COMMISSIONI BANCARIE                                 
+    COMM  3    C6015004700    D              PAGATE COMMISSIONI BANCARIE                                 
+    COMM  4    C2205000100    A              PAGATE COMMISSIONI BANCARIE                                 
+    CONT  1    C6320000350    D              RILEVATI CONTRIBUTI PREVIDENZIALI MESE DI NOVEMBRE          
+    CONT  2    C4870000050    A              RILEVATI CONTRIBUTI PREVIDENZIALI MESE DI NOVEMBRE          
+    IMPIND1    C7820006700    D              PAGATE COMMISSIONI BANCARIE                                 
+    IMPIND2    C2205000100    A              PAGATE COMMISSIONI BANCARIE                                 
+    IMPIND3    C7820000600    D              PAGATE COMMISSIONI BANCARIE                                 
+    IMPIND4    C2205000100    A              PAGATE COMMISSIONI BANCARIE                                 
+    INC   1    C2205000100    D              INCASSO TRAMITE POS                                         
+    INC   2    C1830000200    A              INCASSO TRAMITE POS                                         
+    PAGAS 1    C2205000100    A              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 2    C6015004700    D              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 3    C4875000050    D              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 4    C2205000100    A              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 5    C6015004700    D              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 6    C4875000050    D              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 7    C2205000100    A              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 8    C6015004700    D              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 9    C4875000050    D              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 10   C2205000100    A              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 11   C6015004700    D              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 12   C4875000050    D              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 13   C2205000100    A              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 14   C6015004700    D              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 15   C4875000050    D              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 16   C2205000100    A              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 17   C6015004700    D              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 18   C4875000050    D              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 19   C2205000100    A              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 20   C6015004700    D              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 21   C4875000050    D              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 22   C2205000100    A              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 23   C6015004700    D              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 24   C4875000050    D              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 25   C2205000100    A              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 26   C6015004700    D              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 27   C4875000050    D              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 28   C2205000100    A              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 29   C6015004700    D              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PAGAS 30   C4875000050    D              PAGATI STIPENDI DEL MESE DI DETTEMBRE                       
+    PREL  1    C2205000100    A              PRELEVAMENTO CONTANTI                                       
+    PREL  2    C2220000050    D              PRELEVAMENTO CONTANTI                                       
+    SPE   1    C6020000270    D              PAG. AFFITTO MESE DI GENNAIO 2019                           
+    SPE   2    C2220000050    A              PAG. AFFITTO MESE DI GENNAIO 2019                           
+    STIP  1    C6310000500    D              RILEVATI STIPENDI DEL MESE DI GENNAIO                       
+    STIP  2    C4870000050    D              RILEVATI STIPENDI DEL MESE DI GENNAIO                       
+    STIP  3    C1880000740    D              RILEVATI STIPENDI DEL MESE DI GENNAIO                       
+    STIP  4    C4870000050    A              RILEVATI STIPENDI DEL MESE DI GENNAIO                       
+    STIP  5    C4855000050    A              RILEVATI STIPENDI DEL MESE DI GENNAIO                       
+    STIP  6    C4855000710    A              RILEVATI STIPENDI DEL MESE DI GENNAIO                       
+    STIP  7    C4855000712    A              RILEVATI STIPENDI DEL MESE DI GENNAIO                       
+    STIP  8    C4875000050    A              RILEVATI STIPENDI DEL MESE DI GENNAIO                       
+    VERS  1    C2205000100    D              VERSAMENTO CONTANTI                                         
+    VERS  2    C2220000050    A              VERSAMENTO CONTANTI                                         
