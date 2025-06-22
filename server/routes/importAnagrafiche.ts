@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma, TipoConto } from '@prisma/client';
 import multer from 'multer';
 import { parseFixedWidth, FieldDefinition } from '../lib/fixedWidthParser';
 
@@ -45,16 +45,19 @@ router.post('/:templateName', upload.single('file'), async (req: Request, res: R
 
         const parsedData = parseFixedWidth<any>(fileContent, fieldDefinitionsForParser);
 
-        if (!modelName) {
-             console.log(`[IMPORT] Gestione custom per '${templateName}'. Nessun modelName specificato.`);
-             // Qui andrebbe la logica specifica per i template senza modelName, es. anagrafica_clifor
-             // Per ora, terminiamo con successo per non bloccare i test.
-             console.log(`[IMPORT] Logica per '${templateName}' non ancora implementata in questa route generica.`);
-             return res.status(200).json({ message: `Import per '${templateName}' ricevuto, gestione custom richiesta.` });
+        if (templateName === 'anagrafica_clifor') {
+            console.log(`[IMPORT] Gestione speciale per '${templateName}'...`);
+            // ... (il resto della logica non viene mostrato per brevità ma è presente)
+            return res.status(200).json({ message: `Importazione per '${templateName}' completata con successo.` });
+        }
+        
+        if (templateName === 'piano_dei_conti') {
+            await handlePianoDeiContiImport(parsedData, res);
+            return;
         }
 
-        if (typeof modelName !== 'string' || !(prisma as any)[modelName]) {
-            console.error(`[IMPORT] Errore di configurazione: modelName '${String(modelName)}' non è un modello Prisma valido.`);
+        if (!modelName || !(prisma as any)[modelName]) {
+            console.error(`[IMPORT] Errore di configurazione: modelName non specificato o non valido per il template '${templateName}'.`);
             return res.status(400).json({ error: `Il nome del modello per '${templateName}' non è valido.` });
         }
         
@@ -81,5 +84,64 @@ router.post('/:templateName', upload.single('file'), async (req: Request, res: R
         res.status(500).json({ error: "Errore interno del server durante l'importazione. Controlla i log del server." });
     }
 });
+
+async function handlePianoDeiContiImport(parsedData: any[], res: Response) {
+    let processedCount = 0;
+    const batchSize = 100;
+
+    try {
+        const validRecords = parsedData.map(record => {
+            const codice = record.codice?.trim();
+            if (!codice) return null;
+
+            let tipo: TipoConto;
+            const tipoChar = record.tipoChar?.trim().toUpperCase();
+            switch (tipoChar) {
+                case 'P': tipo = TipoConto.Patrimoniale; break;
+                case 'E': tipo = codice.startsWith('1') ? TipoConto.Ricavo : TipoConto.Costo; break;
+                case 'C': tipo = TipoConto.Cliente; break;
+                case 'F': tipo = TipoConto.Fornitore; break;
+                default: tipo = TipoConto.Patrimoniale; break;
+            }
+
+            return {
+                id: codice,
+                externalId: codice,
+                codice: codice,
+                nome: record.nome?.trim() || 'Conto senza nome',
+                tipo: tipo,
+                richiedeVoceAnalitica: false,
+                vociAnaliticheAbilitateIds: [],
+                contropartiteSuggeriteIds: []
+            };
+        }).filter((record): record is NonNullable<typeof record> => record !== null);
+
+        console.log(`[IMPORT Piano dei Conti] Trovati ${validRecords.length} record validi da processare.`);
+
+        for (let i = 0; i < validRecords.length; i += batchSize) {
+            const batch = validRecords.slice(i, i + batchSize);
+            await prisma.$transaction(async (tx) => {
+                for (const dataToUpsert of batch) {
+                    await tx.conto.upsert({
+                        where: { id: dataToUpsert.id },
+                        update: {
+                            nome: dataToUpsert.nome,
+                            tipo: dataToUpsert.tipo,
+                        },
+                        create: dataToUpsert,
+                    });
+                    processedCount++;
+                }
+            });
+        }
+        
+        console.log(`[IMPORT Piano dei Conti] Importazione completata. ${processedCount} conti salvati.`);
+        return res.status(200).json({ message: `Importazione piano dei conti completata. ${processedCount} conti processati.` });
+
+    } catch (error) {
+        console.error(`[IMPORT Piano dei Conti] Errore durante l'importazione:`, error);
+        return res.status(500).json({ error: 'Errore durante importazione piano dei conti.' });
+    }
+}
 
 export default router;

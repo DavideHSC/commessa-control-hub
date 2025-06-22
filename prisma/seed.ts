@@ -77,6 +77,7 @@ async function main() {
       nome: 'condizioni_pagamento',
       modelName: 'CondizionePagamento',
       fields: { create: [
+        { nomeCampo: 'id', start: 4, length: 8, type: 'string' },
         { nomeCampo: 'externalId', start: 4, length: 8, type: 'string' },
         { nomeCampo: 'descrizione', start: 12, length: 40, type: 'string' },
         { nomeCampo: 'contoIncassoPagamento', start: 52, length: 10, type: 'string' },
@@ -112,6 +113,7 @@ async function main() {
       nome: 'anagrafica_clifor',
       modelName: null,
       fields: { create: [
+        { nomeCampo: 'id', start: 20, length: 12, type: 'string' },
         { nomeCampo: 'externalId', start: 20, length: 12, type: 'string' },
         { nomeCampo: 'codiceFiscale', start: 32, length: 16, type: 'string' },
         { nomeCampo: 'tipo', start: 49, length: 1, type: 'string' },
@@ -127,6 +129,7 @@ async function main() {
       nome: 'piano_dei_conti',
       modelName: null, // Gestione custom per mappare i tipi
       fields: { create: [
+        { nomeCampo: 'id', start: 5, length: 10, type: 'string' },
         { nomeCampo: 'livello', start: 4, length: 1, type: 'string' },
         { nomeCampo: 'codice', start: 5, length: 10, type: 'string' },
         { nomeCampo: 'nome', start: 15, length: 60, type: 'string' },
