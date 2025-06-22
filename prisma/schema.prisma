@@ -50,8 +50,31 @@ model Cliente {
   id            String     @id @default(cuid())
   externalId    String?    @unique
   nome          String
-  piva          String?    @unique
+  piva          String?
   codiceFiscale String?
+
+  // Dati anagrafici aggiuntivi
+  tipoAnagrafica String? // Persona Fisica o Soggetto Diverso
+  cognome       String?
+  nomeAnagrafico String? // 'nome' è già usato per la ragione sociale
+  sesso         String?
+  dataNascita   DateTime?
+  comuneNascita String?
+  
+  // Residenza/Sede legale
+  indirizzo     String?
+  cap           String?
+  comune        String?
+  provincia     String?
+  nazione       String?
+
+  // Contatti
+  telefono      String?
+
+  // Dati contabili
+  codicePagamento String?
+  codiceValuta    String?
+  
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
@@ -62,8 +85,45 @@ model Fornitore {
   id            String     @id @default(cuid())
   externalId    String?    @unique
   nome          String
-  piva          String?    @unique
+  piva          String?
   codiceFiscale String?
+  
+  // Dati anagrafici aggiuntivi
+  tipoAnagrafica String? // Persona Fisica o Soggetto Diverso
+  cognome       String?
+  nomeAnagrafico String? // 'nome' è già usato per la ragione sociale
+  sesso         String?
+  dataNascita   DateTime?
+  comuneNascita String?
+  
+  // Residenza/Sede legale
+  indirizzo     String?
+  cap           String?
+  comune        String?
+  provincia     String?
+  nazione       String?
+
+  // Contatti
+  telefono      String?
+
+  // Dati contabili
+  codicePagamento String?
+  codiceValuta    String?
+  
+  // Dati per ritenute e previdenza
+  gestione770     Boolean?
+  soggettoRitenuta Boolean?
+  quadro770       String?
+  contributoPrevidenziale Boolean?
+  codiceRitenuta  String?
+  enasarco        Boolean?
+  tipoRitenuta    String? // Acconto, Imposta, Manuale
+  soggettoInail   Boolean?
+  contributoPrevidenzialeL335 String?
+  aliquota        Float?
+  percContributoCassaPrev Float?
+  attivitaMensilizzazione Int?
+
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
@@ -84,7 +144,7 @@ model VoceAnalitica {
 model Conto {
   id                         String   @id
   externalId                 String?  @unique
-  codice                     String   @unique
+  codice                     String?  @unique
   nome                       String
   tipo                       TipoConto
   richiedeVoceAnalitica      Boolean  @default(false)
@@ -188,89 +248,233 @@ model CodiceIva {
 }
 
 model CondizionePagamento {
-  id          String  @id
-  externalId  String? @unique
-  descrizione String
-
-  // Campi aggiunti per completare l'anagrafica
-  contoIncassoPagamento String?
-  suddivisione          String?
-  inizioScadenza        String?
-  numeroRate            Int?
+  id                String  @id
+  externalId        String? @unique
+  codice            String?  @unique
+  descrizione       String
 }
 
 model RigaIva {
-  id              String      @id @default(cuid())
-  imponibile      Float
-  imposta         Float
-  codiceIvaId     String
-  codiceIva       CodiceIva   @relation(fields: [codiceIvaId], references: [id])
-  rigaScritturaId String
-  rigaScrittura   RigaScrittura @relation(fields: [rigaScritturaId], references: [id], onDelete: Cascade)
+  id                   String        @id @default(cuid())
+  
+  codiceIvaId          String
+  codiceIva            CodiceIva     @relation(fields: [codiceIvaId], references: [id])
+  
+  imponibile           Float
+  imposta              Float
+
+  rigaScritturaId      String?
+  rigaScrittura        RigaScrittura? @relation(fields: [rigaScritturaId], references: [id], onDelete: Cascade)
 }
 
 // --- MODELLI PER LA CONFIGURAZIONE DEGLI AUTOMATISMI ---
 
 model CausaleContabile {
-  id                String   @id
-  externalId        String?  @unique
-  nome              String   @unique
-  descrizione       String
-
-  // Campi derivati dal file di importazione CAUSALI.TXT
-  tipoMovimento     String? // C = Contabile, I = Contabile/Iva
-  tipoAggiornamento String? // I = Saldo Iniziale, P = Saldo Progressivo, F = Saldo Finale
-  dataInizio        DateTime?
-  dataFine          DateTime?
-  tipoRegistroIva   String? // A = Acquisti, C = Corrispettivi, V = Vendite
-  noteMovimento     String?
-
-  datiPrimari       CampoDatiPrimari[]
-  templateScrittura VoceTemplateScrittura[]
+  id                  String   @id
+  externalId          String?  @unique
+  descrizione         String
+  tipoDocumentoIva    String?
+  gestioneRitenute    String?
+  fatturaInValuta     Boolean?
+  generazioneAutofattura Boolean?
+  versamentoRitenute  Boolean?
+  tipoMovimento       String?
+  tipoIva             String?
+  note                String?
+  imponibilePredefinito Float?
+  protocolloIva       String?
 }
 
+// --- MODELLI PER IMPORTAZIONE DINAMICA ---
+
 model CampoDatiPrimari {
-  id                 String     @id @default(cuid())
-  fieldId            String // es: 'totaleDocumento'
-  label              String
-  tipo               TipoCampo
-  riferimentoConto   TipoConto?
-
-  causaleId          String
-  causale            CausaleContabile @relation(fields: [causaleId], references: [id], onDelete: Cascade)
-
-  @@unique([causaleId, fieldId])
+  id                  String @id @default(cuid())
+  nome                String @unique // e.g., "importo", "contoDare", "contoAvere"
+  descrizione         String
+  tipo                TipoCampo
+  opzioni             String[]
+  voceTemplateId      String
+  voceTemplate        VoceTemplateScrittura @relation(fields: [voceTemplateId], references: [id])
 }
 
 model VoceTemplateScrittura {
-  id                            String         @id @default(cuid())
-  sezione                       SezioneScrittura
-  contoId                       String?
-  contoRiferimentoDatiPrimari   String?        // Es: 'fornitoreId', 'clienteId'
-  formulaImporto                FormulaImporto
-
-  causaleId                     String
-  causale                       CausaleContabile @relation(fields: [causaleId], references: [id], onDelete: Cascade)
+  id                    String        @id @default(cuid())
+  sezione               SezioneScrittura
+  descrizione           String
+  formulaImporto        FormulaImporto?
+  campi                 CampoDatiPrimari[]
+  templateId            String
+  template              ImportTemplate @relation(fields: [templateId], references: [id])
 }
 
-// Modelli per l'importazione dinamica
 model ImportTemplate {
-  id     String @id @default(cuid())
-  nome   String @unique // Es. "causali", "clienti_fornitori"
-  modelName String? // Es. "causaleContabile", "cliente". Se nullo, gestito da logica custom.
-  
-  fields FieldDefinition[]
+  id                  String   @id @default(cuid())
+  name                String?   @unique
+  modelName           String?   
+  fileIdentifier      String?  
+  voci                VoceTemplateScrittura[]
+  fieldDefinitions    FieldDefinition[]
 }
 
 model FieldDefinition {
-  id        String  @id @default(cuid())
-  nomeCampo String  // Es. "externalId", "descrizione"
-  start     Int
-  length    Int
-  type      String  @default("string") // 'string' | 'number' | 'date'
+  id                String   @id @default(cuid())
+  templateId        String
+  template          ImportTemplate @relation(fields: [templateId], references: [id])
   
-  fileIdentifier String? // Es. "PNTESTA.TXT", "PNRIGCON.TXT"
+  fileIdentifier    String? // Nuovo campo per identificare il file
+  fieldName         String?
+  start             Int
+  length            Int
+  format            String? // "date:YYYYMMDD", "number:2dp", "text"
+}
 
-  templateId String
-  template   ImportTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+// --- MODELLI PER LOGGING IMPORTAZIONI ---
+
+model ImportLog {
+  id                  String @id @default(cuid())
+  timestamp           DateTime @default(now())
+  templateName        String
+  fileName            String
+  status              String // e.g., "Success", "Failed", "Partial"
+  details             String?
+  rowCount            Int
+}
+
+model WizardState {
+  id         String @id @default("singleton")
+  step       Int
+  completed  Boolean @default(false)
+}
+
+// --- MODELLI DI STAGING PER IMPORT SCRITTURE ---
+
+model ImportScritturaTestata {
+  id                          String    @id @default(cuid())
+  codiceUnivocoScaricamento   String    @unique
+  
+  // Dati Anagrafica Azienda
+  codiceFiscaleAzienda        String?
+  subcodiceFiscaleAzienda     String?
+
+  // Dati Generali
+  codiceAttivita              String?
+  esercizio                   String?
+  codiceCausale               String?
+  descrizioneCausale          String?
+  dataRegistrazione           DateTime?
+
+  // Dati Iva
+  codiceAttivitaIva           String?
+  tipoRegistroIva             String? // A, C, V
+  codiceNumerazioneIva        String?
+  clienteFornitoreCodiceFiscale String?
+  clienteFornitoreSubcodiceFiscale String?
+  clienteFornitoreSigla       String?
+  dataDocumento               DateTime?
+  numeroDocumento             String?
+  documentoBis                String?
+  dataRegistroIva             DateTime?
+  protocolloNumero            Int?
+  protocolloBis               String?
+  dataCompetenzaLiquidIva     DateTime?
+  totaleDocumento             Float?
+
+  // Altri Dati
+  dataCompetenzaContabile     DateTime?
+  noteMovimento               String?
+  dataPlafond                 DateTime?
+  annoProRata                 Int?
+  ritenute                    Float?
+  enasarco                    Float?
+  totaleInValuta              Float?
+  codiceValuta                String?
+  
+  // Dati Autofattura
+  codiceNumerazioneIvaVendite String?
+  protocolloNumeroAutofattura Int?
+  protocolloBisAutofattura    String?
+  
+  // Versamento ritenute
+  versamentoData              DateTime?
+  versamentoTipo              String?
+  versamentoModello           String?
+  versamentoEstremi           String?
+
+  // Dati di Servizio
+  stato                       String? // D, P, V
+
+  // Gestione partite
+  tipoGestionePartite         String?
+  codicePagamento             String?
+  
+  // Dati per Inserimento rata in una partita esistente (B)
+  rataPartitaCodiceAttivitaIva  String?
+  rataPartitaTipoRegistroIva   String?
+  rataPartitaCodiceNumerazioneIva String?
+  rataPartitaCliForCodiceFiscale String?
+  rataPartitaCliForSubcodice   String?
+  rataPartitaCliForSigla       String?
+  rataPartitaDocumentoData     DateTime?
+  rataPartitaDocumentoNumero   String?
+  rataPartitaDocumentoBis      String?
+  
+  // Dati per Intrastat
+  intraCliForCodiceFiscale    String?
+  intraCliForSubcodiceFiscale String?
+  intraCliForSigla            String?
+  tipoMovimentoIntrastat      String?
+  documentoOperazioneIntrastat DateTime?
+
+  righeContabili              ImportScritturaRigaContabile[]
+  righeIva                    ImportScritturaRigaIva[]
+}
+
+model ImportScritturaRigaContabile {
+  id                        String    @id @default(cuid())
+  testata                   ImportScritturaTestata @relation(fields: [codiceUnivocoScaricamento], references: [codiceUnivocoScaricamento])
+  codiceUnivocoScaricamento String
+  progressivoNumeroRigo     Int?
+
+  // Dati Conto
+  tipoConto                 String? // C, F
+  clienteFornitoreCodiceFiscale String?
+  clienteFornitoreSubcodiceFiscale String?
+  clienteFornitoreSigla     String?
+  conto                     String?
+  siglaConto                String?
+
+  // Importi
+  importoDare               Float?
+  importoAvere              Float?
+  
+  note                      String?
+
+  // Dati competenza contabile
+  insDatiCompetenzaContabile Boolean?
+  dataInizioCompetenza      DateTime?
+  dataFineCompetenza        DateTime?
+  noteDiCompetenza          String?
+
+  // Dati per movimenti analitici
+  insDatiMovimentiAnalitici Boolean?
+  dataInizioCompetenzaAnalitica DateTime?
+  dataFineCompetenzaAnalitica   DateTime?
+}
+
+model ImportScritturaRigaIva {
+  id                        String    @id @default(cuid())
+  testata                   ImportScritturaTestata @relation(fields: [codiceUnivocoScaricamento], references: [codiceUnivocoScaricamento])
+  codiceUnivocoScaricamento String
+
+  // Dati riga
+  codiceIva                 String?
+  contropartita             String?
+  siglaContropartita        String?
+  imponibile                Float?
+  imposta                   Float?
+  impostaIntrattenimenti    Float?
+  imponibile50CorrNonCons   Float?
+  impostaNonConsiderata     Float?
+  importoLordo              Float?
+  note                      String?
 }

@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
         page = '1', 
         limit = '25', 
         search = '',
-        sortBy = 'nome',
+        sortBy = 'descrizione',
         sortOrder = 'asc'
     } = req.query;
 
@@ -22,14 +22,13 @@ router.get('/', async (req, res) => {
 
     const where: Prisma.CausaleContabileWhereInput = search ? {
         OR: [
-            { nome: { contains: search as string, mode: 'insensitive' } },
             { descrizione: { contains: search as string, mode: 'insensitive' } },
             { externalId: { contains: search as string, mode: 'insensitive' } },
         ],
     } : {};
 
     const orderBy: Prisma.CausaleContabileOrderByWithRelationInput = {
-        [(sortBy as string) || 'nome']: (sortOrder as 'asc' | 'desc') || 'asc'
+        [(sortBy as string) || 'descrizione']: (sortOrder as 'asc' | 'desc') || 'asc'
     };
 
     const [causali, totalCount] = await prisma.$transaction([
@@ -38,10 +37,6 @@ router.get('/', async (req, res) => {
             orderBy,
             skip,
             take,
-            include: {
-                datiPrimari: true,
-                templateScrittura: true,
-            },
         }),
         prisma.causaleContabile.count({ where }),
     ]);
@@ -65,12 +60,11 @@ router.get('/', async (req, res) => {
 // POST - Crea una nuova causale contabile
 router.post('/', async (req, res) => {
   try {
-    const { id, nome, descrizione, externalId } = req.body;
+    const { id, descrizione, externalId } = req.body;
     
     const causale = await prisma.causaleContabile.create({
       data: {
         id,
-        nome,
         descrizione,
         externalId: externalId || null,
       }
@@ -87,12 +81,11 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { nome, descrizione, externalId } = req.body;
+    const { descrizione, externalId } = req.body;
     
     const causale = await prisma.causaleContabile.update({
       where: { id },
       data: {
-        nome,
         descrizione,
         externalId: externalId || null,
       }
@@ -121,4 +114,4 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-export default router; 
+export default router;

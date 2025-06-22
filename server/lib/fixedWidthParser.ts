@@ -1,3 +1,5 @@
+import moment from 'moment';
+
 /**
  * Definizione di un campo per il parser a larghezza fissa.
  */
@@ -40,16 +42,14 @@ export function parseFixedWidth<T>(
       try {
         switch (type) {
           case 'number':
-            record[name] = rawValue ? parseFloat(rawValue.replace(',', '.')) : null;
+            record[name] = parseFloat(rawValue.replace(',', '.'));
             break;
           case 'date':
-            if (rawValue && rawValue.length === 8) {
-              const year = parseInt(rawValue.substring(0, 4), 10);
-              const month = parseInt(rawValue.substring(4, 6), 10) - 1;
-              const day = parseInt(rawValue.substring(6, 8), 10);
-              record[name] = new Date(year, month, day);
-            } else {
+            if (rawValue === '00000000') {
               record[name] = null;
+            } else {
+              const parsedDate = moment(rawValue, 'DDMMYYYY');
+              record[name] = parsedDate.isValid() ? parsedDate.toDate() : null;
             }
             break;
           case 'string':
