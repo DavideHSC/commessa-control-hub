@@ -57,8 +57,10 @@ async function main() {
       nome: 'causali',
       modelName: 'CausaleContabile',
       fields: { create: [
+        { nomeCampo: 'id', start: 4, length: 6, type: 'string' },
         { nomeCampo: 'externalId', start: 4, length: 6, type: 'string' },
-        { nomeCampo: 'nome', start: 10, length: 40, type: 'string' },
+        { nomeCampo: 'nome', start: 4, length: 6, type: 'string' },
+        { nomeCampo: 'descrizione', start: 10, length: 40, type: 'string' },
         { nomeCampo: 'tipoMovimento', start: 50, length: 1, type: 'string' },
         { nomeCampo: 'tipoAggiornamento', start: 51, length: 1, type: 'string' },
         { nomeCampo: 'dataInizio', start: 52, length: 8, type: 'date' },

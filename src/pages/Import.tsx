@@ -41,7 +41,9 @@ const ImportPage: React.FC = () => {
             });
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || 'Errore durante l\'importazione.');
-            toast({ title: 'Successo!', description: `Importazione anagrafica '${selectedAnagraficaTemplate}' completata.` });
+            
+            const templateLabel = ANAGRAFICA_TEMPLATES.find(t => t.value === selectedAnagraficaTemplate)?.label || selectedAnagraficaTemplate;
+            toast({ title: 'Successo!', description: `Importazione anagrafica '${templateLabel}' completata.` });
         } catch (error) {
             toast({ variant: 'destructive', title: 'Errore', description: (error as Error).message });
         } finally {

@@ -215,6 +215,14 @@ model CausaleContabile {
   nome              String   @unique
   descrizione       String
 
+  // Campi derivati dal file di importazione CAUSALI.TXT
+  tipoMovimento     String? // C = Contabile, I = Contabile/Iva
+  tipoAggiornamento String? // I = Saldo Iniziale, P = Saldo Progressivo, F = Saldo Finale
+  dataInizio        DateTime?
+  dataFine          DateTime?
+  tipoRegistroIva   String? // A = Acquisti, C = Corrispettivi, V = Vendite
+  noteMovimento     String?
+
   datiPrimari       CampoDatiPrimari[]
   templateScrittura VoceTemplateScrittura[]
 }
