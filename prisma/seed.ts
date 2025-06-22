@@ -93,6 +93,7 @@ async function main() {
       nome: 'codici_iva',
       modelName: 'CodiceIva',
       fields: { create: [
+        { nomeCampo: 'id', start: 4, length: 4, type: 'string' },
         { nomeCampo: 'externalId', start: 4, length: 4, type: 'string' },
         { nomeCampo: 'descrizione', start: 8, length: 40, type: 'string' },
         { nomeCampo: 'tipoCalcolo', start: 48, length: 1, type: 'string' },

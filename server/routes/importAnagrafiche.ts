@@ -45,8 +45,6 @@ router.post('/:templateName', upload.single('file'), async (req: Request, res: R
 
         const parsedData = parseFixedWidth<any>(fileContent, fieldDefinitionsForParser);
 
-        console.log(`[IMPORT] Dati parsati. Trovati ${parsedData.length} record. Esempio primo record:`, parsedData.length > 0 ? JSON.stringify(parsedData[0], null, 2) : "Nessun dato");
-        
         if (!modelName) {
              console.log(`[IMPORT] Gestione custom per '${templateName}'. Nessun modelName specificato.`);
              // Qui andrebbe la logica specifica per i template senza modelName, es. anagrafica_clifor

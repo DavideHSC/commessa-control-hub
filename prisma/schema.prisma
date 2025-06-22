@@ -175,12 +175,14 @@ model CodiceIva {
   id          String    @id
   externalId  String?   @unique
   descrizione String
-  aliquota    Float
+  aliquota    Float?
   
   // Campi aggiunti per completare l'anagrafica
   tipoCalcolo   String?
   indetraibilita Float?
   note          String?
+  dataInizio    DateTime?
+  dataFine      DateTime?
 
   righeIva    RigaIva[]
 }
