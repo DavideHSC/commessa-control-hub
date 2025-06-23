@@ -249,8 +249,8 @@ router.post('/reset-database', async (req, res, next) => {
     try {
         console.log("Inizio azzeramento e ripopolamento database...");
 
-        // Usiamo query grezze per le tabelle che potrebbero avere problemi con il client
-        await prisma.$executeRaw`TRUNCATE TABLE "ImportAllocazione", "ImportScritturaRigaContabile", "ImportScritturaRigaIva", "ImportScritturaTestata", "Allocazione", "RigaIva", "RigaScrittura", "BudgetVoce", "ScritturaContabile", "Conto", "Commessa", "CausaleContabile", "CondizionePagamento", "CodiceIva", "VoceAnalitica", "Fornitore", "Cliente", "WizardStep", "ImportLog" RESTART IDENTITY CASCADE;`;
+        // Usiamo i nomi delle tabelle reali (considerando i @@map)
+        await prisma.$executeRaw`TRUNCATE TABLE "import_allocazioni", "ImportScritturaRigaContabile", "ImportScritturaRigaIva", "import_scritture_testate", "Allocazione", "RigaIva", "RigaScrittura", "BudgetVoce", "ScritturaContabile", "Conto", "Commessa", "CausaleContabile", "CondizionePagamento", "CodiceIva", "VoceAnalitica", "Fornitore", "Cliente", "WizardState", "ImportLog" RESTART IDENTITY CASCADE;`;
         
         console.log("Database azzerato con successo. I template di importazione sono stati preservati.");
 
@@ -277,9 +277,9 @@ router.post('/consolidate-scritture', async (req, res) => {
   const righeContabili = await prisma.importScritturaRigaContabile.findMany({ include: { allocazioni: true } });
 
   // 2. Assemblaggio manuale dei dati
-  const scrittureDaImportare: ScritturaStagingCompleta[] = testate.map(testata => ({
+  const scrittureDaImportare = testate.map(testata => ({
     ...testata,
-    righeContabili: righeContabili.filter(riga => riga.importScritturaTestataId === testata.id),
+    righeContabili: righeContabili.filter(riga => riga.codiceUnivocoScaricamento === testata.codiceUnivocoScaricamento),
   }));
 
   if (scrittureDaImportare.length === 0) {
@@ -324,12 +324,12 @@ router.post('/consolidate-scritture', async (req, res) => {
             },
           });
 
-          progressivoToRigaIdMap[rigaStaging.progressivoNumeroRigo] = rigaFinale.id;
+          progressivoToRigaIdMap[rigaStaging.riga] = rigaFinale.id;
 
           if (conto.voceAnaliticaId && rigaStaging.allocazioni.length > 0) {
             for (const allocazioneStaging of rigaStaging.allocazioni) {
               if (!allocazioneStaging.commessaId) continue;
-              const commessa = await tx.commessa.findFirst({ where: { externalId: allocazioneStaging.commessaId } });
+              const commessa = await tx.commessa.findFirst({ where: { id: allocazioneStaging.commessaId } });
               if (commessa) {
                 await tx.allocazione.create({
                   data: {
@@ -346,14 +346,14 @@ router.post('/consolidate-scritture', async (req, res) => {
         
         // Creazione Righe IVA
         for (const rigaIvaStaging of scritturaStaging.righeIva) {
-          if (!rigaIvaStaging.codiceIva || !rigaIvaStaging.progressivoRigoRiferimento) continue;
+          if (!rigaIvaStaging.codiceIva || !rigaIvaStaging.riga) continue;
           
           let codiceIva = await tx.codiceIva.findUnique({ where: { id: rigaIvaStaging.codiceIva } });
           if (!codiceIva) {
             codiceIva = await tx.codiceIva.create({ data: { id: rigaIvaStaging.codiceIva, descrizione: `Auto-creata: ${rigaIvaStaging.codiceIva}`, aliquota: 0 } });
           }
 
-          const rigaContabileId = progressivoToRigaIdMap[rigaIvaStaging.progressivoRigoRiferimento];
+          const rigaContabileId = progressivoToRigaIdMap[rigaIvaStaging.riga];
           if (rigaContabileId) {
             await tx.rigaIva.create({
               data: {
