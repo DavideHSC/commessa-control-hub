@@ -29,7 +29,7 @@ const ImpostazioniPage = () => {
     onSuccess: () => {
       toast({
         title: "Successo",
-        description: "Il database è stato azzerato con successo.",
+        description: "Il database è stato azzerato e ripopolato con i dati di base.",
       });
     },
     onError: (error) => {
@@ -60,17 +60,17 @@ const ImpostazioniPage = () => {
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" disabled={mutation.isPending}>
-                {mutation.isPending ? "Azzeramento in corso..." : "Azzera Dati Database"}
+                {mutation.isPending ? "Azzeramento e ripopolamento in corso..." : "Azzera e Ripopola Database"}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Sei assolutamente sicuro?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Questa azione è irreversibile. Tutti i dati inseriti, incluse
-                  commesse, registrazioni, anagrafiche e template di
-                  importazione verranno eliminati in modo permanente. Lo schema
-                  del database e la sua struttura verranno preservati.
+                  Questa azione azzererà tutti i dati inseriti (commesse, 
+                  registrazioni, anagrafiche) ma ripopolerà automaticamente 
+                  il database con i dati di base necessari per l'utilizzo 
+                  dell'applicazione. I template di importazione verranno preservati.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -79,7 +79,7 @@ const ImpostazioniPage = () => {
                   onClick={handleResetDatabase}
                   className="bg-destructive hover:bg-destructive/90"
                 >
-                  Sì, azzera il database
+                  Sì, azzera e ripopola il database
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

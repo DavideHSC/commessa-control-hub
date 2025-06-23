@@ -115,13 +115,134 @@ router.get('/import-logs/:templateName?', async (req, res) => {
   }
 });
 
+// Funzione helper per il seeding dei dati di base
+async function seedBasicData() {
+    const SYSTEM_CUSTOMER_ID = 'system_customer_01';
+    const SYSTEM_SUPPLIER_ID = 'system_supplier_01';
+
+    console.log('Inizio popolamento dati di base...');
+
+    // 1. Voci Analitiche
+    console.log('Creazione Voci Analitiche...');
+    const vociAnaliticheData = [
+        { id: 'costo_personale', nome: 'Costo del personale' },
+        { id: 'gestione_automezzi', nome: 'Gestione automezzi' },
+        { id: 'gestione_attrezzature', nome: 'Gestione attrezzature' },
+        { id: 'sacchi_materiali_consumo', nome: 'Sacchi e materiali di consumo' },
+        { id: 'servizi_esterni', nome: 'Servizi esterni' },
+        { id: 'pulizia_strade_rurali', nome: 'Pulizia strade rurali' },
+        { id: 'gestione_aree_operative', nome: 'Gestione Aree operative' },
+        { id: 'ammortamento_automezzi', nome: 'Ammortamento Automezzi' },
+        { id: 'ammortamento_attrezzature', nome: 'Ammortamento Attrezzature' },
+        { id: 'locazione_sedi_operative', nome: 'Locazione sedi operative' },
+        { id: 'trasporti_esterni', nome: 'Trasporti esterni' },
+        { id: 'spese_generali', nome: 'Spese generali' },
+        { id: 'selezione_valorizzazione_rifiuti', nome: 'Selezione e Valorizzazione Rifiuti Differenziati' },
+        { id: 'gestione_frazione_organica', nome: 'Gestione frazione organica' },
+    ];
+    
+    for (const voce of vociAnaliticheData) {
+        await prisma.voceAnalitica.create({ data: voce });
+    }
+
+    // 2. Cliente e Fornitore di sistema
+    await prisma.cliente.create({
+        data: {
+            id: SYSTEM_CUSTOMER_ID,
+            externalId: 'SYS-CUST',
+            nome: 'Cliente di Sistema (per importazioni)',
+        }
+    });
+
+    await prisma.fornitore.create({
+        data: {
+            id: SYSTEM_SUPPLIER_ID,
+            externalId: 'SYS-SUPP',
+            nome: 'Fornitore di Sistema (per importazioni)',
+        }
+    });
+
+    // 3. Cliente PENISOLAVERDE SPA e commesse
+    console.log('Creazione cliente e commesse per PENISOLAVERDE SPA...');
+    const clientePenisolaVerde = await prisma.cliente.create({
+        data: {
+            nome: 'PENISOLAVERDE SPA',
+            externalId: 'PENISOLAVERDE_SPA',
+            piva: '01234567890',
+        }
+    });
+
+    // Commesse Principali (Comuni)
+    const commessaSorrento = await prisma.commessa.create({
+        data: {
+            id: 'sorrento',
+            nome: 'Comune di Sorrento',
+            descrizione: 'Commessa principale per il comune di Sorrento',
+            clienteId: clientePenisolaVerde.id,
+        },
+    });
+
+    const commessaMassa = await prisma.commessa.create({
+        data: {
+            id: 'massa_lubrense',
+            nome: 'Comune di Massa Lubrense',
+            descrizione: 'Commessa principale per il comune di Massa Lubrense',
+            clienteId: clientePenisolaVerde.id,
+        },
+    });
+
+    const commessaPiano = await prisma.commessa.create({
+        data: {
+            id: 'piano_di_sorrento',
+            nome: 'Comune di Piano di Sorrento',
+            descrizione: 'Commessa principale per il comune di Piano di Sorrento',
+            clienteId: clientePenisolaVerde.id,
+        },
+    });
+
+    // Commesse Figlie (Attività / Centri di Costo)
+    await prisma.commessa.createMany({
+        data: [
+            {
+                id: 'sorrento_igiene_urbana',
+                nome: 'Igiene Urbana - Sorrento',
+                descrizione: 'Servizio di igiene urbana per Sorrento',
+                clienteId: clientePenisolaVerde.id,
+                parentId: commessaSorrento.id,
+            },
+            {
+                id: 'massa_lubrense_igiene_urbana',
+                nome: 'Igiene Urbana - Massa Lubrense',
+                descrizione: 'Servizio di igiene urbana per Massa Lubrense',
+                clienteId: clientePenisolaVerde.id,
+                parentId: commessaMassa.id,
+            },
+            {
+                id: 'piano_di_sorrento_igiene_urbana',
+                nome: 'Igiene Urbana - Piano di Sorrento',
+                descrizione: 'Servizio di igiene urbana per Piano di Sorrento',
+                clienteId: clientePenisolaVerde.id,
+                parentId: commessaPiano.id,
+            },
+            {
+                id: 'sorrento_verde_pubblico',
+                nome: 'Verde Pubblico - Sorrento',
+                descrizione: 'Servizio di gestione del verde pubblico per Sorrento',
+                clienteId: clientePenisolaVerde.id,
+                parentId: commessaSorrento.id,
+            },
+        ]
+    });
+
+    console.log('Dati di base popolati correttamente.');
+}
+
 router.post('/reset-database', async (req, res, next) => {
     try {
-        console.log("Inizio azzeramento database (versione sicura)...");
+        console.log("Inizio azzeramento e ripopolamento database...");
 
-        // L'ordine è importante per via dei vincoli di chiave esterna.
-        // Si parte dalle tabelle che "dipendono" da altre.
-        // I TEMPLATE DI IMPORTAZIONE VENGONO ESCLUSI DALLA CANCELLAZIONE.
+        // Fase 1: Azzeramento
+        console.log("Fase 1: Azzeramento database...");
         await prisma.$transaction([
             // Modelli che dipendono da altri
             prisma.allocazione.deleteMany({}),
@@ -140,12 +261,18 @@ router.post('/reset-database', async (req, res, next) => {
             prisma.fornitore.deleteMany({}),
             prisma.cliente.deleteMany({}),
         ]);
+        console.log("Database azzerato con successo. I template sono stati preservati.");
 
-        console.log("Database azzerato con successo (dati transazionali). I template sono stati preservati.");
-        res.status(200).json({ message: "Database azzerato con successo (dati transazionali). I template sono stati preservati." });
+        // Fase 2: Ripopolamento con dati di base
+        console.log("Fase 2: Ripopolamento con dati di base...");
+        await seedBasicData();
+
+        const message = "Database azzerato e ripopolato con successo con i dati di base.";
+        console.log(message);
+        res.status(200).json({ message });
 
     } catch (error) {
-        console.error('Errore durante l\'azzeramento del database:', error);
+        console.error('Errore durante l\'azzeramento e ripopolamento del database:', error);
         next(error);
     }
 });
