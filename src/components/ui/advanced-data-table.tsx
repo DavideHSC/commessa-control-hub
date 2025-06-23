@@ -22,10 +22,24 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
+import { DataTableColumnHeader } from './data-table-column-header';
+import { DataTablePagination } from './data-table-pagination';
+import { Input } from './input';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  totalCount: number
+  page: number
+  pageSize: number
+  onPageChange: (page: number) => void
+  onPageSizeChange: (size: number) => void
+  searchValue: string
+  onSearchChange: (value: string) => void
+  sorting: SortingState
+  onSortingChange: (sorting: SortingState) => void
+  loading: boolean
+  emptyMessage?: string
   expanded?: ExpandedState
   onExpandedChange?: React.Dispatch<React.SetStateAction<ExpandedState>>
   getRowCanExpand?: (row: any) => boolean
@@ -35,31 +49,63 @@ interface DataTableProps<TData, TValue> {
 export function AdvancedDataTable<TData, TValue>({
   columns,
   data,
+  totalCount,
+  page,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
+  searchValue,
+  onSearchChange,
+  sorting,
+  onSortingChange,
+  loading,
+  emptyMessage,
   expanded,
   onExpandedChange,
   getRowCanExpand,
   renderRowSubComponent,
 }: DataTableProps<TData, TValue>) {
-    const [sorting, setSorting] = React.useState<SortingState>([])
 
     const table = useReactTable({
         data,
         columns,
+        manualPagination: true,
+        manualSorting: true,
+        rowCount: totalCount,
         getRowCanExpand,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
-        onSortingChange: setSorting,
+        onSortingChange: onSortingChange,
         getSortedRowModel: getSortedRowModel(),
         onExpandedChange: onExpandedChange,
         getExpandedRowModel: getExpandedRowModel(),
         state: {
             sorting,
             expanded,
+            pagination: {
+                pageIndex: page,
+                pageSize,
+            }
         },
+        onPaginationChange: (updater) => {
+            if (typeof updater === 'function') {
+                const newPagination = updater({ pageIndex: page, pageSize });
+                onPageChange(newPagination.pageIndex);
+                onPageSizeChange(newPagination.pageSize);
+            }
+        }
     })
 
   return (
-    <div>
+    <div className='space-y-4'>
+        <div className="flex items-center justify-between">
+            <Input
+                placeholder="Filtra..."
+                value={searchValue}
+                onChange={(event) => onSearchChange(event.target.value)}
+                className="max-w-sm"
+            />
+        </div>
         <div className="rounded-md border">
         <Table>
             <TableHeader>
@@ -81,7 +127,13 @@ export function AdvancedDataTable<TData, TValue>({
             ))}
             </TableHeader>
             <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {loading ? (
+                <TableRow>
+                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                        Caricamento in corso...
+                    </TableCell>
+                </TableRow>
+            ) : table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
                 <React.Fragment key={row.id}>
                   <TableRow data-state={row.getIsSelected() && "selected"}>
@@ -93,7 +145,9 @@ export function AdvancedDataTable<TData, TValue>({
                   </TableRow>
                   {row.getIsExpanded() && renderRowSubComponent && (
                       <TableRow>
-                          {renderRowSubComponent({ row })}
+                          <TableCell colSpan={columns.length}>
+                            {renderRowSubComponent({ row })}
+                          </TableCell>
                       </TableRow>
                   )}
                 </React.Fragment>
@@ -101,31 +155,14 @@ export function AdvancedDataTable<TData, TValue>({
             ) : (
                 <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                    Nessun risultato.
+                    {emptyMessage || "Nessun risultato."}
                 </TableCell>
                 </TableRow>
             )}
             </TableBody>
         </Table>
         </div>
-        <div className="flex items-center justify-end space-x-2 py-4">
-            <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-            >
-            Precedente
-            </Button>
-            <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-            >
-            Successivo
-            </Button>
-        </div>
+        <DataTablePagination table={table} totalCount={totalCount} />
     </div>
   )
 } 

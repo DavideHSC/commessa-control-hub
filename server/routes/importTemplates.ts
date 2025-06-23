@@ -37,8 +37,12 @@ router.get('/', async (req, res) => {
 
         res.json({
             data: templates,
-            totalPages: Math.ceil(totalCount / limitNum),
-            currentPage: pageNum,
+            pagination: {
+                page: pageNum,
+                limit: limitNum,
+                total: totalCount,
+                totalPages: Math.ceil(totalCount / limitNum),
+            },
         });
     } catch (error) {
         console.error('Errore nel recupero dei template di importazione:', error);

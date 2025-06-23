@@ -242,12 +242,12 @@ model FieldDefinition {
   start          Int
   length         Int
   templateId     String
-  fileIdentifier String
-  fieldName      String
+  fileIdentifier String?
+  nomeCampo      String
   format         String?
   template       ImportTemplate @relation(fields: [templateId], references: [id])
 
-  @@unique([templateId, fileIdentifier, fieldName], name: "template_file_field_unique")
+  @@unique([templateId, fileIdentifier, nomeCampo], name: "template_file_field_unique")
 }
 
 model ImportLog {

@@ -270,32 +270,4 @@ export interface TableStats {
   totaleCondizioniPagamento: number;
 }
 
-export type TDashboardStats = {
-  // ... existing code ...
-};
-
-export type AllocazioneWithRelations = Allocazione & {
-  rigaScrittura: RigaScrittura & {
-    conto: Conto;
-    scritturaContabile: ScritturaContabile;
-  }
-};
-
-export type SottocommessaWithRelations = Commessa & {
-  allocazioni: AllocazioneWithRelations[];
-};
-
-export type CommessaWithRelations = Commessa & {
-  cliente: Cliente | null;
-  sottocommesse: SottocommessaWithRelations[];
-  _count: {
-    sottocommesse: number;
-  };
-};
-
-export type RegistrazioneContabile = {
-  id: string;
-  // ... existing code ...
-};
-
 export {}; 
