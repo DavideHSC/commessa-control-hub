@@ -254,8 +254,30 @@ router.post('/reset-database', async (req, res, next) => {
     try {
         console.log("Inizio azzeramento e ripopolamento database...");
 
-        // Usiamo i nomi delle tabelle reali (considerando i @@map)
-        await prisma.$executeRaw`TRUNCATE TABLE "import_allocazioni", "ImportScritturaRigaContabile", "ImportScritturaRigaIva", "import_scritture_testate", "Allocazione", "RigaIva", "RigaScrittura", "BudgetVoce", "ScritturaContabile", "Conto", "Commessa", "CausaleContabile", "CondizionePagamento", "CodiceIva", "VoceAnalitica", "Fornitore", "Cliente", "WizardState", "ImportLog" RESTART IDENTITY CASCADE;`;
+        // Usiamo i nomi mappati reali delle tabelle per il TRUNCATE
+        const tableNames = [
+            "import_allocazioni",
+            "ImportScritturaRigaIva",
+            "import_scritture_righe_contabili",
+            "import_scritture_testate",
+            "Allocazione",
+            "RigaIva",
+            "RigaScrittura",
+            "BudgetVoce",
+            "ScritturaContabile",
+            "Conto",
+            "Commessa",
+            "CausaleContabile",
+            "CondizionePagamento",
+            "CodiceIva",
+            "VoceAnalitica",
+            "Fornitore",
+            "Cliente",
+            "WizardState",
+            "ImportLog"
+        ];
+        
+        await prisma.$executeRawUnsafe(`TRUNCATE TABLE ${tableNames.map(t => `"${t}"`).join(', ')} RESTART IDENTITY CASCADE;`);
         
         console.log("Database azzerato con successo. I template di importazione sono stati preservati.");
 

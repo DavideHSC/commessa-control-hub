@@ -32,9 +32,7 @@ router.get('/staging-rows', async (req: Request, res: Response) => {
     testate.forEach(t => testateMap.set(t.codiceUnivocoScaricamento, t));
     console.log(`[Recon] Trovate e mappate ${testate.length} testate.`);
 
-    const allocazioni = await prisma.importAllocazione.findMany({
-        include: { commessa: true }
-    });
+    const allocazioni = await prisma.importAllocazione.findMany();
     console.log(`[Recon] Trovate ${allocazioni.length} allocazioni totali.`);
     
     // Raggruppa le allocazioni per riga contabile
@@ -77,14 +75,13 @@ router.get('/staging-rows', async (req: Request, res: Response) => {
           id: row.id,
           dataRegistrazione: testata.dataRegistrazione,
           codiceConto: row.codiceConto,
-          descrizione: row.descrizioneConto,
+          descrizione: row.note,
           importo: importoRiga,
           totaleAllocato,
           status,
           allocazioni: rowAllocations.map((a) => ({
             id: a.id,
-            commessaNome: a.commessa.nome,
-            commessaDescrizione: a.commessa.descrizione,
+            commessaId: a.commessaId,
             importo: a.importo,
           })),
         };
@@ -157,7 +154,6 @@ router.post('/allocations/:rowId', async (req: Request, res: Response) => {
             });
             const updatedAllocations = await tx.importAllocazione.findMany({
                 where: { importScritturaRigaContabileId: rowId },
-                include: { commessa: true }
             });
 
             return {
@@ -165,7 +161,6 @@ router.post('/allocations/:rowId', async (req: Request, res: Response) => {
                 allocazioni: updatedAllocations.map(a => ({
                     id: a.id,
                     commessaId: a.commessaId,
-                    commessaNome: a.commessa.nome,
                     importo: a.importo
                 }))
             };
