@@ -17,13 +17,14 @@ export interface PaginatedResponse<T> {
 const networkDelay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
 // Generic fetch function for paginated data
-const fetchPaginatedData = async <T>(endpoint: string, params: Record<string, any> = {}): Promise<PaginatedResponse<T>> => {
+const fetchPaginatedData = async <T>(endpoint: string, params: Record<string, any> = {}): Promise<T[]> => {
   const query = new URLSearchParams(params).toString();
   const response = await fetch(`${API_BASE_URL}/${endpoint}?${query}`);
   if (!response.ok) {
     throw new Error(`Errore nel caricamento di ${endpoint}`);
   }
-  return response.json();
+  const result: PaginatedResponse<T> = await response.json();
+  return result.data;
 };
 
 async function fetchData<T>(endpoint: string, errorMessage: string): Promise<T> {
