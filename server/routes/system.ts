@@ -7,6 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { FieldDefinition, parseFixedWidth } from '../lib/fixedWidthParser';
+import { runSeed } from '../lib/seedingLogic.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -250,49 +251,32 @@ async function seedBasicData() {
     console.log('Dati di base popolati correttamente.');
 }
 
-router.post('/reset-database', async (req, res, next) => {
-    try {
-        console.log("Inizio azzeramento e ripopolamento database...");
+/**
+ * Endpoint per azzerare e ripopolare il database con dati di base.
+ * Chiama la logica di seeding condivisa in `prisma/seedingLogic.ts`
+ * per garantire coerenza con il comando `npx prisma db seed`.
+ */
+router.post('/reset-database', async (req, res) => {
+  console.log("Richiesta ricevuta per /api/system/reset-database. Inizio seeding...");
+  
+  try {
+    await runSeed(prisma);
+    const message = "Database azzerato e ripopolato con successo con i dati di base.";
+    console.log(message);
+    res.status(200).json({ message });
 
-        // Usiamo i nomi mappati reali delle tabelle per il TRUNCATE
-        const tableNames = [
-            "import_allocazioni",
-            "ImportScritturaRigaIva",
-            "import_scritture_righe_contabili",
-            "import_scritture_testate",
-            "Allocazione",
-            "RigaIva",
-            "RigaScrittura",
-            "BudgetVoce",
-            "ScritturaContabile",
-            "Conto",
-            "Commessa",
-            "CausaleContabile",
-            "CondizionePagamento",
-            "CodiceIva",
-            "VoceAnalitica",
-            "Fornitore",
-            "Cliente",
-            "WizardState",
-            "ImportLog"
-        ];
-        
-        await prisma.$executeRawUnsafe(`TRUNCATE TABLE ${tableNames.map(t => `"${t}"`).join(', ')} RESTART IDENTITY CASCADE;`);
-        
-        console.log("Database azzerato con successo. I template di importazione sono stati preservati.");
+  } catch (error: any) {
+    const errorMessage = "Errore durante l'azzeramento e il ripopolamento del database.";
+    console.error(errorMessage, error);
+    res.status(500).json({ 
+      message: errorMessage,
+      error: error.message 
+    });
+  }
+});
 
-        // Fase 2: Ripopolamento con dati di base
-        console.log("Fase 2: Ripopolamento con dati di base...");
-        await seedBasicData();
-
-        const message = "Database azzerato e ripopolato con successo con i dati di base.";
-        console.log(message);
-        res.status(200).json({ message });
-
-    } catch (error) {
-        console.error('Errore durante l\'azzeramento e ripopolamento del database:', error);
-        next(error);
-    }
+router.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
 });
 
 // Rotta per consolidare le scritture importate

@@ -108,3 +108,38 @@ Una volta che l'utente è soddisfatto delle allocazioni, avvia il consolidamento
     -   **Integrazione API:** Collegare i componenti del frontend alle nuove API del backend.
 
 Questo piano trasforma l'importazione in un processo interattivo, potente e a prova di errore, mettendo l'utente al centro del controllo dei dati. 
+
+---
+
+## Fase 4: Da "Scarno" a "Operativo" - Gestione Avanzata Commesse
+
+Dopo aver consolidato il processo di importazione, questa fase si concentra sul rendere il modulo "Commesse" il cuore pulsante dell'applicazione, trasformandolo da una semplice vista a uno strumento di gestione e analisi completo, in linea con le reali necessità operative.
+
+### Task 1: Visualizzazione Dati Operativi (Risoluzione Bug Attuale)
+
+**Obiettivo:** Risolvere il problema corrente per cui le attività (costi/ricavi allocati) non sono visibili, fornendo una visione chiara dei dati consolidati.
+
+1.  **Modifica Backend (`server/routes/commesse.ts`):**
+    -   **Azione:** Arricchire la query `prisma.commessa.findMany`. Verrà aggiunto un `include` per caricare non solo i dati base della commessa, ma anche tutte le **allocazioni** collegate, con i dettagli delle righe di scrittura e dei conti associati. Questo garantirà che l'API fornisca al frontend tutti i dati necessari.
+
+2.  **Modifica Frontend (`src/pages/Commesse.tsx`):**
+    -   **Azione:** Riscrivere la logica di visualizzazione del componente. Invece di cercare "commesse figlie" (un presupposto errato), il componente visualizzerà direttamente l'elenco delle **allocazioni** (costi e ricavi) per ciascuna commessa. Verrà data evidenza alla descrizione del conto e all'importo.
+    -   **Risultato Atteso:** Le commesse nell'interfaccia mostreranno finalmente le attività economiche associate, risolvendo il bug e fornendo un feedback visivo immediato.
+
+### Task 2: Implementazione Gestione Attiva Commesse
+
+**Obiettivo:** Fornire all'utente gli strumenti per creare, modificare e analizzare le commesse direttamente dall'interfaccia, abilitando la struttura gerarchica "Comune -> Attività".
+
+1.  **Sviluppo Form Creazione/Modifica Commessa:**
+    -   **Azione:** Creare una nuova pagina o un componente modale dedicato alla gestione delle commesse. Questo permetterà di:
+        -   Creare una nuova commessa.
+        -   Definire se una commessa è "principale" (un contratto/comune) o "operativa" (un'attività), selezionando la commessa padre da un elenco.
+        -   Modificare i dati di una commessa esistente.
+    -   **API Necessarie:** Sviluppare gli endpoint `POST /api/commesse` e `PUT /api/commesse/:id` per supportare queste operazioni.
+
+2.  **Sviluppo Dashboard di Dettaglio Commessa:**
+    -   **Azione:** Trasformare la pagina di dettaglio, attualmente vuota, in una dashboard completa. Quando un utente clicca su "Dettagli", visualizzerà:
+        -   **KPI Aggregati:** Totale costi, totale ricavi e margine operativo.
+        -   **Analisi Grafica:** Grafici a torta per la ripartizione dei costi per voce analitica e grafici a barre per l'andamento temporale.
+        -   **Dati di Dettaglio:** Una tabella interattiva con tutte le scritture contabili allocate a quella commessa, con funzionalità di ricerca, filtro e ordinamento.
+    -   **API Necessarie:** Creare un nuovo endpoint `GET /api/commesse/:id` che restituisca sia i dati aggregati che quelli di dettaglio per una singola commessa. 

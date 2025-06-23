@@ -72,9 +72,9 @@ export interface Commessa {
   allocazioni?: Allocazione[];
   
   // Gerarchia
-  parentId?: string | null;
-  parent?: Commessa | null;
-  children?: Commessa[];
+  commessaPadreId?: string | null;
+  commessaPadre?: Commessa | null;
+  sottocommesse?: Commessa[];
 }
 
 /**
@@ -121,9 +121,10 @@ export interface VoceTemplateScrittura {
 export interface Allocazione {
   id: string; // UUID per la riga di allocazione
   commessaId: string;
-  voceAnaliticaId: string;
+  voceAnaliticaId?: string | null;
   importo: number; // L'importo finale calcolato
   descrizione?: string;
+  rigaScrittura?: RigaScrittura; // Aggiunto per l'inclusione dei dati
 }
 
 /**
@@ -135,6 +136,7 @@ export interface RigaScrittura {
   dare: number;
   avere: number;
   contoId: string;
+  conto?: Conto; // Aggiunto per l'inclusione
   allocazioni: Allocazione[];
   scritturaContabile?: ScritturaContabile;
 }
@@ -267,5 +269,33 @@ export interface TableStats {
   totaleCodiciIva: number;
   totaleCondizioniPagamento: number;
 }
+
+export type TDashboardStats = {
+  // ... existing code ...
+};
+
+export type AllocazioneWithRelations = Allocazione & {
+  rigaScrittura: RigaScrittura & {
+    conto: Conto;
+    scritturaContabile: ScritturaContabile;
+  }
+};
+
+export type SottocommessaWithRelations = Commessa & {
+  allocazioni: AllocazioneWithRelations[];
+};
+
+export type CommessaWithRelations = Commessa & {
+  cliente: Cliente | null;
+  sottocommesse: SottocommessaWithRelations[];
+  _count: {
+    sottocommesse: number;
+  };
+};
+
+export type RegistrazioneContabile = {
+  id: string;
+  // ... existing code ...
+};
 
 export {}; 
