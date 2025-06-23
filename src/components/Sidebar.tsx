@@ -87,19 +87,14 @@ export function Sidebar() {
                 const isActive = location.pathname === item.url;
                 return (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton 
-                      asChild 
-                      className={`hover:bg-slate-100 rounded-lg transition-colors duration-200 ${
-                        isActive ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : ''
+                    <SidebarMenuButton
+                      onClick={() => navigate(item.url)}
+                      className={`w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-slate-100 rounded-lg transition-colors duration-200 ${
+                        isActive ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'text-slate-700'
                       }`}
                     >
-                      <button
-                        onClick={() => navigate(item.url)}
-                        className="w-full flex items-center gap-3 px-3 py-2 text-left"
-                      >
-                        <item.icon className={`w-5 h-5 ${isActive ? 'text-indigo-600' : 'text-slate-600'}`} />
-                        <span className={`font-medium ${isActive ? 'text-indigo-700' : 'text-slate-700'}`}>{item.title}</span>
-                      </button>
+                      <item.icon className={`w-5 h-5 ${isActive ? 'text-indigo-600' : 'text-slate-600'}`} />
+                      <span className={`font-medium`}>{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
@@ -118,19 +113,14 @@ export function Sidebar() {
                 const isActive = location.pathname === item.url;
                 return (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton 
-                      asChild 
-                      className={`hover:bg-slate-100 rounded-lg transition-colors duration-200 ${
-                        isActive ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : ''
+                    <SidebarMenuButton
+                      onClick={() => navigate(item.url)}
+                      className={`w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-slate-100 rounded-lg transition-colors duration-200 ${
+                        isActive ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'text-slate-700'
                       }`}
                     >
-                      <button
-                        onClick={() => navigate(item.url)}
-                        className="w-full flex items-center gap-3 px-3 py-2 text-left"
-                      >
-                        <item.icon className={`w-5 h-5 ${isActive ? 'text-indigo-600' : 'text-slate-600'}`} />
-                        <span className={`font-medium ${isActive ? 'text-indigo-700' : 'text-slate-700'}`}>{item.title}</span>
-                      </button>
+                      <item.icon className={`w-5 h-5 ${isActive ? 'text-indigo-600' : 'text-slate-600'}`} />
+                      <span className={`font-medium`}>{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );

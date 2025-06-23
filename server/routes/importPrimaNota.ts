@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import { FieldDefinition, parseFixedWidth } from '../lib/fixedWidthParser';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
 const router = Router();
@@ -112,29 +112,44 @@ interface ScritturaCompleta {
     righeIva: Pnrigiva[];
 }
 
-router.post('/', upload.array('files'), async (req: Request, res: Response) => {
+router.post('/', upload.fields([
+    { name: 'pntesta', maxCount: 1 },
+    { name: 'pnrigcon', maxCount: 1 },
+    { name: 'movanac', maxCount: 1 },
+    { name: 'pnrigiva', maxCount: 1 }
+]), async (req, res) => {
+    console.log('[Import] Ricevuta richiesta di importazione Prima Nota.');
 
-    if (!req.files || !Array.isArray(req.files) || req.files.length < 3) {
-        return res.status(400).json({ error: 'Sono richiesti almeno 3 file (PNTESTA, PNRIGCON, MOVANAC). Il file PNRIGIVA è opzionale ma raccomandato.' });
+    // Fase 0: Pulizia delle tabelle di staging correlate alla Prima Nota
+    // Questo garantisce che ogni importazione sia pulita e previene errori di unicità.
+    try {
+        console.log('[Import] Pulizia delle tabelle di staging...');
+        // L'ordine è importante per via dei vincoli di chiave esterna
+        await prisma.importAllocazione.deleteMany({});
+        await prisma.importScritturaRigaIva.deleteMany({});
+        await prisma.importScritturaRigaContabile.deleteMany({});
+        await prisma.importScritturaTestata.deleteMany({});
+        console.log('[Import] Tabelle di staging pulite con successo.');
+    } catch (error) {
+        console.error('Errore durante la pulizia delle tabelle di staging:', error);
+        return res.status(500).json({
+            message: 'Errore interno durante la pulizia delle tabelle di staging.',
+            details: error instanceof Error ? error.message : String(error),
+        });
     }
-    
-    const files = req.files as Express.Multer.File[];
 
-    const pntestaFile = files.find(f => f.originalname.toUpperCase() === 'PNTESTA.TXT');
-    const pnrigconFile = files.find(f => f.originalname.toUpperCase() === 'PNRIGCON.TXT');
-    const movanacFile = files.find(f => f.originalname.toUpperCase() === 'MOVANAC.TXT');
-    const pnrigivaFile = files.find(f => f.originalname.toUpperCase() === 'PNRIGIVA.TXT');
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
-    if (!pntestaFile || !pnrigconFile || !movanacFile) {
+    if (!files.pntesta || !files.pnrigcon || !files.movanac) {
         return res.status(400).json({ error: 'Uno o più file richiesti (PNTESTA, PNRIGCON, MOVANAC) sono mancanti.' });
     }
 
     try {
         // 1. Parsing di tutti i file con la codifica corretta
-        const testate = parseFixedWidth<Pntesta>(pntestaFile.buffer.toString('latin1'), pntestaSchema);
-        const righeContabili = parseFixedWidth<Pnrigcon>(pnrigconFile.buffer.toString('latin1'), pnrigconSchema);
-        const movimentiAnalitici = parseFixedWidth<Movanac>(movanacFile.buffer.toString('latin1'), movanacSchema);
-        const righeIva = pnrigivaFile ? parseFixedWidth<Pnrigiva>(pnrigivaFile.buffer.toString('latin1'), pnrigivaSchema) : [];
+        const testate = parseFixedWidth<Pntesta>(files.pntesta[0].buffer.toString('latin1'), pntestaSchema);
+        const righeContabili = parseFixedWidth<Pnrigcon>(files.pnrigcon[0].buffer.toString('latin1'), pnrigconSchema);
+        const movimentiAnalitici = parseFixedWidth<Movanac>(files.movanac[0].buffer.toString('latin1'), movanacSchema);
+        const righeIva = files.pnrigiva ? parseFixedWidth<Pnrigiva>(files.pnrigiva[0].buffer.toString('latin1'), pnrigivaSchema) : [];
         
         console.log(`[Import] Parsati ${testate.length} testate, ${righeContabili.length} righe contabili, ${movimentiAnalitici.length} movimenti analitici, ${righeIva.length} righe IVA.`);
 
@@ -193,91 +208,100 @@ router.post('/', upload.array('files'), async (req: Request, res: Response) => {
         // Cache per le commesse per evitare query ripetute nel loop
         const commesseCache = new Map<string, any>();
         const tutteLeCommesse = await prisma.commessa.findMany();
-        tutteLeCommesse.forEach(c => commesseCache.set(c.externalId!, c));
+        tutteLeCommesse.forEach(c => c.externalId && commesseCache.set(c.externalId, c));
 
         for (const scrittura of scrittureComplete) {
             const codiceUnivoco = scrittura.testata.codiceUnivocoScaricamento;
 
             try {
+                // La transazione assicura che una scrittura venga importata interamente o per nulla.
                 await prisma.$transaction(async (tx) => {
-                    // 1. Upsert della sola testata
-                    const testataData = {
-                        codiceCausale: scrittura.testata.codiceCausale,
-                        descrizioneCausale: scrittura.testata.descrizioneCausale,
-                        dataRegistrazione: scrittura.testata.dataRegistrazione,
-                        dataDocumento: scrittura.testata.documentoData,
-                        numeroDocumento: scrittura.testata.documentoNumero,
-                        totaleDocumento: scrittura.testata.totaleDocumento,
-                        noteMovimento: scrittura.testata.noteMovimento,
-                    };
-                    const testata = await tx.importScritturaTestata.upsert({
-                        where: { codiceUnivocoScaricamento: codiceUnivoco },
-                        update: testataData,
-                        create: {
+                    // 1. Creazione della testata
+                    await tx.importScritturaTestata.create({
+                        data: {
                             codiceUnivocoScaricamento: codiceUnivoco,
-                            ...testataData
+                            codiceCausale: scrittura.testata.codiceCausale,
+                            descrizioneCausale: scrittura.testata.descrizioneCausale,
+                            dataRegistrazione: scrittura.testata.dataRegistrazione,
+                            dataDocumento: scrittura.testata.documentoData,
+                            numeroDocumento: scrittura.testata.documentoNumero,
+                            totaleDocumento: scrittura.testata.totaleDocumento,
+                            noteMovimento: scrittura.testata.noteMovimento,
                         }
                     });
 
-                    // 2. Cancellazione delle righe esistenti per idempotenza
-                    await tx.importScritturaRigaContabile.deleteMany({ where: { codiceUnivocoScaricamento: codiceUnivoco } });
-                    await tx.importScritturaRigaIva.deleteMany({ where: { codiceUnivocoScaricamento: codiceUnivoco } });
-
-                    // 3. Creazione delle righe contabili e IVA
-                    const righeContabiliDaCreare = scrittura.righe.map(riga => ({
-                        codiceUnivocoScaricamento: codiceUnivoco,
-                        riga: riga.progressivoRiga,
-                        codiceConto: riga.conto,
-                        descrizioneConto: riga.note || `Conto ${riga.conto}`,
-                        importoDare: riga.importoDare,
-                        importoAvere: riga.importoAvere,
-                        note: riga.note,
-                        insDatiMovimentiAnalitici: riga.insDatiMovimentiAnalitici === '1'
-                    }));
-                    await tx.importScritturaRigaContabile.createMany({ data: righeContabiliDaCreare });
-                    
-                    const righeIvaDaCreare = scrittura.righeIva.map((rigaIva, index) => ({
-                        codiceUnivocoScaricamento: codiceUnivoco,
-                        riga: index + 1,
-                        codiceIva: rigaIva.codiceIva,
-                        codiceConto: rigaIva.contropartita,
-                        imponibile: rigaIva.imponibile,
-                        imposta: rigaIva.imposta,
-                    }));
-                    if(righeIvaDaCreare.length > 0){
-                        await tx.importScritturaRigaIva.createMany({ data: righeIvaDaCreare });
+                    // 2. Creazione delle righe contabili
+                    if (scrittura.righe.length > 0) {
+                        await tx.importScritturaRigaContabile.createMany({
+                            data: scrittura.righe.map((riga, index) => ({
+                                codiceUnivocoScaricamento: codiceUnivoco,
+                                riga: index + 1, // FIX: Garantisce unicità
+                                codiceConto: riga.conto,
+                                descrizioneConto: riga.note || `Conto ${riga.conto}`,
+                                importoDare: riga.importoDare,
+                                importoAvere: riga.importoAvere,
+                                note: riga.note,
+                                insDatiMovimentiAnalitici: riga.insDatiMovimentiAnalitici === '1'
+                            })),
+                        });
                     }
-                });
 
-                // 4. Creazione dei suggerimenti di allocazione (dopo la transazione principale)
-                const righeContabiliAppenaCreate = await prisma.importScritturaRigaContabile.findMany({
-                    where: { codiceUnivocoScaricamento: codiceUnivoco }
-                });
+                    // 3. Creazione delle righe IVA
+                    if (scrittura.righeIva.length > 0) {
+                        await tx.importScritturaRigaIva.createMany({
+                            data: scrittura.righeIva.map((riga, index) => ({
+                                codiceUnivocoScaricamento: codiceUnivoco,
+                                riga: index + 1, // FIX: Garantisce unicità
+                                codiceIva: riga.codiceIva,
+                                codiceConto: riga.contropartita, // FIX: Mappatura corretta
+                                imponibile: riga.imponibile,
+                                imposta: riga.imposta,
+                            }))
+                        });
+                    }
 
-                const righeMap = new Map(righeContabiliAppenaCreate.map(r => [`${r.codiceUnivocoScaricamento}-${r.riga}`, r]));
+                    // 4. Creazione dei suggerimenti di allocazione
+                    const righeContabiliCreate = await tx.importScritturaRigaContabile.findMany({
+                        where: {
+                            codiceUnivocoScaricamento: codiceUnivoco,
+                            insDatiMovimentiAnalitici: true
+                        }
+                    });
 
-                for (const rigaConAllocazioni of scrittura.righe) {
-                    for (const allocazione of rigaConAllocazioni.allocazioni) {
-                        const rigaCorrispondente = righeMap.get(`${allocazione.codiceUnivocoScaricamento}-${allocazione.progressivoRigaContabile}`);
-                        const commessaCorrispondente = commesseCache.get(allocazione.centroDiCosto);
+                    if (righeContabiliCreate.length > 0) {
+                        console.log(`[Allocazione] Trovate ${righeContabiliCreate.length} righe da allocare per scrittura ${codiceUnivoco}.`);
 
-                        if (rigaCorrispondente && commessaCorrispondente) {
-                            await prisma.importAllocazione.create({
-                                data: {
-                                    importScritturaRigaContabileId: rigaCorrispondente.id,
-                                    commessaId: commessaCorrispondente.id,
-                                    importo: allocazione.parametro,
-                                    suggerimentoAutomatico: true,
+                        for (const rigaDb of righeContabiliCreate) {
+                            // La riga in DB ha riga = index + 1. Troviamo la riga originale nell'array.
+                            const rigaOriginale = scrittura.righe[rigaDb.riga - 1];
+
+                            if (rigaOriginale && rigaOriginale.allocazioni.length > 0) {
+                                const allocazioniDaCreare: Prisma.ImportAllocazioneCreateManyInput[] = [];
+                                for (const allocazioneFile of rigaOriginale.allocazioni) {
+                                    const commessa = commesseCache.get(allocazioneFile.centroDiCosto);
+                                    if (commessa) {
+                                        allocazioniDaCreare.push({
+                                            importo: allocazioneFile.parametro,
+                                            suggerimentoAutomatico: true,
+                                            commessaId: commessa.id,
+                                            importScritturaRigaContabileId: rigaDb.id,
+                                        });
+                                    } else {
+                                        console.warn(`[Allocazione] Commessa con externalId '${allocazioneFile.centroDiCosto}' non trovata per riga ${rigaDb.id}. Allocazione saltata.`);
+                                    }
                                 }
-                            });
-                        } else {
-                            if (!commessaCorrispondente) {
-                                console.warn(`[Allocazione] Commessa con externalId '${allocazione.centroDiCosto}' non trovata. Suggerimento per riga ${rigaCorrispondente?.id} saltato.`);
+
+                                if (allocazioniDaCreare.length > 0) {
+                                    console.log(`[Allocazione] Creazione di ${allocazioniDaCreare.length} suggerimenti per riga ${rigaDb.riga}.`);
+                                    await tx.importAllocazione.createMany({
+                                        data: allocazioniDaCreare,
+                                    });
+                                }
                             }
                         }
                     }
-                }
-                
+                }); // Fine transazione
+
                 importati++;
             } catch (error) {
                 falliti++;

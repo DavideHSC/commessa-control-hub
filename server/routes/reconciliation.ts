@@ -7,10 +7,11 @@ const prisma = new PrismaClient();
 /*
  * GET /api/reconciliation/staging-rows
  * Fornisce i dati per la Scrivania di Riconciliazione in modo robusto,
- * assemblando i dati manualmente per evitare problemi con il client Prisma.
+ * assemblando i dati manually per evitare problemi con il client Prisma.
  */
 router.get('/staging-rows', async (req: Request, res: Response) => {
   try {
+    console.log('[Recon] Richiesta ricevuta per /staging-rows');
     // 1. Recupera tutte le informazioni necessarie con query separate
     const righeContabili = await prisma.importScritturaRigaContabile.findMany({
       where: {
@@ -20,14 +21,21 @@ router.get('/staging-rows', async (req: Request, res: Response) => {
         ],
       },
     });
+    console.log(`[Recon] Trovate ${righeContabili.length} righe contabili di costo/ricavo.`);
+    if (righeContabili.length === 0) {
+        console.log('[Recon] Nessuna riga contabile corrisponde ai filtri (conti che iniziano con 6 o 7). Restituisco array vuoto.');
+        return res.json([]);
+    }
 
     const testateMap = new Map();
     const testate = await prisma.importScritturaTestata.findMany();
     testate.forEach(t => testateMap.set(t.codiceUnivocoScaricamento, t));
+    console.log(`[Recon] Trovate e mappate ${testate.length} testate.`);
 
     const allocazioni = await prisma.importAllocazione.findMany({
         include: { commessa: true }
     });
+    console.log(`[Recon] Trovate ${allocazioni.length} allocazioni totali.`);
     
     // Raggruppa le allocazioni per riga contabile
     const allocazioniMap = new Map<string, any[]>();
@@ -39,12 +47,16 @@ router.get('/staging-rows', async (req: Request, res: Response) => {
     });
 
     // 2. Assembla e mappa i risultati
+    let righeSenzaTestata = 0;
     const results = righeContabili
       .map((row) => {
         const testata = testateMap.get(row.codiceUnivocoScaricamento);
         const rowAllocations = allocazioniMap.get(row.id) || [];
         
-        if (!testata) return null; // Salta le righe senza testata
+        if (!testata) {
+            righeSenzaTestata++;
+            return null;
+        }
 
         let status: 'Allocata' | 'Da Allocare' | 'Allocazione Parziale' = 'Da Allocare';
         const totaleAllocato = rowAllocations.reduce((acc, alloc) => acc + alloc.importo, 0);
@@ -76,10 +88,14 @@ router.get('/staging-rows', async (req: Request, res: Response) => {
           })),
         };
       })
-      .filter(r => r !== null) // Rimuovi le righe senza testata
-      .sort((a, b) => new Date(a!.dataRegistrazione!).getTime() - new Date(b!.dataRegistrazione!).getTime());
+      .filter(r => r !== null); // Rimuovi le righe senza testata
+    
+    console.log(`[Recon] Righe elaborate: ${righeContabili.length}. Righe scartate per mancanza di testata: ${righeSenzaTestata}.`);
+    console.log(`[Recon] Assemblaggio completato. Numero finale di risultati: ${results.length}.`);
 
-    res.json(results);
+    const sortedResults = results.sort((a, b) => new Date(a!.dataRegistrazione!).getTime() - new Date(b!.dataRegistrazione!).getTime());
+
+    res.json(sortedResults);
   } catch (error) {
     console.error("Errore nel recupero delle righe di staging:", error);
     res.status(500).json({ error: "Errore interno del server" });

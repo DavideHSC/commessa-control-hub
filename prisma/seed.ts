@@ -82,6 +82,7 @@ async function main() {
   const commessaSorrento = await prisma.commessa.create({
     data: {
       id: 'sorrento',
+      externalId: '1',
       nome: 'Comune di Sorrento',
       descrizione: 'Commessa principale per il comune di Sorrento',
       clienteId: clientePenisolaVerde.id,
@@ -91,6 +92,7 @@ async function main() {
   const commessaMassa = await prisma.commessa.create({
     data: {
       id: 'massa_lubrense',
+      externalId: '2',
       nome: 'Comune di Massa Lubrense',
       descrizione: 'Commessa principale per il comune di Massa Lubrense',
       clienteId: clientePenisolaVerde.id,
@@ -100,6 +102,7 @@ async function main() {
   const commessaPiano = await prisma.commessa.create({
     data: {
       id: 'piano_di_sorrento',
+      externalId: '3',
       nome: 'Comune di Piano di Sorrento',
       descrizione: 'Commessa principale per il comune di Piano di Sorrento',
       clienteId: clientePenisolaVerde.id,
@@ -111,6 +114,7 @@ async function main() {
   await prisma.commessa.create({
     data: {
       id: 'sorrento_igiene_urbana',
+      externalId: '4',
       nome: 'Igiene Urbana - Sorrento',
       descrizione: 'Servizio di igiene urbana per Sorrento',
       clienteId: clientePenisolaVerde.id,
@@ -120,6 +124,7 @@ async function main() {
   await prisma.commessa.create({
     data: {
       id: 'massa_lubrense_igiene_urbana',
+      externalId: '5',
       nome: 'Igiene Urbana - Massa Lubrense',
       descrizione: 'Servizio di igiene urbana per Massa Lubrense',
       clienteId: clientePenisolaVerde.id,
@@ -129,6 +134,7 @@ async function main() {
   await prisma.commessa.create({
     data: {
       id: 'piano_di_sorrento_igiene_urbana',
+      externalId: '6',
       nome: 'Igiene Urbana - Piano di Sorrento',
       descrizione: 'Servizio di igiene urbana per Piano di Sorrento',
       clienteId: clientePenisolaVerde.id,
@@ -138,6 +144,7 @@ async function main() {
   await prisma.commessa.create({
     data: {
       id: 'sorrento_verde_pubblico',
+      externalId: '7',
       nome: 'Verde Pubblico - Sorrento',
       descrizione: 'Servizio di gestione del verde pubblico per Sorrento',
       clienteId: clientePenisolaVerde.id,

@@ -6,6 +6,17 @@ import { useToast } from '@/components/ui/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { FileText, Users, FileBarChart2 } from 'lucide-react';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 const ANAGRAFICA_TEMPLATES = [
     { value: 'causali', label: 'Anagrafica Causali Contabili' },
@@ -24,8 +35,34 @@ const ImportPage: React.FC = () => {
     // State per l'importazione delle scritture
     const [scrittureFiles, setScrittureFiles] = useState<FileList | null>(null);
     const [isScrittureProcessing, setIsScrittureProcessing] = useState(false);
+    const [isDemoSeeding, setIsDemoSeeding] = useState(false);
     
     const { toast } = useToast();
+
+    const handleSeedDemoData = async () => {
+        setIsDemoSeeding(true);
+        try {
+            const response = await fetch('/api/system/seed-demo-data', {
+                method: 'POST',
+            });
+            const result = await response.json();
+            if (!response.ok) {
+                throw new Error(result.message || 'Errore durante la preparazione dei dati demo.');
+            }
+            toast({
+                title: 'Operazione Completata!',
+                description: 'Il database è stato resettato e popolato con i dati demo.',
+            });
+        } catch (error) {
+            toast({
+                variant: 'destructive',
+                title: 'Errore',
+                description: (error as Error).message,
+            });
+        } finally {
+            setIsDemoSeeding(false);
+        }
+    };
 
     const handleAnagraficaImport = async () => {
         if (!anagraficaFiles || anagraficaFiles.length === 0 || !selectedAnagraficaTemplate) return;
@@ -59,8 +96,23 @@ const ImportPage: React.FC = () => {
         
         setIsScrittureProcessing(true);
         const formData = new FormData();
+
+        // Mappa i nomi dei file ai fieldname attesi dal backend
+        const fileMap: { [key: string]: string } = {
+            'PNTESTA.TXT': 'pntesta',
+            'PNRIGCON.TXT': 'pnrigcon',
+            'MOVANAC.TXT': 'movanac',
+            'PNRIGIVA.TXT': 'pnrigiva',
+        };
+
         for (let i = 0; i < scrittureFiles.length; i++) {
-            formData.append('files', scrittureFiles[i]);
+            const file = scrittureFiles[i];
+            const fieldName = fileMap[file.name.toUpperCase()];
+            if (fieldName) {
+                formData.append(fieldName, file);
+            } else {
+                console.warn(`File non riconosciuto '${file.name}', verrà ignorato.`);
+            }
         }
         
         try {
@@ -98,6 +150,42 @@ const ImportPage: React.FC = () => {
                     Esegui sempre il **Passo 1** per importare o aggiornare le anagrafiche prima di procedere con le scritture contabili per evitare errori di dati mancanti.
                 </AlertDescription>
             </Alert>
+
+            <Card className="bg-amber-50 border-amber-200">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Users className="h-6 w-6 text-amber-600" />
+                        Opzione Demo: Prepara Ambiente di Test
+                    </CardTitle>
+                    <CardDescription>
+                        Usa questo strumento per resettare il database e popolarlo con un set di dati di esempio coerenti, pronti per una demo.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="destructive" disabled={isDemoSeeding}>
+                                {isDemoSeeding ? 'Esecuzione in corso...' : 'Azzera e Popola con Dati Demo'}
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Sei assolutamente sicuro?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Questa operazione è irreversibile. Eliminerà permanentemente tutti i dati
+                                    attualmente presenti nel database e li sostituirà con i dati di esempio.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Annulla</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleSeedDemoData}>
+                                    Sì, procedi
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </CardContent>
+            </Card>
 
             <Card>
                 <CardHeader>

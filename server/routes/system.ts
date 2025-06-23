@@ -1,9 +1,19 @@
 import { Router } from 'express';
 import { PrismaClient, Prisma } from '@prisma/client';
 import express, { Request, Response, NextFunction } from 'express';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { FieldDefinition, parseFixedWidth } from '../lib/fixedWidthParser';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = Router();
 const prisma = new PrismaClient();
+const execAsync = promisify(exec);
 
 // Il tipo per le scritture di staging verrà inferito direttamente dalla query
 // per garantire la massima corrispondenza con lo schema Prisma attuale.
@@ -423,5 +433,459 @@ router.post('/clear-conti', async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Errore durante lo svuotamento della tabella Conti' });
   }
 });
+
+// Funzione helper per leggere i file di dati
+const readDataFile = (fileName: string) => {
+    const filePath = path.join(__dirname, `../../.docs/dati_cliente/${fileName}`);
+    return fs.readFileSync(filePath, 'latin1');
+};
+
+const readPrimaNotaFile = (fileName: string) => {
+    const filePath = path.join(__dirname, `../../.docs/dati_cliente/prima_nota/${fileName}`);
+    return fs.readFileSync(filePath, 'latin1');
+}
+
+// ====================================================================
+// DEFINIZIONE DEGLI SCHEMI DI PARSING - Fonte: .docs/tracciati_definitivi.md
+// ====================================================================
+
+const pntestaSchema: FieldDefinition[] = [
+    { name: 'codiceFiscaleAzienda', start: 4, length: 16, type: 'string' },
+    { name: 'codiceUnivocoScaricamento', start: 21, length: 12, type: 'string' },
+    { name: 'codiceCausale', start: 40, length: 6, type: 'string' },
+    { name: 'descrizioneCausale', start: 46, length: 40, type: 'string' },
+    { name: 'dataRegistrazione', start: 86, length: 8, type: 'date' },
+    { name: 'tipoRegistroIva', start: 96, length: 1, type: 'string' },
+    { name: 'codiceFiscaleClienteFornitore', start: 100, length: 16, type: 'string' },
+    { name: 'siglaClienteFornitore', start: 117, length: 12, type: 'string' },
+    { name: 'dataDocumento', start: 129, length: 8, type: 'date' },
+    { name: 'numeroDocumento', start: 137, length: 12, type: 'string' },
+    { name: 'totaleDocumento', start: 173, length: 12, type: 'number' },
+    { name: 'noteMovimento', start: 193, length: 60, type: 'string' },
+];
+
+const pnrigconSchema: FieldDefinition[] = [
+    { name: 'codiceUnivocoScaricamento', start: 4, length: 12, type: 'string' },
+    { name: 'progressivoNumeroRigo', start: 16, length: 3, type: 'number' },
+    { name: 'tipoConto', start: 19, length: 1, type: 'string' },
+    { name: 'codiceFiscaleClienteFornitore', start: 20, length: 16, type: 'string' },
+    { name: 'siglaClienteFornitore', start: 37, length: 12, type: 'string' },
+    { name: 'conto', start: 49, length: 10, type: 'string' },
+    { name: 'importoDare', start: 59, length: 12, type: 'number' },
+    { name: 'importoAvere', start: 71, length: 12, type: 'number' },
+    { name: 'note', start: 83, length: 60, type: 'string' },
+    { name: 'flagMovimentiAnalitici', start: 248, length: 1, type: 'number' },
+];
+
+const pnrigivaSchema: FieldDefinition[] = [
+    { name: 'codiceUnivocoScaricamento', start: 4, length: 12, type: 'string' },
+    { name: 'codiceIva', start: 16, length: 4, type: 'string' },
+    { name: 'contropartita', start: 20, length: 10, type: 'string' },
+    { name: 'imponibile', start: 30, length: 12, type: 'number' },
+    { name: 'imposta', start: 42, length: 12, type: 'number' },
+    { name: 'importoLordo', start: 90, length: 12, type: 'number' },
+    { name: 'siglaContropartita', start: 162, length: 12, type: 'string' },
+];
+
+const movanacSchema: FieldDefinition[] = [
+    { name: 'codiceUnivocoScaricamento', start: 4, length: 12, type: 'string' },
+    { name: 'progressivoRigaContabile', start: 16, length: 3, type: 'number' },
+    { name: 'centroDiCosto', start: 19, length: 4, type: 'string' },
+    { name: 'importo', start: 23, length: 12, type: 'number' },
+];
+
+const clienteFornitoreSchema: FieldDefinition[] = [
+    { name: 'codiceUnivocoScaricamento', start: 21, length: 12, type: 'string' },
+    { name: 'codiceFiscale', start: 33, length: 16, type: 'string' },
+    { name: 'tipo', start: 50, length: 1, type: 'string' },
+    { name: 'externalId', start: 71, length: 12, type: 'string' },
+    { name: 'partitaIva', start: 83, length: 11, type: 'string' },
+    { name: 'ragioneSociale', start: 95, length: 60, type: 'string' },
+    { name: 'cognome', start: 155, length: 20, type: 'string' },
+    { name: 'nome', start: 175, length: 20, type: 'string' },
+];
+
+const contiGenSchema: FieldDefinition[] = [
+    { name: 'codice', start: 0, length: 10, type: 'string' },
+    { name: 'descrizione', start: 10, length: 40, type: 'string' },
+    { name: 'tipo', start: 50, length: 1, type: 'string' }, // C, R, P, F, L
+];
+
+const causaliSchema: FieldDefinition[] = [
+    { name: 'externalId', start: 4, length: 6, type: 'string' },
+    { name: 'descrizione', start: 10, length: 40, type: 'string' },
+];
+
+const codiciIvaSchema: FieldDefinition[] = [
+    { name: 'externalId', start: 3, length: 5, type: 'string' },
+    { name: 'descrizione', start: 8, length: 40, type: 'string' },
+    { name: 'aliquota', start: 48, length: 2, type: 'string' },
+];
+
+const codPagamSchema: FieldDefinition[] = [
+    { name: 'externalId', start: 4, length: 8, type: 'string' },
+    { name: 'descrizione', start: 12, length: 40, type: 'string' },
+    { name: 'codice', start: 0, length: 4, type: 'string' },
+];
+
+// ---- NUOVE INTERFACCE E SCHEMI PER PRIMA NOTA ----
+interface Pntesta {
+    codiceUnivocoScaricamento: string;
+    codiceCausale: string;
+    descrizioneCausale: string;
+    dataRegistrazione: Date;
+    dataDocumento: Date;
+    numeroDocumento: string;
+    noteMovimento: string;
+}
+interface Pnrigcon {
+    codiceUnivocoScaricamento: string;
+    progressivoRiga: number;
+    conto: string;
+    note: string;
+    importoDare: number;
+    importoAvere: number;
+}
+interface Pnrigiva {
+    codiceUnivocoScaricamento: string;
+    progressivoRiga: number;
+    codiceIva: string;
+    contropartita: string;
+    imponibile: number;
+    imposta: number;
+    importoLordo: number;
+}
+interface Movanac {
+    codiceUnivocoScaricamento: string;
+    rigaContabileRiferimento: number;
+    centroDiCosto: string;
+    importo: number;
+}
+interface ScritturaCompleta {
+    testata: Pntesta;
+    righe: (Pnrigcon & { allocazioni: Movanac[] })[];
+    righeIva: Pnrigiva[];
+}
+
+// Funzione helper per assemblare le scritture complete
+function buildScrittureComplete(
+    testate: Pntesta[], righe: Pnrigcon[], righeIva: Pnrigiva[], allocazioni: Movanac[]
+): ScritturaCompleta[] {
+    const allocazioniMap = new Map<string, Movanac[]>();
+    for (const alloc of allocazioni) {
+        const key = `${alloc.codiceUnivocoScaricamento}_${alloc.rigaContabileRiferimento}`;
+        if (!allocazioniMap.has(key)) {
+            allocazioniMap.set(key, []);
+        }
+        allocazioniMap.get(key)!.push(alloc);
+    }
+
+    const righeConAllocazioni = righe.map(riga => {
+        const key = `${riga.codiceUnivocoScaricamento}_${riga.progressivoRiga}`;
+        return { ...riga, allocazioni: allocazioniMap.get(key) || [] };
+    });
+
+    const righeMap = new Map<string, (Pnrigcon & { allocazioni: Movanac[] })[]>();
+    for (const riga of righeConAllocazioni) {
+        if (!righeMap.has(riga.codiceUnivocoScaricamento)) {
+            righeMap.set(riga.codiceUnivocoScaricamento, []);
+        }
+        righeMap.get(riga.codiceUnivocoScaricamento)!.push(riga);
+    }
+    
+    const righeIvaMap = new Map<string, Pnrigiva[]>();
+    for (const riga of righeIva) {
+        if (!righeIvaMap.has(riga.codiceUnivocoScaricamento)) {
+            righeIvaMap.set(riga.codiceUnivocoScaricamento, []);
+        }
+        righeIvaMap.get(riga.codiceUnivocoScaricamento)!.push(riga);
+    }
+
+    return testate.map(testata => ({
+        testata,
+        righe: righeMap.get(testata.codiceUnivocoScaricamento) || [],
+        righeIva: righeIvaMap.get(testata.codiceUnivocoScaricamento) || [],
+    }));
+}
+
+router.post('/seed-demo-data', async (req, res) => {
+    console.log('[System] Ricevuta richiesta di seeding con dati demo.');
+    try {
+        console.log('[System] Esecuzione di `prisma migrate reset --force`...');
+        await execAsync('npx prisma migrate reset --force');
+        console.log('[System] Reset del database completato.');
+        
+        console.log('[Seeding Demo] Avvio del popolamento con dati di esempio...');
+
+        // 1. Parsing di tutte le anagrafiche e prima nota
+        const clientiFornitoriRaw = parseFixedWidth<ClienteFornitore>(readPrimaNotaFile('A_CLIFOR.TXT'), clienteFornitoreSchema);
+        console.log(`[Debug] Clienti parsati totali: ${clientiFornitoriRaw.length}`);
+        console.log(`[Debug] Clienti di tipo 'C': ${clientiFornitoriRaw.filter(cf => cf.tipo === 'C').length}`);
+        console.log(`[Debug] Primi 3 clienti:`, clientiFornitoriRaw.filter(cf => cf.tipo === 'C').slice(0, 3).map(cf => ({
+            tipo: cf.tipo,
+            externalId: cf.externalId,
+            ragioneSociale: cf.ragioneSociale,
+            codiceFiscale: cf.codiceFiscale
+        })));
+        
+        const contiRaw = parseFixedWidth<ContoGen>(readDataFile('ContiGen.txt'), contiGenSchema);
+        const causaliRaw = parseFixedWidth<Causale>(readDataFile('Causali.txt'), causaliSchema);
+        const codiciIvaRaw = parseFixedWidth<CodiceIva>(readDataFile('CodicIva.txt'), codiciIvaSchema);
+        const pagamentiRaw = parseFixedWidth<CodPagam>(readDataFile('CodPagam.txt'), codPagamSchema);
+
+        const pntesta = parseFixedWidth<Pntesta>(readPrimaNotaFile('PNTESTA.TXT'), pntestaSchema);
+        const pnrigcon = parseFixedWidth<Pnrigcon>(readPrimaNotaFile('PNRIGCON.TXT'), pnrigconSchema);
+        const pnrigiva = parseFixedWidth<Pnrigiva>(readPrimaNotaFile('PNRIGIVA.TXT'), pnrigivaSchema);
+        const movanac = parseFixedWidth<Movanac>(readPrimaNotaFile('MOVANAC.TXT'), movanacSchema);
+        
+        // --- INIZIO TRANSAZIONE ---
+        await prisma.$transaction(async (tx) => {
+            // 2. Creazione Anagrafiche
+            const clientiDaCreare = clientiFornitoriRaw
+                .filter(cf => cf.tipo === 'C')
+                .map(cf => ({
+                    id: cf.externalId.trim(),
+                    externalId: cf.externalId.trim(),
+                    nome: cf.ragioneSociale.trim() || `${cf.cognome.trim()} ${cf.nome.trim()}`,
+                    piva: cf.partitaIva.trim() || cf.codiceFiscale.trim(),
+                }));
+            
+            console.log(`[Debug] Clienti da creare: ${clientiDaCreare.length}`);
+            console.log(`[Debug] Primi 3 clienti da creare:`, clientiDaCreare.slice(0, 3));
+            
+            await tx.cliente.createMany({
+                data: clientiDaCreare,
+                skipDuplicates: true,
+            });
+
+            await tx.fornitore.createMany({
+                data: clientiFornitoriRaw
+                    .filter(cf => cf.tipo === 'F')
+                    .map(cf => ({
+                        id: cf.externalId.trim(),
+                        externalId: cf.externalId.trim(),
+                        nome: cf.ragioneSociale.trim() || `${cf.cognome.trim()} ${cf.nome.trim()}`,
+                        piva: cf.partitaIva.trim() || cf.codiceFiscale.trim(),
+                    })),
+                skipDuplicates: true,
+            });
+
+            await tx.conto.createMany({
+                data: contiRaw.map(c => ({
+                    id: c.codice.trim(),
+                    externalId: c.codice.trim(),
+                    nome: c.descrizione.trim(),
+                    tipo: c.tipo === 'C' ? 'Costo' : c.tipo === 'R' ? 'Ricavo' : 'Patrimoniale',
+                })),
+                skipDuplicates: true,
+            });
+
+            await tx.causaleContabile.createMany({
+                data: causaliRaw.map(c => ({
+                    id: c.externalId.trim(),
+                    externalId: c.externalId.trim(),
+                    descrizione: c.descrizione.trim(),
+                })),
+                skipDuplicates: true,
+            });
+            
+            await tx.codiceIva.createMany({
+                data: codiciIvaRaw.map(c => {
+                    const aliquotaStr = c.aliquota.replace('O', '').replace('S','').trim();
+                    return {
+                        id: c.externalId.trim(),
+                        externalId: c.externalId.trim(),
+                        descrizione: c.descrizione.trim(),
+                        aliquota: parseFloat(aliquotaStr) || 0
+                    }
+                }),
+                skipDuplicates: true,
+            });
+
+             await tx.condizionePagamento.createMany({
+                data: pagamentiRaw.map(p => ({
+                    id: p.externalId.trim(),
+                    externalId: p.externalId.trim(),
+                    descrizione: p.descrizione.trim(),
+                    codice: p.codice.trim()
+                })),
+                skipDuplicates: true,
+            });
+
+            console.log('[Seeding Demo] Anagrafiche create.');
+
+            // 3. Creazione Commesse per la Demo
+            console.log('[Seeding Demo] Creazione Commesse...');
+            // Troviamo un cliente più semplice per le commesse demo, evitando quelli con spazi o caratteri speciali
+            const clientiDisponibili = clientiFornitoriRaw.filter(cf => cf.tipo === 'C');
+            console.log(`[Debug] Clienti disponibili: ${clientiDisponibili.length}`);
+            
+            // Cerchiamo un cliente con externalId senza spazi o caratteri speciali
+            const primoCliente = clientiDisponibili.find(cf => 
+                cf.externalId && 
+                cf.externalId.trim() && 
+                !/[.\s]/.test(cf.externalId.trim()) &&
+                cf.ragioneSociale && 
+                cf.ragioneSociale.trim()
+            ) || clientiDisponibili[0]; // fallback al primo disponibile
+
+            if (!primoCliente) {
+                throw new Error("Nessun cliente trovato nei dati del file A_CLIFOR.TXT. Impossibile creare commesse demo.");
+            }
+            const clienteDemoId = primoCliente.externalId.trim();
+            const nomeClienteDemo = (primoCliente.ragioneSociale || `${primoCliente.cognome} ${primoCliente.nome}`).trim();
+            console.log(`[Seeding Demo] Utilizzo del cliente '${nomeClienteDemo}' (ID: ${clienteDemoId}) per le commesse demo.`);
+            
+            const clienteDb = await tx.cliente.findFirst({ where: { externalId: clienteDemoId } });
+            if (!clienteDb) {
+                console.log(`[Debug] Cliente non trovato nel DB. Cercando tra tutti i clienti creati...`);
+                const tuttiClienti = await tx.cliente.findMany();
+                console.log(`[Debug] Clienti nel DB: ${tuttiClienti.length}`, tuttiClienti.map(c => ({ id: c.id, externalId: c.externalId })));
+                throw new Error(`Cliente con externalId ${clienteDemoId} non trovato nel DB dopo il seeding delle anagrafiche.`);
+            }
+
+            // Creiamo le commesse basandoci sui centri di costo presenti nei dati di test
+            // per garantire la coerenza con le allocazioni di MOVANAC.TXT
+            const commesseDemoData = [
+                { id: '1', nome: 'Commessa Servizi Generali', clienteId: clienteDb.id },
+                { id: '2', nome: 'Commessa Manutenzione', clienteId: clienteDb.id },
+                { id: '3', nome: 'Commessa Pulizia', clienteId: clienteDb.id },
+                { id: '4', nome: 'Commessa Varie', clienteId: clienteDb.id },
+                { id: '6', nome: 'Commessa Amministrazione', clienteId: clienteDb.id },
+                { id: '9', nome: 'Commessa Consulenze', clienteId: clienteDb.id },
+                { id: '1000', nome: 'Commessa Smaltimento', clienteId: clienteDb.id }
+            ];
+
+            await tx.commessa.createMany({
+                data: commesseDemoData,
+                skipDuplicates: true,
+            });
+            
+            console.log(`[Seeding Demo] Create ${commesseDemoData.length} commesse demo per il cliente ${nomeClienteDemo}.`);
+
+            // 4. Inserimento Scritture di Staging
+            console.log('[Seeding Demo] Inserimento scritture di staging...');
+            const scrittureComplete = buildScrittureComplete(pntesta, pnrigcon, pnrigiva, movanac);
+
+            // Filtra le scritture per includere solo quelle definite nel piano di test
+            const codiciDemo = [
+                '012025110315', // Allocazione Complessa (1-a-N)
+                '012025110008', // Allocazione Semplice (1-a-1)
+                '012025110002', // Documento con Righe Multiple
+                '012025110013', // Riga non Allocata
+            ];
+            
+            const scrittureDemo = scrittureComplete.filter(s => codiciDemo.includes(s.testata.codiceUnivocoScaricamento));
+            
+            console.log(`[Seeding Demo] Trovate ${scrittureDemo.length} scritture valide per la demo.`);
+
+            for (const scrittura of scrittureDemo) {
+                const codiceUnivoco = scrittura.testata.codiceUnivocoScaricamento;
+
+                // 4.1 Creazione Testata
+                await tx.importScritturaTestata.create({
+                    data: {
+                        codiceUnivocoScaricamento: codiceUnivoco,
+                        codiceCausale: scrittura.testata.codiceCausale.trim(),
+                        descrizioneCausale: scrittura.testata.descrizioneCausale.trim(),
+                        dataRegistrazione: scrittura.testata.dataRegistrazione,
+                        dataDocumento: scrittura.testata.dataDocumento,
+                        numeroDocumento: scrittura.testata.numeroDocumento.trim(),
+                        noteMovimento: scrittura.testata.noteMovimento.trim(),
+                    },
+                });
+
+                // 4.2 Creazione Righe Contabili e Allocazioni
+                for (const [index, rigaContabile] of scrittura.righe.entries()) {
+                    const createdRiga = await tx.importScritturaRigaContabile.create({
+                        data: {
+                            codiceUnivocoScaricamento: codiceUnivoco,
+                            riga: index + 1, // Usiamo l'indice per un progressivo affidabile
+                            codiceConto: rigaContabile.conto.trim(),
+                            descrizioneConto: rigaContabile.note.trim() || `Conto ${rigaContabile.conto.trim()}`,
+                            importoDare: rigaContabile.importoDare,
+                            importoAvere: rigaContabile.importoAvere,
+                            note: rigaContabile.note.trim(),
+                            insDatiMovimentiAnalitici: false,
+                        }
+                    });
+
+                    // Associa le allocazioni dalla riga contabile se esistono
+                    if (rigaContabile.allocazioni && rigaContabile.allocazioni.length > 0) {
+                        const allocazioniDaCreare: Prisma.ImportAllocazioneCreateManyInput[] = [];
+                        for (const allocazioneFile of rigaContabile.allocazioni) {
+                            allocazioniDaCreare.push({
+                                importScritturaRigaContabileId: createdRiga.id,
+                                commessaId: allocazioneFile.centroDiCosto.trim(), // L'ID della commessa è direttamente il centro di costo
+                                importo: allocazioneFile.importo,
+                                suggerimentoAutomatico: true,
+                            });
+                        }
+                        if (allocazioniDaCreare.length > 0) {
+                            await tx.importAllocazione.createMany({
+                                data: allocazioniDaCreare,
+                            });
+                        }
+                    }
+                }
+
+                // 4.3 Creazione Righe IVA
+                if (scrittura.righeIva.length > 0) {
+                    await tx.importScritturaRigaIva.createMany({
+                        data: scrittura.righeIva.map((riga, index) => ({
+                            codiceUnivocoScaricamento: codiceUnivoco,
+                            riga: index + 1, // Uso l'indice + 1 per un progressivo affidabile
+                            codiceIva: riga.codiceIva.trim(),
+                            codiceConto: riga.contropartita.trim(),
+                            imponibile: riga.imponibile,
+                            imposta: riga.imposta,
+                        }))
+                    });
+                }
+            }
+            console.log(`[Seeding Demo] Create ${scrittureDemo.length} scritture di staging con le relative allocazioni.`);
+
+        });
+        // --- FINE TRANSAZIONE ---
+
+        console.log('[Seeding Demo] Popolamento completato con successo.');
+        res.status(200).json({ message: 'Database resettato e popolato con dati demo completi.' });
+
+    } catch (error) {
+        console.error("Errore durante la preparazione dei dati demo:", error);
+        const e = error as Error;
+        res.status(500).json({ message: 'Errore durante la preparazione dei dati demo.', details: e.message, stack: e.stack });
+    }
+});
+
+// ---- INTERFACCE PER I TIPI PARSATI ----
+interface ClienteFornitore {
+    codiceFiscale: string;
+    tipo: 'C' | 'F';
+    partitaIva: string;
+    externalId: string;
+    ragioneSociale: string;
+    cognome: string;
+    nome: string;
+}
+interface ContoGen {
+    codice: string;
+    descrizione: string;
+    tipo: 'C' | 'R' | 'P' | 'F' | 'L';
+}
+interface Causale {
+    externalId: string;
+    descrizione: string;
+}
+interface CodiceIva {
+    externalId: string;
+    descrizione: string;
+    aliquota: string;
+}
+interface CodPagam {
+    externalId: string;
+    descrizione: string;
+    codice: string;
+}
 
 export default router; 
