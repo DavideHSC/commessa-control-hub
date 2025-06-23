@@ -135,6 +135,15 @@ async function main() {
       parentId: commessaPiano.id,
     },
   });
+  await prisma.commessa.create({
+    data: {
+      id: 'sorrento_verde_pubblico',
+      nome: 'Verde Pubblico - Sorrento',
+      descrizione: 'Servizio di gestione del verde pubblico per Sorrento',
+      clienteId: clientePenisolaVerde.id,
+      parentId: commessaSorrento.id,
+    },
+  });
   console.log('Commesse figlie (Attività) create.');
 
   // 5. Template di Importazione (essenziali per funzionamento) - UPSERT
