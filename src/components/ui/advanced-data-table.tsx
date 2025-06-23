@@ -1,10 +1,11 @@
 import * as React from "react"
+export type { ColumnDef, SortingState } from "@tanstack/react-table"
 import {
-  ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
   SortingState,
+  ColumnDef
 } from "@tanstack/react-table"
 
 import {

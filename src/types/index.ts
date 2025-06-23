@@ -131,6 +131,7 @@ export interface RigaScrittura {
   avere: number;
   contoId: string;
   allocazioni: Allocazione[];
+  scritturaContabile?: ScritturaContabile;
 }
 
 /**

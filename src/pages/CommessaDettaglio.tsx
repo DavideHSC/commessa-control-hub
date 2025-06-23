@@ -59,7 +59,7 @@ const CommessaDettaglio = () => {
     return <div className="text-center py-12"><p>Commessa non trovata.</p></div>;
   }
 
-  const totalBudget = Object.values(commessa.budget).reduce((sum, value) => sum + value, 0);
+  const totalBudget = commessa.budget?.reduce((sum, item) => sum + (item.importo || 0), 0) || 0;
   
   const movimentiAllocati = registrazioni
     .flatMap(r => 
@@ -113,15 +113,15 @@ const CommessaDettaglio = () => {
           </p>
         </div>
         <div className="divide-y divide-slate-200">
-          {Object.entries(commessa.budget).map(([voceAnaliticaId, importo]) => (
-            <div key={voceAnaliticaId} className="flex items-center justify-between p-4 hover:bg-slate-50">
+          {commessa.budget?.map((budgetItem) => (
+            <div key={budgetItem.voceAnaliticaId} className="flex items-center justify-between p-4 hover:bg-slate-50">
               <div className="flex items-center gap-3">
                 <Landmark className="w-5 h-5 text-slate-400" />
-                <span className="font-medium text-slate-800">{getNomeVoceAnalitica(voceAnaliticaId)}</span>
+                <span className="font-medium text-slate-800">{getNomeVoceAnalitica(budgetItem.voceAnaliticaId)}</span>
               </div>
               <div className="flex items-center gap-3">
                  <DollarSign className="w-5 h-5 text-green-500" />
-                <span className="font-semibold text-slate-900 text-lg">{formatCurrency(importo)}</span>
+                <span className="font-semibold text-slate-900 text-lg">{formatCurrency(budgetItem.importo)}</span>
               </div>
             </div>
           ))}

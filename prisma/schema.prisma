@@ -163,6 +163,11 @@ model Commessa {
   nome        String   @unique
   descrizione String?
 
+  // Relazione Gerarchica (Comune -> Attività)
+  parentId    String?
+  parent      Commessa? @relation("CommessaGerarchia", fields: [parentId], references: [id])
+  children    Commessa[] @relation("CommessaGerarchia")
+
   clienteId   String
   cliente     Cliente  @relation(fields: [clienteId], references: [id])
 

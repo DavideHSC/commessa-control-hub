@@ -46,20 +46,17 @@ const Riconciliazione: React.FC = () => {
     totalCount,
     page,
     pageSize,
-    searchValue,
+    search,
     sorting,
-    isLoading,
-    setPage,
-    setPageSize,
-    setSearchValue,
-    setSorting,
-    refetch,
+    loading,
+    onPageChange,
+    onPageSizeChange,
+    onSearchChange,
+    onSortingChange,
+    fetchData,
   } = useAdvancedTable<RigaScrittura>({
-    queryKey: 'righeNonAllocate',
-    apiUrl: '/api/registrazioni/non-allocate',
-    initialState: {
-        sorting: [{ id: 'data', desc: true }]
-    }
+    endpoint: '/api/registrazioni/non-allocate',
+    initialSorting: [{ id: 'data', desc: true }],
   });
 
   const openAllocationDialog = (riga: RigaScrittura) => {
@@ -70,7 +67,7 @@ const Riconciliazione: React.FC = () => {
   const handleAllocationSuccess = () => {
     setIsAllocationDialogOpen(false);
     setSelectedRow(null);
-    refetch();
+    fetchData();
   };
 
   const columns: ColumnDef<RigaScrittura>[] = [
@@ -140,13 +137,13 @@ const Riconciliazione: React.FC = () => {
                   totalCount={totalCount}
                   page={page}
                   pageSize={pageSize}
-                  onPageChange={setPage}
-                  onPageSizeChange={setPageSize}
-                  searchValue={searchValue}
-                  onSearchChange={setSearchValue}
+                  onPageChange={onPageChange}
+                  onPageSizeChange={onPageSizeChange}
+                  searchValue={search}
+                  onSearchChange={onSearchChange}
                   sorting={sorting}
-                  onSortingChange={setSorting}
-                  loading={isLoading}
+                  onSortingChange={onSortingChange}
+                  loading={loading}
                   emptyMessage="Tutte le righe sono state allocate. Ottimo lavoro!"
                 />
           </CardContent>

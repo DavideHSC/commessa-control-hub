@@ -72,7 +72,79 @@ async function main() {
 
   console.log('Cliente e Fornitore di sistema creati.');
 
-  // 4. SOLO Template di Importazione (essenziali per funzionamento)
+  // 5. Popola dati specifici del cliente (PENISOLAVERDE SPA)
+  console.log('Creazione dati cliente e commesse per PENISOLAVERDE SPA...');
+  
+  // Cliente Principale
+  const clientePenisolaVerde = await prisma.cliente.create({
+    data: {
+      nome: 'PENISOLAVERDE SPA',
+      piva: '01234567890', // Placeholder
+    },
+  });
+  console.log(`Cliente '${clientePenisolaVerde.nome}' creato con ID: ${clientePenisolaVerde.id}`);
+
+  // Commesse Principali (Comuni)
+  const commessaSorrento = await prisma.commessa.create({
+    data: {
+      id: 'sorrento',
+      nome: 'Comune di Sorrento',
+      descrizione: 'Commessa principale per il comune di Sorrento',
+      clienteId: clientePenisolaVerde.id,
+    },
+  });
+
+  const commessaMassa = await prisma.commessa.create({
+    data: {
+      id: 'massa_lubrense',
+      nome: 'Comune di Massa Lubrense',
+      descrizione: 'Commessa principale per il comune di Massa Lubrense',
+      clienteId: clientePenisolaVerde.id,
+    },
+  });
+
+  const commessaPiano = await prisma.commessa.create({
+    data: {
+      id: 'piano_di_sorrento',
+      nome: 'Comune di Piano di Sorrento',
+      descrizione: 'Commessa principale per il comune di Piano di Sorrento',
+      clienteId: clientePenisolaVerde.id,
+    },
+  });
+
+  console.log('Commesse principali (Comuni) create.');
+
+  // Commesse Figlie (Attività / Centri di Costo)
+  await prisma.commessa.create({
+    data: {
+      id: 'sorrento_igiene_urbana',
+      nome: 'Igiene Urbana - Sorrento',
+      descrizione: 'Servizio di igiene urbana per Sorrento',
+      clienteId: clientePenisolaVerde.id,
+      parentId: commessaSorrento.id,
+    },
+  });
+  await prisma.commessa.create({
+    data: {
+      id: 'massa_lubrense_igiene_urbana',
+      nome: 'Igiene Urbana - Massa Lubrense',
+      descrizione: 'Servizio di igiene urbana per Massa Lubrense',
+      clienteId: clientePenisolaVerde.id,
+      parentId: commessaMassa.id,
+    },
+  });
+  await prisma.commessa.create({
+    data: {
+      id: 'piano_di_sorrento_igiene_urbana',
+      nome: 'Igiene Urbana - Piano di Sorrento',
+      descrizione: 'Servizio di igiene urbana per Piano di Sorrento',
+      clienteId: clientePenisolaVerde.id,
+      parentId: commessaPiano.id,
+    },
+  });
+  console.log('Commesse figlie (Attività) create.');
+
+  // 6. SOLO Template di Importazione (essenziali per funzionamento)
   console.log('Creazione Template di Importazione...');
   
   // Template Causali
