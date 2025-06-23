@@ -1,167 +1,208 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Coins } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { RigaScrittura } from '@/types';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { toast } from "sonner";
-import { useAdvancedTable } from '@/hooks/useAdvancedTable';
-import { AdvancedDataTable, ColumnDef } from '@/components/ui/advanced-data-table';
-import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
+import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { ColumnDef } from "@tanstack/react-table";
+import { MoreHorizontal, PlusCircle, Trash2 } from "lucide-react";
 
-// Placeholder per il form di allocazione
-const AllocationForm = ({ riga, onAllocationSuccess }: { riga: RigaScrittura, onAllocationSuccess: () => void }) => {
-  // In futuro qui ci sarà il form con Zod, react-hook-form etc.
+import { Button } from "@/components/ui/button";
+import { DataTable } from "@/components/ui/data-table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from 'sonner';
+
+// Tipi
+type Allocation = {
+  id: string;
+  commessaNome: string;
+  importo: number;
+};
+type ReconciliationRow = {
+  id: string;
+  dataRegistrazione: string;
+  descrizione: string;
+  importo: number;
+  totaleAllocato: number;
+  status: 'Allocata' | 'Da Allocare' | 'Allocazione Parziale';
+  allocazioni: Allocation[];
+};
+type Commessa = {
+  id: string;
+  nome: string;
+};
+
+// API Fetching
+const fetchStagingRows = async (): Promise<ReconciliationRow[]> => {
+  const res = await fetch('/api/reconciliation/staging-rows');
+  if (!res.ok) throw new Error('Errore nel recupero delle righe');
+  return res.json();
+};
+const fetchCommesse = async (): Promise<Commessa[]> => {
+  const res = await fetch('/api/commesse');
+  if (!res.ok) throw new Error('Errore nel recupero delle commesse');
+  return res.json();
+};
+const updateAllocations = async ({ rowId, allocations }: { rowId: string, allocations: { commessaId: string, importo: number }[] }) => {
+  const res = await fetch(`/api/reconciliation/allocations/${rowId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(allocations),
+  });
+  if (!res.ok) throw new Error('Errore nell\'aggiornamento delle allocazioni');
+  return res.json();
+};
+
+// Componente Dialog per l'allocazione
+const AllocationDialog = ({ row, open, onOpenChange }: { row: ReconciliationRow | null, open: boolean, onOpenChange: (open: boolean) => void }) => {
+  const queryClient = useQueryClient();
+  const [allocations, setAllocations] = useState(row?.allocazioni.map(a => ({ commessaId: a.id, importo: a.importo })) || []);
+
+  const { data: commesse = [] } = useQuery<Commessa[]>({ queryKey: ['commesse'], queryFn: fetchCommesse });
+  
+  const mutation = useMutation({
+    mutationFn: updateAllocations,
+    onSuccess: () => {
+      toast.success('Allocazioni salvate con successo');
+      queryClient.invalidateQueries({ queryKey: ['stagingRows'] });
+      onOpenChange(false);
+    },
+    onError: (error) => {
+      toast.error(`Salvataggio fallito: ${error.message}`);
+    }
+  });
+
+  useEffect(() => {
+    if (row) {
+        // Quando la riga cambia, reimposta lo stato delle allocazioni
+        // Mappiamo l'ID della commessa, non dell'allocazione
+        const mappedAllocations = row.allocazioni.map(a => {
+            const commessa = commesse.find(c => c.nome === a.commessaNome);
+            return { commessaId: commessa?.id || '', importo: a.importo };
+        }).filter(a => a.commessaId); // Filtra quelle senza ID trovato
+
+        // Se non ci sono allocazioni esistenti, aggiungine una vuota per iniziare
+        if(mappedAllocations.length === 0) {
+            setAllocations([{ commessaId: '', importo: row.importo }]);
+        } else {
+            setAllocations(mappedAllocations);
+        }
+    }
+  }, [row, commesse]);
+
+
+  const handleSave = () => {
+    if (row) {
+      mutation.mutate({ rowId: row.id, allocations });
+    }
+  };
+
+  const updateAllocation = (index: number, field: 'commessaId' | 'importo', value: string | number) => {
+    const newAllocations = [...allocations];
+    const parsedValue = typeof value === 'string' && field === 'importo' ? parseFloat(value) : value;
+    newAllocations[index] = { ...newAllocations[index], [field]: parsedValue };
+    setAllocations(newAllocations);
+  };
+
+  const addAllocation = () => setAllocations([...allocations, { commessaId: '', importo: 0 }]);
+  const removeAllocation = (index: number) => setAllocations(allocations.filter((_, i) => i !== index));
+
+  const totalAllocated = allocations.reduce((sum, alloc) => sum + (alloc.importo || 0), 0);
+  const remaining = (row?.importo || 0) - totalAllocated;
+
+  if (!row) return null;
+
   return (
-    <div>
-      <h3 className="text-lg font-medium">Alloca riga: {riga.descrizione}</h3>
-      <p className="mt-2">Importo da allocare: {(riga.dare || riga.avere).toFixed(2)} €</p>
-      <div className="mt-4">
-        <p className="text-sm text-muted-foreground">Form di allocazione non ancora implementato.</p>
-        <p className="text-sm text-muted-foreground">Seleziona Commessa e Voce Analitica qui.</p>
-      </div>
-      <div className="mt-6 flex justify-end">
-        <Button onClick={() => {
-          toast.info("Funzionalità in sviluppo.", { description: "L'allocazione non è ancora attiva."});
-          onAllocationSuccess(); // Chiude il dialog per ora
-        }}>
-          Salva Allocazione
-        </Button>
-      </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[625px]">
+        <DialogHeader>
+          <DialogTitle>Modifica Allocazione</DialogTitle>
+          <div>{row.descrizione}</div>
+          <div className="font-bold">Importo Totale: € {row.importo.toFixed(2)}</div>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          {allocations.map((alloc, index) => (
+            <div key={index} className="flex items-center gap-2">
+              <Select value={alloc.commessaId} onValueChange={(value) => updateAllocation(index, 'commessaId', value)}>
+                <SelectTrigger><SelectValue placeholder="Seleziona Commessa" /></SelectTrigger>
+                <SelectContent>
+                  {commesse.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Input
+                type="number"
+                value={alloc.importo}
+                onChange={(e) => updateAllocation(index, 'importo', e.target.value)}
+                className="w-[120px]"
+              />
+              <Button variant="outline" size="icon" onClick={() => removeAllocation(index)}><Trash2 className="h-4 w-4" /></Button>
+            </div>
+          ))}
+          <Button variant="outline" onClick={addAllocation} className="mt-2"><PlusCircle className="mr-2 h-4 w-4" /> Aggiungi Riga</Button>
+        </div>
+        <DialogFooter>
+          <div className="w-full flex justify-between items-center">
+            <div>Residuo: <span className={remaining === 0 ? 'text-green-600' : 'text-red-600'}>€ {remaining.toFixed(2)}</span></div>
+            <Button onClick={handleSave} disabled={mutation.isPending}>
+              {mutation.isPending ? 'Salvataggio...' : 'Salva Allocazioni'}
+            </Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+
+const RiconciliazionePage = () => {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [selectedRow, setSelectedRow] = useState<ReconciliationRow | null>(null);
+
+  const { data, isLoading, error } = useQuery<ReconciliationRow[], Error>({ queryKey: ['stagingRows'], queryFn: fetchStagingRows });
+
+  const handleOpenDialog = (row: ReconciliationRow) => {
+    setSelectedRow(row);
+    setIsDialogOpen(true);
+  };
+
+  const columns: ColumnDef<ReconciliationRow>[] = [
+    { accessorKey: "dataRegistrazione", header: "Data Reg.", cell: ({ row }) => new Date(row.original.dataRegistrazione).toLocaleDateString() },
+    { accessorKey: "descrizione", header: "Descrizione" },
+    { accessorKey: "importo", header: "Importo", cell: ({ row }) => `€ ${row.original.importo.toFixed(2)}` },
+    { accessorKey: "totaleAllocato", header: "Allocato", cell: ({ row }) => `€ ${row.original.totaleAllocato.toFixed(2)}` },
+    { accessorKey: "status", header: "Stato" },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><span className="sr-only">Apri</span><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Azioni</DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => handleOpenDialog(row.original)}>Modifica Allocazione</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
+
+  if (isLoading) return <div>Caricamento in corso...</div>;
+  if (error) return <div>Errore nel caricamento dei dati: {error.message}</div>;
+
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Scrivania di Riconciliazione</h1>
+      <p className="mb-6 text-gray-600">
+        Associa ogni costo o ricavo alla commessa di competenza.
+      </p>
+      
+      {data && <DataTable columns={columns} data={data} />}
+
+      <AllocationDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        row={selectedRow}
+      />
     </div>
   );
 };
 
-const Riconciliazione: React.FC = () => {
-  const [isAllocationDialogOpen, setIsAllocationDialogOpen] = useState(false);
-  const [selectedRow, setSelectedRow] = useState<RigaScrittura | null>(null);
-
-  const {
-    data,
-    totalCount,
-    page,
-    pageSize,
-    search,
-    sorting,
-    loading,
-    onPageChange,
-    onPageSizeChange,
-    onSearchChange,
-    onSortingChange,
-    fetchData,
-  } = useAdvancedTable<RigaScrittura>({
-    endpoint: '/api/registrazioni/non-allocate',
-    initialSorting: [{ id: 'data', desc: true }],
-  });
-
-  const openAllocationDialog = (riga: RigaScrittura) => {
-    setSelectedRow(riga);
-    setIsAllocationDialogOpen(true);
-  };
-  
-  const handleAllocationSuccess = () => {
-    setIsAllocationDialogOpen(false);
-    setSelectedRow(null);
-    fetchData();
-  };
-
-  const columns: ColumnDef<RigaScrittura>[] = [
-    {
-      id: 'data',
-      accessorKey: "scritturaContabile.data",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Data" />,
-      cell: ({ row }) => row.original.scritturaContabile?.data ? new Date(row.original.scritturaContabile.data).toLocaleDateString('it-IT') : 'N/A',
-    },
-    {
-      accessorKey: "descrizione",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Descrizione Riga" />,
-    },
-    {
-      id: 'fornitore',
-      accessorKey: "scritturaContabile.fornitore.nome",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Soggetto" />,
-      cell: ({ row }) => row.original.scritturaContabile?.fornitore?.nome || 'N/A'
-    },
-    {
-      id: 'conto',
-      accessorKey: "conto.nome",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Conto" />,
-    },
-    {
-      id: "importo",
-      header: ({ column }) => <div className="text-right"><DataTableColumnHeader column={column} title="Importo" /></div>,
-      cell: ({ row }) => {
-        const importo = row.original.dare || row.original.avere;
-        return <div className="text-right font-medium">{importo.toFixed(2)} €</div>
-      }
-    },
-    {
-        id: "actions",
-        cell: ({ row }) => {
-            const riga = row.original;
-            return (
-                <div className="text-center">
-                   <Button onClick={() => openAllocationDialog(riga)}>
-                      <Coins className="mr-2 h-4 w-4" /> Alloca
-                   </Button>
-                </div>
-            )
-        }
-    }
-  ];
-
-  return (
-    <>
-      <div className="container mx-auto p-4">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold">Centro di Riconciliazione</h1>
-            <p className="text-muted-foreground">
-              Alloca le righe di costo e ricavo importate alle commesse di competenza.
-            </p>
-          </div>
-        </div>
-        <Card>
-          <CardHeader>
-            <CardTitle>Righe da Allocare</CardTitle>
-          </CardHeader>
-          <CardContent>
-                <AdvancedDataTable
-                  columns={columns}
-                  data={data}
-                  totalCount={totalCount}
-                  page={page}
-                  pageSize={pageSize}
-                  onPageChange={onPageChange}
-                  onPageSizeChange={onPageSizeChange}
-                  searchValue={search}
-                  onSearchChange={onSearchChange}
-                  sorting={sorting}
-                  onSortingChange={onSortingChange}
-                  loading={loading}
-                  emptyMessage="Tutte le righe sono state allocate. Ottimo lavoro!"
-                />
-          </CardContent>
-        </Card>
-      </div>
-
-      <Dialog open={isAllocationDialogOpen} onOpenChange={setIsAllocationDialogOpen}>
-        {selectedRow && (
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Alloca Riga Contabile</DialogTitle>
-            </DialogHeader>
-            <AllocationForm riga={selectedRow} onAllocationSuccess={handleAllocationSuccess} />
-          </DialogContent>
-        )}
-      </Dialog>
-    </>
-  );
-};
-
-export default Riconciliazione; 
+export default RiconciliazionePage; 

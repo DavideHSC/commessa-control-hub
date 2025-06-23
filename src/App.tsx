@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import ImportPage from './pages/Import';
 import Database from './pages/Database';
 import ImpostazioniPage from "./pages/Impostazioni";
+import RiconciliazionePage from "./pages/Riconciliazione";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/import" element={<ImportPage />} />
             <Route path="/database" element={<Database />} />
             <Route path="/impostazioni" element={<ImpostazioniPage />} />
+            <Route path="/riconciliazione" element={<RiconciliazionePage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

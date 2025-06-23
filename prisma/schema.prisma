@@ -101,6 +101,7 @@ model Commessa {
   externalId  String?       @unique
   parentId    String?
   allocazioni Allocazione[]
+  importAllocazioni ImportAllocazione[]
   budget      BudgetVoce[]
   cliente     Cliente       @relation(fields: [clienteId], references: [id])
   parent      Commessa?     @relation("CommessaGerarchia", fields: [parentId], references: [id])
@@ -257,14 +258,17 @@ model ImportLog {
 }
 
 model WizardState {
-  id        String  @id @default("singleton")
-  step      Int
-  completed Boolean @default(false)
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  step      String
+  completed Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model ImportScritturaTestata {
-  id                            String                         @id @default(cuid())
-  codiceUnivocoScaricamento     String                         @unique
+  id                             String                         @id @default(cuid())
+  codiceUnivocoScaricamento      String                         @unique
   codiceCausale                 String
   descrizioneCausale            String
   dataRegistrazione             DateTime?
@@ -276,41 +280,54 @@ model ImportScritturaTestata {
   protocolloNumero              String?
   totaleDocumento               Float?
   noteMovimento                 String?
-  righeContabili                ImportScritturaRigaContabile[] @relation("TestataToRigheContabili")
-  righeIva                      ImportScritturaRigaIva[]       @relation("TestataToRigheIva")
+  righe                          ImportScritturaRigaContabile[]
+  righeIva                       ImportScritturaRigaIva[]
 
   @@map("import_scritture_testate")
 }
 
 model ImportScritturaRigaContabile {
-  id                        String                 @id @default(cuid())
-  codiceUnivocoScaricamento String
-  progressivoNumeroRigo     Int
-  codiceConto               String
-  descrizioneConto          String
-  importoDare               Float?
-  importoAvere              Float?
-  note                      String?
-  insDatiMovimentiAnalitici Boolean
-  centroDiCosto             String?
-  importoAnalitico          Float?
-  testata                   ImportScritturaTestata @relation("TestataToRigheContabili", fields: [codiceUnivocoScaricamento], references: [codiceUnivocoScaricamento], onDelete: Cascade)
+  id                             String              @id @default(cuid())
+  codiceUnivocoScaricamento      String
+  riga                           Int
+  codiceConto                    String
+  descrizioneConto               String
+  importoDare                    Float?
+  importoAvere                   Float?
+  note                           String?
+  insDatiMovimentiAnalitici      Boolean
+  testata                        ImportScritturaTestata @relation(fields: [codiceUnivocoScaricamento], references: [codiceUnivocoScaricamento], onDelete: Cascade)
+  allocazioni                    ImportAllocazione[]
 
-  @@unique([codiceUnivocoScaricamento, progressivoNumeroRigo])
+  @@unique([codiceUnivocoScaricamento, riga])
+}
+
+model ImportAllocazione {
+  id                             String                      @id @default(cuid())
+  importo                        Float
+  percentuale                    Float?
+  suggerimentoAutomatico         Boolean                     @default(false)
+  commessaId                     String
+  importScritturaRigaContabileId String
+  
+  rigaContabile ImportScritturaRigaContabile @relation(fields: [importScritturaRigaContabileId], references: [id], onDelete: Cascade)
+  commessa      Commessa                     @relation(fields: [commessaId], references: [id])
+
+  @@map("import_allocazioni")
 }
 
 model ImportScritturaRigaIva {
-  id                        String                 @id @default(cuid())
-  codiceUnivocoScaricamento String
-  codiceIva                 String
-  imponibile                Float
-  imposta                   Float
-  codiceConto               String?
-  indetraibilita            Float?
-  progressivoNumeroRigo     Int
-  testata                   ImportScritturaTestata @relation("TestataToRigheIva", fields: [codiceUnivocoScaricamento], references: [codiceUnivocoScaricamento], onDelete: Cascade)
+  id                             String                 @id @default(cuid())
+  codiceUnivocoScaricamento      String
+  codiceIva                       String
+  imponibile                      Float
+  imposta                         Float
+  codiceConto                     String?
+  indetraibilita                  Float?
+  riga                             Int
+  testata                         ImportScritturaTestata @relation(fields: [codiceUnivocoScaricamento], references: [codiceUnivocoScaricamento], onDelete: Cascade)
 
-  @@unique([codiceUnivocoScaricamento, progressivoNumeroRigo])
+  @@unique([codiceUnivocoScaricamento, riga])
 }
 
 enum TipoConto {

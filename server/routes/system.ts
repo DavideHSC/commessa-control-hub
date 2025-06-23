@@ -5,10 +5,18 @@ import express, { Request, Response, NextFunction } from 'express';
 const router = Router();
 const prisma = new PrismaClient();
 
-// Tipo per le righe contabili con tutti i campi necessari
-type RigaContabileCompleta = Prisma.ImportScritturaRigaContabileGetPayload<{
-  include: {}
+// Il tipo per le scritture di staging verrà inferito direttamente dalla query
+// per garantire la massima corrispondenza con lo schema Prisma attuale.
+
+// Tipi inferiti e dati assemblati manualmente per robustezza
+type RigaContabileConAllocazioni = Prisma.ImportScritturaRigaContabileGetPayload<{
+  include: { allocazioni: true }
 }>;
+type ScritturaStagingCompleta = Prisma.ImportScritturaTestataGetPayload<{
+  include: { righeIva: true }
+}> & {
+  righeContabili: RigaContabileConAllocazioni[];
+};
 
 router.get('/status', async (c, res) => {
   try {
@@ -241,27 +249,10 @@ router.post('/reset-database', async (req, res, next) => {
     try {
         console.log("Inizio azzeramento e ripopolamento database...");
 
-        // Fase 1: Azzeramento
-        console.log("Fase 1: Azzeramento database...");
-        await prisma.$transaction([
-            // Modelli che dipendono da altri
-            prisma.allocazione.deleteMany({}),
-            prisma.rigaIva.deleteMany({}),
-            prisma.rigaScrittura.deleteMany({}),
-            prisma.budgetVoce.deleteMany({}),
-            prisma.scritturaContabile.deleteMany({}),
-            prisma.commessa.deleteMany({}),
-            
-            // Modelli "radice" o quasi
-            prisma.causaleContabile.deleteMany({}),
-            prisma.condizionePagamento.deleteMany({}),
-            prisma.codiceIva.deleteMany({}),
-            prisma.voceAnalitica.deleteMany({}),
-            prisma.conto.deleteMany({}),
-            prisma.fornitore.deleteMany({}),
-            prisma.cliente.deleteMany({}),
-        ]);
-        console.log("Database azzerato con successo. I template sono stati preservati.");
+        // Usiamo query grezze per le tabelle che potrebbero avere problemi con il client
+        await prisma.$executeRaw`TRUNCATE TABLE "ImportAllocazione", "ImportScritturaRigaContabile", "ImportScritturaRigaIva", "ImportScritturaTestata", "Allocazione", "RigaIva", "RigaScrittura", "BudgetVoce", "ScritturaContabile", "Conto", "Commessa", "CausaleContabile", "CondizionePagamento", "CodiceIva", "VoceAnalitica", "Fornitore", "Cliente", "WizardStep", "ImportLog" RESTART IDENTITY CASCADE;`;
+        
+        console.log("Database azzerato con successo. I template di importazione sono stati preservati.");
 
         // Fase 2: Ripopolamento con dati di base
         console.log("Fase 2: Ripopolamento con dati di base...");
@@ -281,13 +272,15 @@ router.post('/reset-database', async (req, res, next) => {
 router.post('/consolidate-scritture', async (req, res) => {
   console.log('[Consolidate] Avvio del processo di consolidamento...');
 
-  // 1. Lettura di tutti i dati dalle tabelle di staging
-  const scrittureDaImportare = await prisma.importScritturaTestata.findMany({
-    include: {
-      righeContabili: true,
-      righeIva: true,
-    },
-  });
+  // 1. Lettura dati con query separate per evitare problemi con il client Prisma
+  const testate = await prisma.importScritturaTestata.findMany({ include: { righeIva: true } });
+  const righeContabili = await prisma.importScritturaRigaContabile.findMany({ include: { allocazioni: true } });
+
+  // 2. Assemblaggio manuale dei dati
+  const scrittureDaImportare: ScritturaStagingCompleta[] = testate.map(testata => ({
+    ...testata,
+    righeContabili: righeContabili.filter(riga => riga.importScritturaTestataId === testata.id),
+  }));
 
   if (scrittureDaImportare.length === 0) {
     console.log('[Consolidate] Nessuna scrittura da importare.');
@@ -298,11 +291,10 @@ router.post('/consolidate-scritture', async (req, res) => {
   let importateConSuccesso = 0;
   const errori: { id: string, errore: string }[] = [];
 
-  // 2. Esecuzione del consolidamento in una transazione per ogni scrittura
   for (const scritturaStaging of scrittureDaImportare) {
     try {
       await prisma.$transaction(async (tx) => {
-        // --- 3. Creazione della Scrittura Contabile (Testata) ---
+        // Creazione Testata
         const scritturaFinale = await tx.scritturaContabile.create({
           data: {
             externalId: scritturaStaging.codiceUnivocoScaricamento,
@@ -313,116 +305,81 @@ router.post('/consolidate-scritture', async (req, res) => {
           },
         });
 
-        // --- 4. Iterazione e creazione delle Righe Scrittura e Allocazioni ---
-        for (const rigaStaging of scritturaStaging.righeContabili) {
-          // Cast temporaneo per accedere ai campi corretti - il campo esiste nel database
-          const riga = rigaStaging as any;
-          if (!riga.codiceConto) continue;
-          
-          const conto = await tx.conto.findFirst({
-            where: { codice: riga.codiceConto },
-          });
-          
-          if (!conto) {
-            console.warn(`Conto ${riga.codiceConto} non trovato in anagrafica`);
-            continue;
-          }
+        const progressivoToRigaIdMap: Record<number, string> = {};
 
-          // Creazione della riga di scrittura finale
+        // Creazione Righe Scrittura e Allocazioni
+        for (const rigaStaging of scritturaStaging.righeContabili) {
+          if (!rigaStaging.codiceConto) continue;
+          
+          const conto = await tx.conto.findFirst({ where: { codice: rigaStaging.codiceConto } });
+          if (!conto) throw new Error(`Conto ${rigaStaging.codiceConto} non trovato.`);
+
           const rigaFinale = await tx.rigaScrittura.create({
             data: {
               scritturaContabileId: scritturaFinale.id,
               contoId: conto.id,
-              descrizione: riga.note || 'Riga importata',
-              dare: riga.importoDare || 0,
-              avere: riga.importoAvere || 0,
+              descrizione: rigaStaging.note || 'Riga importata',
+              dare: rigaStaging.importoDare || 0,
+              avere: rigaStaging.importoAvere || 0,
             },
           });
 
-          // --- 5. Creazione Allocazione Analitica (se dati presenti) ---
-          if (riga.insDatiMovimentiAnalitici && riga.centroDiCosto && conto.voceAnaliticaId) {
-            const commessa = await tx.commessa.findFirst({
-              where: { externalId: riga.centroDiCosto },
-            });
-            
-            if (!commessa) {
-               console.warn(`Commessa con externalId ${riga.centroDiCosto} non trovata. Allocazione saltata.`);
-            } else {
-              await tx.allocazione.create({
-                data: {
-                  rigaScritturaId: rigaFinale.id,
-                  commessaId: commessa.id,
-                  voceAnaliticaId: conto.voceAnaliticaId,
-                  importo: riga.importoAnalitico || riga.importoDare || riga.importoAvere || 0,
-                  descrizione: `Allocazione importata per riga ${riga.progressivoNumeroRigo}`,
-                },
-              });
+          progressivoToRigaIdMap[rigaStaging.progressivoNumeroRigo] = rigaFinale.id;
+
+          if (conto.voceAnaliticaId && rigaStaging.allocazioni.length > 0) {
+            for (const allocazioneStaging of rigaStaging.allocazioni) {
+              if (!allocazioneStaging.commessaId) continue;
+              const commessa = await tx.commessa.findFirst({ where: { externalId: allocazioneStaging.commessaId } });
+              if (commessa) {
+                await tx.allocazione.create({
+                  data: {
+                    rigaScritturaId: rigaFinale.id,
+                    commessaId: commessa.id,
+                    voceAnaliticaId: conto.voceAnaliticaId,
+                    importo: allocazioneStaging.importo,
+                  },
+                });
+              }
             }
           }
         }
         
-        // --- 6. Iterazione e creazione delle Righe IVA ---
+        // Creazione Righe IVA
         for (const rigaIvaStaging of scritturaStaging.righeIva) {
-          if (!rigaIvaStaging.codiceIva) continue;
-
-          // Trova il codice IVA o crealo se non esiste
-          let codiceIva = await tx.codiceIva.findUnique({
-            where: { id: rigaIvaStaging.codiceIva },
-          });
-
+          if (!rigaIvaStaging.codiceIva || !rigaIvaStaging.progressivoRigoRiferimento) continue;
+          
+          let codiceIva = await tx.codiceIva.findUnique({ where: { id: rigaIvaStaging.codiceIva } });
           if (!codiceIva) {
-            console.warn(`Codice IVA ${rigaIvaStaging.codiceIva} non trovato. Verrà creato automaticamente.`);
-            codiceIva = await tx.codiceIva.create({
-              data: {
-                id: rigaIvaStaging.codiceIva,
-                descrizione: `IVA creata automaticamente - ${rigaIvaStaging.codiceIva}`,
-                aliquota: 0, // Default, da revisionare
-              }
-            });
+            codiceIva = await tx.codiceIva.create({ data: { id: rigaIvaStaging.codiceIva, descrizione: `Auto-creata: ${rigaIvaStaging.codiceIva}`, aliquota: 0 } });
           }
 
-          // Trova la riga di scrittura a cui collegare la riga IVA
-          // Assumiamo che la prima riga contabile sia quella principale
-          const rigaContabilePrincipale = await tx.rigaScrittura.findFirst({
-            where: { scritturaContabileId: scritturaFinale.id },
-            orderBy: { dare: 'desc' } // O un'altra logica per trovare la riga corretta
-          });
-
-          if (rigaContabilePrincipale) {
+          const rigaContabileId = progressivoToRigaIdMap[rigaIvaStaging.progressivoRigoRiferimento];
+          if (rigaContabileId) {
             await tx.rigaIva.create({
               data: {
-                rigaScritturaId: rigaContabilePrincipale.id,
+                rigaScritturaId: rigaContabileId,
                 codiceIvaId: codiceIva.id,
                 imponibile: rigaIvaStaging.imponibile || 0,
                 imposta: rigaIvaStaging.imposta || 0,
               },
             });
-          } else {
-            console.warn(`Nessuna riga contabile trovata per la scrittura ${scritturaFinale.id} per associare la riga IVA.`);
           }
         }
       });
 
-      // Se la transazione ha successo, si può cancellare il record di staging
-      await prisma.importScritturaTestata.delete({
-        where: { id: scritturaStaging.id },
-      });
-
+      // Cancellazione record di staging post-transazione
+      await prisma.importScritturaTestata.delete({ where: { id: scritturaStaging.id } });
       importateConSuccesso++;
     } catch (error) {
-      console.error(`[Consolidate] Fallito il consolidamento per la scrittura ID ${scritturaStaging.codiceUnivocoScaricamento}:`, error);
+      console.error(`[Consolidate] Fallito per scrittura ID ${scritturaStaging.codiceUnivocoScaricamento}:`, error);
       errori.push({ id: scritturaStaging.codiceUnivocoScaricamento, errore: (error as Error).message });
     }
   }
 
-  const message = `Consolidamento terminato. ${importateConSuccesso} scritture importate con successo, ${errori.length} fallite.`;
+  const message = `Consolidamento terminato. ${importateConSuccesso} scritture importate, ${errori.length} fallite.`;
   console.log(`[Consolidate] ${message}`);
 
-  if (errori.length > 0) {
-    return res.status(500).json({ message, errori });
-  }
-
-  return res.json({ message });
+  res.status(errori.length > 0 ? 500 : 200).json({ message, errori });
 });
 
 // Endpoint per svuotare le tabelle di staging delle scritture

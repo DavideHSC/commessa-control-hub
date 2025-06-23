@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, FileText, BarChart3, Settings, Building2, Upload, Database } from 'lucide-react';
+import { Home, FileText, BarChart3, Settings, Building2, Upload, Database, GitCompareArrows } from 'lucide-react';
 import {
   Sidebar as SidebarPrimitive,
   SidebarContent,
@@ -41,6 +41,11 @@ const serviziItems = [
     title: "Importa Dati",
     url: "/import",
     icon: Upload,
+  },
+  {
+    title: "Riconciliazione",
+    url: "/riconciliazione",
+    icon: GitCompareArrows,
   },
   {
     title: "Database",

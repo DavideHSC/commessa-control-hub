@@ -22,6 +22,7 @@ import condizioniPagamentoRoutes from './routes/condizioniPagamento';
 import systemRoutes from './routes/system';
 import statsRoutes from './routes/stats';
 import importPrimaNota from './routes/importPrimaNota';
+import reconciliationRoutes from './routes/reconciliation';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -49,6 +50,7 @@ app.use('/api/codici-iva', codiciIvaRoutes);
 app.use('/api/condizioni-pagamento', condizioniPagamentoRoutes);
 app.use('/api/system', systemRoutes);
 app.use('/api/database/stats', statsRoutes);
+app.use('/api/reconciliation', reconciliationRoutes);
 
 // Endpoint di base per testare il server
 app.get('/api', (req: Request, res: Response) => {

@@ -108,7 +108,7 @@ interface Movanac {
 
 interface ScritturaCompleta {
     testata: Pntesta;
-    righe: (Pnrigcon & { ripartizioni: Movanac[] })[];
+    righe: (Pnrigcon & { allocazioni: Movanac[] })[];
     righeIva: Pnrigiva[];
 }
 
@@ -169,14 +169,10 @@ router.post('/', upload.array('files'), async (req: Request, res: Response) => {
 
             const righeConAnalitica = righeAssociate.map(riga => {
                 const key = `${codiceUnivoco}-${riga.progressivoRiga}`;
-                // Si assume una sola ripartizione analitica per riga contabile per semplicità
-                const ripartizione = analiticiByRiga[key] ? analiticiByRiga[key][0] : null;
+                const allocazioni = analiticiByRiga[key] || [];
                 return { 
                     ...riga,
-                    // Aggiungiamo i dati analitici direttamente alla riga
-                    insDatiMovimentiAnalitici: riga.insDatiMovimentiAnalitici === '1' || !!ripartizione,
-                    centroDiCosto: ripartizione?.centroDiCosto,
-                    importoAnalitico: ripartizione?.parametro
+                    allocazioni: allocazioni
                 };
             });
 
@@ -202,22 +198,31 @@ router.post('/', upload.array('files'), async (req: Request, res: Response) => {
                 // Conversione di tipo esplicita e sicura per protocolloNumero
                 const protocolloNumeroInt = scrittura.testata.protocolloNumero ? parseInt(scrittura.testata.protocolloNumero, 10) : null;
                 
-                // Pre-mappo le righe contabili per la creazione nidificata
-                const righeContabiliDaCreare = scrittura.righe.map(riga => ({
-                    progressivoNumeroRigo: riga.progressivoRiga,
-                    codiceConto: riga.conto,
-                    descrizioneConto: riga.note || `Conto ${riga.conto}`,
-                    importoDare: riga.importoDare,
-                    importoAvere: riga.importoAvere,
-                    note: riga.note,
-                    insDatiMovimentiAnalitici: riga.insDatiMovimentiAnalitici,
-                    centroDiCosto: riga.centroDiCosto,
-                    importoAnalitico: riga.importoAnalitico,
-                }));
+                // Pre-mappo le righe contabili e le loro allocazioni per la creazione nidificata
+                const righeContabiliDaCreare = scrittura.righe.map(riga => {
+                    const allocazioniDaCreare = riga.allocazioni.map(alloc => ({
+                        commessaId: alloc.centroDiCosto, // Mappiamo il centro di costo sull'ID commessa
+                        importo: alloc.parametro,
+                        suggerimentoAutomatico: true,
+                    }));
+
+                    return {
+                        riga: riga.progressivoRiga,
+                        codiceConto: riga.conto,
+                        descrizioneConto: riga.note || `Conto ${riga.conto}`,
+                        importoDare: riga.importoDare,
+                        importoAvere: riga.importoAvere,
+                        note: riga.note,
+                        insDatiMovimentiAnalitici: riga.insDatiMovimentiAnalitici === '1' || allocazioniDaCreare.length > 0,
+                        allocazioni: {
+                            create: allocazioniDaCreare,
+                        }
+                    };
+                });
 
                 // Pre-mappo le righe IVA per la creazione nidificata
                 const righeIvaDaCreare = scrittura.righeIva.map((rigaIva, index) => ({
-                    progressivoNumeroRigo: index + 1, // aggiungo un progressivo sequenziale
+                    riga: index + 1, // aggiungo un progressivo sequenziale
                     codiceIva: rigaIva.codiceIva, // PRG 16 dal tracciato
                     codiceConto: rigaIva.contropartita, // PRG 20 dal tracciato  
                     imponibile: rigaIva.imponibile, // PRG 30 dal tracciato
@@ -243,14 +248,23 @@ router.post('/', upload.array('files'), async (req: Request, res: Response) => {
                     where: { codiceUnivocoScaricamento: codiceUnivoco },
                     update: {
                         ...upsertData,
-                        righeContabili: { deleteMany: {}, create: righeContabiliDaCreare },
-                        righeIva: { deleteMany: {}, create: righeIvaDaCreare },
+                        righe: {
+                            deleteMany: {},
+                            create: righeContabiliDaCreare,
+                        },
+                        righeIva: {
+                            deleteMany: {},
+                            create: righeIvaDaCreare,
+                        }
                     },
                     create: {
-                        codiceUnivocoScaricamento: codiceUnivoco,
                         ...upsertData,
-                        righeContabili: { create: righeContabiliDaCreare },
-                        righeIva: { create: righeIvaDaCreare },
+                        righe: {
+                            create: righeContabiliDaCreare,
+                        },
+                        righeIva: {
+                            create: righeIvaDaCreare,
+                        }
                     }
                 };
 
