@@ -10,6 +10,19 @@ export interface FieldDefinition {
   type?: 'string' | 'number' | 'date';
 }
 
+function getDefaultValue(type?: 'string' | 'number' | 'date') {
+    switch (type) {
+        case 'number':
+            return 0;
+        case 'date':
+            return null;
+        case 'string':
+        default:
+            return '';
+    }
+}
+
+
 /**
  * Esegue il parsing di una stringa di testo a larghezza fissa.
  */
@@ -42,10 +55,11 @@ export function parseFixedWidth<T>(
       try {
         switch (type) {
           case 'number':
+            // Sostituisce la virgola con il punto per il parsing corretto dei float
             record[name] = parseFloat(rawValue.replace(',', '.'));
             break;
           case 'date':
-            if (rawValue === '00000000') {
+            if (rawValue === '00000000' || !rawValue) {
               record[name] = null;
             } else {
               const parsedDate = moment(rawValue, 'DDMMYYYY');
@@ -70,13 +84,4 @@ export function parseFixedWidth<T>(
 
   console.log(`[Parser] Parsing completato. ${results.length} record estratti dal file.`);
   return results;
-}
-
-function getDefaultValue(type: 'string' | 'number' | 'date' | undefined) {
-  switch(type) {
-    case 'number': return null;
-    case 'date': return null;
-    case 'string':
-    default: return '';
-  }
 } 

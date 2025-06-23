@@ -44,23 +44,31 @@ La struttura gerarchica che vogliamo rappresentare nel nostro sistema è la segu
     3. Creare le `Commesse` secondarie (le Attività/Centri di Costo, es. "Igiene Urbana - Sorrento") e collegarle alla commessa genitore corretta tramite il campo `parentId`.
     4. Eseguire il seed.
 
-### Task 4: Importazione e Mappatura del Piano dei Conti
+### Task 4: Importazione delle Scritture di Prima Nota
 
-- **Obiettivo**: Popolare la tabella `Conto` e collegare ogni conto alla sua `VoceAnalitica` di appartenenza.
+- **Obiettivo**: Popolare il database con le scritture contabili complete (testata, righe contabili, righe IVA e ripartizioni analitiche per commessa), basandosi sui file di esportazione del cliente.
+- **Analisi dei File Sorgente**:
+    - **Fonte Dati**: L'importazione si basa su un set di file di testo a tracciato fisso, che rappresentano un'esportazione completa della prima nota del cliente.
+    - **File Chiave**:
+        - `PNTESTA.TXT`: Contiene le informazioni di testata di ogni registrazione contabile (data, causale, numero documento, totali).
+        - `PNRIGCON.TXT`: Contiene le righe contabili (movimenti Dare/Avere sui conti).
+        - `PNRIGIVA.TXT`: Contiene i dettagli IVA per le operazioni fiscalmente rilevanti.
+        - `MOVANAC.TXT`: File cruciale per l'analisi di commessa. Contiene la ripartizione dei costi e ricavi sui diversi centri di costo/ricavo (che per noi sono le `Commesse`).
+    - **Collegamento Dati**: Tutti i file sono collegati da un **Codice Univoco di Scaricamento** (presente in ogni riga dei diversi file) che permette di ricostruire l'intera registrazione contabile, comprese le sue ramificazioni analitiche.
 - **Azione**:
-    1. Questa è la parte più complessa. Richiede di parsare il file `cliente-bilanci_centri_di_costo_ricavo.txt`.
-    2. Per ogni riga di costo/ricavo, è necessario estrarre:
-        - Il codice del conto (es. `6005000850`).
-        - La descrizione del conto (es. `CARBURANTI E LUBRIFICANTI`).
-        - L'identificativo della categoria di spesa (es. `2` per "gestione automezzi").
-    3. Nello script di seed, aggiungere la logica per:
-        - Leggere e parsare i dati (potremmo creare un file JSON intermedio per semplificare).
-        - Iterare su ogni conto.
-        - Recuperare l'ID della `VoceAnalitica` corrispondente.
-        - Creare il record `Conto` usando `prisma.conto.create()`, popolando il campo `voceAnaliticaId` con l'ID recuperato.
-    4. Eseguire il seed aggiornato.
+    1.  **Sviluppo di un Parser Dedicato**: Creare una nuova rotta server (es. `POST /api/import/prima-nota`) e una funzione di servizio per gestire l'upload e il parsing dei file.
+    2.  **Logica di Parsing**:
+        - Implementare una funzione in grado di leggere file a larghezza fissa (`fixed-width`), basandosi sui tracciati record forniti nel documento `Import_Export file ascii.txt`.
+        - La logica dovrà ciclare su ogni registrazione in `PNTESTA.TXT`.
+        - Per ogni testata, usare il codice univoco per trovare e aggregare tutte le righe corrispondenti da `PNRIGCON.TXT`, `PNRIGIVA.TXT` e `MOVANAC.TXT`.
+    3.  **Ricostruzione e Salvataggio**:
+        - Creare oggetti strutturati in memoria che rappresentino i modelli Prisma (`ScritturaContabile`, `RigaScrittura`, ecc.).
+        - Popolare il record `ScritturaContabile` con i dati della testata.
+        - Per ogni riga di costo/ricavo, creare un record `RigaScrittura`, collegandolo al `Conto` corretto e alla `VoceAnalitica` associata.
+        - Leggere `MOVANAC.TXT` per creare le ripartizioni di costo/ricavo, associando la `RigaScrittura` alla `Commessa` (centro di costo) corretta con il relativo importo.
+        - Utilizzare una transazione Prisma (`prisma.$transaction`) per salvare l'intera scrittura contabile (testata, righe, ripartizioni) in modo atomico, garantendo l'integrità dei dati.
 
-### Task 5: Sviluppo Interfaccia di Importazione (Futuro)
+### Task 5: Sviluppo Interfaccia di Importazione Prima Nota
 
-- **Obiettivo**: Creare una UI che permetta all'utente di caricare i file di bilancio e avviare il processo di importazione.
-- **Descrizione**: Questo task verrà affrontato in futuro. Lo script di seed ci serve per validare la logica e avere dati di test. Una volta che la logica di importazione nello script di seed sarà solida, potrà essere estratta e riutilizzata nel backend per un'API richiamata dalla UI. 
+- **Obiettivo**: Creare una UI che permetta all'utente di caricare il set di file di prima nota (`PNTESTA`, `PNRIGCON`, etc.) e avviare il processo di importazione definito nel Task 4.
+- **Descrizione**: Questo task verrà affrontato una volta consolidata la logica di backend. La UI dovrà fornire feedback all'utente sullo stato dell'importazione (es. in corso, completato, errori riscontrati) e visualizzare un log dei risultati. 

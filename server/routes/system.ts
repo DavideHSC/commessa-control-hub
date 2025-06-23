@@ -145,4 +145,113 @@ router.post('/reset-database', async (req, res, next) => {
     }
 });
 
+// Rotta per consolidare le scritture importate
+router.post('/consolidate-scritture', async (req, res) => {
+  console.log('[Consolidate] Avvio del processo di consolidamento...');
+
+  // 1. Lettura di tutti i dati dalle tabelle di staging
+  const scrittureDaImportare = await prisma.importScritturaTestata.findMany({
+    include: {
+      righeContabili: true,
+      righeIva: true,
+    },
+  });
+
+  if (scrittureDaImportare.length === 0) {
+    console.log('[Consolidate] Nessuna scrittura da importare.');
+    return res.json({ message: 'Nessuna nuova scrittura da consolidare.' });
+  }
+
+  console.log(`[Consolidate] Trovate ${scrittureDaImportare.length} scritture da consolidare.`);
+  let importateConSuccesso = 0;
+  const errori = [];
+
+  // 2. Esecuzione del consolidamento in una transazione per ogni scrittura
+  for (const scritturaStaging of scrittureDaImportare) {
+    try {
+      await prisma.$transaction(async (tx) => {
+        // --- 3. Creazione della Scrittura Contabile (Testata) ---
+        const scritturaFinale = await tx.scritturaContabile.create({
+          data: {
+            externalId: scritturaStaging.codiceUnivocoScaricamento,
+            data: scritturaStaging.dataRegistrazione,
+            dataDocumento: scritturaStaging.dataDocumento,
+            numeroDocumento: scritturaStaging.numeroDocumento,
+            descrizione: scritturaStaging.descrizioneCausale || scritturaStaging.noteMovimento || 'Scrittura importata',
+            // TODO: Mappare correttamente causaleId e fornitoreId se necessario
+          },
+        });
+
+        // --- 4. Iterazione e creazione delle Righe Scrittura e Allocazioni ---
+        for (const rigaStaging of scritturaStaging.righeContabili) {
+          if (!rigaStaging.conto) continue;
+
+          // Trova il conto corrispondente nel piano dei conti
+          const conto = await tx.conto.findUnique({
+            where: { codice: rigaStaging.conto },
+          });
+
+          if (!conto) {
+            throw new Error(`Conto con codice ${rigaStaging.conto} non trovato.`);
+          }
+
+          // Creazione della riga di scrittura finale
+          const rigaFinale = await tx.rigaScrittura.create({
+            data: {
+              scritturaContabileId: scritturaFinale.id,
+              contoId: conto.id,
+              descrizione: rigaStaging.note || 'Riga importata',
+              dare: rigaStaging.importoDare || 0,
+              avere: rigaStaging.importoAvere || 0,
+            },
+          });
+
+          // --- 5. Creazione Allocazione Analitica (se dati presenti) ---
+          if (rigaStaging.insDatiMovimentiAnalitici && rigaStaging.centroDiCosto && conto.voceAnaliticaId) {
+            const commessa = await tx.commessa.findFirst({
+              where: { externalId: rigaStaging.centroDiCosto },
+            });
+            
+            if (!commessa) {
+               console.warn(`Commessa con externalId ${rigaStaging.centroDiCosto} non trovata. Allocazione saltata.`);
+            } else {
+              await tx.allocazione.create({
+                data: {
+                  rigaScritturaId: rigaFinale.id,
+                  commessaId: commessa.id,
+                  voceAnaliticaId: conto.voceAnaliticaId,
+                  importo: rigaStaging.importoAnalitico || rigaStaging.importoDare || rigaStaging.importoAvere || 0,
+                  descrizione: `Allocazione importata per riga ${rigaStaging.progressivoNumeroRigo}`,
+                },
+              });
+            }
+          }
+        }
+        
+        // TODO: Aggiungere logica per le righe IVA se necessario
+
+      });
+
+      // Se la transazione ha successo, si può cancellare il record di staging
+      await prisma.importScritturaTestata.delete({
+        where: { id: scritturaStaging.id },
+      });
+
+      importateConSuccesso++;
+    } catch (error) {
+      console.error(`[Consolidate] Fallito il consolidamento per la scrittura ID ${scritturaStaging.codiceUnivocoScaricamento}:`, error);
+      errori.push({ id: scritturaStaging.codiceUnivocoScaricamento, errore: (error as Error).message });
+    }
+  }
+
+  const message = `Consolidamento terminato. ${importateConSuccesso} scritture importate con successo, ${errori.length} fallite.`;
+  console.log(`[Consolidate] ${message}`);
+
+  if (errori.length > 0) {
+    return res.status(500).json({ message, errori });
+  }
+
+  return res.json({ message });
+});
+
 export default router; 

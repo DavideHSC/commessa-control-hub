@@ -22,11 +22,24 @@ import { useAdvancedTable } from '@/hooks/useAdvancedTable';
 import { AdvancedDataTable } from '../ui/advanced-data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from '../ui/data-table-column-header';
+import { CommesseTable } from "./CommesseTable";
+import { ContiTable } from "./ContiTable";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
+const consolidateScritture = async () => {
+  const response = await fetch('/api/system/consolidate-scritture', { method: 'POST' });
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Errore durante il consolidamento delle scritture');
+  }
+  return response.json();
+};
 
 export const ScrittureTable: React.FC = () => {
   const [deletingRegistrazione, setDeletingRegistrazione] = useState<ScritturaContabile | null>(null);
   const [isClearing, setIsClearing] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const {
     data,
@@ -44,6 +57,18 @@ export const ScrittureTable: React.FC = () => {
   } = useAdvancedTable<ScritturaContabile>({
     endpoint: '/api/registrazioni',
     initialSorting: [{ id: 'data', desc: true }]
+  });
+
+  const consolidateMutation = useMutation({
+    mutationFn: consolidateScritture,
+    onSuccess: (data) => {
+      toast.success(data.message);
+      queryClient.invalidateQueries({ queryKey: ["scritture"] });
+      queryClient.invalidateQueries({ queryKey: ["databaseStats"] });
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
   });
 
   const handleDelete = async () => {
@@ -124,10 +149,19 @@ export const ScrittureTable: React.FC = () => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Scritture Contabili</CardTitle>
-            <Button variant="destructive" onClick={() => setIsClearing(true)}>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => consolidateMutation.mutate()}
+                disabled={consolidateMutation.isPending}
+              >
+                 {consolidateMutation.isPending ? "Consolidamento..." : "Consolida Import"}
+              </Button>
+              <Button variant="destructive" onClick={() => setIsClearing(true)}>
                 <Trash2 className="mr-2 h-4 w-4" />
                 Svuota Scritture
-            </Button>
+              </Button>
+            </div>
         </CardHeader>
         <CardContent>
           <AdvancedDataTable

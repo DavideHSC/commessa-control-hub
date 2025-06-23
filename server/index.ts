@@ -21,6 +21,7 @@ import codiciIvaRoutes from './routes/codiciIva';
 import condizioniPagamentoRoutes from './routes/condizioniPagamento';
 import systemRoutes from './routes/system';
 import statsRoutes from './routes/stats';
+import importPrimaNota from './routes/importPrimaNota';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -37,7 +38,7 @@ app.use('/api/fornitori', fornitoriRoutes);
 app.use('/api/registrazioni', registrazioniRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/database', databaseRoutes);
-app.use('/api/import/scritture', importScrittureRoutes);
+app.use('/api/import/scritture', importPrimaNota);
 app.use('/api/import/anagrafica', importAnagraficheRoutes);
 app.use('/api/causali', causaliRoutes);
 app.use('/api/voci-analitiche', vociAnaliticheRoutes);

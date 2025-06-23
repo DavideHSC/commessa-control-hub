@@ -457,6 +457,12 @@ model ImportScritturaRigaContabile {
   insDatiMovimentiAnalitici Boolean?
   dataInizioCompetenzaAnalitica DateTime?
   dataFineCompetenzaAnalitica   DateTime?
+
+  // Dati per la riconciliazione analitica da MOVANAC.TXT
+  centroDiCosto                  String?
+  importoAnalitico               Float?
+
+  @@map("import_scritture_righe_contabili")
 }
 
 model ImportScritturaRigaIva {

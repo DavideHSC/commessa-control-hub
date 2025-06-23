@@ -16,28 +16,29 @@ router.post('/', upload.array('files', 10), async (req: Request, res: Response) 
     const files = req.files as Express.Multer.File[];
 
     try {
-        // 1. Recupera il template e le definizioni dal DB
+        // 1. Recupera il template di importazione per le scritture contabili
         const importTemplate = await prisma.importTemplate.findUnique({
-            where: { nome: 'scritture_contabili' },
-            include: { fields: true },
+            where: { modelName: 'scritture_contabili' },
+            include: { fieldDefinitions: true },
         });
 
-        if (!importTemplate) {
-            return res.status(404).json({ error: "Template 'scritture_contabili' non trovato." });
+        if (!importTemplate || !importTemplate.fieldDefinitions) {
+            return res.status(404).json({ error: "Template 'scritture_contabili' non trovato o non configurato." });
         }
         
         // 2. Raggruppa le definizioni per fileIdentifier
-        const definitionsByFile = importTemplate.fields.reduce((acc, field) => {
-            const key = (field as any).fileIdentifier || 'default';
-            if (!acc[key]) {
-                acc[key] = [];
+        const definitionsByFile = importTemplate.fieldDefinitions.reduce((acc, field) => {
+            if (field.fileIdentifier) {
+                if (!acc[field.fileIdentifier]) {
+                    acc[field.fileIdentifier] = [];
+                }
+                acc[field.fileIdentifier].push({
+                    name: field.nomeCampo,
+                    start: field.start,
+                    length: field.length,
+                    type: field.type as 'string' | 'number' | 'date',
+                });
             }
-            acc[key].push({
-                name: field.nomeCampo,
-                start: field.start,
-                length: field.length,
-                type: field.type as 'string' | 'number' | 'date',
-            });
             return acc;
         }, {} as Record<string, FieldDefinition[]>);
 
