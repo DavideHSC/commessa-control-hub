@@ -1,36 +1,46 @@
 import { PrismaClient, TipoConto, Prisma } from '@prisma/client';
 
-export async function runSeed(prisma: PrismaClient) {
-  console.log('Inizio seeding completo...');
+/**
+ * Funzione di reset del database allo stato "pulito".
+ * Svuota tutte le tabelle di dati transazionali e anagrafici,
+ * preserva i template di importazione e popola solo le Voci Analitiche di base.
+ * @param prisma - Istanza del client Prisma.
+ */
+export async function resetDatabase(prisma: PrismaClient) {
+  console.log('--- Inizio Reset Database per Produzione ---');
 
-  // --- 1. PULIZIA DEL DATABASE ---
+  // --- 1. PULIZIA DEL DATABASE IN UNA TRANSAZIONE ---
   console.log('Pulizia delle tabelle di staging e produzione...');
-  await prisma.importAllocazione.deleteMany({});
-  await prisma.importScritturaRigaContabile.deleteMany({});
-  await prisma.importScritturaRigaIva.deleteMany({});
-  await prisma.importScritturaTestata.deleteMany({});
-  await prisma.allocazione.deleteMany({});
-  await prisma.rigaIva.deleteMany({});
-  await prisma.rigaScrittura.deleteMany({});
-  await prisma.scritturaContabile.deleteMany({});
-  
-  // Pulizia anagrafiche collegate
-  await prisma.commessa.deleteMany({});
-  await prisma.fornitore.deleteMany({});
-  await prisma.cliente.deleteMany({});
-  
-  // Pulizia anagrafiche di base (solo se necessario, altrimenti si può usare upsert)
-  await prisma.causaleContabile.deleteMany({});
-  await prisma.codiceIva.deleteMany({});
-  await prisma.conto.deleteMany({});
-  await prisma.voceAnalitica.deleteMany({});
-  await prisma.condizionePagamento.deleteMany({});
+  await prisma.$transaction([
+    // Dati di Staging
+    prisma.importAllocazione.deleteMany({}),
+    prisma.importScritturaRigaContabile.deleteMany({}),
+    prisma.importScritturaRigaIva.deleteMany({}),
+    prisma.importScritturaTestata.deleteMany({}),
+
+    // Dati di Produzione
+    prisma.allocazione.deleteMany({}),
+    prisma.rigaIva.deleteMany({}),
+    prisma.rigaScrittura.deleteMany({}),
+    prisma.scritturaContabile.deleteMany({}),
+    
+    // Anagrafiche collegate
+    prisma.commessa.deleteMany({}),
+    prisma.fornitore.deleteMany({}),
+    prisma.cliente.deleteMany({}),
+    
+    // Anagrafiche di base
+    prisma.causaleContabile.deleteMany({}),
+    prisma.codiceIva.deleteMany({}),
+    prisma.conto.deleteMany({}),
+    prisma.voceAnalitica.deleteMany({}),
+    prisma.condizionePagamento.deleteMany({}),
+    // NOTA: Non cancelliamo ImportTemplate
+  ]);
   console.log('Pulizia completata.');
-  
 
-  // --- 2. CREAZIONE ANAGRAFICHE DI BASE ---
-  console.log('Creazione anagrafiche di base...');
-
+  // --- 2. POPOLAMENTO DATI MINIMI INDISPENSABILI ---
+  console.log('Popolamento delle Voci Analitiche di base...');
   await prisma.voceAnalitica.createMany({
     data: [
         { id: 'costo_personale', nome: 'Costo del personale' },
@@ -38,6 +48,18 @@ export async function runSeed(prisma: PrismaClient) {
     ],
     skipDuplicates: true
   });
+  console.log('Voci Analitiche create.');
+  console.log('--- Reset Database per Produzione Completato ---');
+}
+
+export async function runSeed(prisma: PrismaClient) {
+  console.log('Inizio seeding completo con dati demo...');
+  
+  // Eseguiamo prima il reset completo
+  await resetDatabase(prisma);
+
+  // --- ORA AGGIUNGIAMO I DATI SPECIFICI PER IL DEMO ---
+  console.log('Creazione anagrafiche di base per Dati Demo...');
 
   await prisma.causaleContabile.createMany({
       data: [{ id: 'FRS', descrizione: 'Fattura ricevuta split payment' }],

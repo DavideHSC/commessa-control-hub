@@ -7,7 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { FieldDefinition, parseFixedWidth } from '../lib/fixedWidthParser';
-import { runSeed } from '../lib/seedingLogic.js';
+import { resetDatabase } from '../lib/seedingLogic.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -257,11 +257,11 @@ async function seedBasicData() {
  * per garantire coerenza con il comando `npx prisma db seed`.
  */
 router.post('/reset-database', async (req, res) => {
-  console.log("Richiesta ricevuta per /api/system/reset-database. Inizio seeding...");
+  console.log("Richiesta ricevuta per /api/system/reset-database. Inizio reset di produzione...");
   
   try {
-    await runSeed(prisma);
-    const message = "Database azzerato e ripopolato con successo con i dati di base.";
+    await resetDatabase(prisma);
+    const message = "Database azzerato e ripopolato con i dati di base.";
     console.log(message);
     res.status(200).json({ message });
 
