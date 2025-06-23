@@ -40,7 +40,8 @@ const fetchStagingRows = async (): Promise<ReconciliationRow[]> => {
 const fetchCommesse = async (): Promise<Commessa[]> => {
   const res = await fetch('/api/commesse');
   if (!res.ok) throw new Error('Errore nel recupero delle commesse');
-  return res.json();
+  const result = await res.json();
+  return result.data;
 };
 const updateAllocations = async ({ rowId, allocations }: { rowId: string, allocations: { commessaId: string, importo: number }[] }) => {
   const res = await fetch(`/api/reconciliation/allocations/${rowId}`, {
