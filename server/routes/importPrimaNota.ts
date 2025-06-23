@@ -189,99 +189,105 @@ router.post('/', upload.array('files'), async (req: Request, res: Response) => {
         let importati = 0;
         let falliti = 0;
         const erroriDiImportazione: { id: string, errore: string }[] = [];
+        
+        // Cache per le commesse per evitare query ripetute nel loop
+        const commesseCache = new Map<string, any>();
+        const tutteLeCommesse = await prisma.commessa.findMany();
+        tutteLeCommesse.forEach(c => commesseCache.set(c.externalId!, c));
 
         for (const scrittura of scrittureComplete) {
             const codiceUnivoco = scrittura.testata.codiceUnivocoScaricamento;
-            let payload: any; // Dichiarato qui per essere accessibile nel catch
 
             try {
-                // Conversione di tipo esplicita e sicura per protocolloNumero
-                const protocolloNumeroInt = scrittura.testata.protocolloNumero ? parseInt(scrittura.testata.protocolloNumero, 10) : null;
-                
-                // Pre-mappo le righe contabili e le loro allocazioni per la creazione nidificata
-                const righeContabiliDaCreare = scrittura.righe.map(riga => {
-                    const allocazioniDaCreare = riga.allocazioni.map(alloc => ({
-                        commessaId: alloc.centroDiCosto, // Mappiamo il centro di costo sull'ID commessa
-                        importo: alloc.parametro,
-                        suggerimentoAutomatico: true,
-                    }));
+                await prisma.$transaction(async (tx) => {
+                    // 1. Upsert della sola testata
+                    const testataData = {
+                        codiceCausale: scrittura.testata.codiceCausale,
+                        descrizioneCausale: scrittura.testata.descrizioneCausale,
+                        dataRegistrazione: scrittura.testata.dataRegistrazione,
+                        dataDocumento: scrittura.testata.documentoData,
+                        numeroDocumento: scrittura.testata.documentoNumero,
+                        totaleDocumento: scrittura.testata.totaleDocumento,
+                        noteMovimento: scrittura.testata.noteMovimento,
+                    };
+                    const testata = await tx.importScritturaTestata.upsert({
+                        where: { codiceUnivocoScaricamento: codiceUnivoco },
+                        update: testataData,
+                        create: {
+                            codiceUnivocoScaricamento: codiceUnivoco,
+                            ...testataData
+                        }
+                    });
 
-                    return {
+                    // 2. Cancellazione delle righe esistenti per idempotenza
+                    await tx.importScritturaRigaContabile.deleteMany({ where: { codiceUnivocoScaricamento: codiceUnivoco } });
+                    await tx.importScritturaRigaIva.deleteMany({ where: { codiceUnivocoScaricamento: codiceUnivoco } });
+
+                    // 3. Creazione delle righe contabili e IVA
+                    const righeContabiliDaCreare = scrittura.righe.map(riga => ({
+                        codiceUnivocoScaricamento: codiceUnivoco,
                         riga: riga.progressivoRiga,
                         codiceConto: riga.conto,
                         descrizioneConto: riga.note || `Conto ${riga.conto}`,
                         importoDare: riga.importoDare,
                         importoAvere: riga.importoAvere,
                         note: riga.note,
-                        insDatiMovimentiAnalitici: riga.insDatiMovimentiAnalitici === '1' || allocazioniDaCreare.length > 0,
-                        allocazioni: {
-                            create: allocazioniDaCreare,
-                        }
-                    };
+                        insDatiMovimentiAnalitici: riga.insDatiMovimentiAnalitici === '1'
+                    }));
+                    await tx.importScritturaRigaContabile.createMany({ data: righeContabiliDaCreare });
+                    
+                    const righeIvaDaCreare = scrittura.righeIva.map((rigaIva, index) => ({
+                        codiceUnivocoScaricamento: codiceUnivoco,
+                        riga: index + 1,
+                        codiceIva: rigaIva.codiceIva,
+                        codiceConto: rigaIva.contropartita,
+                        imponibile: rigaIva.imponibile,
+                        imposta: rigaIva.imposta,
+                    }));
+                    if(righeIvaDaCreare.length > 0){
+                        await tx.importScritturaRigaIva.createMany({ data: righeIvaDaCreare });
+                    }
                 });
 
-                // Pre-mappo le righe IVA per la creazione nidificata
-                const righeIvaDaCreare = scrittura.righeIva.map((rigaIva, index) => ({
-                    riga: index + 1, // aggiungo un progressivo sequenziale
-                    codiceIva: rigaIva.codiceIva, // PRG 16 dal tracciato
-                    codiceConto: rigaIva.contropartita, // PRG 20 dal tracciato  
-                    imponibile: rigaIva.imponibile, // PRG 30 dal tracciato
-                    imposta: rigaIva.imposta, // PRG 42 dal tracciato
-                    indetraibilita: 0, // default se non presente nel tracciato
-                }));
+                // 4. Creazione dei suggerimenti di allocazione (dopo la transazione principale)
+                const righeContabiliAppenaCreate = await prisma.importScritturaRigaContabile.findMany({
+                    where: { codiceUnivocoScaricamento: codiceUnivoco }
+                });
 
-                const upsertData = {
-                    codiceCausale: scrittura.testata.codiceCausale,
-                    descrizioneCausale: scrittura.testata.descrizioneCausale,
-                    dataRegistrazione: scrittura.testata.dataRegistrazione,
-                    dataDocumento: scrittura.testata.documentoData,
-                    numeroDocumento: scrittura.testata.documentoNumero,
-                    protocolloNumero: isNaN(protocolloNumeroInt as number) ? null : protocolloNumeroInt,
-                    totaleDocumento: scrittura.testata.totaleDocumento,
-                    noteMovimento: scrittura.testata.noteMovimento,
-                    clienteFornitoreCodiceFiscale: scrittura.testata.clienteFornitoreCodiceFiscale,
-                    clienteFornitoreSigla: scrittura.testata.clienteFornitoreSigla,
-                    tipoRegistroIva: scrittura.testata.tipoRegistroIva,
-                };
+                const righeMap = new Map(righeContabiliAppenaCreate.map(r => [`${r.codiceUnivocoScaricamento}-${r.riga}`, r]));
 
-                payload = {
-                    where: { codiceUnivocoScaricamento: codiceUnivoco },
-                    update: {
-                        ...upsertData,
-                        righe: {
-                            deleteMany: {},
-                            create: righeContabiliDaCreare,
-                        },
-                        righeIva: {
-                            deleteMany: {},
-                            create: righeIvaDaCreare,
-                        }
-                    },
-                    create: {
-                        ...upsertData,
-                        righe: {
-                            create: righeContabiliDaCreare,
-                        },
-                        righeIva: {
-                            create: righeIvaDaCreare,
+                for (const rigaConAllocazioni of scrittura.righe) {
+                    for (const allocazione of rigaConAllocazioni.allocazioni) {
+                        const rigaCorrispondente = righeMap.get(`${allocazione.codiceUnivocoScaricamento}-${allocazione.progressivoRigaContabile}`);
+                        const commessaCorrispondente = commesseCache.get(allocazione.centroDiCosto);
+
+                        if (rigaCorrispondente && commessaCorrispondente) {
+                            await prisma.importAllocazione.create({
+                                data: {
+                                    importScritturaRigaContabileId: rigaCorrispondente.id,
+                                    commessaId: commessaCorrispondente.id,
+                                    importo: allocazione.parametro,
+                                    suggerimentoAutomatico: true,
+                                }
+                            });
+                        } else {
+                            if (!commessaCorrispondente) {
+                                console.warn(`[Allocazione] Commessa con externalId '${allocazione.centroDiCosto}' non trovata. Suggerimento per riga ${rigaCorrispondente?.id} saltato.`);
+                            }
                         }
                     }
-                };
-
-                await prisma.importScritturaTestata.upsert(payload);
+                }
                 
                 importati++;
             } catch (error) {
                 falliti++;
                 const errorMessage = error instanceof Error ? error.message : String(error);
-                 erroriDiImportazione.push({
+                erroriDiImportazione.push({
                     id: codiceUnivoco,
                     errore: errorMessage
                 });
-                console.error(`--- ERRORE IMPORTAZIONE SCRITTURA ---`);
-                console.error(`ID: ${codiceUnivoco}`);
-                console.error(`ERRORE:`, error);
-                console.error(`DATI INVIATI A PRISMA:`, JSON.stringify(payload, null, 2));
+                console.error(`--- ERRORE IMPORTAZIONE SCRITTURA ID: ${codiceUnivoco} ---`);
+                console.error(error);
                 console.error(`------------------------------------`);
             }
         }
