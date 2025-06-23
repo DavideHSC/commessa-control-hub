@@ -42,13 +42,20 @@ router.post('/:templateName', upload.single('file'), async (req: Request, res: R
 
         const modelName = (importTemplate as any).modelName as keyof PrismaClient | null;
         
+        const getFieldType = (format: string | null): 'string' | 'number' | 'date' => {
+            if (!format) return 'string';
+            if (format.startsWith('date')) return 'date';
+            if (format.startsWith('number')) return 'number';
+            return 'string';
+        }
+
         const fieldDefinitionsForParser: FieldDefinition[] = importTemplate.fieldDefinitions
             .filter(f => f.fieldName)
             .map(f => ({
                 name: f.fieldName!,
                 start: f.start,
                 length: f.length,
-                type: f.format as 'string' | 'number' | 'date'
+                type: getFieldType(f.format)
             }));
 
         const parsedData = parseFixedWidth<any>(fileContent, fieldDefinitionsForParser);
@@ -123,6 +130,29 @@ const anagraficaCliForFields: FieldDefinition[] = [
     { name: 'attivitaMensilizzazione', start: 337, length: 2, type: 'string' },
 ];
 
+// Funzione per convertire date dal formato DDMMYYYY a Date
+function convertDateString(dateStr: string | null): Date | null {
+    if (!dateStr || dateStr.trim().length !== 8) return null;
+    
+    try {
+        const day = dateStr.substring(0, 2);
+        const month = dateStr.substring(2, 4);
+        const year = dateStr.substring(4, 8);
+        
+        // Crea la data nel formato ISO (YYYY-MM-DD)
+        const isoDate = `${year}-${month}-${day}`;
+        const date = new Date(isoDate);
+        
+        // Verifica che la data sia valida
+        if (isNaN(date.getTime())) return null;
+        
+        return date;
+    } catch (error) {
+        console.warn(`Errore nella conversione della data: ${dateStr}`);
+        return null;
+    }
+}
+
 async function handleAnagraficaCliForImport(fileContent: string, res: Response) {
     let processedCount = 0;
     const batchSize = 100;
@@ -134,49 +164,41 @@ async function handleAnagraficaCliForImport(fileContent: string, res: Response) 
             const externalId = record.externalId?.trim();
             if (!externalId) return null;
 
-            const piva = record.piva?.trim() || null;
-            const cf = record.codiceFiscale?.trim() || null;
-
-            const rawDataNascita = record.dataNascita?.trim();
-            const parsedDate = moment(rawDataNascita, 'DDMMYYYY');
-
             const data = {
                 externalId: externalId,
                 nome: record.ragioneSociale?.trim() || 'Soggetto senza nome',
-                piva: piva,
-                codiceFiscale: cf,
+                piva: record.piva || null,
+                codiceFiscale: record.codiceFiscale || null,
                 tipoAnagrafica: record.tipoSoggetto === '0' ? 'Persona Fisica' : 'Soggetto Diverso',
-                cognome: record.cognome?.trim() || null,
-                nomeAnagrafico: record.nome?.trim() || null,
-                sesso: record.sesso?.trim() || null,
-                dataNascita: (rawDataNascita && rawDataNascita !== '00000000' && parsedDate.isValid()) 
-                    ? parsedDate.toDate() 
-                    : null,
-                comuneNascita: record.comuneNascita?.trim() || null,
-                indirizzo: record.indirizzo?.trim() || null,
-                cap: record.cap?.trim() || null,
-                comune: record.comuneResidenza?.trim() || null,
-                nazione: record.codiceIso?.trim() || null,
-                telefono: `${record.prefissoTelefono?.trim() || ''}${record.numeroTelefono?.trim() || ''}`.trim() || null,
-                codicePagamento: record.codicePagamento?.trim() || record.codicePagamentoCliente?.trim() || record.codicePagamentoFornitore?.trim() || null,
-                codiceValuta: record.codiceValuta?.trim() || null,
+                cognome: record.cognome || null,
+                nomeAnagrafico: record.nome || null,
+                sesso: record.sesso || null,
+                dataNascita: convertDateString(record.dataNascita),
+                comuneNascita: record.comuneNascita || null,
+                indirizzo: record.indirizzo || null,
+                cap: record.cap || null,
+                comune: record.comuneResidenza || null,
+                nazione: record.codiceIso || null,
+                telefono: `${record.prefissoTelefono || ''}${record.numeroTelefono || ''}`.trim() || null,
+                codicePagamento: record.codicePagamento || record.codicePagamentoCliente || record.codicePagamentoFornitore || null,
+                codiceValuta: record.codiceValuta || null,
                 
                 // Dati specifici fornitore
-                gestione770: record.gestione770?.trim() === 'X',
-                soggettoRitenuta: record.soggettoRitenuta?.trim() === 'X',
-                quadro770: record.quadro770?.trim() || null,
-                contributoPrevidenziale: record.contributoPrevidenziale?.trim() === 'X',
-                codiceRitenuta: record.codiceRitenuta?.trim() || null,
-                enasarco: record.enasarco?.trim() === 'X',
-                tipoRitenuta: record.tipoRitenuta?.trim() || null,
-                soggettoInail: record.soggettoInail?.trim() === 'X',
-                contributoPrevidenzialeL335: record.contributoPrevidenzialeL335?.trim() || null,
-                aliquota: record.aliquota?.trim() ? parseFloat(record.aliquota.replace(',', '.')) : null,
-                percContributoCassaPrev: record.percContributoCassaPrev?.trim() ? parseFloat(record.percContributoCassaPrev.replace(',', '.')) : null,
-                attivitaMensilizzazione: record.attivitaMensilizzazione?.trim() ? parseInt(record.attivitaMensilizzazione, 10) : null,
+                gestione770: record.gestione770 === 'X',
+                soggettoRitenuta: record.soggettoRitenuta === 'X',
+                quadro770: record.quadro770 || null,
+                contributoPrevidenziale: record.contributoPrevidenziale === 'X',
+                codiceRitenuta: record.codiceRitenuta || null,
+                enasarco: record.enasarco === 'X',
+                tipoRitenuta: record.tipoRitenuta || null,
+                soggettoInail: record.soggettoInail === 'X',
+                contributoPrevidenzialeL335: record.contributoPrevidenzialeL335 || null,
+                aliquota: record.aliquota ? parseFloat(record.aliquota) : null,
+                percContributoCassaPrev: record.percContributoCassaPrev ? parseFloat(record.percContributoCassaPrev) : null,
+                attivitaMensilizzazione: record.attivitaMensilizzazione ? parseInt(record.attivitaMensilizzazione) : null,
                 
                 // Campo per lo smistamento
-                tipoConto: record.tipoConto?.trim().toUpperCase(),
+                tipoConto: record.tipoConto?.toUpperCase(),
             };
             
             const id = `${data.externalId}`;
@@ -269,13 +291,13 @@ async function handlePianoDeiContiImport(parsedData: any[], res: Response) {
     const batchSize = 100;
 
     const validRecords = parsedData.map(record => {
-        const id = record.codice?.trim();
+        const id = record.codice;
         if (!id) return null;
         return {
             id,
             externalId: id,
             codice: id,
-            descrizione: record.descrizione?.trim() || 'Conto senza nome',
+            descrizione: record.descrizione || 'Conto senza nome',
         };
     }).filter((record): record is NonNullable<typeof record> => record !== null);
 

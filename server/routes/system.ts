@@ -1,9 +1,14 @@
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
-import express, { Request, Response } from 'express';
+import { PrismaClient, Prisma } from '@prisma/client';
+import express, { Request, Response, NextFunction } from 'express';
 
 const router = Router();
 const prisma = new PrismaClient();
+
+// Tipo per le righe contabili con tutti i campi necessari
+type RigaContabileCompleta = Prisma.ImportScritturaRigaContabileGetPayload<{
+  include: {}
+}>;
 
 router.get('/status', async (c, res) => {
   try {
@@ -164,7 +169,7 @@ router.post('/consolidate-scritture', async (req, res) => {
 
   console.log(`[Consolidate] Trovate ${scrittureDaImportare.length} scritture da consolidare.`);
   let importateConSuccesso = 0;
-  const errori = [];
+  const errori: { id: string, errore: string }[] = [];
 
   // 2. Esecuzione del consolidamento in una transazione per ogni scrittura
   for (const scritturaStaging of scrittureDaImportare) {
@@ -178,21 +183,22 @@ router.post('/consolidate-scritture', async (req, res) => {
             dataDocumento: scritturaStaging.dataDocumento,
             numeroDocumento: scritturaStaging.numeroDocumento,
             descrizione: scritturaStaging.descrizioneCausale || scritturaStaging.noteMovimento || 'Scrittura importata',
-            // TODO: Mappare correttamente causaleId e fornitoreId se necessario
           },
         });
 
         // --- 4. Iterazione e creazione delle Righe Scrittura e Allocazioni ---
         for (const rigaStaging of scritturaStaging.righeContabili) {
-          if (!rigaStaging.conto) continue;
-
-          // Trova il conto corrispondente nel piano dei conti
-          const conto = await tx.conto.findUnique({
-            where: { codice: rigaStaging.conto },
+          // Cast temporaneo per accedere ai campi corretti - il campo esiste nel database
+          const riga = rigaStaging as any;
+          if (!riga.codiceConto) continue;
+          
+          const conto = await tx.conto.findFirst({
+            where: { codice: riga.codiceConto },
           });
-
+          
           if (!conto) {
-            throw new Error(`Conto con codice ${rigaStaging.conto} non trovato.`);
+            console.warn(`Conto ${riga.codiceConto} non trovato in anagrafica`);
+            continue;
           }
 
           // Creazione della riga di scrittura finale
@@ -200,36 +206,74 @@ router.post('/consolidate-scritture', async (req, res) => {
             data: {
               scritturaContabileId: scritturaFinale.id,
               contoId: conto.id,
-              descrizione: rigaStaging.note || 'Riga importata',
-              dare: rigaStaging.importoDare || 0,
-              avere: rigaStaging.importoAvere || 0,
+              descrizione: riga.note || 'Riga importata',
+              dare: riga.importoDare || 0,
+              avere: riga.importoAvere || 0,
             },
           });
 
           // --- 5. Creazione Allocazione Analitica (se dati presenti) ---
-          if (rigaStaging.insDatiMovimentiAnalitici && rigaStaging.centroDiCosto && conto.voceAnaliticaId) {
+          if (riga.insDatiMovimentiAnalitici && riga.centroDiCosto && conto.voceAnaliticaId) {
             const commessa = await tx.commessa.findFirst({
-              where: { externalId: rigaStaging.centroDiCosto },
+              where: { externalId: riga.centroDiCosto },
             });
             
             if (!commessa) {
-               console.warn(`Commessa con externalId ${rigaStaging.centroDiCosto} non trovata. Allocazione saltata.`);
+               console.warn(`Commessa con externalId ${riga.centroDiCosto} non trovata. Allocazione saltata.`);
             } else {
               await tx.allocazione.create({
                 data: {
                   rigaScritturaId: rigaFinale.id,
                   commessaId: commessa.id,
                   voceAnaliticaId: conto.voceAnaliticaId,
-                  importo: rigaStaging.importoAnalitico || rigaStaging.importoDare || rigaStaging.importoAvere || 0,
-                  descrizione: `Allocazione importata per riga ${rigaStaging.progressivoNumeroRigo}`,
+                  importo: riga.importoAnalitico || riga.importoDare || riga.importoAvere || 0,
+                  descrizione: `Allocazione importata per riga ${riga.progressivoNumeroRigo}`,
                 },
               });
             }
           }
         }
         
-        // TODO: Aggiungere logica per le righe IVA se necessario
+        // --- 6. Iterazione e creazione delle Righe IVA ---
+        for (const rigaIvaStaging of scritturaStaging.righeIva) {
+          if (!rigaIvaStaging.codiceIva) continue;
 
+          // Trova il codice IVA o crealo se non esiste
+          let codiceIva = await tx.codiceIva.findUnique({
+            where: { id: rigaIvaStaging.codiceIva },
+          });
+
+          if (!codiceIva) {
+            console.warn(`Codice IVA ${rigaIvaStaging.codiceIva} non trovato. Verrà creato automaticamente.`);
+            codiceIva = await tx.codiceIva.create({
+              data: {
+                id: rigaIvaStaging.codiceIva,
+                descrizione: `IVA creata automaticamente - ${rigaIvaStaging.codiceIva}`,
+                aliquota: 0, // Default, da revisionare
+              }
+            });
+          }
+
+          // Trova la riga di scrittura a cui collegare la riga IVA
+          // Assumiamo che la prima riga contabile sia quella principale
+          const rigaContabilePrincipale = await tx.rigaScrittura.findFirst({
+            where: { scritturaContabileId: scritturaFinale.id },
+            orderBy: { dare: 'desc' } // O un'altra logica per trovare la riga corretta
+          });
+
+          if (rigaContabilePrincipale) {
+            await tx.rigaIva.create({
+              data: {
+                rigaScritturaId: rigaContabilePrincipale.id,
+                codiceIvaId: codiceIva.id,
+                imponibile: rigaIvaStaging.imponibile || 0,
+                imposta: rigaIvaStaging.imposta || 0,
+              },
+            });
+          } else {
+            console.warn(`Nessuna riga contabile trovata per la scrittura ${scritturaFinale.id} per associare la riga IVA.`);
+          }
+        }
       });
 
       // Se la transazione ha successo, si può cancellare il record di staging
@@ -252,6 +296,48 @@ router.post('/consolidate-scritture', async (req, res) => {
   }
 
   return res.json({ message });
+});
+
+// Endpoint per svuotare le tabelle di staging delle scritture
+router.post(
+  '/clear-staging-scritture',
+  async (req: Request, res: Response) => {
+    console.log(
+      'Ricevuta richiesta di svuotamento tabelle di staging scritture'
+    );
+    try {
+      await prisma.$transaction([
+        prisma.importScritturaRigaContabile.deleteMany(),
+        prisma.importScritturaRigaIva.deleteMany(),
+        prisma.importScritturaTestata.deleteMany(),
+      ]);
+      console.log('Tabelle di staging delle scritture svuotate con successo');
+      res
+        .status(200)
+        .json({ message: 'Tabelle di staging svuotate con successo' });
+    } catch (error) {
+      console.error(
+        "Errore durante lo svuotamento delle tabelle di staging:",
+        error
+      );
+      res
+        .status(500)
+        .json({ message: 'Errore durante lo svuotamento delle tabelle' });
+    }
+  }
+);
+
+// Endpoint per svuotare la tabella Conti
+router.post('/clear-conti', async (req: Request, res: Response) => {
+  console.log('Ricevuta richiesta di svuotamento tabella Conti');
+  try {
+    await prisma.conto.deleteMany();
+    console.log('Tabella Conti svuotata con successo');
+    res.status(200).json({ message: 'Tabella Conti svuotata con successo' });
+  } catch (error) {
+    console.error("Errore durante lo svuotamento della tabella Conti:", error);
+    res.status(500).json({ message: 'Errore durante lo svuotamento della tabella Conti' });
+  }
 });
 
 export default router; 

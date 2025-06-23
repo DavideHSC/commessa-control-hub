@@ -55,15 +55,19 @@ export function parseFixedWidth<T>(
       try {
         switch (type) {
           case 'number':
-            // Sostituisce la virgola con il punto per il parsing corretto dei float
-            record[name] = parseFloat(rawValue.replace(',', '.'));
+            if (rawValue) {
+              const numericValue = parseFloat(rawValue.replace(',', '.'));
+              record[name] = isNaN(numericValue) ? null : numericValue;
+            } else {
+              record[name] = null;
+            }
             break;
           case 'date':
-            if (rawValue === '00000000' || !rawValue) {
-              record[name] = null;
-            } else {
-              const parsedDate = moment(rawValue, 'DDMMYYYY');
+            if (rawValue && rawValue !== '00000000') {
+              const parsedDate = moment(rawValue, 'DDMMYYYY', true);
               record[name] = parsedDate.isValid() ? parsedDate.toDate() : null;
+            } else {
+              record[name] = null;
             }
             break;
           case 'string':

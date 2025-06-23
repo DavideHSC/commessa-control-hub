@@ -48,11 +48,15 @@ import { AdvancedDataTable } from '../ui/advanced-data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from '../ui/data-table-column-header';
 import { getVociAnalitiche } from '@/api';
+import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
 type ContoFormValues = z.infer<typeof contoSchema>;
 
 export const ContiTable = () => {
   const [vociAnalitiche, setVociAnalitiche] = useState<VoceAnalitica[]>([]);
+  const [isClearing, setIsClearing] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const fetchVoci = async () => {
@@ -115,6 +119,25 @@ export const ContiTable = () => {
     getId: (conto) => conto.id,
   });
 
+  const handleClearTable = async () => {
+    setIsClearing(true);
+    try {
+      const response = await fetch('/api/system/clear-conti', {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        throw new Error('Errore durante lo svuotamento dei conti.');
+      }
+      toast.success('Piano dei Conti svuotato con successo.');
+      refreshData();
+      queryClient.invalidateQueries({ queryKey: ['databaseStats'] });
+    } catch (error) {
+      toast.error((error as Error).message || 'Si è verificato un errore sconosciuto.');
+    } finally {
+      setIsClearing(false);
+    }
+  };
+
   const columns: ColumnDef<Conto>[] = [
     {
         accessorKey: "codice",
@@ -135,6 +158,13 @@ export const ContiTable = () => {
         cell: ({ row }) => row.getValue("richiedeVoceAnalitica") ? 'Sì' : 'No'
     },
     {
+        accessorKey: 'voceAnalitica.nome',
+        header: ({ column }) => (
+          <DataTableColumnHeader column={column} title="Voce Analitica" />
+        ),
+        cell: ({ row }) => row.original.voceAnalitica?.nome || 'N/A',
+    },
+    {
         id: "actions",
         cell: ({ row }) => {
             const conto = row.original;
@@ -153,7 +183,37 @@ export const ContiTable = () => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Piano dei Conti</CardTitle>
-          <Button onClick={() => handleOpenDialog()}>Aggiungi Conto</Button>
+          <AlertDialog open={isClearing} onOpenChange={setIsClearing}>
+            <Button
+              variant="destructive"
+              onClick={() => setIsClearing(true)}
+              disabled={isClearing}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {isClearing ? 'Svuotamento...' : 'Svuota Conti'}
+            </Button>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Sei assolutamente sicuro?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Questa azione è irreversibile e cancellerà TUTTI i conti dal
+                  Piano dei Conti. Sarà necessario re-importare il file
+                  anagrafico per ripristinarli.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setIsClearing(false)}>
+                  Annulla
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleClearTable}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  Sì, svuota tutto
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </CardHeader>
         <CardContent>
           <AdvancedDataTable

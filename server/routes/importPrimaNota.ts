@@ -7,54 +7,55 @@ const prisma = new PrismaClient();
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Schema per PNTESTA.TXT
+// Schema per PNTESTA.TXT - Corretto con start = PRG - 1
 const pntestaSchema: FieldDefinition[] = [
-    { name: 'codiceUnivocoScaricamento', start: 21, length: 12, type: 'string' },
-    { name: 'codiceCausale', start: 40, length: 6, type: 'string' },
-    { name: 'descrizioneCausale', start: 46, length: 40, type: 'string' },
-    { name: 'dataRegistrazione', start: 86, length: 8, type: 'date' },
-    { name: 'tipoRegistroIva', start: 96, length: 1, type: 'string' },
-    { name: 'clienteFornitoreCodiceFiscale', start: 100, length: 16, type: 'string' },
-    { name: 'clienteFornitoreSigla', start: 117, length: 12, type: 'string' },
-    { name: 'documentoData', start: 129, length: 8, type: 'date' },
-    { name: 'documentoNumero', start: 137, length: 12, type: 'string' },
-    { name: 'protocolloNumero', start: 158, length: 6, type: 'number' },
-    { name: 'totaleDocumento', start: 173, length: 12, type: 'number' },
-    { name: 'noteMovimento', start: 193, length: 60, type: 'string' },
+    { name: 'codiceUnivocoScaricamento', start: 20, length: 12, type: 'string' },
+    { name: 'codiceCausale', start: 39, length: 6, type: 'string' },
+    { name: 'descrizioneCausale', start: 45, length: 40, type: 'string' },
+    { name: 'dataRegistrazione', start: 85, length: 8, type: 'date' },
+    { name: 'tipoRegistroIva', start: 95, length: 1, type: 'string' },
+    { name: 'clienteFornitoreCodiceFiscale', start: 99, length: 16, type: 'string' },
+    { name: 'clienteFornitoreSigla', start: 116, length: 12, type: 'string' },
+    { name: 'documentoData', start: 128, length: 8, type: 'date' },
+    { name: 'documentoNumero', start: 136, length: 12, type: 'string' },
+    { name: 'protocolloNumero', start: 157, length: 6, type: 'string' }, // Trattato come stringa per sicurezza
+    { name: 'totaleDocumento', start: 172, length: 12, type: 'number' },
+    { name: 'noteMovimento', start: 192, length: 60, type: 'string' },
 ];
 
-// Schema per PNRIGCON.TXT
+// Schema per PNRIGCON.TXT - Corretto con start = PRG - 1
 const pnrigconSchema: FieldDefinition[] = [
-    { name: 'codiceUnivocoScaricamento', start: 4, length: 12, type: 'string' },
-    { name: 'progressivoRiga', start: 16, length: 3, type: 'number' },
-    { name: 'tipoConto', start: 19, length: 1, type: 'string' },
-    { name: 'codiceFiscale', start: 20, length: 16, type: 'string' },
-    { name: 'subcodiceFiscale', start: 36, length: 1, type: 'string' },
-    { name: 'siglaClienteFornitore', start: 37, length: 12, type: 'string' },
-    { name: 'conto', start: 49, length: 10, type: 'string' },
-    { name: 'importoDare', start: 59, length: 12, type: 'number' },
-    { name: 'importoAvere', start: 71, length: 12, type: 'number' },
-    { name: 'note', start: 83, length: 60, type: 'string' },
+    { name: 'codiceUnivocoScaricamento', start: 3, length: 12, type: 'string' },
+    { name: 'progressivoRiga', start: 15, length: 3, type: 'number' },
+    { name: 'tipoConto', start: 18, length: 1, type: 'string' },
+    { name: 'codiceFiscale', start: 19, length: 16, type: 'string' },
+    { name: 'subcodiceFiscale', start: 35, length: 1, type: 'string' },
+    { name: 'siglaClienteFornitore', start: 36, length: 12, type: 'string' },
+    { name: 'conto', start: 48, length: 10, type: 'string' },
+    { name: 'importoDare', start: 58, length: 12, type: 'number' },
+    { name: 'importoAvere', start: 70, length: 12, type: 'number' },
+    { name: 'note', start: 82, length: 60, type: 'string' },
+    { name: 'insDatiMovimentiAnalitici', start: 247, length: 1, type: 'string' }, // PRG 248 -> start 247
 ];
 
-// Schema per PNRIGIVA.TXT
+// Schema per PNRIGIVA.TXT - Corretto con start = PRG - 1
 const pnrigivaSchema: FieldDefinition[] = [
-    { name: 'codiceUnivocoScaricamento', start: 4, length: 12, type: 'string' },
-    { name: 'codiceIva', start: 16, length: 4, type: 'string' },
-    { name: 'contropartita', start: 20, length: 10, type: 'string' },
-    { name: 'imponibile', start: 30, length: 12, type: 'number' },
-    { name: 'imposta', start: 42, length: 12, type: 'number' },
-    { name: 'importoLordo', start: 90, length: 12, type: 'number' },
-    { name: 'note', start: 102, length: 60, type: 'string' },
-    { name: 'siglaContropartita', start: 162, length: 12, type: 'string' },
+    { name: 'codiceUnivocoScaricamento', start: 3, length: 12, type: 'string' },
+    { name: 'codiceIva', start: 15, length: 4, type: 'string' },
+    { name: 'contropartita', start: 19, length: 10, type: 'string' },
+    { name: 'imponibile', start: 29, length: 12, type: 'number' },
+    { name: 'imposta', start: 41, length: 12, type: 'number' },
+    { name: 'importoLordo', start: 89, length: 12, type: 'number' },
+    { name: 'note', start: 101, length: 60, type: 'string' },
+    { name: 'siglaContropartita', start: 161, length: 12, type: 'string' },
 ];
 
-// Schema per MOVANAC.TXT
+// Schema per MOVANAC.TXT - Corretto con start = PRG - 1
 const movanacSchema: FieldDefinition[] = [
-    { name: 'codiceUnivocoScaricamento', start: 4, length: 12, type: 'string' },
-    { name: 'progressivoRigaContabile', start: 16, length: 3, type: 'number' },
-    { name: 'centroDiCosto', start: 19, length: 4, type: 'string' },
-    { name: 'parametro', start: 23, length: 12, type: 'number' }, // Importo o quantità
+    { name: 'codiceUnivocoScaricamento', start: 3, length: 12, type: 'string' },
+    { name: 'progressivoRigaContabile', start: 15, length: 3, type: 'number' },
+    { name: 'centroDiCosto', start: 18, length: 4, type: 'string' },
+    { name: 'parametro', start: 22, length: 12, type: 'number' }, // Importo o quantità
 ];
 
 // --- Definizioni dei tipi per i dati parsati ---
@@ -84,6 +85,7 @@ interface Pnrigcon {
     importoDare: number;
     importoAvere: number;
     note: string;
+    insDatiMovimentiAnalitici: string;
 }
 
 interface Pnrigiva {
@@ -128,11 +130,11 @@ router.post('/', upload.array('files'), async (req: Request, res: Response) => {
     }
 
     try {
-        // 1. Parsing di tutti i file
-        const testate = parseFixedWidth<Pntesta>(pntestaFile.buffer.toString('utf-8'), pntestaSchema);
-        const righeContabili = parseFixedWidth<Pnrigcon>(pnrigconFile.buffer.toString('utf-8'), pnrigconSchema);
-        const movimentiAnalitici = parseFixedWidth<Movanac>(movanacFile.buffer.toString('utf-8'), movanacSchema);
-        const righeIva = pnrigivaFile ? parseFixedWidth<Pnrigiva>(pnrigivaFile.buffer.toString('utf-8'), pnrigivaSchema) : [];
+        // 1. Parsing di tutti i file con la codifica corretta
+        const testate = parseFixedWidth<Pntesta>(pntestaFile.buffer.toString('latin1'), pntestaSchema);
+        const righeContabili = parseFixedWidth<Pnrigcon>(pnrigconFile.buffer.toString('latin1'), pnrigconSchema);
+        const movimentiAnalitici = parseFixedWidth<Movanac>(movanacFile.buffer.toString('latin1'), movanacSchema);
+        const righeIva = pnrigivaFile ? parseFixedWidth<Pnrigiva>(pnrigivaFile.buffer.toString('latin1'), pnrigivaSchema) : [];
         
         console.log(`[Import] Parsati ${testate.length} testate, ${righeContabili.length} righe contabili, ${movimentiAnalitici.length} movimenti analitici, ${righeIva.length} righe IVA.`);
 
@@ -172,7 +174,7 @@ router.post('/', upload.array('files'), async (req: Request, res: Response) => {
                 return { 
                     ...riga,
                     // Aggiungiamo i dati analitici direttamente alla riga
-                    insDatiMovimentiAnalitici: !!ripartizione,
+                    insDatiMovimentiAnalitici: riga.insDatiMovimentiAnalitici === '1' || !!ripartizione,
                     centroDiCosto: ripartizione?.centroDiCosto,
                     importoAnalitico: ripartizione?.parametro
                 };
@@ -193,22 +195,18 @@ router.post('/', upload.array('files'), async (req: Request, res: Response) => {
         const erroriDiImportazione: { id: string, errore: string }[] = [];
 
         for (const scrittura of scrittureComplete) {
+            const codiceUnivoco = scrittura.testata.codiceUnivocoScaricamento;
+            let payload: any; // Dichiarato qui per essere accessibile nel catch
+
             try {
                 // Conversione di tipo esplicita e sicura per protocolloNumero
                 const protocolloNumeroInt = scrittura.testata.protocolloNumero ? parseInt(scrittura.testata.protocolloNumero, 10) : null;
-                if (isNaN(protocolloNumeroInt as number)) {
-                    console.warn(`ID ${scrittura.testata.codiceUnivocoScaricamento}: protocolloNumero "${scrittura.testata.protocolloNumero}" non è un numero valido. Verrà impostato a null.`);
-                }
-
-                // --- MAPPATURA CORRETTA E COMPLETA ---
-
+                
                 // Pre-mappo le righe contabili per la creazione nidificata
                 const righeContabiliDaCreare = scrittura.righe.map(riga => ({
                     progressivoNumeroRigo: riga.progressivoRiga,
-                    tipoConto: riga.tipoConto,
-                    conto: riga.conto,
-                    clienteFornitoreCodiceFiscale: riga.codiceFiscale,
-                    clienteFornitoreSigla: riga.siglaClienteFornitore,
+                    codiceConto: riga.conto,
+                    descrizioneConto: riga.note || `Conto ${riga.conto}`,
                     importoDare: riga.importoDare,
                     importoAvere: riga.importoAvere,
                     note: riga.note,
@@ -218,74 +216,59 @@ router.post('/', upload.array('files'), async (req: Request, res: Response) => {
                 }));
 
                 // Pre-mappo le righe IVA per la creazione nidificata
-                const righeIvaDaCreare = scrittura.righeIva.map(rigaIva => ({
-                    codiceIva: rigaIva.codiceIva,
-                    contropartita: rigaIva.contropartita,
-                    imponibile: rigaIva.imponibile,
-                    imposta: rigaIva.imposta,
-                    importoLordo: rigaIva.importoLordo,
-                    note: rigaIva.note,
-                    siglaContropartita: rigaIva.siglaContropartita,
+                const righeIvaDaCreare = scrittura.righeIva.map((rigaIva, index) => ({
+                    progressivoNumeroRigo: index + 1, // aggiungo un progressivo sequenziale
+                    codiceIva: rigaIva.codiceIva, // PRG 16 dal tracciato
+                    codiceConto: rigaIva.contropartita, // PRG 20 dal tracciato  
+                    imponibile: rigaIva.imponibile, // PRG 30 dal tracciato
+                    imposta: rigaIva.imposta, // PRG 42 dal tracciato
+                    indetraibilita: 0, // default se non presente nel tracciato
                 }));
 
+                const upsertData = {
+                    codiceCausale: scrittura.testata.codiceCausale,
+                    descrizioneCausale: scrittura.testata.descrizioneCausale,
+                    dataRegistrazione: scrittura.testata.dataRegistrazione,
+                    dataDocumento: scrittura.testata.documentoData,
+                    numeroDocumento: scrittura.testata.documentoNumero,
+                    protocolloNumero: isNaN(protocolloNumeroInt as number) ? null : protocolloNumeroInt,
+                    totaleDocumento: scrittura.testata.totaleDocumento,
+                    noteMovimento: scrittura.testata.noteMovimento,
+                    clienteFornitoreCodiceFiscale: scrittura.testata.clienteFornitoreCodiceFiscale,
+                    clienteFornitoreSigla: scrittura.testata.clienteFornitoreSigla,
+                    tipoRegistroIva: scrittura.testata.tipoRegistroIva,
+                };
 
-                await prisma.importScritturaTestata.upsert({
-                    where: { codiceUnivocoScaricamento: scrittura.testata.codiceUnivocoScaricamento },
+                payload = {
+                    where: { codiceUnivocoScaricamento: codiceUnivoco },
                     update: {
-                        // Mappatura testata
-                        codiceCausale: scrittura.testata.codiceCausale,
-                        descrizioneCausale: scrittura.testata.descrizioneCausale,
-                        dataRegistrazione: scrittura.testata.dataRegistrazione,
-                        dataDocumento: scrittura.testata.documentoData,
-                        numeroDocumento: scrittura.testata.documentoNumero,
-                        protocolloNumero: isNaN(protocolloNumeroInt as number) ? null : protocolloNumeroInt,
-                        totaleDocumento: scrittura.testata.totaleDocumento,
-                        noteMovimento: scrittura.testata.noteMovimento,
-                        clienteFornitoreCodiceFiscale: scrittura.testata.clienteFornitoreCodiceFiscale,
-                        clienteFornitoreSigla: scrittura.testata.clienteFornitoreSigla,
-                        tipoRegistroIva: scrittura.testata.tipoRegistroIva,
-                        // Creazione/Sostituzione righe
-                        righeContabili: {
-                            deleteMany: {},
-                            create: righeContabiliDaCreare
-                        },
-                        righeIva: {
-                            deleteMany: {},
-                            create: righeIvaDaCreare
-                        }
+                        ...upsertData,
+                        righeContabili: { deleteMany: {}, create: righeContabiliDaCreare },
+                        righeIva: { deleteMany: {}, create: righeIvaDaCreare },
                     },
                     create: {
-                        // Mappatura testata
-                        codiceUnivocoScaricamento: scrittura.testata.codiceUnivocoScaricamento,
-                        codiceCausale: scrittura.testata.codiceCausale,
-                        descrizioneCausale: scrittura.testata.descrizioneCausale,
-                        dataRegistrazione: scrittura.testata.dataRegistrazione,
-                        dataDocumento: scrittura.testata.documentoData,
-                        numeroDocumento: scrittura.testata.documentoNumero,
-                        protocolloNumero: isNaN(protocolloNumeroInt as number) ? null : protocolloNumeroInt,
-                        totaleDocumento: scrittura.testata.totaleDocumento,
-                        noteMovimento: scrittura.testata.noteMovimento,
-                        clienteFornitoreCodiceFiscale: scrittura.testata.clienteFornitoreCodiceFiscale,
-                        clienteFornitoreSigla: scrittura.testata.clienteFornitoreSigla,
-                        tipoRegistroIva: scrittura.testata.tipoRegistroIva,
-                        // Creazione righe
-                        righeContabili: {
-                            create: righeContabiliDaCreare
-                        },
-                        righeIva: {
-                            create: righeIvaDaCreare
-                        }
+                        codiceUnivocoScaricamento: codiceUnivoco,
+                        ...upsertData,
+                        righeContabili: { create: righeContabiliDaCreare },
+                        righeIva: { create: righeIvaDaCreare },
                     }
-                });
+                };
+
+                await prisma.importScritturaTestata.upsert(payload);
+                
                 importati++;
             } catch (error) {
-                const e = error as Error;
-                // Log ridotto all'essenziale
-                const prismaError = e.message.match(/Unknown argument `(.*)`/);
-                const errorMessage = prismaError ? `Campo sconosciuto: '${prismaError[1]}'` : 'Errore generico di Prisma.';
-                console.error(`Errore su scrittura ID ${scrittura.testata.codiceUnivocoScaricamento}: ${errorMessage}`);
-                erroriDiImportazione.push({ id: scrittura.testata.codiceUnivocoScaricamento, errore: e.message });
                 falliti++;
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                 erroriDiImportazione.push({
+                    id: codiceUnivoco,
+                    errore: errorMessage
+                });
+                console.error(`--- ERRORE IMPORTAZIONE SCRITTURA ---`);
+                console.error(`ID: ${codiceUnivoco}`);
+                console.error(`ERRORE:`, error);
+                console.error(`DATI INVIATI A PRISMA:`, JSON.stringify(payload, null, 2));
+                console.error(`------------------------------------`);
             }
         }
 

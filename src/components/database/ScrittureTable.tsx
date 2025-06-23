@@ -13,6 +13,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { deleteRegistrazione } from '@/api/registrazioni';
@@ -155,7 +156,7 @@ export const ScrittureTable: React.FC = () => {
                 onClick={() => consolidateMutation.mutate()}
                 disabled={consolidateMutation.isPending}
               >
-                 {consolidateMutation.isPending ? "Consolidamento..." : "Consolida Import"}
+                {consolidateMutation.isPending ? "Consolidamento..." : "Consolida Import"}
               </Button>
               <Button variant="destructive" onClick={() => setIsClearing(true)}>
                 <Trash2 className="mr-2 h-4 w-4" />
