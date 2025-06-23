@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Fragment } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, PlusCircle, Trash2 } from "lucide-react";
+import { ColumnDef, ExpandedState } from "@tanstack/react-table";
+import { MoreHorizontal, PlusCircle, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -11,22 +12,28 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from 'sonner';
 
-// Tipi
+// Tipi Aggiornati
 type Allocation = {
   id: string;
+  commessaId: string;
   commessaNome: string;
   importo: number;
+  suggerimento: boolean;
 };
+
 type ReconciliationRow = {
-  id: string;
+  id:string;
   dataRegistrazione: string;
   codiceConto: string;
-  descrizione: string;
+  descrizioneConto: string;
+  descrizioneRiga: string;
   importo: number;
   totaleAllocato: number;
   status: 'Allocata' | 'Da Allocare' | 'Allocazione Parziale';
+  tipo: 'Costo' | 'Ricavo';
   allocazioni: Allocation[];
 };
+
 type Commessa = {
   id: string;
   nome: string;
@@ -75,28 +82,18 @@ const AllocationDialog = ({ row, open, onOpenChange }: { row: ReconciliationRow 
 
   useEffect(() => {
     if (row) {
-        console.log('[Allocation Dialog] Riga selezionata:', row);
-        console.log('[Allocation Dialog] Allocazioni esistenti:', row.allocazioni);
-        
         if (commesse.length > 0) {
-            // Mappiamo le allocazioni esistenti
-            const mappedAllocations = row.allocazioni.map(a => {
-                const commessa = commesse.find(c => c.nome === a.commessaNome);
-                console.log(`[Allocation Dialog] Mappando allocazione: ${a.commessaNome} -> ${commessa?.id}, importo: ${a.importo}`);
-                return { commessaId: commessa?.id || '', importo: a.importo };
-            }).filter(a => a.commessaId);
+            const mappedAllocations = row.allocazioni.map(a => ({
+                commessaId: a.commessaId,
+                importo: a.importo
+            }));
 
-            // Se non ci sono allocazioni esistenti, crea una singola allocazione con l'importo totale
             if(mappedAllocations.length === 0) {
-                console.log(`[Allocation Dialog] Nessuna allocazione esistente, creo una nuova con importo: ${row.importo}`);
                 setAllocations([{ commessaId: '', importo: row.importo }]);
             } else {
-                console.log('[Allocation Dialog] Usando allocazioni mappate:', mappedAllocations);
                 setAllocations(mappedAllocations);
             }
         } else {
-            // Se non abbiamo ancora caricato le commesse, crea allocazione vuota
-            console.log('[Allocation Dialog] Commesse non ancora caricate, creo allocazione vuota');
             setAllocations([{ commessaId: '', importo: row.importo }]);
         }
     }
@@ -135,7 +132,7 @@ const AllocationDialog = ({ row, open, onOpenChange }: { row: ReconciliationRow 
           <DialogTitle>Modifica Allocazione</DialogTitle>
           <div className="space-y-2 mt-3 p-3 bg-gray-50 rounded-lg">
             <div className="text-sm font-medium text-gray-700">
-              <span className="font-semibold">Conto:</span> {row.codiceConto} - {row.descrizione}
+              <span className="font-semibold">Conto:</span> {row.codiceConto} - {row.descrizioneConto}
             </div>
             <div className="text-sm text-gray-600">
               <span className="font-semibold">Data:</span> {new Date(row.dataRegistrazione).toLocaleDateString()}
@@ -214,6 +211,7 @@ const AllocationDialog = ({ row, open, onOpenChange }: { row: ReconciliationRow 
 const RiconciliazionePage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState<ReconciliationRow | null>(null);
+  const [expanded, setExpanded] = React.useState<ExpandedState>({});
 
   const { data, isLoading, error } = useQuery<ReconciliationRow[], Error>({ queryKey: ['stagingRows'], queryFn: fetchStagingRows });
 
@@ -223,9 +221,41 @@ const RiconciliazionePage = () => {
   };
 
   const columns: ColumnDef<ReconciliationRow>[] = [
+    {
+      id: 'expander',
+      header: () => null,
+      cell: ({ row }) => {
+        return row.getCanExpand() ? (
+          <button
+            {...{
+              onClick: row.getToggleExpandedHandler(),
+              style: { cursor: 'pointer' },
+            }}
+          >
+            {row.getIsExpanded() ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+          </button>
+        ) : null;
+      },
+    },
     { accessorKey: "dataRegistrazione", header: "Data Reg.", cell: ({ row }) => new Date(row.original.dataRegistrazione).toLocaleDateString() },
-    { accessorKey: "codiceConto", header: "Conto", cell: ({ row }) => `${row.original.codiceConto}` },
-    { accessorKey: "descrizione", header: "Descrizione" },
+    {
+        accessorKey: "conto",
+        header: "Conto",
+        cell: ({ row }) => (
+            <div>
+                <div className="font-medium">{row.original.codiceConto}</div>
+                <div className="text-xs text-gray-500">{row.original.descrizioneConto}</div>
+            </div>
+        )
+    },
+    { 
+        accessorKey: "tipo", 
+        header: "Tipo",
+        cell: ({ row }) => {
+            const tipo = row.original.tipo;
+            return <Badge variant={tipo === 'Costo' ? 'destructive' : 'default'} className={tipo === 'Ricavo' ? 'bg-green-600' : ''}>{tipo}</Badge>;
+        }
+    },
     { accessorKey: "importo", header: "Importo", cell: ({ row }) => `€ ${row.original.importo.toFixed(2)}` },
     { accessorKey: "totaleAllocato", header: "Allocato", cell: ({ row }) => `€ ${row.original.totaleAllocato.toFixed(2)}` },
     { accessorKey: "status", header: "Stato" },
@@ -246,19 +276,62 @@ const RiconciliazionePage = () => {
   if (isLoading) return <div>Caricamento in corso...</div>;
   if (error) return <div>Errore nel caricamento dei dati: {error.message}</div>;
 
+  const renderRowSubComponent = ({ row }: { row: any }) => {
+    const { allocazioni, descrizioneRiga } = row.original as ReconciliationRow;
+    return (
+        <td colSpan={columns.length} className="p-4 bg-gray-50">
+            {descrizioneRiga && <p className="text-sm text-gray-600 mb-3 italic"><strong>Note riga:</strong> {descrizioneRiga}</p>}
+            <h4 className="font-bold mb-2">Dettaglio Allocazioni:</h4>
+            {allocazioni.length > 0 ? (
+                <table className="w-full text-sm">
+                    <thead>
+                        <tr className="border-b">
+                            <th className="text-left py-1 px-2 font-medium">Commessa</th>
+                            <th className="text-right py-1 px-2 font-medium">Importo</th>
+                            <th className="text-center py-1 px-2 font-medium">Tipo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {allocazioni.map((alloc: Allocation) => (
+                            <tr key={alloc.id} className="border-b border-gray-200">
+                                <td className="py-2 px-2">{alloc.commessaNome}</td>
+                                <td className="text-right py-2 px-2">€ {alloc.importo.toFixed(2)}</td>
+                                <td className="text-center py-2 px-2">
+                                    <Badge variant={alloc.suggerimento ? "secondary" : "default"}>
+                                        {alloc.suggerimento ? "Automatico" : "Manuale"}
+                                    </Badge>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            ) : <p className="text-sm text-gray-500">Nessuna allocazione presente.</p>}
+        </td>
+    );
+};
+
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Scrivania di Riconciliazione</h1>
-      <p className="mb-6 text-gray-600">
-        Associa ogni costo o ricavo alla commessa di competenza.
-      </p>
-      
-      {data && <DataTable columns={columns} data={data} />}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+            <h1 className="text-2xl font-bold">Scrivania di Riconciliazione</h1>
+            <p className="text-gray-600">Associa ogni costo o ricavo alla commessa di competenza.</p>
+        </div>
+      </div>
 
-      <AllocationDialog
-        open={isDialogOpen}
+      <DataTable
+        columns={columns}
+        data={data ?? []}
+        getRowCanExpand={() => true}
+        renderRowSubComponent={renderRowSubComponent}
+        expanded={expanded}
+        onExpandedChange={setExpanded}
+      />
+
+      <AllocationDialog 
+        open={isDialogOpen} 
         onOpenChange={setIsDialogOpen}
-        row={selectedRow}
+        row={selectedRow} 
       />
     </div>
   );

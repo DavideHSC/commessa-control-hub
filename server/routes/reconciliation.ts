@@ -34,6 +34,12 @@ router.get('/staging-rows', async (req: Request, res: Response) => {
 
     const allocazioni = await prisma.importAllocazione.findMany();
     console.log(`[Recon] Trovate ${allocazioni.length} allocazioni totali.`);
+
+    const commesse = await prisma.commessa.findMany();
+    const commesseMap = new Map(commesse.map(c => [c.id, c.nome]));
+
+    const conti = await prisma.conto.findMany();
+    const contiMap = new Map(conti.map(c => [c.codice, c.nome]));
     
     // Raggruppa le allocazioni per riga contabile
     const allocazioniMap = new Map<string, any[]>();
@@ -70,19 +76,26 @@ router.get('/staging-rows', async (req: Request, res: Response) => {
             status = 'Allocazione Parziale';
           }
         }
+        
+        const tipo = row.codiceConto?.startsWith('6') ? 'Costo' : 'Ricavo';
+        const descrizioneConto = row.codiceConto ? contiMap.get(row.codiceConto) || 'N/D' : 'Conto non specificato';
 
         return {
           id: row.id,
           dataRegistrazione: testata.dataRegistrazione,
           codiceConto: row.codiceConto,
-          descrizione: row.note,
+          descrizioneConto,
+          descrizioneRiga: row.note,
           importo: importoRiga,
           totaleAllocato,
           status,
+          tipo,
           allocazioni: rowAllocations.map((a) => ({
             id: a.id,
             commessaId: a.commessaId,
+            commessaNome: commesseMap.get(a.commessaId) || 'Non trovata',
             importo: a.importo,
+            suggerimento: a.suggerimentoAutomatico,
           })),
         };
       })
