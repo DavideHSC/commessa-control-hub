@@ -1,6 +1,7 @@
 import { ScritturaContabile } from "@/types";
+import { PaginatedResponse } from ".";
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = '/api';
 
 /**
  * Recupera tutte le scritture contabili dal server.
@@ -11,7 +12,8 @@ export const getRegistrazioni = async (): Promise<ScritturaContabile[]> => {
   if (!response.ok) {
     throw new Error('Errore nel recupero delle registrazioni');
   }
-  return response.json();
+  const result: PaginatedResponse<ScritturaContabile> = await response.json();
+  return result.data;
 };
 
 /**

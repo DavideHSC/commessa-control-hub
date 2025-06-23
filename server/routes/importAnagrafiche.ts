@@ -29,8 +29,8 @@ router.post('/:templateName', upload.single('file'), async (req: Request, res: R
     
     try {
         const importTemplate = await prisma.importTemplate.findUnique({
-            where: { nome: templateName },
-            include: { fields: true },
+            where: { name: templateName },
+            include: { fieldDefinitions: true },
         });
 
         if (!importTemplate) {
@@ -38,16 +38,18 @@ router.post('/:templateName', upload.single('file'), async (req: Request, res: R
             return res.status(404).json({ error: `Template '${templateName}' non trovato.` });
         }
         
-        console.log(`[IMPORT] Trovato template '${importTemplate.nome}' con ${importTemplate.fields.length} campi definiti.`);
+        console.log(`[IMPORT] Trovato template '${importTemplate.name}' con ${importTemplate.fieldDefinitions.length} campi definiti.`);
 
         const modelName = (importTemplate as any).modelName as keyof PrismaClient | null;
         
-        const fieldDefinitionsForParser: FieldDefinition[] = importTemplate.fields.map(f => ({
-            name: f.nomeCampo,
-            start: f.start,
-            length: f.length,
-            type: f.type as 'string' | 'number' | 'date'
-        }));
+        const fieldDefinitionsForParser: FieldDefinition[] = importTemplate.fieldDefinitions
+            .filter(f => f.fieldName)
+            .map(f => ({
+                name: f.fieldName!,
+                start: f.start,
+                length: f.length,
+                type: f.format as 'string' | 'number' | 'date'
+            }));
 
         const parsedData = parseFixedWidth<any>(fileContent, fieldDefinitionsForParser);
         
@@ -189,43 +191,43 @@ async function handleAnagraficaCliForImport(fileContent: string, res: Response) 
             const batch = validRecords.slice(i, i + batchSize);
             await prisma.$transaction(async (tx) => {
                 for (const record of batch) {
-                    const { tipoConto } = record;
+                    const { tipoConto, ...dataToSave } = record;
 
                     const commonData = {
-                        id: record.id,
-                        externalId: record.externalId,
-                        nome: record.nome,
-                        piva: record.piva,
-                        codiceFiscale: record.codiceFiscale,
-                        tipoAnagrafica: record.tipoAnagrafica,
-                        cognome: record.cognome,
-                        nomeAnagrafico: record.nomeAnagrafico,
-                        sesso: record.sesso,
-                        dataNascita: record.dataNascita,
-                        comuneNascita: record.comuneNascita,
-                        indirizzo: record.indirizzo,
-                        cap: record.cap,
-                        comune: record.comune,
-                        nazione: record.nazione,
-                        telefono: record.telefono,
-                        codicePagamento: record.codicePagamento,
-                        codiceValuta: record.codiceValuta,
+                        id: dataToSave.id,
+                        externalId: dataToSave.externalId,
+                        nome: dataToSave.nome,
+                        piva: dataToSave.piva,
+                        codiceFiscale: dataToSave.codiceFiscale,
+                        tipoAnagrafica: dataToSave.tipoAnagrafica,
+                        cognome: dataToSave.cognome,
+                        nomeAnagrafico: dataToSave.nomeAnagrafico,
+                        sesso: dataToSave.sesso,
+                        dataNascita: dataToSave.dataNascita,
+                        comuneNascita: dataToSave.comuneNascita,
+                        indirizzo: dataToSave.indirizzo,
+                        cap: dataToSave.cap,
+                        comune: dataToSave.comune,
+                        nazione: dataToSave.nazione,
+                        telefono: dataToSave.telefono,
+                        codicePagamento: dataToSave.codicePagamento,
+                        codiceValuta: dataToSave.codiceValuta,
                     };
 
                     const fornitoreData = {
                         ...commonData,
-                        gestione770: record.gestione770,
-                        soggettoRitenuta: record.soggettoRitenuta,
-                        quadro770: record.quadro770,
-                        contributoPrevidenziale: record.contributoPrevidenziale,
-                        codiceRitenuta: record.codiceRitenuta,
-                        enasarco: record.enasarco,
-                        tipoRitenuta: record.tipoRitenuta,
-                        soggettoInail: record.soggettoInail,
-                        contributoPrevidenzialeL335: record.contributoPrevidenzialeL335,
-                        aliquota: record.aliquota,
-                        percContributoCassaPrev: record.percContributoCassaPrev,
-                        attivitaMensilizzazione: record.attivitaMensilizzazione,
+                        gestione770: dataToSave.gestione770,
+                        soggettoRitenuta: dataToSave.soggettoRitenuta,
+                        quadro770: dataToSave.quadro770,
+                        contributoPrevidenziale: dataToSave.contributoPrevidenziale,
+                        codiceRitenuta: dataToSave.codiceRitenuta,
+                        enasarco: dataToSave.enasarco,
+                        tipoRitenuta: dataToSave.tipoRitenuta,
+                        soggettoInail: dataToSave.soggettoInail,
+                        contributoPrevidenzialeL335: dataToSave.contributoPrevidenzialeL335,
+                        aliquota: dataToSave.aliquota,
+                        percContributoCassaPrev: dataToSave.percContributoCassaPrev,
+                        attivitaMensilizzazione: dataToSave.attivitaMensilizzazione,
                     };
                     
                     const upsertCliente = () => tx.cliente.upsert({
@@ -248,17 +250,17 @@ async function handleAnagraficaCliForImport(fileContent: string, res: Response) 
                         await upsertCliente();
                         await upsertFornitore();
                     }
-                    processedCount++;
                 }
             });
+            processedCount += batch.length;
+            console.log(`[IMPORT Clienti/Fornitori] Processati ${processedCount}/${validRecords.length} record.`);
         }
-        
-        console.log(`[IMPORT Clienti/Fornitori] Importazione completata. ${processedCount} record processati.`);
-        return res.status(200).json({ message: `Importazione Clienti/Fornitori completata. ${processedCount} record processati.` });
+
+        res.status(200).json({ message: 'Importazione completata con successo', importedCount: validRecords.length });
 
     } catch (error) {
-        console.error(`[IMPORT Clienti/Fornitori] Errore durante l'importazione:`, error);
-        return res.status(500).json({ error: 'Errore durante importazione Clienti/Fornitori.' });
+        console.error('Errore durante l\'importazione di anagrafica clienti/fornitori:', error);
+        res.status(500).json({ error: 'Errore interno del server durante l\'importazione' });
     }
 }
 
@@ -266,59 +268,62 @@ async function handlePianoDeiContiImport(parsedData: any[], res: Response) {
     let processedCount = 0;
     const batchSize = 100;
 
-    try {
-        const validRecords = parsedData.map(record => {
-            const codice = record.codice?.trim();
-            if (!codice) return null;
+    const validRecords = parsedData.map(record => {
+        const id = record.codice?.trim();
+        if (!id) return null;
+        return {
+            id,
+            externalId: id,
+            codice: id,
+            descrizione: record.descrizione?.trim() || 'Conto senza nome',
+        };
+    }).filter((record): record is NonNullable<typeof record> => record !== null);
 
-            let tipo: TipoConto;
-            const tipoChar = record.tipoChar?.trim().toUpperCase();
-            switch (tipoChar) {
-                case 'P': tipo = TipoConto.Patrimoniale; break;
-                case 'E': tipo = codice.startsWith('1') ? TipoConto.Ricavo : TipoConto.Costo; break;
-                case 'C': tipo = TipoConto.Cliente; break;
-                case 'F': tipo = TipoConto.Fornitore; break;
-                default: tipo = TipoConto.Patrimoniale; break;
-            }
+    console.log(`[IMPORT Piano dei Conti] Trovati ${validRecords.length} record validi da processare.`);
+    
+    const getTipoConto = (record: typeof validRecords[number]): TipoConto => {
+        const codice = record.codice;
+        if (codice.startsWith('C')) return TipoConto.Costo;
+        if (codice.startsWith('R')) return TipoConto.Ricavo;
+        return TipoConto.Patrimoniale;
+    };
 
-            return {
-                id: codice,
-                externalId: codice,
-                codice: codice,
-                nome: record.nome?.trim() || 'Conto senza nome',
-                tipo: tipo,
-                richiedeVoceAnalitica: false,
-                vociAnaliticheAbilitateIds: [],
-                contropartiteSuggeriteIds: []
-            };
-        }).filter((record): record is NonNullable<typeof record> => record !== null);
+    for (let i = 0; i < validRecords.length; i += batchSize) {
+        const batch = validRecords.slice(i, i + batchSize);
+        await prisma.$transaction(async (tx) => {
+            for (const record of batch) {
+                const tipoConto = getTipoConto(record);
+                const dataToUpsert = {
+                    id: record.id,
+                    externalId: record.externalId,
+                    codice: record.codice,
+                    nome: record.descrizione,
+                    tipo: tipoConto,
+                    richiedeVoceAnalitica: false, 
+                    vociAnaliticheAbilitateIds: [],
+                    contropartiteSuggeriteIds: []
+                };
 
-        console.log(`[IMPORT Piano dei Conti] Trovati ${validRecords.length} record validi da processare.`);
-
-        for (let i = 0; i < validRecords.length; i += batchSize) {
-            const batch = validRecords.slice(i, i + batchSize);
-            await prisma.$transaction(async (tx) => {
-                for (const dataToUpsert of batch) {
+                try {
                     await tx.conto.upsert({
-                        where: { id: dataToUpsert.id },
+                        where: { id: record.id },
                         update: {
+                            codice: dataToUpsert.codice,
                             nome: dataToUpsert.nome,
                             tipo: dataToUpsert.tipo,
                         },
                         create: dataToUpsert,
                     });
                     processedCount++;
+                } catch (error) {
+                    console.error(`Errore durante l'upsert del conto con id ${record.id}:`, error);
                 }
-            });
-        }
-        
-        console.log(`[IMPORT Piano dei Conti] Importazione completata. ${processedCount} conti salvati.`);
-        return res.status(200).json({ message: `Importazione piano dei conti completata. ${processedCount} conti processati.` });
-
-    } catch (error) {
-        console.error(`[IMPORT Piano dei Conti] Errore durante l'importazione:`, error);
-        return res.status(500).json({ error: 'Errore durante importazione piano dei conti.' });
+            }
+        });
     }
+
+    console.log(`[IMPORT Piano dei Conti] Importazione completata. Record processati: ${processedCount}`);
+    res.status(200).json({ message: 'Importazione completata con successo', importedCount: processedCount });
 }
 
 export default router;

@@ -250,4 +250,16 @@ export interface CondizionePagamento {
   descrizione: string;
 }
 
+export interface TableStats {
+  totaleScrittureContabili: number;
+  totaleCommesse: number;
+  totaleClienti: number;
+  totaleFornitori: number;
+  totaleConti: number;
+  totaleVociAnalitiche: number;
+  totaleCausali: number;
+  totaleCodiciIva: number;
+  totaleCondizioniPagamento: number;
+}
+
 export {}; 

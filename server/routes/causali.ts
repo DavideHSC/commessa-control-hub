@@ -23,7 +23,7 @@ router.get('/', async (req, res) => {
     const where: Prisma.CausaleContabileWhereInput = search ? {
         OR: [
             { descrizione: { contains: search as string, mode: 'insensitive' } },
-            { externalId: { contains: search as string, mode: 'insensitive' } },
+            { nome: { contains: search as string, mode: 'insensitive' } },
         ],
     } : {};
 
@@ -60,13 +60,13 @@ router.get('/', async (req, res) => {
 // POST - Crea una nuova causale contabile
 router.post('/', async (req, res) => {
   try {
-    const { id, descrizione, externalId } = req.body;
+    const { id, descrizione, nome } = req.body;
     
     const causale = await prisma.causaleContabile.create({
       data: {
         id,
         descrizione,
-        externalId: externalId || null,
+        nome
       }
     });
     
@@ -81,13 +81,13 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { descrizione, externalId } = req.body;
+    const { descrizione, nome } = req.body;
     
     const causale = await prisma.causaleContabile.update({
       where: { id },
       data: {
         descrizione,
-        externalId: externalId || null,
+        nome
       }
     });
     

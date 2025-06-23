@@ -20,6 +20,7 @@ import importTemplatesRoutes from './routes/importTemplates';
 import codiciIvaRoutes from './routes/codiciIva';
 import condizioniPagamentoRoutes from './routes/condizioniPagamento';
 import systemRoutes from './routes/system';
+import statsRoutes from './routes/stats';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -46,6 +47,7 @@ app.use('/api/import-templates', importTemplatesRoutes);
 app.use('/api/codici-iva', codiciIvaRoutes);
 app.use('/api/condizioni-pagamento', condizioniPagamentoRoutes);
 app.use('/api/system', systemRoutes);
+app.use('/api/database/stats', statsRoutes);
 
 // Endpoint di base per testare il server
 app.get('/api', (req: Request, res: Response) => {

@@ -191,6 +191,7 @@ model ScritturaContabile {
   dataDocumento   DateTime?
   numeroDocumento String?
   causaleId       String?
+  causale         CausaleContabile? @relation(fields: [causaleId], references: [id])
   descrizione     String
   datiAggiuntivi  Json?
 
@@ -270,19 +271,11 @@ model RigaIva {
 // --- MODELLI PER LA CONFIGURAZIONE DEGLI AUTOMATISMI ---
 
 model CausaleContabile {
-  id                  String   @id
-  externalId          String?  @unique
-  descrizione         String
-  tipoDocumentoIva    String?
-  gestioneRitenute    String?
-  fatturaInValuta     Boolean?
-  generazioneAutofattura Boolean?
-  versamentoRitenute  Boolean?
-  tipoMovimento       String?
-  tipoIva             String?
-  note                String?
-  imponibilePredefinito Float?
-  protocolloIva       String?
+  id          String    @id
+  externalId  String?   @unique
+  nome        String
+  descrizione String?
+  scritture   ScritturaContabile[]
 }
 
 // --- MODELLI PER IMPORTAZIONE DINAMICA ---

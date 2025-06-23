@@ -15,6 +15,7 @@ import {
   getCausaliContabili,
   getCodiciIva,
   getCondizioniPagamento,
+  getDatabaseStats,
 } from '@/api';
 import { ClientiTable } from '@/components/database/ClientiTable';
 import { FornitoriTable } from '@/components/database/FornitoriTable';
@@ -63,28 +64,17 @@ const Database: React.FC = () => {
     if (showLoading) setLoading(true);
 
     try {
-      const results = await Promise.all([
-        getScrittureContabili({ limit: 1 }),
-        getCommesse({ limit: 1 }),
-        getClienti({ limit: 1 }),
-        getFornitori({ limit: 1 }),
-        getPianoDeiConti({ limit: 1 }),
-        getVociAnalitiche({ limit: 1 }),
-        getCausaliContabili({ limit: 1 }),
-        getCodiciIva({ limit: 1 }),
-        getCondizioniPagamento({ limit: 1 }),
-      ]);
-
+      const dbStats = await getDatabaseStats();
       setStats({
-        scritture: results[0].pagination.total,
-        commesse: results[1].pagination.total,
-        clienti: results[2].pagination.total,
-        fornitori: results[3].pagination.total,
-        conti: results[4].pagination.total,
-        vociAnalitiche: results[5].pagination.total,
-        causali: results[6].pagination.total,
-        codiciIva: results[7].pagination.total,
-        condizioniPagamento: results[8].pagination.total,
+        scritture: dbStats.totaleScrittureContabili,
+        commesse: dbStats.totaleCommesse,
+        clienti: dbStats.totaleClienti,
+        fornitori: dbStats.totaleFornitori,
+        conti: dbStats.totaleConti,
+        vociAnalitiche: dbStats.totaleVociAnalitiche,
+        causali: dbStats.totaleCausali,
+        codiciIva: dbStats.totaleCodiciIva,
+        condizioniPagamento: dbStats.totaleCondizioniPagamento,
       });
 
     } catch (err: unknown) {
