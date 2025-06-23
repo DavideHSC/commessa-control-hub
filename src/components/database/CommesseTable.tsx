@@ -74,7 +74,7 @@ export const CommesseTable = () => {
     const fetchClienti = async () => {
       try {
         const clientiData = await getClienti({ limit: 1000 });
-        setClienti(clientiData.data);
+        setClienti(clientiData);
       } catch (error) {
         console.error("Failed to fetch clienti:", error);
       }
@@ -113,6 +113,12 @@ export const CommesseTable = () => {
     {
       accessorKey: "nome",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />,
+    },
+    {
+      id: "parent",
+      accessorKey: "parent.nome",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Commessa Genitore" />,
+      cell: ({ row }) => row.original.parent?.nome || 'N/A'
     },
     {
       accessorKey: "cliente.nome",

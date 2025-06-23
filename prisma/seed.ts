@@ -8,30 +8,14 @@ const SYSTEM_CUSTOMER_ID = 'system_customer_01';
 const SYSTEM_SUPPLIER_ID = 'system_supplier_01';
 
 async function main() {
-  console.log('Inizio seeding (solo dati essenziali)...');
+  console.log('Inizio seeding (dati cliente e di sistema)...');
 
-  // 1. Pulisce i dati esistenti (DISABILITATO)
-  console.log('ATTENZIONE: La pulizia delle tabelle è stata disabilitata in questo script.');
-  // console.log('Pulizia tabelle...');
-  // await prisma.allocazione.deleteMany({});
-  // await prisma.rigaScrittura.deleteMany({});
-  // await prisma.scritturaContabile.deleteMany({});
-  // await prisma.budgetVoce.deleteMany({});
-  // await prisma.commessa.deleteMany({});
-  // await prisma.voceTemplateScrittura.deleteMany({});
-  // await prisma.campoDatiPrimari.deleteMany({});
-  // await prisma.causaleContabile.deleteMany({});
-  // await prisma.conto.deleteMany({});
-  // await prisma.voceAnalitica.deleteMany({});
-  // await prisma.fornitore.deleteMany({});
-  // await prisma.cliente.deleteMany({});
-  // await prisma.importTemplate.deleteMany({});
-  // await prisma.fieldDefinition.deleteMany({});
-  // await prisma.condizionePagamento.deleteMany({});
-  // await prisma.codiceIva.deleteMany({});
+  // 1. Pulisce SOLO le commesse per poterle ricreare in modo pulito.
+  console.log('Pulizia tabella Commesse...');
+  await prisma.commessa.deleteMany({});
 
-  // 2. Popola dati di base (Voci Analitiche)
-  console.log('Creazione Voci Analitiche di base...');
+  // 2. Popola dati di base (Voci Analitiche) - con UPSERT per evitare errori
+  console.log('Creazione/aggiornamento Voci Analitiche di base...');
   const vociAnaliticheData = [
     { id: 'costo_personale', nome: 'Costo del personale' },
     { id: 'gestione_automezzi', nome: 'Gestione automezzi' },
@@ -48,41 +32,51 @@ async function main() {
     { id: 'selezione_valorizzazione_rifiuti', nome: 'Selezione e Valorizzazione Rifiuti Differenziati' },
     { id: 'gestione_frazione_organica', nome: 'Gestione frazione organica' },
   ];
-  await prisma.voceAnalitica.createMany({
-    data: vociAnaliticheData,
-  });
-  console.log('Voci Analitiche create.');
+  
+  for (const voce of vociAnaliticheData) {
+    await prisma.voceAnalitica.upsert({
+      where: { id: voce.id },
+      update: { nome: voce.nome },
+      create: voce,
+    });
+  }
+  console.log('Voci Analitiche create/aggiornate.');
 
-  // 3. SOLO Cliente e Fornitore di sistema (necessari per importazioni)
-  await prisma.cliente.create({
-    data: {
+  // 3. Cliente e Fornitore di sistema (necessari per importazioni) - UPSERT
+  await prisma.cliente.upsert({
+    where: { id: SYSTEM_CUSTOMER_ID },
+    update: {},
+    create: {
       id: SYSTEM_CUSTOMER_ID,
       externalId: 'SYS-CUST',
       nome: 'Cliente di Sistema (per importazioni)',
     }
   });
 
-  await prisma.fornitore.create({
-    data: {
+  await prisma.fornitore.upsert({
+    where: { id: SYSTEM_SUPPLIER_ID },
+    update: {},
+    create: {
       id: SYSTEM_SUPPLIER_ID,
       externalId: 'SYS-SUPP',
       nome: 'Fornitore di Sistema (per importazioni)',
     }
   });
+  console.log('Cliente e Fornitore di sistema creati/verificati.');
 
-  console.log('Cliente e Fornitore di sistema creati.');
-
-  // 5. Popola dati specifici del cliente (PENISOLAVERDE SPA)
-  console.log('Creazione dati cliente e commesse per PENISOLAVERDE SPA...');
+  // 4. Popola dati specifici del cliente (PENISOLAVERDE SPA) - UPSERT
+  console.log('Creazione/aggiornamento dati cliente e commesse per PENISOLAVERDE SPA...');
   
-  // Cliente Principale
-  const clientePenisolaVerde = await prisma.cliente.create({
-    data: {
+  const clientePenisolaVerde = await prisma.cliente.upsert({
+    where: { externalId: 'PENISOLAVERDE_SPA' },
+    update: { nome: 'PENISOLAVERDE SPA' },
+    create: {
       nome: 'PENISOLAVERDE SPA',
+      externalId: 'PENISOLAVERDE_SPA',
       piva: '01234567890', // Placeholder
     },
   });
-  console.log(`Cliente '${clientePenisolaVerde.nome}' creato con ID: ${clientePenisolaVerde.id}`);
+  console.log(`Cliente '${clientePenisolaVerde.nome}' creato/trovato con ID: ${clientePenisolaVerde.id}`);
 
   // Commesse Principali (Comuni)
   const commessaSorrento = await prisma.commessa.create({
@@ -111,7 +105,6 @@ async function main() {
       clienteId: clientePenisolaVerde.id,
     },
   });
-
   console.log('Commesse principali (Comuni) create.');
 
   // Commesse Figlie (Attività / Centri di Costo)
@@ -144,12 +137,14 @@ async function main() {
   });
   console.log('Commesse figlie (Attività) create.');
 
-  // 6. SOLO Template di Importazione (essenziali per funzionamento)
-  console.log('Creazione Template di Importazione...');
+  // 5. Template di Importazione (essenziali per funzionamento) - UPSERT
+  console.log('Creazione/Aggiornamento Template di Importazione...');
   
   // Template Causali
-  await prisma.importTemplate.create({
-    data: {
+  await prisma.importTemplate.upsert({
+    where: { name: 'causali' },
+    update: {}, // Non aggiorniamo nulla se esiste già
+    create: {
       name: 'causali',
       modelName: 'CausaleContabile',
       fieldDefinitions: { create: [
@@ -168,8 +163,10 @@ async function main() {
   });
 
   // Template Condizioni Pagamento
-  await prisma.importTemplate.create({
-    data: {
+  await prisma.importTemplate.upsert({
+    where: { name: 'condizioni_pagamento' },
+    update: {},
+    create: {
       name: 'condizioni_pagamento',
       modelName: 'CondizionePagamento',
       fieldDefinitions: { create: [
@@ -185,8 +182,10 @@ async function main() {
   });
 
   // Template Codici IVA
-  await prisma.importTemplate.create({
-    data: {
+  await prisma.importTemplate.upsert({
+    where: { name: 'codici_iva' },
+    update: {},
+    create: {
       name: 'codici_iva',
       modelName: 'CodiceIva',
       fieldDefinitions: { create: [
@@ -203,9 +202,11 @@ async function main() {
     }
   });
 
-  // Template Anagrafica Clienti/Fornitori (CORRETTO)
-  await prisma.importTemplate.create({
-    data: {
+  // Template Anagrafica Clienti/Fornitori
+  await prisma.importTemplate.upsert({
+    where: { name: 'anagrafica_clifor' },
+    update: {},
+    create: {
       name: 'anagrafica_clifor',
       modelName: null,
       fieldDefinitions: { create: [
@@ -219,9 +220,11 @@ async function main() {
     }
   });
 
-  // Template Piano dei Conti (CORRETTO per CONTIGEN.TXT)
-  await prisma.importTemplate.create({
-    data: {
+  // Template Piano dei Conti
+  await prisma.importTemplate.upsert({
+    where: { name: 'piano_dei_conti' },
+    update: {},
+    create: {
       name: 'piano_dei_conti',
       modelName: null, // Gestione custom per mappare i tipi
       fieldDefinitions: { create: [
@@ -272,17 +275,18 @@ async function main() {
     { fileIdentifier: 'MOVANAC.TXT', fieldName: 'centroDiCosto', start: 18, length: 4 },
     { fileIdentifier: 'MOVANAC.TXT', fieldName: 'parametro', start: 22, length: 12, format: 'number' }
   ];
-
-  await prisma.importTemplate.create({
-    data: {
+  await prisma.importTemplate.upsert({
+    where: { name: 'scritture_contabili' },
+    update: {},
+    create: {
       name: 'scritture_contabili',
       modelName: null,
       fieldDefinitions: { create: scrittureContabiliFields },
     },
   });
 
-  console.log('Template di importazione creati.');
-  console.log('Seeding completato - Database pulito e pronto per importazioni reali.');
+  console.log('Template di importazione creati/aggiornati.');
+  console.log('Seeding completato.');
 }
 
 main()

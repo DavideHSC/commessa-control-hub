@@ -70,6 +70,11 @@ export interface Commessa {
   cliente?: Cliente;
   budget?: Partial<BudgetVoce>[];
   allocazioni?: Allocazione[];
+  
+  // Gerarchia
+  parentId?: string | null;
+  parent?: Commessa | null;
+  children?: Commessa[];
 }
 
 /**
