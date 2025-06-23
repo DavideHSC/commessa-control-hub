@@ -17,14 +17,15 @@ export interface PaginatedResponse<T> {
 const networkDelay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
 // Generic fetch function for paginated data
-const fetchPaginatedData = async <T>(endpoint: string, params: Record<string, any> = {}): Promise<PaginatedResponse<T>> => {
+const fetchPaginatedData = async <T>(endpoint: string, params: Record<string, any> = {}): Promise<T[]> => {
   const query = qs.stringify({ limit: 10, ...params }, { skipNulls: true, arrayFormat: 'brackets' });
   const response = await fetch(`${endpoint}?${query}`);
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ message: 'Errore nel recupero dei dati' }));
     throw new Error(errorData.message || 'Errore di rete');
   }
-  return response.json();
+  const result: PaginatedResponse<T> = await response.json();
+  return result.data;
 };
 
 async function fetchData<T>(endpoint: string, errorMessage: string): Promise<T> {

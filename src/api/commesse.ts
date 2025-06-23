@@ -7,7 +7,8 @@ export const getCommesse = async (): Promise<Commessa[]> => {
     if (!response.ok) {
         throw new Error('Errore nel recupero delle commesse');
     }
-    return response.json();
+    const result = await response.json();
+    return result.data;
 };
 
 export const createCommessa = async (data: Partial<Commessa>): Promise<Commessa> => {
