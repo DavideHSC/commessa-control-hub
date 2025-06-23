@@ -33,12 +33,12 @@ model Cliente {
 }
 
 model Fornitore {
-  id                          String               @id @default(cuid())
-  externalId                  String?              @unique
+  id                          String                   @id @default(cuid())
+  externalId                  String?                  @unique
   nome                        String
   piva                        String?
-  createdAt                   DateTime             @default(now())
-  updatedAt                   DateTime             @updatedAt
+  createdAt                   DateTime                 @default(now())
+  updatedAt                   DateTime                 @updatedAt
   codiceFiscale               String?
   aliquota                    Float?
   attivitaMensilizzazione     Int?
@@ -67,6 +67,7 @@ model Fornitore {
   tipoAnagrafica              String?
   tipoRitenuta                String?
   scritture                   ScritturaContabile[]
+  ImportScritturaTestata      ImportScritturaTestata[]
 }
 
 model VoceAnalitica {
@@ -94,18 +95,18 @@ model Conto {
 }
 
 model Commessa {
-  id                      String        @id @default(cuid())
-  nome                    String
-  clienteId               String
-  cliente                 Cliente       @relation(fields: [clienteId], references: [id])
-  allocazioni             Allocazione[]
-  budget                  BudgetVoce[]
-  dataCreazione           DateTime      @default(now())
-  dataAggiornamento       DateTime      @updatedAt
-  externalId              String?       @unique
-  commessaPadreId         String?
-  commessaPadre           Commessa?     @relation("CommessaHierarchy", fields: [commessaPadreId], references: [id])
-  sottocommesse           Commessa[]    @relation("CommessaHierarchy")
+  id                String        @id @default(cuid())
+  nome              String
+  clienteId         String
+  cliente           Cliente       @relation(fields: [clienteId], references: [id])
+  allocazioni       Allocazione[]
+  budget            BudgetVoce[]
+  dataCreazione     DateTime      @default(now())
+  dataAggiornamento DateTime      @updatedAt
+  externalId        String?       @unique
+  commessaPadreId   String?
+  commessaPadre     Commessa?     @relation("CommessaHierarchy", fields: [commessaPadreId], references: [id])
+  sottocommesse     Commessa[]    @relation("CommessaHierarchy")
 }
 
 model BudgetVoce {
@@ -148,11 +149,11 @@ model RigaScrittura {
 }
 
 model Allocazione {
-  id              String  @id @default(cuid())
-  rigaScrittura   RigaScrittura @relation(fields: [rigaScritturaId], references: [id], onDelete: Cascade)
+  id              String         @id @default(cuid())
+  rigaScrittura   RigaScrittura  @relation(fields: [rigaScritturaId], references: [id], onDelete: Cascade)
   rigaScritturaId String
   importo         Float
-  commessa        Commessa      @relation(fields: [commessaId], references: [id])
+  commessa        Commessa       @relation(fields: [commessaId], references: [id])
   commessaId      String
   voceAnalitica   VoceAnalitica? @relation(fields: [voceAnaliticaId], references: [id])
   voceAnaliticaId String?
@@ -193,17 +194,18 @@ model RigaIva {
 }
 
 model CausaleContabile {
-  id                String               @id
-  descrizione       String
-  externalId        String?              @unique
-  nome              String?
-  dataFine          DateTime?
-  dataInizio        DateTime?
-  noteMovimento     String?
-  tipoAggiornamento String?
-  tipoMovimento     String?
-  tipoRegistroIva   String?
-  scritture         ScritturaContabile[]
+  id                     String                   @id
+  descrizione            String
+  externalId             String?                  @unique
+  nome                   String?
+  dataFine               DateTime?
+  dataInizio             DateTime?
+  noteMovimento          String?
+  tipoAggiornamento      String?
+  tipoMovimento          String?
+  tipoRegistroIva        String?
+  scritture              ScritturaContabile[]
+  ImportScritturaTestata ImportScritturaTestata[]
 }
 
 model CampoDatiPrimari {
@@ -270,6 +272,7 @@ model ImportScritturaTestata {
   id                        String                         @id @default(cuid())
   codiceUnivocoScaricamento String                         @unique
   codiceCausale             String?
+  codiceFornitore           String?
   descrizioneCausale        String?
   dataRegistrazione         DateTime?
   dataDocumento             DateTime?
@@ -277,12 +280,14 @@ model ImportScritturaTestata {
   noteMovimento             String?
   righeContabili            ImportScritturaRigaContabile[]
   righeIva                  ImportScritturaRigaIva[]
+  causale                   CausaleContabile?              @relation(fields: [codiceCausale], references: [id], onUpdate: NoAction, onDelete: NoAction)
+  fornitore                 Fornitore?                     @relation(fields: [codiceFornitore], references: [externalId], onUpdate: NoAction, onDelete: NoAction)
 
   @@map("import_scritture_testate")
 }
 
 model ImportScritturaRigaContabile {
-  id                        String                @id @default(cuid())
+  id                        String                  @id @default(cuid())
   codiceUnivocoScaricamento String
   riga                      Int
   codiceConto               String?
@@ -309,7 +314,7 @@ model ImportAllocazione {
 }
 
 model ImportScritturaRigaIva {
-  id                        String  @id @default(cuid())
+  id                        String                 @id @default(cuid())
   codiceUnivocoScaricamento String
   riga                      Int
   codiceIva                 String

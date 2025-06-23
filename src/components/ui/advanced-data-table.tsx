@@ -1,11 +1,16 @@
-import * as React from "react"
-export type { ColumnDef, SortingState } from "@tanstack/react-table"
+"use client"
+
+import React from "react";
 import {
+  ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
+  getPaginationRowModel,
+  getSortedRowModel,
+  getExpandedRowModel,
   SortingState,
-  ColumnDef
+  ExpandedState,
 } from "@tanstack/react-table"
 
 import {
@@ -15,156 +20,112 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "./table"
-import { DataTablePagination } from "./data-table-pagination"
-import { DataTableToolbar } from "./data-table-toolbar"
-import { Skeleton } from "./skeleton";
+} from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
 
-interface AdvancedDataTableProps<TData> {
-  columns: ColumnDef<TData, any>[];
-  data: TData[];
-  totalCount: number;
-  page: number;
-  pageSize: number;
-  onPageChange: (page: number) => void;
-  onPageSizeChange: (size: number) => void;
-  
-  searchValue: string;
-  onSearchChange: (search: string) => void;
-  
-  sorting: SortingState;
-  onSortingChange: (sorting: SortingState) => void;
-  
-  loading?: boolean;
-  emptyMessage?: string;
-  
-  // onAdd?: () => void;
-  // onEdit?: (item: TData) => void;
-  // onDelete?: (item: TData) => void;
+interface DataTableProps<TData, TValue> {
+  columns: ColumnDef<TData, TValue>[]
+  data: TData[]
+  expanded?: ExpandedState
+  onExpandedChange?: React.Dispatch<React.SetStateAction<ExpandedState>>
+  getRowCanExpand?: (row: any) => boolean
+  renderRowSubComponent?: (props: any) => React.ReactElement
 }
 
-export function AdvancedDataTable<TData>({
+export function AdvancedDataTable<TData, TValue>({
   columns,
   data,
-  totalCount,
-  page,
-  pageSize,
-  onPageChange,
-  onPageSizeChange,
-  searchValue,
-  onSearchChange,
-  sorting,
-  onSortingChange,
-  loading = false,
-  emptyMessage = "No results found.",
-}: AdvancedDataTableProps<TData>) {
+  expanded,
+  onExpandedChange,
+  getRowCanExpand,
+  renderRowSubComponent,
+}: DataTableProps<TData, TValue>) {
+    const [sorting, setSorting] = React.useState<SortingState>([])
 
-  const pageCount = Math.ceil(totalCount / pageSize);
-
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    // Server-side pagination
-    manualPagination: true,
-    pageCount,
-    // Server-side sorting
-    manualSorting: true,
-    state: {
-      pagination: {
-        pageIndex: page - 1,
-        pageSize,
-      },
-      sorting,
-    },
-    onPaginationChange: (updater) => {
-        if (typeof updater === 'function') {
-            const newPagination = updater({ pageIndex: page - 1, pageSize });
-            onPageChange(newPagination.pageIndex + 1);
-            onPageSizeChange(newPagination.pageSize);
-        }
-    },
-    onSortingChange: (updater) => {
-        if (typeof updater === 'function') {
-            onSortingChange(updater(sorting));
-        } else {
-            onSortingChange(updater);
-        }
-    }
-  })
-
-  const skeletonRows = Array(pageSize).fill(0);
-  const skeletonCols = columns.length;
+    const table = useReactTable({
+        data,
+        columns,
+        getRowCanExpand,
+        getCoreRowModel: getCoreRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
+        onSortingChange: setSorting,
+        getSortedRowModel: getSortedRowModel(),
+        onExpandedChange: onExpandedChange,
+        getExpandedRowModel: getExpandedRowModel(),
+        state: {
+            sorting,
+            expanded,
+        },
+    })
 
   return (
-    <div className="space-y-4">
-      <DataTableToolbar 
-        table={table}
-        searchValue={searchValue}
-        onSearchChange={onSearchChange}
-      />
-      <div className="rounded-md border">
+    <div>
+        <div className="rounded-md border">
         <Table>
-          <TableHeader>
+            <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+                <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id} colSpan={header.colSpan}>
-                      {header.isPlaceholder
+                    return (
+                    <TableHead key={header.id}>
+                        {header.isPlaceholder
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
                             header.getContext()
-                          )}
+                            )}
                     </TableHead>
-                  )
+                    )
                 })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-                skeletonRows.map((_, rowIndex) => (
-                    <TableRow key={`skeleton-row-${rowIndex}`}>
-                        {Array(skeletonCols).fill(0).map((_, colIndex) => (
-                            <TableCell key={`skeleton-cell-${rowIndex}-${colIndex}`}>
-                                <Skeleton className="h-6 w-full" />
-                            </TableCell>
-                        ))}
-                    </TableRow>
-                ))
-            ) : table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
                 </TableRow>
-              ))
+            ))}
+            </TableHeader>
+            <TableBody>
+            {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                <React.Fragment key={row.id}>
+                  <TableRow data-state={row.getIsSelected() && "selected"}>
+                      {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                      ))}
+                  </TableRow>
+                  {row.getIsExpanded() && renderRowSubComponent && (
+                      <TableRow>
+                          {renderRowSubComponent({ row })}
+                      </TableRow>
+                  )}
+                </React.Fragment>
+                ))
             ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  {emptyMessage}
+                <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                    Nessun risultato.
                 </TableCell>
-              </TableRow>
+                </TableRow>
             )}
-          </TableBody>
+            </TableBody>
         </Table>
-      </div>
-      <div className="h-2" />
-      <DataTablePagination table={table} totalCount={totalCount} />
+        </div>
+        <div className="flex items-center justify-end space-x-2 py-4">
+            <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+            >
+            Precedente
+            </Button>
+            <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+            >
+            Successivo
+            </Button>
+        </div>
     </div>
   )
-}
+} 

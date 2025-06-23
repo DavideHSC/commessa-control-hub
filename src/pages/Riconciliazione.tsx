@@ -5,12 +5,15 @@ import { MoreHorizontal, PlusCircle, Trash2, ChevronDown, ChevronRight } from "l
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/ui/data-table";
+import { AdvancedDataTable } from "@/components/ui/advanced-data-table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from 'sonner';
+
+// Tipi dal DB
+import type { ImportScritturaTestata, ImportScritturaRigaContabile, CausaleContabile, Fornitore } from '@prisma/client';
 
 // Tipi Aggiornati
 type Allocation = {
@@ -39,6 +42,16 @@ type Commessa = {
   nome: string;
 };
 
+// Tipi per il nuovo Dialog
+type MovimentoRiga = ImportScritturaRigaContabile & { descrizioneConto: string };
+type MovimentoDetails = {
+  testata: ImportScritturaTestata & {
+    causale: CausaleContabile | null;
+    fornitore: Fornitore | null;
+  };
+  righe: MovimentoRiga[];
+};
+
 // API Fetching
 const fetchStagingRows = async (): Promise<ReconciliationRow[]> => {
   const res = await fetch('/api/reconciliation/staging-rows');
@@ -59,6 +72,92 @@ const updateAllocations = async ({ rowId, allocations }: { rowId: string, alloca
   });
   if (!res.ok) throw new Error('Errore nell\'aggiornamento delle allocazioni');
   return res.json();
+};
+
+const fetchMovimento = async (rowId: string): Promise<MovimentoDetails> => {
+  const res = await fetch(`/api/reconciliation/movimento/${rowId}`);
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || 'Errore nel recupero del movimento contabile');
+  }
+  return res.json();
+};
+
+// Componente Dialog per il dettaglio del movimento
+const MovimentoDialog = ({ rowId, open, onOpenChange }: { rowId: string | null, open: boolean, onOpenChange: (open: boolean) => void }) => {
+  const { data, isLoading, error } = useQuery<MovimentoDetails, Error>({
+    queryKey: ['movimento', rowId],
+    queryFn: () => fetchMovimento(rowId!),
+    enabled: !!rowId,
+  });
+
+  const formatCurrency = (value: number | null | undefined) => {
+    if (value === null || value === undefined) return '';
+    return `€ ${value.toFixed(2)}`;
+  }
+
+  const totalDare = data?.righe.reduce((acc, r) => acc + (r.importoDare || 0), 0) || 0;
+  const totalAvere = data?.righe.reduce((acc, r) => acc + (r.importoAvere || 0), 0) || 0;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-4xl">
+        <DialogHeader>
+          <DialogTitle>Dettaglio Movimento Contabile</DialogTitle>
+        </DialogHeader>
+        {isLoading && <div className='p-6'>Caricamento in corso...</div>}
+        {error && <div className='p-6 text-red-600'>Errore: {error.message}</div>}
+        {data && (
+          <div className="space-y-4 p-4">
+            <div className="grid grid-cols-2 gap-4 p-3 bg-gray-50 rounded-lg text-sm">
+                <div>
+                    <span className="font-semibold text-gray-600 block">Causale</span> 
+                    {data.testata.causale?.descrizione || data.testata.descrizioneCausale || 'N/D'}
+                </div>
+                <div>
+                    <span className="font-semibold text-gray-600 block">Fornitore</span> 
+                    {data.testata.fornitore?.nome || 'Nessuno'}
+                </div>
+                <div><span className="font-semibold text-gray-600">Data Reg:</span> {new Date(data.testata.dataRegistrazione!).toLocaleDateString()}</div>
+                <div><span className="font-semibold text-gray-600">Num. Doc:</span> {data.testata.numeroDocumento}</div>
+                <div><span className="font-semibold text-gray-600">Data Doc:</span> {data.testata.dataDocumento ? new Date(data.testata.dataDocumento).toLocaleDateString() : 'N/D'}</div>
+                <div className="col-span-2"><span className="font-semibold text-gray-600">Note:</span> {data.testata.noteMovimento}</div>
+            </div>
+            
+            <table className="w-full text-sm">
+                <thead className='bg-gray-100'>
+                    <tr className='border-b'>
+                        <th className="text-left py-2 px-2 font-medium">Conto</th>
+                        <th className="text-left py-2 px-2 font-medium">Descrizione Conto</th>
+                        <th className="text-left py-2 px-2 font-medium">Note Riga</th>
+                        <th className="text-right py-2 px-2 font-medium">Dare</th>
+                        <th className="text-right py-2 px-2 font-medium">Avere</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {data.righe.map(riga => (
+                        <tr key={riga.id} className={`border-b ${riga.id === rowId ? 'bg-blue-50' : ''}`}>
+                            <td className="py-2 px-2">{riga.codiceConto}</td>
+                            <td className="py-2 px-2">{riga.descrizioneConto}</td>
+                            <td className="py-2 px-2 italic">{riga.note}</td>
+                            <td className="text-right py-2 px-2 font-mono">{formatCurrency(riga.importoDare)}</td>
+                            <td className="text-right py-2 px-2 font-mono">{formatCurrency(riga.importoAvere)}</td>
+                        </tr>
+                    ))}
+                </tbody>
+                 <tfoot className="font-bold bg-gray-100">
+                    <tr>
+                        <td colSpan={3} className="text-right py-2 px-2">TOTALI</td>
+                        <td className="text-right py-2 px-2 font-mono">{formatCurrency(totalDare)}</td>
+                        <td className="text-right py-2 px-2 font-mono">{formatCurrency(totalAvere)}</td>
+                    </tr>
+                </tfoot>
+            </table>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
 };
 
 // Componente Dialog per l'allocazione
@@ -108,8 +207,28 @@ const AllocationDialog = ({ row, open, onOpenChange }: { row: ReconciliationRow 
 
   const updateAllocation = (index: number, field: 'commessaId' | 'importo', value: string | number) => {
     const newAllocations = [...allocations];
-    const parsedValue = typeof value === 'string' && field === 'importo' ? parseFloat(value) : value;
-    newAllocations[index] = { ...newAllocations[index], [field]: parsedValue };
+    
+    if (field === 'importo') {
+        let newAmount = parseFloat(value as string);
+        if (isNaN(newAmount)) newAmount = 0;
+        
+        const otherAllocationsTotal = newAllocations
+            .filter((_, i) => i !== index)
+            .reduce((sum, alloc) => sum + (alloc.importo || 0), 0);
+            
+        const maxAllowed = (row?.importo || 0) - otherAllocationsTotal;
+
+        if (newAmount > maxAllowed) {
+            newAmount = maxAllowed;
+            toast.info(`L'importo è stato aggiustato per non superare il totale.`, {
+                description: `Massimo disponibile: € ${maxAllowed.toFixed(2)}`,
+            });
+        }
+        newAllocations[index] = { ...newAllocations[index], importo: newAmount };
+    } else {
+        newAllocations[index] = { ...newAllocations[index], [field]: value as string };
+    }
+
     setAllocations(newAllocations);
   };
 
@@ -209,15 +328,24 @@ const AllocationDialog = ({ row, open, onOpenChange }: { row: ReconciliationRow 
 
 
 const RiconciliazionePage = () => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAllocDialogOpen, setIsAllocDialogOpen] = useState(false);
+  const [isMovimentoDialogOpen, setIsMovimentoDialogOpen] = useState(false);
+  
   const [selectedRow, setSelectedRow] = useState<ReconciliationRow | null>(null);
+  const [selectedMovimentoRowId, setSelectedMovimentoRowId] = useState<string | null>(null);
+
   const [expanded, setExpanded] = React.useState<ExpandedState>({});
 
   const { data, isLoading, error } = useQuery<ReconciliationRow[], Error>({ queryKey: ['stagingRows'], queryFn: fetchStagingRows });
 
-  const handleOpenDialog = (row: ReconciliationRow) => {
+  const handleOpenAllocDialog = (row: ReconciliationRow) => {
     setSelectedRow(row);
-    setIsDialogOpen(true);
+    setIsAllocDialogOpen(true);
+  };
+
+  const handleOpenMovimentoDialog = (row: ReconciliationRow) => {
+    setSelectedMovimentoRowId(row.id);
+    setIsMovimentoDialogOpen(true);
   };
 
   const columns: ColumnDef<ReconciliationRow>[] = [
@@ -266,7 +394,8 @@ const RiconciliazionePage = () => {
           <DropdownMenuTrigger asChild><Button variant="ghost" className="h-8 w-8 p-0"><span className="sr-only">Apri</span><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Azioni</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => handleOpenDialog(row.original)}>Modifica Allocazione</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleOpenAllocDialog(row.original)}>Modifica Allocazione</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleOpenMovimentoDialog(row.original)}>Dettaglio Movimento</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -319,7 +448,7 @@ const RiconciliazionePage = () => {
         </div>
       </div>
 
-      <DataTable
+      <AdvancedDataTable
         columns={columns}
         data={data ?? []}
         getRowCanExpand={() => true}
@@ -329,9 +458,15 @@ const RiconciliazionePage = () => {
       />
 
       <AllocationDialog 
-        open={isDialogOpen} 
-        onOpenChange={setIsDialogOpen}
+        open={isAllocDialogOpen} 
+        onOpenChange={setIsAllocDialogOpen}
         row={selectedRow} 
+      />
+
+      <MovimentoDialog
+        rowId={selectedMovimentoRowId}
+        open={isMovimentoDialogOpen}
+        onOpenChange={setIsMovimentoDialogOpen}
       />
     </div>
   );

@@ -187,4 +187,57 @@ router.post('/allocations/:rowId', async (req: Request, res: Response) => {
     }
 });
 
+router.get('/movimento/:rigaId', async (req: Request, res: Response) => {
+    const { rigaId } = req.params;
+    try {
+        const rigaIniziale = await prisma.importScritturaRigaContabile.findUnique({
+            where: { id: rigaId }
+        });
+
+        if (!rigaIniziale || !rigaIniziale.codiceUnivocoScaricamento) {
+            return res.status(404).json({ error: 'Riga contabile o riferimento alla testata non trovati.' });
+        }
+
+        const codiceUnivoco = rigaIniziale.codiceUnivocoScaricamento;
+
+        const testata = await prisma.importScritturaTestata.findUnique({
+            where: { codiceUnivocoScaricamento: codiceUnivoco },
+            include: {
+                causale: true,
+                fornitore: true,
+            }
+        });
+
+        if (!testata) {
+            return res.status(404).json({ error: 'Testata del movimento non trovata.' });
+        }
+
+        const righe = await prisma.importScritturaRigaContabile.findMany({
+            where: { codiceUnivocoScaricamento: codiceUnivoco },
+            orderBy: { riga: 'asc' }
+        });
+
+        const codiciConto = righe
+            .map(r => r.codiceConto)
+            .filter((c): c is string => c !== null && c !== undefined);
+
+        const conti = await prisma.conto.findMany({
+            where: { codice: { in: codiciConto } },
+            select: { codice: true, nome: true }
+        });
+        const contiMap = new Map(conti.map(c => [c.codice, c.nome]));
+
+        const righeConDescrizione = righe.map(riga => ({
+            ...riga,
+            descrizioneConto: riga.codiceConto ? contiMap.get(riga.codiceConto) || 'N/D' : 'N/D'
+        }));
+
+        res.json({ testata, righe: righeConDescrizione });
+
+    } catch (error) {
+        console.error(`Errore nel recupero del movimento contabile per la riga ${rigaId}:`, error);
+        res.status(500).json({ error: "Errore interno del server" });
+    }
+});
+
 export default router; 

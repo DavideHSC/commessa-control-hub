@@ -1,6 +1,5 @@
-// prisma/seed_clean.ts - Solo dati essenziali per il funzionamento
-
-import { PrismaClient } from '@prisma/client';
+// prisma/seed.ts
+import { PrismaClient, TipoConto } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -8,145 +7,168 @@ const SYSTEM_CUSTOMER_ID = 'system_customer_01';
 const SYSTEM_SUPPLIER_ID = 'system_supplier_01';
 
 async function main() {
-  console.log('Inizio seeding (dati cliente e di sistema)...');
+  console.log('Inizio seeding completo...');
 
-  // 1. Pulisce SOLO le commesse per poterle ricreare in modo pulito.
-  console.log('Pulizia tabella Commesse...');
+  // --- 1. PULIZIA DEL DATABASE ---
+  console.log('Pulizia delle tabelle di staging e produzione...');
+  await prisma.importAllocazione.deleteMany({});
+  await prisma.importScritturaRigaContabile.deleteMany({});
+  await prisma.importScritturaRigaIva.deleteMany({});
+  await prisma.importScritturaTestata.deleteMany({});
+  await prisma.allocazione.deleteMany({});
+  await prisma.rigaIva.deleteMany({});
+  await prisma.rigaScrittura.deleteMany({});
+  await prisma.scritturaContabile.deleteMany({});
+  
+  // Pulizia anagrafiche collegate
   await prisma.commessa.deleteMany({});
-
-  // 2. Popola dati di base (Voci Analitiche) - con UPSERT per evitare errori
-  console.log('Creazione/aggiornamento Voci Analitiche di base...');
-  const vociAnaliticheData = [
-    { id: 'costo_personale', nome: 'Costo del personale' },
-    { id: 'gestione_automezzi', nome: 'Gestione automezzi' },
-    { id: 'gestione_attrezzature', nome: 'Gestione attrezzature' },
-    { id: 'sacchi_materiali_consumo', nome: 'Sacchi e materiali di consumo' },
-    { id: 'servizi_esterni', nome: 'Servizi esterni' },
-    { id: 'pulizia_strade_rurali', nome: 'Pulizia strade rurali' },
-    { id: 'gestione_aree_operative', nome: 'Gestione Aree operative' },
-    { id: 'ammortamento_automezzi', nome: 'Ammortamento Automezzi' },
-    { id: 'ammortamento_attrezzature', nome: 'Ammortamento Attrezzature' },
-    { id: 'locazione_sedi_operative', nome: 'Locazione sedi operative' },
-    { id: 'trasporti_esterni', nome: 'Trasporti esterni' },
-    { id: 'spese_generali', nome: 'Spese generali' },
-    { id: 'selezione_valorizzazione_rifiuti', nome: 'Selezione e Valorizzazione Rifiuti Differenziati' },
-    { id: 'gestione_frazione_organica', nome: 'Gestione frazione organica' },
-  ];
+  await prisma.fornitore.deleteMany({});
+  await prisma.cliente.deleteMany({});
   
-  for (const voce of vociAnaliticheData) {
-    await prisma.voceAnalitica.upsert({
-      where: { id: voce.id },
-      update: { nome: voce.nome },
-      create: voce,
-    });
-  }
-  console.log('Voci Analitiche create/aggiornate.');
+  // Pulizia anagrafiche di base (solo se necessario, altrimenti si può usare upsert)
+  await prisma.causaleContabile.deleteMany({});
+  await prisma.codiceIva.deleteMany({});
+  await prisma.conto.deleteMany({});
+  await prisma.voceAnalitica.deleteMany({});
+  await prisma.condizionePagamento.deleteMany({});
+  console.log('Pulizia completata.');
+  
 
-  // 3. Cliente e Fornitore di sistema (necessari per importazioni) - UPSERT
-  await prisma.cliente.upsert({
-    where: { id: SYSTEM_CUSTOMER_ID },
-    update: {},
-    create: {
-      id: SYSTEM_CUSTOMER_ID,
-      externalId: 'SYS-CUST',
-      nome: 'Cliente di Sistema (per importazioni)',
-    }
+  // --- 2. CREAZIONE ANAGRAFICHE DI BASE ---
+  console.log('Creazione anagrafiche di base...');
+
+  await prisma.voceAnalitica.createMany({
+    data: [
+        { id: 'costo_personale', nome: 'Costo del personale' },
+        { id: 'servizi_esterni', nome: 'Servizi esterni' },
+    ],
+    skipDuplicates: true
   });
 
-  await prisma.fornitore.upsert({
-    where: { id: SYSTEM_SUPPLIER_ID },
-    update: {},
-    create: {
-      id: SYSTEM_SUPPLIER_ID,
-      externalId: 'SYS-SUPP',
-      nome: 'Fornitore di Sistema (per importazioni)',
-    }
+  await prisma.causaleContabile.createMany({
+      data: [{ id: 'FRS', descrizione: 'Fattura ricevuta split payment' }],
+      skipDuplicates: true
   });
-  console.log('Cliente e Fornitore di sistema creati/verificati.');
 
-  // 4. Popola dati specifici del cliente (PENISOLAVERDE SPA) - UPSERT
-  console.log('Creazione/aggiornamento dati cliente e commesse per PENISOLAVERDE SPA...');
-  
-  const clientePenisolaVerde = await prisma.cliente.upsert({
-    where: { externalId: 'PENISOLAVERDE_SPA' },
-    update: { nome: 'PENISOLAVERDE SPA' },
-    create: {
+  await prisma.codiceIva.createMany({
+      data: [{ id: '22', descrizione: 'IVA 22%', aliquota: 22 }],
+      skipDuplicates: true
+  });
+
+  await prisma.condizionePagamento.createMany({
+    data: [{id: '30GG', descrizione: '30 giorni data fattura'}],
+    skipDuplicates: true,
+  });
+
+  await prisma.conto.createMany({
+    data: [
+      { id: '201000048', codice: '201000048', nome: 'FORNITORI DIVERSI', tipo: TipoConto.Fornitore },
+      { id: '6015009701', codice: '6015009701', nome: 'CONSULENZE TECNICHE', tipo: TipoConto.Costo },
+      { id: '6015000751', codice: '6015000751', nome: 'MANUTENZIONE FABBRICATI', tipo: TipoConto.Costo },
+      { id: '1880000300', codice: '1880000300', nome: 'IVA A CREDITO', tipo: TipoConto.Patrimoniale },
+    ],
+    skipDuplicates: true
+  });
+  console.log('Anagrafiche di base create.');
+
+  // --- 3. CREAZIONE ANAGRAFICHE COLLEGATE (CLIENTI, FORNITORI, COMMESSE) ---
+  console.log('Creazione cliente, fornitore e commesse...');
+  const clientePenisolaVerde = await prisma.cliente.create({
+    data: {
+      id: 'penisola_verde_spa',
       nome: 'PENISOLAVERDE SPA',
       externalId: 'PENISOLAVERDE_SPA',
-      piva: '01234567890', // Placeholder
-    },
-  });
-  console.log(`Cliente '${clientePenisolaVerde.nome}' creato/trovato con ID: ${clientePenisolaVerde.id}`);
-
-  // Commesse Principali (Comuni)
-  const commessaSorrento = await prisma.commessa.create({
-    data: {
-      id: 'sorrento',
-      externalId: '1',
-      nome: 'Comune di Sorrento',
-      clienteId: clientePenisolaVerde.id,
     },
   });
 
-  const commessaMassa = await prisma.commessa.create({
+  const fornitoreGenerico = await prisma.fornitore.create({
+      data: {
+          id: 'fornitore_generico_01',
+          externalId: 'FORN-GEN-01',
+          nome: 'FORNITORE GENERICO SPA'
+      }
+  })
+
+  const commessaServiziGenerali = await prisma.commessa.create({
+      data: {
+          id: 'comm_serv_gen',
+          nome: 'Commessa Servizi Generali',
+          clienteId: clientePenisolaVerde.id
+      }
+  });
+
+  const commessaManutenzione = await prisma.commessa.create({
     data: {
-      id: 'massa_lubrense',
-      externalId: '2',
-      nome: 'Comune di Massa Lubrense',
-      clienteId: clientePenisolaVerde.id,
+        id: 'comm_manutenzione',
+        nome: 'Commessa Manutenzione',
+        clienteId: clientePenisolaVerde.id
+    }
+  });
+  console.log('Cliente, fornitore e commesse create.');
+
+
+  // --- 4. POPOLAMENTO TABELLE DI STAGING (SIMULAZIONE IMPORTAZIONE) ---
+  console.log('Popolamento tabelle di staging...');
+  const testataScrittura = await prisma.importScritturaTestata.create({
+    data: {
+      codiceUnivocoScaricamento: 'SCR-001',
+      codiceCausale: 'FRS',
+      dataRegistrazione: new Date('2025-01-04'),
+      dataDocumento: new Date('2024-12-31'),
+      numeroDocumento: '1338/00',
+      codiceFornitore: 'FORN-GEN-01',
     },
   });
 
-  const commessaPiano = await prisma.commessa.create({
+  // Righe contabili collegate
+  const rigaContabileCosto1 = await prisma.importScritturaRigaContabile.create({
     data: {
-      id: 'piano_di_sorrento',
-      externalId: '3',
-      nome: 'Comune di Piano di Sorrento',
-      clienteId: clientePenisolaVerde.id,
-    },
+        riga: 1,
+        codiceConto: '6015009701', // Consulenze
+        importoDare: 143.35,
+        importoAvere: 0,
+        codiceUnivocoScaricamento: testataScrittura.codiceUnivocoScaricamento,
+    }
   });
-  console.log('Commesse principali (Comuni) create.');
 
-  // Commesse Figlie (Attività / Centri di Costo)
-  await prisma.commessa.create({
-    data: {
-      id: 'sorrento_igiene_urbana',
-      externalId: '4',
-      nome: 'Igiene Urbana - Sorrento',
-      clienteId: clientePenisolaVerde.id,
-      commessaPadreId: commessaSorrento.id,
-    },
+  await prisma.importScritturaRigaContabile.createMany({
+      data:[
+        {
+            riga: 2,
+            codiceConto: '6015000751', // Manutenzione
+            importoDare: 398.50,
+            importoAvere: 0,
+            codiceUnivocoScaricamento: testataScrittura.codiceUnivocoScaricamento,
+        },
+        {
+            riga: 3,
+            codiceConto: '1880000300', // IVA
+            importoDare: 119.21,
+            importoAvere: 0,
+            codiceUnivocoScaricamento: testataScrittura.codiceUnivocoScaricamento,
+        },
+        {
+            riga: 4,
+            codiceConto: '201000048', // Fornitore
+            importoDare: 0,
+            importoAvere: 661.06,
+            codiceUnivocoScaricamento: testataScrittura.codiceUnivocoScaricamento,
+        },
+      ]
   });
-  await prisma.commessa.create({
-    data: {
-      id: 'massa_igiene_urbana',
-      externalId: '5',
-      nome: 'Igiene Urbana - Massa Lubrense',
-      clienteId: clientePenisolaVerde.id,
-      commessaPadreId: commessaMassa.id,
-    },
-  });
-  await prisma.commessa.create({
-    data: {
-      id: 'piano_igiene_urbana',
-      externalId: '6',
-      nome: 'Igiene Urbana - Piano di Sorrento',
-      clienteId: clientePenisolaVerde.id,
-      commessaPadreId: commessaPiano.id,
-    },
-  });
-  await prisma.commessa.create({
-    data: {
-      id: 'sorrento_verde_pubblico',
-      externalId: '7',
-      nome: 'Verde Pubblico - Sorrento',
-      clienteId: clientePenisolaVerde.id,
-      commessaPadreId: commessaSorrento.id,
-    },
-  });
-  console.log('Commesse figlie (Attività) create.');
 
-  console.log('Seeding completato.');
+  // Allocazione di esempio
+  await prisma.importAllocazione.create({
+      data: {
+        importScritturaRigaContabileId: rigaContabileCosto1.id,
+        commessaId: commessaServiziGenerali.id,
+        importo: 143.35,
+        suggerimentoAutomatico: true,
+      }
+  });
+  console.log('Tabelle di staging popolate.');
+
+  console.log('Seeding completo eseguito con successo.');
 }
 
 main()
