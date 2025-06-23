@@ -80,7 +80,7 @@ export async function processScrittureInBatches(data: { testate: any[], righeCon
 
     // Pulisci le tabelle di staging prima di iniziare
     try {
-        await prisma.stagingAllocazione.deleteMany({});
+        await prisma.importAllocazione.deleteMany({});
         await prisma.importScritturaRigaContabile.deleteMany({});
         await prisma.importScritturaTestata.deleteMany({});
     } catch (e) {
@@ -102,7 +102,6 @@ export async function processScrittureInBatches(data: { testate: any[], righeCon
                         dataRegistrazione: testata.dataRegistrazione,
                         dataDocumento: testata.dataDocumento,
                         numeroDocumento: testata.numeroDocumento,
-                        totaleDocumento: testata.totaleDocumento,
                         noteMovimento: testata.note,
                     }
                 });
@@ -112,14 +111,13 @@ export async function processScrittureInBatches(data: { testate: any[], righeCon
                 for (const riga of righeContabiliPerTestata) {
                     const rigaContabileStaging = await tx.importScritturaRigaContabile.create({
                         data: {
-                            testata: { connect: { id: scritturaTestata.id } },
+                            importScritturaTestataId: scritturaTestata.id,
+                            codiceUnivocoScaricamento: testataId,
                             riga: parseInt(riga.riga, 10),
                             codiceConto: riga.codiceConto,
-                            descrizioneConto: riga.note,
                             importoDare: riga.importoDare,
                             importoAvere: riga.importoAvere,
                             note: riga.note,
-                            insDatiMovimentiAnalitici: riga.insDatiMovimentiAnalitici === '1',
                         }
                     });
 
@@ -129,9 +127,9 @@ export async function processScrittureInBatches(data: { testate: any[], righeCon
                     const allocazioniPerRiga = allocazioniMap.get(allocazioniKey) || [];
 
                     if (allocazioniPerRiga.length > 0) {
-                        await tx.stagingAllocazione.createMany({
+                        await tx.importAllocazione.createMany({
                             data: allocazioniPerRiga.map(alloc => ({
-                                rigaContabileId: rigaContabileStaging.id,
+                                importScritturaRigaContabileId: rigaContabileStaging.id,
                                 commessaId: alloc.commessaId,
                                 importo: alloc.importo,
                             }))

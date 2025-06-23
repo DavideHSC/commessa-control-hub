@@ -4,6 +4,12 @@ Questo documento descrive l'evoluzione del processo di importazione delle scritt
 
 ---
 
+## La Fonte della Verità: i Parser Python
+
+**Regola Assoluta:** I parser Python situati in `.docs/code/` sono la **fonte definitiva della verità** per quanto riguarda il layout dei file, la logica di parsing e le relazioni tra i dati. Qualsiasi implementazione in TypeScript, schema del database (`prisma.schema`) o logica di business deve conformarsi scrupolosamente a quanto definito in questi script. In caso di discrepanza, è il codice TypeScript o lo schema a dover essere corretto, non il contrario.
+
+---
+
 ## Principio Guida Fondamentale: Il "Test di Impatto"
 
 **Regola d'Oro:** Prima di scrivere o modificare qualsiasi riga di codice che interagisce con i dati (schema del database, logica di business, API), è obbligatorio eseguire un'analisi di impatto preliminare.

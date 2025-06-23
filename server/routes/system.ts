@@ -15,6 +15,8 @@ const router = Router();
 const prisma = new PrismaClient();
 const execAsync = promisify(exec);
 
+const projectRoot = path.resolve(__dirname, '..', '..');
+
 // Il tipo per le scritture di staging verrà inferito direttamente dalla query
 // per garantire la massima corrispondenza con lo schema Prisma attuale.
 
@@ -195,7 +197,6 @@ async function seedBasicData() {
         data: {
             id: 'sorrento',
             nome: 'Comune di Sorrento',
-            descrizione: 'Commessa principale per il comune di Sorrento',
             clienteId: clientePenisolaVerde.id,
         },
     });
@@ -204,7 +205,6 @@ async function seedBasicData() {
         data: {
             id: 'massa_lubrense',
             nome: 'Comune di Massa Lubrense',
-            descrizione: 'Commessa principale per il comune di Massa Lubrense',
             clienteId: clientePenisolaVerde.id,
         },
     });
@@ -213,7 +213,6 @@ async function seedBasicData() {
         data: {
             id: 'piano_di_sorrento',
             nome: 'Comune di Piano di Sorrento',
-            descrizione: 'Commessa principale per il comune di Piano di Sorrento',
             clienteId: clientePenisolaVerde.id,
         },
     });
@@ -224,30 +223,26 @@ async function seedBasicData() {
             {
                 id: 'sorrento_igiene_urbana',
                 nome: 'Igiene Urbana - Sorrento',
-                descrizione: 'Servizio di igiene urbana per Sorrento',
                 clienteId: clientePenisolaVerde.id,
-                parentId: commessaSorrento.id,
+                commessaPadreId: commessaSorrento.id,
             },
             {
                 id: 'massa_lubrense_igiene_urbana',
                 nome: 'Igiene Urbana - Massa Lubrense',
-                descrizione: 'Servizio di igiene urbana per Massa Lubrense',
                 clienteId: clientePenisolaVerde.id,
-                parentId: commessaMassa.id,
+                commessaPadreId: commessaMassa.id,
             },
             {
                 id: 'piano_di_sorrento_igiene_urbana',
                 nome: 'Igiene Urbana - Piano di Sorrento',
-                descrizione: 'Servizio di igiene urbana per Piano di Sorrento',
                 clienteId: clientePenisolaVerde.id,
-                parentId: commessaPiano.id,
+                commessaPadreId: commessaPiano.id,
             },
             {
                 id: 'sorrento_verde_pubblico',
                 nome: 'Verde Pubblico - Sorrento',
-                descrizione: 'Servizio di gestione del verde pubblico per Sorrento',
                 clienteId: clientePenisolaVerde.id,
-                parentId: commessaSorrento.id,
+                commessaPadreId: commessaSorrento.id,
             },
         ]
     });
@@ -434,16 +429,22 @@ router.post('/clear-conti', async (req: Request, res: Response) => {
   }
 });
 
-// Funzione helper per leggere i file di dati
+// Helper per leggere i file di dati dalla cartella corretta
 const readDataFile = (fileName: string) => {
-    const filePath = path.join(__dirname, `../../.docs/dati_cliente/${fileName}`);
-    return fs.readFileSync(filePath, 'latin1');
+    const filePath = path.join(projectRoot, '.docs', 'dati_cliente', 'dati', fileName);
+    return fs.readFileSync(filePath, 'utf-8');
 };
 
+// Helper per leggere i file della prima nota
 const readPrimaNotaFile = (fileName: string) => {
-    const filePath = path.join(__dirname, `../../.docs/dati_cliente/prima_nota/${fileName}`);
-    return fs.readFileSync(filePath, 'latin1');
-}
+    const filePath = path.join(projectRoot, '.docs', 'dati_cliente', 'dati', 'prima_nota', fileName);
+    try {
+        return fs.readFileSync(filePath, 'utf-8');
+    } catch (error) {
+        console.error(`Errore durante la lettura del file ${filePath}:`, error);
+        throw error; // Rilancia l'errore per fermare il processo di seeding
+    }
+};
 
 // ====================================================================
 // DEFINIZIONE DEGLI SCHEMI DI PARSING - Fonte: .docs/tracciati_definitivi.md
@@ -811,11 +812,9 @@ router.post('/seed-demo-data', async (req, res) => {
                             codiceUnivocoScaricamento: codiceUnivoco,
                             riga: index + 1, // Usiamo l'indice per un progressivo affidabile
                             codiceConto: rigaContabile.conto.trim(),
-                            descrizioneConto: descrizioneCompleta,
                             importoDare: rigaContabile.importoDare,
                             importoAvere: rigaContabile.importoAvere,
                             note: rigaContabile.note.trim(),
-                            insDatiMovimentiAnalitici: false,
                         }
                     });
 

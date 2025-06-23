@@ -309,16 +309,16 @@ model ImportAllocazione {
 }
 
 model ImportScritturaRigaIva {
-  id                        String                  @id @default(cuid())
+  id                        String  @id @default(cuid())
   codiceUnivocoScaricamento String
   riga                      Int
-  imponibile                Float?
-  imposta                   Float?
-  codiceIva                 String?
-  testata                   ImportScritturaTestata? @relation(fields: [importScritturaTestataId], references: [id], onDelete: Cascade)
-  importScritturaTestataId  String?
+  codiceIva                 String
+  codiceConto               String? // Contropartita IVA
+  imponibile                Float
+  imposta                   Float
+  testata                   ImportScritturaTestata @relation(fields: [codiceUnivocoScaricamento], references: [codiceUnivocoScaricamento], onDelete: Cascade)
 
-  @@map("import_scritture_righe_iva")
+  @@index([codiceUnivocoScaricamento])
 }
 
 enum TipoConto {

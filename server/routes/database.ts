@@ -4,6 +4,47 @@ import { PrismaClient } from '@prisma/client';
 const router = express.Router();
 const prisma = new PrismaClient();
 
+router.get('/stats', async (req, res) => {
+  try {
+    const [
+      totaleScrittureContabili,
+      totaleCommesse,
+      totaleClienti,
+      totaleFornitori,
+      totaleConti,
+      totaleVociAnalitiche,
+      totaleCausali,
+      totaleCodiciIva,
+      totaleCondizioniPagamento,
+    ] = await prisma.$transaction([
+      prisma.scritturaContabile.count(),
+      prisma.commessa.count(),
+      prisma.cliente.count(),
+      prisma.fornitore.count(),
+      prisma.conto.count(),
+      prisma.voceAnalitica.count(),
+      prisma.causaleContabile.count(),
+      prisma.codiceIva.count(),
+      prisma.condizionePagamento.count(),
+    ]);
+
+    res.json({
+      totaleScrittureContabili,
+      totaleCommesse,
+      totaleClienti,
+      totaleFornitori,
+      totaleConti,
+      totaleVociAnalitiche,
+      totaleCausali,
+      totaleCodiciIva,
+      totaleCondizioniPagamento,
+    });
+  } catch (error) {
+    console.error('Errore nel recupero delle statistiche del database:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
+  }
+});
+
 router.get('/', async (req, res) => {
   try {
     const [
@@ -35,18 +76,6 @@ router.get('/', async (req, res) => {
       prisma.condizionePagamento.findMany({ orderBy: { id: 'asc' } }),
     ]);
 
-    const stats = {
-      totaleScrittureContabili: scritture.length,
-      totaleCommesse: commesse.length,
-      totaleClienti: clienti.length,
-      totaleFornitori: fornitori.length,
-      totaleConti: conti.length,
-      totaleVociAnalitiche: vociAnalitiche.length,
-      totaleCausali: causali.length,
-      totaleCodiciIva: codiciIva.length,
-      totaleCondizioniPagamento: condizioniPagamento.length,
-    };
-
     res.json({
       scritture,
       commesse,
@@ -57,7 +86,6 @@ router.get('/', async (req, res) => {
       causali,
       codiciIva,
       condizioniPagamento,
-      stats,
     });
   } catch (error) {
     console.error('Errore nel recupero dei dati del database:', error);
