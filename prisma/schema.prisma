@@ -94,18 +94,18 @@ model Conto {
 }
 
 model Commessa {
-  id          String        @id
-  nome        String        @unique
-  clienteId   String
-  descrizione String?
-  externalId  String?       @unique
-  parentId    String?
-  allocazioni Allocazione[]
-  importAllocazioni ImportAllocazione[]
-  budget      BudgetVoce[]
-  cliente     Cliente       @relation(fields: [clienteId], references: [id])
-  parent      Commessa?     @relation("CommessaGerarchia", fields: [parentId], references: [id])
-  children    Commessa[]    @relation("CommessaGerarchia")
+  id                      String        @id @default(cuid())
+  nome                    String
+  clienteId               String
+  cliente                 Cliente       @relation(fields: [clienteId], references: [id])
+  allocazioni             Allocazione[]
+  budget                  BudgetVoce[]
+  dataCreazione           DateTime      @default(now())
+  dataAggiornamento       DateTime      @updatedAt
+  externalId              String?       @unique
+  commessaPadreId         String?
+  commessaPadre           Commessa?     @relation("CommessaHierarchy", fields: [commessaPadreId], references: [id])
+  sottocommesse           Commessa[]    @relation("CommessaHierarchy")
 }
 
 model BudgetVoce {
@@ -148,15 +148,14 @@ model RigaScrittura {
 }
 
 model Allocazione {
-  id              String        @id @default(cuid())
-  importo         Float
-  descrizione     String?
-  rigaScritturaId String
-  commessaId      String
-  voceAnaliticaId String
-  commessa        Commessa      @relation(fields: [commessaId], references: [id])
+  id              String  @id @default(cuid())
   rigaScrittura   RigaScrittura @relation(fields: [rigaScritturaId], references: [id], onDelete: Cascade)
-  voceAnalitica   VoceAnalitica @relation(fields: [voceAnaliticaId], references: [id])
+  rigaScritturaId String
+  importo         Float
+  commessa        Commessa      @relation(fields: [commessaId], references: [id])
+  commessaId      String
+  voceAnalitica   VoceAnalitica? @relation(fields: [voceAnaliticaId], references: [id])
+  voceAnaliticaId String?
 }
 
 model CodiceIva {
@@ -241,10 +240,12 @@ model FieldDefinition {
   start          Int
   length         Int
   templateId     String
-  fileIdentifier String?
-  fieldName      String?
+  fileIdentifier String
+  fieldName      String
   format         String?
   template       ImportTemplate @relation(fields: [templateId], references: [id])
+
+  @@unique([templateId, fileIdentifier, fieldName], name: "template_file_field_unique")
 }
 
 model ImportLog {
@@ -259,75 +260,65 @@ model ImportLog {
 
 model WizardState {
   id        String   @id @default(cuid())
-  userId    String   @unique
-  step      String
-  completed Boolean  @default(false)
+  step      Int
+  payload   Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model ImportScritturaTestata {
-  id                             String                         @id @default(cuid())
-  codiceUnivocoScaricamento      String                         @unique
-  codiceCausale                 String
-  descrizioneCausale            String
-  dataRegistrazione             DateTime?
-  tipoRegistroIva               String?
-  clienteFornitoreCodiceFiscale String?
-  clienteFornitoreSigla         String?
-  dataDocumento                 DateTime?
-  numeroDocumento               String?
-  protocolloNumero              String?
-  totaleDocumento               Float?
-  noteMovimento                 String?
-  righe                          ImportScritturaRigaContabile[]
-  righeIva                       ImportScritturaRigaIva[]
+  id                        String                         @id @default(cuid())
+  codiceUnivocoScaricamento String                         @unique
+  codiceCausale             String?
+  descrizioneCausale        String?
+  dataRegistrazione         DateTime?
+  dataDocumento             DateTime?
+  numeroDocumento           String?
+  noteMovimento             String?
+  righeContabili            ImportScritturaRigaContabile[]
+  righeIva                  ImportScritturaRigaIva[]
 
   @@map("import_scritture_testate")
 }
 
 model ImportScritturaRigaContabile {
-  id                             String              @id @default(cuid())
-  codiceUnivocoScaricamento      String
-  riga                           Int
-  codiceConto                    String
-  descrizioneConto               String
-  importoDare                    Float?
-  importoAvere                   Float?
-  note                           String?
-  insDatiMovimentiAnalitici      Boolean
-  testata                        ImportScritturaTestata @relation(fields: [codiceUnivocoScaricamento], references: [codiceUnivocoScaricamento], onDelete: Cascade)
-  allocazioni                    ImportAllocazione[]
+  id                        String                @id @default(cuid())
+  codiceUnivocoScaricamento String
+  riga                      Int
+  codiceConto               String?
+  note                      String?
+  importoDare               Float?
+  importoAvere              Float?
+  testata                   ImportScritturaTestata? @relation(fields: [importScritturaTestataId], references: [id], onDelete: Cascade)
+  importScritturaTestataId  String?
+  allocazioni               ImportAllocazione[]
 
-  @@unique([codiceUnivocoScaricamento, riga])
+  @@map("import_scritture_righe_contabili")
 }
 
 model ImportAllocazione {
-  id                             String                      @id @default(cuid())
+  id                             String                       @id @default(cuid())
+  importScritturaRigaContabileId String
+  commessaId                     String
   importo                        Float
   percentuale                    Float?
-  suggerimentoAutomatico         Boolean                     @default(false)
-  commessaId                     String
-  importScritturaRigaContabileId String
-  
-  rigaContabile ImportScritturaRigaContabile @relation(fields: [importScritturaRigaContabileId], references: [id], onDelete: Cascade)
-  commessa      Commessa                     @relation(fields: [commessaId], references: [id])
+  suggerimentoAutomatico         Boolean                      @default(false)
+  rigaContabile                  ImportScritturaRigaContabile @relation(fields: [importScritturaRigaContabileId], references: [id], onDelete: Cascade)
 
   @@map("import_allocazioni")
 }
 
 model ImportScritturaRigaIva {
-  id                             String                 @id @default(cuid())
-  codiceUnivocoScaricamento      String
-  codiceIva                       String
-  imponibile                      Float
-  imposta                         Float
-  codiceConto                     String?
-  indetraibilita                  Float?
-  riga                             Int
-  testata                         ImportScritturaTestata @relation(fields: [codiceUnivocoScaricamento], references: [codiceUnivocoScaricamento], onDelete: Cascade)
+  id                        String                  @id @default(cuid())
+  codiceUnivocoScaricamento String
+  riga                      Int
+  imponibile                Float?
+  imposta                   Float?
+  codiceIva                 String?
+  testata                   ImportScritturaTestata? @relation(fields: [importScritturaTestataId], references: [id], onDelete: Cascade)
+  importScritturaTestataId  String?
 
-  @@unique([codiceUnivocoScaricamento, riga])
+  @@map("import_scritture_righe_iva")
 }
 
 enum TipoConto {

@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { PrismaClient, Prisma, TipoConto } from '@prisma/client';
 import multer from 'multer';
 import { parseFixedWidth, FieldDefinition } from '../lib/fixedWidthParser';
+import { decodeBufferWithFallback } from '../lib/importUtils';
 import moment from 'moment';
 
 const router = express.Router();
@@ -19,14 +20,9 @@ router.post('/:templateName', upload.single('file'), async (req: Request, res: R
     }
     
     const file = req.file;
-    const fileContent = file.buffer.toString('latin1');
+    const fileContent = decodeBufferWithFallback(file.buffer);
     console.log(`[IMPORT] Ricevuto file: ${file.originalname}, dimensione: ${file.size} bytes`);
 
-    if (templateName === 'anagrafica_clifor') {
-        await handleAnagraficaCliForImport(fileContent, res);
-        return;
-    }
-    
     try {
         const importTemplate = await prisma.importTemplate.findUnique({
             where: { name: templateName },
@@ -62,6 +58,11 @@ router.post('/:templateName', upload.single('file'), async (req: Request, res: R
         
         if (templateName === 'piano_dei_conti') {
             await handlePianoDeiContiImport(parsedData, res);
+            return;
+        }
+
+        if (templateName === 'anagrafica_clifor') {
+            await processAndSaveAnagrafiche(parsedData, res);
             return;
         }
 
@@ -135,31 +136,19 @@ function convertDateString(dateStr: string | null): Date | null {
     if (!dateStr || dateStr.trim().length !== 8) return null;
     
     try {
-        const day = dateStr.substring(0, 2);
-        const month = dateStr.substring(2, 4);
-        const year = dateStr.substring(4, 8);
-        
-        // Crea la data nel formato ISO (YYYY-MM-DD)
-        const isoDate = `${year}-${month}-${day}`;
-        const date = new Date(isoDate);
-        
-        // Verifica che la data sia valida
-        if (isNaN(date.getTime())) return null;
-        
-        return date;
+        const parsedDate = moment(dateStr, 'DDMMYYYY', true);
+        return parsedDate.isValid() ? parsedDate.toDate() : null;
     } catch (error) {
         console.warn(`Errore nella conversione della data: ${dateStr}`);
         return null;
     }
 }
 
-async function handleAnagraficaCliForImport(fileContent: string, res: Response) {
+async function processAndSaveAnagrafiche(parsedData: any[], res: Response) {
     let processedCount = 0;
     const batchSize = 100;
 
     try {
-        const parsedData = parseFixedWidth<any>(fileContent, anagraficaCliForFields);
-
         const validRecords = parsedData.map(record => {
             const externalId = record.externalId?.trim();
             if (!externalId) return null;
@@ -253,13 +242,13 @@ async function handleAnagraficaCliForImport(fileContent: string, res: Response) 
                     };
                     
                     const upsertCliente = () => tx.cliente.upsert({
-                        where: { id: record.id },
+                        where: { id: commonData.id },
                         update: commonData,
                         create: commonData,
                     });
                     
                     const upsertFornitore = () => tx.fornitore.upsert({
-                        where: { id: record.id },
+                        where: { id: fornitoreData.id },
                         update: fornitoreData,
                         create: fornitoreData,
                     });
@@ -268,7 +257,7 @@ async function handleAnagraficaCliForImport(fileContent: string, res: Response) 
                         await upsertCliente();
                     } else if (tipoConto === 'F') {
                         await upsertFornitore();
-                    } else if (tipoConto === 'E') {
+                    } else if (tipoConto === 'B') {
                         await upsertCliente();
                         await upsertFornitore();
                     }
@@ -281,8 +270,8 @@ async function handleAnagraficaCliForImport(fileContent: string, res: Response) 
         res.status(200).json({ message: 'Importazione completata con successo', importedCount: validRecords.length });
 
     } catch (error) {
-        console.error('Errore durante l\'importazione di anagrafica clienti/fornitori:', error);
-        res.status(500).json({ error: 'Errore interno del server durante l\'importazione' });
+        console.error(`[IMPORT] Errore durante l'importazione di anagrafica clienti/fornitori:`, error);
+        res.status(500).json({ error: 'Errore durante l\'importazione. Controlla i log del server.' });
     }
 }
 

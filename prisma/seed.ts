@@ -84,7 +84,6 @@ async function main() {
       id: 'sorrento',
       externalId: '1',
       nome: 'Comune di Sorrento',
-      descrizione: 'Commessa principale per il comune di Sorrento',
       clienteId: clientePenisolaVerde.id,
     },
   });
@@ -94,7 +93,6 @@ async function main() {
       id: 'massa_lubrense',
       externalId: '2',
       nome: 'Comune di Massa Lubrense',
-      descrizione: 'Commessa principale per il comune di Massa Lubrense',
       clienteId: clientePenisolaVerde.id,
     },
   });
@@ -104,7 +102,6 @@ async function main() {
       id: 'piano_di_sorrento',
       externalId: '3',
       nome: 'Comune di Piano di Sorrento',
-      descrizione: 'Commessa principale per il comune di Piano di Sorrento',
       clienteId: clientePenisolaVerde.id,
     },
   });
@@ -116,29 +113,26 @@ async function main() {
       id: 'sorrento_igiene_urbana',
       externalId: '4',
       nome: 'Igiene Urbana - Sorrento',
-      descrizione: 'Servizio di igiene urbana per Sorrento',
       clienteId: clientePenisolaVerde.id,
-      parentId: commessaSorrento.id,
+      commessaPadreId: commessaSorrento.id,
     },
   });
   await prisma.commessa.create({
     data: {
-      id: 'massa_lubrense_igiene_urbana',
+      id: 'massa_igiene_urbana',
       externalId: '5',
       nome: 'Igiene Urbana - Massa Lubrense',
-      descrizione: 'Servizio di igiene urbana per Massa Lubrense',
       clienteId: clientePenisolaVerde.id,
-      parentId: commessaMassa.id,
+      commessaPadreId: commessaMassa.id,
     },
   });
   await prisma.commessa.create({
     data: {
-      id: 'piano_di_sorrento_igiene_urbana',
+      id: 'piano_igiene_urbana',
       externalId: '6',
       nome: 'Igiene Urbana - Piano di Sorrento',
-      descrizione: 'Servizio di igiene urbana per Piano di Sorrento',
       clienteId: clientePenisolaVerde.id,
-      parentId: commessaPiano.id,
+      commessaPadreId: commessaPiano.id,
     },
   });
   await prisma.commessa.create({
@@ -146,162 +140,12 @@ async function main() {
       id: 'sorrento_verde_pubblico',
       externalId: '7',
       nome: 'Verde Pubblico - Sorrento',
-      descrizione: 'Servizio di gestione del verde pubblico per Sorrento',
       clienteId: clientePenisolaVerde.id,
-      parentId: commessaSorrento.id,
+      commessaPadreId: commessaSorrento.id,
     },
   });
   console.log('Commesse figlie (Attività) create.');
 
-  // 5. Template di Importazione (essenziali per funzionamento) - UPSERT
-  console.log('Creazione/Aggiornamento Template di Importazione...');
-  
-  // Template Causali
-  await prisma.importTemplate.upsert({
-    where: { name: 'causali' },
-    update: {}, // Non aggiorniamo nulla se esiste già
-    create: {
-      name: 'causali',
-      modelName: 'CausaleContabile',
-      fieldDefinitions: { create: [
-        { fieldName: 'id', start: 4, length: 6 },
-        { fieldName: 'externalId', start: 4, length: 6 },
-        { fieldName: 'nome', start: 4, length: 6 },
-        { fieldName: 'descrizione', start: 10, length: 40 },
-        { fieldName: 'tipoMovimento', start: 50, length: 1 },
-        { fieldName: 'tipoAggiornamento', start: 51, length: 1 },
-        { fieldName: 'dataInizio', start: 52, length: 8, format: 'date:YYYYMMDD' },
-        { fieldName: 'dataFine', start: 60, length: 8, format: 'date:YYYYMMDD' },
-        { fieldName: 'tipoRegistroIva', start: 68, length: 1 },
-        { fieldName: 'noteMovimento', start: 101, length: 60 }
-      ] },
-    }
-  });
-
-  // Template Condizioni Pagamento
-  await prisma.importTemplate.upsert({
-    where: { name: 'condizioni_pagamento' },
-    update: {},
-    create: {
-      name: 'condizioni_pagamento',
-      modelName: 'CondizionePagamento',
-      fieldDefinitions: { create: [
-        { fieldName: 'id', start: 4, length: 8 },
-        { fieldName: 'externalId', start: 4, length: 8 },
-        { fieldName: 'descrizione', start: 12, length: 40 },
-        { fieldName: 'contoIncassoPagamento', start: 52, length: 10 },
-        { fieldName: 'suddivisione', start: 64, length: 1 },
-        { fieldName: 'inizioScadenza', start: 65, length: 1 },
-        { fieldName: 'numeroRate', start: 66, length: 2, format: 'number' }
-      ] },
-    }
-  });
-
-  // Template Codici IVA
-  await prisma.importTemplate.upsert({
-    where: { name: 'codici_iva' },
-    update: {},
-    create: {
-      name: 'codici_iva',
-      modelName: 'CodiceIva',
-      fieldDefinitions: { create: [
-        { fieldName: 'id', start: 4, length: 4 },
-        { fieldName: 'externalId', start: 4, length: 4 },
-        { fieldName: 'descrizione', start: 8, length: 40 },
-        { fieldName: 'tipoCalcolo', start: 48, length: 1 },
-        { fieldName: 'aliquota', start: 49, length: 6, format: 'number' },
-        { fieldName: 'indetraibilita', start: 55, length: 3, format: 'number' },
-        { fieldName: 'note', start: 58, length: 40 },
-        { fieldName: 'dataInizio', start: 98, length: 8, format: 'date:YYYYMMDD' },
-        { fieldName: 'dataFine', start: 106, length: 8, format: 'date:YYYYMMDD' }
-      ] },
-    }
-  });
-
-  // Template Anagrafica Clienti/Fornitori
-  await prisma.importTemplate.upsert({
-    where: { name: 'anagrafica_clifor' },
-    update: {},
-    create: {
-      name: 'anagrafica_clifor',
-      modelName: null,
-      fieldDefinitions: { create: [
-        { fieldName: 'id', start: 20, length: 12 },
-        { fieldName: 'externalId', start: 20, length: 12 },
-        { fieldName: 'codiceFiscale', start: 32, length: 16 },
-        { fieldName: 'tipo', start: 49, length: 1 },
-        { fieldName: 'piva', start: 82, length: 11 },
-        { fieldName: 'nome', start: 94, length: 60 }
-      ] },
-    }
-  });
-
-  // Template Piano dei Conti
-  await prisma.importTemplate.upsert({
-    where: { name: 'piano_dei_conti' },
-    update: {},
-    create: {
-      name: 'piano_dei_conti',
-      modelName: null, // Gestione custom per mappare i tipi
-      fieldDefinitions: { create: [
-        { fieldName: 'id', start: 5, length: 10 },
-        { fieldName: 'livello', start: 4, length: 1 },
-        { fieldName: 'codice', start: 5, length: 10 },
-        { fieldName: 'nome', start: 15, length: 60 },
-        { fieldName: 'tipoChar', start: 75, length: 1 }
-      ] },
-    }
-  });
-
-  // Template Scritture Contabili
-  const scrittureContabiliFields: any = [
-    // PNTESTA.TXT
-    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'externalId', start: 20, length: 12 },
-    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'causaleId', start: 39, length: 6 },
-    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'dataRegistrazione', start: 85, length: 8, format: 'date:YYYYMMDD' },
-    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'clienteFornitoreCodiceFiscale', start: 99, length: 16 },
-    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'dataDocumento', start: 128, length: 8, format: 'date:YYYYMMDD' },
-    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'numeroDocumento', start: 136, length: 12 },
-    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'totaleDocumento', start: 172, length: 12, format: 'number' },
-    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'noteMovimento', start: 192, length: 60 },
-
-    // PNRIGCON.TXT
-    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'externalId', start: 3, length: 12 },
-    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'progressivoRigo', start: 15, length: 3, format: 'number' },
-    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'tipoConto', start: 18, length: 1 },
-    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'clienteFornitoreCodiceFiscale', start: 19, length: 16 },
-    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'conto', start: 48, length: 10 },
-    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'importoDare', start: 58, length: 12, format: 'number' },
-    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'importoAvere', start: 70, length: 12, format: 'number' },
-    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'note', start: 82, length: 60 },
-    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'movimentiAnalitici', start: 247, length: 1 },
-
-    // PNRIGIVA.TXT
-    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'externalId', start: 3, length: 12 },
-    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'codiceIva', start: 15, length: 4 },
-    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'contropartita', start: 19, length: 10 },
-    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'imponibile', start: 29, length: 12, format: 'number' },
-    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'imposta', start: 41, length: 12, format: 'number' },
-    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'importoLordo', start: 89, length: 12, format: 'number' },
-    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'note', start: 101, length: 60 },
-
-    // MOVANAC.TXT
-    { fileIdentifier: 'MOVANAC.TXT', fieldName: 'externalId', start: 3, length: 12 },
-    { fileIdentifier: 'MOVANAC.TXT', fieldName: 'progressivoRigoContabile', start: 15, length: 3, format: 'number' },
-    { fileIdentifier: 'MOVANAC.TXT', fieldName: 'centroDiCosto', start: 18, length: 4 },
-    { fileIdentifier: 'MOVANAC.TXT', fieldName: 'parametro', start: 22, length: 12, format: 'number' }
-  ];
-  await prisma.importTemplate.upsert({
-    where: { name: 'scritture_contabili' },
-    update: {},
-    create: {
-      name: 'scritture_contabili',
-      modelName: null,
-      fieldDefinitions: { create: scrittureContabiliFields },
-    },
-  });
-
-  console.log('Template di importazione creati/aggiornati.');
   console.log('Seeding completato.');
 }
 

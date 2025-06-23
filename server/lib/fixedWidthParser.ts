@@ -56,7 +56,11 @@ export function parseFixedWidth<T>(
         switch (type) {
           case 'number':
             if (rawValue) {
-              const numericValue = parseFloat(rawValue.replace(',', '.'));
+              let cleanValue = rawValue.replace(',', '.');
+              if (/^-?\d+$/.test(cleanValue) && cleanValue.length > 2) {
+                cleanValue = cleanValue.slice(0, -2) + '.' + cleanValue.slice(-2);
+              }
+              const numericValue = parseFloat(cleanValue);
               record[name] = isNaN(numericValue) ? null : numericValue;
             } else {
               record[name] = null;

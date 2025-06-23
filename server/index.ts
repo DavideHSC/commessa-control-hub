@@ -21,8 +21,8 @@ import codiciIvaRoutes from './routes/codiciIva';
 import condizioniPagamentoRoutes from './routes/condizioniPagamento';
 import systemRoutes from './routes/system';
 import statsRoutes from './routes/stats';
-import importPrimaNota from './routes/importPrimaNota';
 import reconciliationRoutes from './routes/reconciliation';
+import stagingRoutes from './routes/staging';
 
 const app = express();
 const prisma = new PrismaClient();
@@ -39,8 +39,8 @@ app.use('/api/fornitori', fornitoriRoutes);
 app.use('/api/registrazioni', registrazioniRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/database', databaseRoutes);
-app.use('/api/import/scritture', importPrimaNota);
-app.use('/api/import/anagrafica', importAnagraficheRoutes);
+app.use('/api/import/scritture', importScrittureRoutes);
+app.use('/api/import/anagrafiche', importAnagraficheRoutes);
 app.use('/api/causali', causaliRoutes);
 app.use('/api/voci-analitiche', vociAnaliticheRoutes);
 app.use('/api/conti', contiRoutes);
@@ -49,8 +49,9 @@ app.use('/api/import-templates', importTemplatesRoutes);
 app.use('/api/codici-iva', codiciIvaRoutes);
 app.use('/api/condizioni-pagamento', condizioniPagamentoRoutes);
 app.use('/api/system', systemRoutes);
-app.use('/api/database/stats', statsRoutes);
+app.use('/api/stats', statsRoutes);
 app.use('/api/reconciliation', reconciliationRoutes);
+app.use('/api/staging', stagingRoutes);
 
 // Endpoint di base per testare il server
 app.get('/api', (req: Request, res: Response) => {
@@ -72,13 +73,4 @@ app.listen(PORT, () => {
 process.on('SIGINT', async () => {
   await prisma.$disconnect();
   process.exit(0);
-});
-
-const router = Router();
-router.use('/dashboard', dashboardRoutes);
-router.use('/voci-analitiche', vociAnaliticheRoutes);
-router.use('/import-templates', importTemplatesRoutes);
-router.use('/import-scritture', importScrittureRoutes);
-router.use('/system', systemRoutes);
-
-export default router; 
+}); 
