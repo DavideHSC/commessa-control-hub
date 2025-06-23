@@ -767,12 +767,12 @@ router.post('/seed-demo-data', async (req, res) => {
             console.log('[Seeding Demo] Inserimento scritture di staging...');
             const scrittureComplete = buildScrittureComplete(pntesta, pnrigcon, pnrigiva, movanac);
 
-            // Filtra le scritture per includere solo quelle definite nel piano di test
+            // Filtra le scritture per includere solo quelle con allocazioni corrette e importi ragionevoli
             const codiciDemo = [
-                '012025110315', // Allocazione Complessa (1-a-N)
-                '012025110008', // Allocazione Semplice (1-a-1)
-                '012025110002', // Documento con Righe Multiple
-                '012025110013', // Riga non Allocata
+                '012025110339', // Allocazione Doppia (1-a-2): €143.35 = €73.80 + €69.55 - FATT TOMMASO FIOR
+                '012025110369', // Allocazione Doppia (1-a-2): €752.16 = €558.23 + €193.93 - FATT AMBROMOTO
+                '012025110506', // Allocazione Complessa (1-a-4): €1725 = €575 + €140 + €770 + €240 - Fattura multi-centro
+                '012025110597', // Allocazione Doppia (1-a-2): €290.33 = €197.42 + €92.91 - Caso già verificato
             ];
             
             const scrittureDemo = scrittureComplete.filter(s => codiciDemo.includes(s.testata.codiceUnivocoScaricamento));
@@ -797,12 +797,21 @@ router.post('/seed-demo-data', async (req, res) => {
 
                 // 4.2 Creazione Righe Contabili e Allocazioni
                 for (const [index, rigaContabile] of scrittura.righe.entries()) {
+                    // Trova la descrizione del conto nella tabella Conto
+                    const contoDb = await tx.conto.findFirst({
+                        where: { codice: rigaContabile.conto.trim() }
+                    });
+                    
+                    const descrizioneCompleta = contoDb 
+                        ? `${contoDb.nome} - ${rigaContabile.note.trim()}`
+                        : `Conto ${rigaContabile.conto.trim()} - ${rigaContabile.note.trim()}`;
+
                     const createdRiga = await tx.importScritturaRigaContabile.create({
                         data: {
                             codiceUnivocoScaricamento: codiceUnivoco,
                             riga: index + 1, // Usiamo l'indice per un progressivo affidabile
                             codiceConto: rigaContabile.conto.trim(),
-                            descrizioneConto: rigaContabile.note.trim() || `Conto ${rigaContabile.conto.trim()}`,
+                            descrizioneConto: descrizioneCompleta,
                             importoDare: rigaContabile.importoDare,
                             importoAvere: rigaContabile.importoAvere,
                             note: rigaContabile.note.trim(),

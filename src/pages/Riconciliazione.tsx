@@ -20,6 +20,7 @@ type Allocation = {
 type ReconciliationRow = {
   id: string;
   dataRegistrazione: string;
+  codiceConto: string;
   descrizione: string;
   importo: number;
   totaleAllocato: number;
@@ -56,7 +57,7 @@ const updateAllocations = async ({ rowId, allocations }: { rowId: string, alloca
 // Componente Dialog per l'allocazione
 const AllocationDialog = ({ row, open, onOpenChange }: { row: ReconciliationRow | null, open: boolean, onOpenChange: (open: boolean) => void }) => {
   const queryClient = useQueryClient();
-  const [allocations, setAllocations] = useState(row?.allocazioni.map(a => ({ commessaId: a.id, importo: a.importo })) || []);
+  const [allocations, setAllocations] = useState<{commessaId: string, importo: number}[]>([]);
 
   const { data: commesse = [] } = useQuery<Commessa[]>({ queryKey: ['commesse'], queryFn: fetchCommesse });
   
@@ -74,18 +75,29 @@ const AllocationDialog = ({ row, open, onOpenChange }: { row: ReconciliationRow 
 
   useEffect(() => {
     if (row) {
-        // Quando la riga cambia, reimposta lo stato delle allocazioni
-        // Mappiamo l'ID della commessa, non dell'allocazione
-        const mappedAllocations = row.allocazioni.map(a => {
-            const commessa = commesse.find(c => c.nome === a.commessaNome);
-            return { commessaId: commessa?.id || '', importo: a.importo };
-        }).filter(a => a.commessaId); // Filtra quelle senza ID trovato
+        console.log('[Allocation Dialog] Riga selezionata:', row);
+        console.log('[Allocation Dialog] Allocazioni esistenti:', row.allocazioni);
+        
+        if (commesse.length > 0) {
+            // Mappiamo le allocazioni esistenti
+            const mappedAllocations = row.allocazioni.map(a => {
+                const commessa = commesse.find(c => c.nome === a.commessaNome);
+                console.log(`[Allocation Dialog] Mappando allocazione: ${a.commessaNome} -> ${commessa?.id}, importo: ${a.importo}`);
+                return { commessaId: commessa?.id || '', importo: a.importo };
+            }).filter(a => a.commessaId);
 
-        // Se non ci sono allocazioni esistenti, aggiungine una vuota per iniziare
-        if(mappedAllocations.length === 0) {
-            setAllocations([{ commessaId: '', importo: row.importo }]);
+            // Se non ci sono allocazioni esistenti, crea una singola allocazione con l'importo totale
+            if(mappedAllocations.length === 0) {
+                console.log(`[Allocation Dialog] Nessuna allocazione esistente, creo una nuova con importo: ${row.importo}`);
+                setAllocations([{ commessaId: '', importo: row.importo }]);
+            } else {
+                console.log('[Allocation Dialog] Usando allocazioni mappate:', mappedAllocations);
+                setAllocations(mappedAllocations);
+            }
         } else {
-            setAllocations(mappedAllocations);
+            // Se non abbiamo ancora caricato le commesse, crea allocazione vuota
+            console.log('[Allocation Dialog] Commesse non ancora caricate, creo allocazione vuota');
+            setAllocations([{ commessaId: '', importo: row.importo }]);
         }
     }
   }, [row, commesse]);
@@ -104,7 +116,11 @@ const AllocationDialog = ({ row, open, onOpenChange }: { row: ReconciliationRow 
     setAllocations(newAllocations);
   };
 
-  const addAllocation = () => setAllocations([...allocations, { commessaId: '', importo: 0 }]);
+  const addAllocation = () => {
+    const totalAllocated = allocations.reduce((sum, alloc) => sum + (alloc.importo || 0), 0);
+    const remainingAmount = (row?.importo || 0) - totalAllocated;
+    setAllocations([...allocations, { commessaId: '', importo: Math.max(0, remainingAmount) }]);
+  };
   const removeAllocation = (index: number) => setAllocations(allocations.filter((_, i) => i !== index));
 
   const totalAllocated = allocations.reduce((sum, alloc) => sum + (alloc.importo || 0), 0);
@@ -117,35 +133,76 @@ const AllocationDialog = ({ row, open, onOpenChange }: { row: ReconciliationRow 
       <DialogContent className="sm:max-w-[625px]">
         <DialogHeader>
           <DialogTitle>Modifica Allocazione</DialogTitle>
-          <div>{row.descrizione}</div>
-          <div className="font-bold">Importo Totale: € {row.importo.toFixed(2)}</div>
+          <div className="space-y-2 mt-3 p-3 bg-gray-50 rounded-lg">
+            <div className="text-sm font-medium text-gray-700">
+              <span className="font-semibold">Conto:</span> {row.codiceConto} - {row.descrizione}
+            </div>
+            <div className="text-sm text-gray-600">
+              <span className="font-semibold">Data:</span> {new Date(row.dataRegistrazione).toLocaleDateString()}
+            </div>
+            <div className="text-lg font-bold text-blue-600">
+              Importo Totale: € {row.importo.toFixed(2)}
+            </div>
+          </div>
         </DialogHeader>
         <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-12 gap-2 text-sm font-medium text-gray-600 border-b pb-2">
+            <div className="col-span-6">Commessa</div>
+            <div className="col-span-4 text-right">Importo (€)</div>
+            <div className="col-span-2"></div>
+          </div>
           {allocations.map((alloc, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <Select value={alloc.commessaId} onValueChange={(value) => updateAllocation(index, 'commessaId', value)}>
-                <SelectTrigger><SelectValue placeholder="Seleziona Commessa" /></SelectTrigger>
-                <SelectContent>
-                  {commesse.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
-                </SelectContent>
-              </Select>
-              <Input
-                type="number"
-                value={alloc.importo}
-                onChange={(e) => updateAllocation(index, 'importo', e.target.value)}
-                className="w-[120px]"
-              />
-              <Button variant="outline" size="icon" onClick={() => removeAllocation(index)}><Trash2 className="h-4 w-4" /></Button>
+            <div key={index} className="grid grid-cols-12 gap-2 items-center">
+              <div className="col-span-6">
+                <Select value={alloc.commessaId} onValueChange={(value) => updateAllocation(index, 'commessaId', value)}>
+                  <SelectTrigger><SelectValue placeholder="Seleziona Commessa" /></SelectTrigger>
+                  <SelectContent>
+                    {commesse.map(c => <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-4">
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={alloc.importo}
+                  onChange={(e) => updateAllocation(index, 'importo', e.target.value)}
+                  className="text-right"
+                  placeholder="0.00"
+                />
+              </div>
+              <div className="col-span-2 flex justify-end">
+                <Button variant="outline" size="icon" onClick={() => removeAllocation(index)}><Trash2 className="h-4 w-4" /></Button>
+              </div>
             </div>
           ))}
-          <Button variant="outline" onClick={addAllocation} className="mt-2"><PlusCircle className="mr-2 h-4 w-4" /> Aggiungi Riga</Button>
+          <Button variant="outline" onClick={addAllocation} className="mt-4 w-full"><PlusCircle className="mr-2 h-4 w-4" /> Aggiungi Riga</Button>
         </div>
         <DialogFooter>
-          <div className="w-full flex justify-between items-center">
-            <div>Residuo: <span className={remaining === 0 ? 'text-green-600' : 'text-red-600'}>€ {remaining.toFixed(2)}</span></div>
-            <Button onClick={handleSave} disabled={mutation.isPending}>
-              {mutation.isPending ? 'Salvataggio...' : 'Salva Allocazioni'}
-            </Button>
+          <div className="w-full">
+            <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg mb-4">
+              <div className="space-y-1">
+                <div className="text-sm text-gray-600">Totale Allocato: <span className="font-medium">€ {totalAllocated.toFixed(2)}</span></div>
+                <div className="text-sm">
+                  Residuo: <span className={`font-bold ${Math.abs(remaining) < 0.005 ? 'text-green-600' : 'text-red-600'}`}>
+                    € {remaining.toFixed(2)}
+                  </span>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-xs text-gray-500">
+                  {Math.abs(remaining) < 0.005 ? '✓ Completamente allocato' : '⚠ Allocazione incompleta'}
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Annulla
+              </Button>
+              <Button onClick={handleSave} disabled={mutation.isPending || Math.abs(remaining) > 0.005}>
+                {mutation.isPending ? 'Salvataggio...' : 'Salva Allocazioni'}
+              </Button>
+            </div>
           </div>
         </DialogFooter>
       </DialogContent>
@@ -167,6 +224,7 @@ const RiconciliazionePage = () => {
 
   const columns: ColumnDef<ReconciliationRow>[] = [
     { accessorKey: "dataRegistrazione", header: "Data Reg.", cell: ({ row }) => new Date(row.original.dataRegistrazione).toLocaleDateString() },
+    { accessorKey: "codiceConto", header: "Conto", cell: ({ row }) => `${row.original.codiceConto}` },
     { accessorKey: "descrizione", header: "Descrizione" },
     { accessorKey: "importo", header: "Importo", cell: ({ row }) => `€ ${row.original.importo.toFixed(2)}` },
     { accessorKey: "totaleAllocato", header: "Allocato", cell: ({ row }) => `€ ${row.original.totaleAllocato.toFixed(2)}` },

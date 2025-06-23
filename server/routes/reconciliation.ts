@@ -76,6 +76,7 @@ router.get('/staging-rows', async (req: Request, res: Response) => {
         return {
           id: row.id,
           dataRegistrazione: testata.dataRegistrazione,
+          codiceConto: row.codiceConto,
           descrizione: row.descrizioneConto,
           importo: importoRiga,
           totaleAllocato,

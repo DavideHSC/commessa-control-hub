@@ -19,6 +19,38 @@ Questo "test mentale" è un passaggio critico per garantire la coerenza e la sta
 
 ---
 
+## Piano di Integrazione e Allineamento con i Parser Python
+
+Per garantire la massima precisione e robustezza del sistema, allineeremo la nostra logica di parsing in TypeScript a quella dei parser Python validati. Questo processo sarà la nostra **"Fase 0"**, un prerequisito fondamentale per le fasi successive.
+
+### Fase 0: Allineamento e Validazione dei Parser
+
+L'obiettivo di questa fase è assicurare che il parsing dei file di testo sia **identico** a quello degli script Python, che hanno dimostrato alta precisione.
+
+1.  **Analisi Comparativa dei Layout**:
+    -   **Azione**: Confrontare sistematicamente i `LAYOUT` definiti negli script Python (`parser.py`, `parser_a_clifor.py`, ecc.) con le definizioni usate nel nostro backend TypeScript (principalmente in `server/lib/fixedWidthParser.ts` e rotte correlate).
+    -   **Obiettivo**: Identificare e documentare ogni discrepanza in termini di posizione iniziale e lunghezza dei campi per ogni file (`PNTESTA`, `PNRIGCON`, `A_CLIFOR`, ecc.).
+
+2.  **Adeguamento del Parser TypeScript**:
+    -   **Azione**: Modificare il file `server/lib/fixedWidthParser.ts` e le costanti dei layout per rispecchiare **esattamente** le definizioni dei parser Python. Verrà anche standardizzata la logica di formattazione per date e importi.
+    -   **Obiettivo**: Avere un unico, affidabile motore di parsing che sia una traduzione fedele della controparte Python.
+
+3.  **Miglioramento del Seeding del Database**:
+    -   **Azione**: Modificare lo script `prisma/seed.ts` per utilizzare i file Excel (`.xlsx`) generati dai parser Python come fonte di dati per il seeding. I file verranno convertiti in CSV o JSON per una facile lettura.
+    -   **Obiettivo**: Popolare il database di sviluppo con dati puliti, validati e realistici, migliorando drasticamente la qualità dei test e la coerenza dell'ambiente di sviluppo.
+
+4.  **Implementazione dei Parser Mancanti**:
+    -   **Azione**: Sviluppare le rotte e la logica di importazione per le anagrafiche attualmente non gestite nell'applicazione (es. `Causali Contabili`, `Codici IVA`, `Condizioni di Pagamento`), usando gli script Python come "blueprint".
+    -   **Obiettivo**: Raggiungere la parità di funzionalità con i parser Python, permettendo l'importazione completa di tutte le anagrafiche di base.
+
+5.  **Test di Validazione Incrociata**:
+    -   **Azione**: Eseguire un'importazione tramite l'applicazione e confrontare l'output (i dati inseriti nel DB di staging) con i dati presenti nei file Excel generati da Python.
+    -   **Obiettivo**: Confermare con certezza che il risultato del processo di importazione TypeScript è **identico** a quello prodotto dai parser di riferimento.
+
+Questo approccio metodico ridurrà i rischi di errori nei dati, aumenterà l'affidabilità del sistema e ci fornirà una base solida su cui costruire le funzionalità interattive.
+
+---
+
 ## Nuovo Flusso di Lavoro Ibrido Proposto
 
 Il processo si evolverà in un flusso di lavoro guidato in tre fasi.
