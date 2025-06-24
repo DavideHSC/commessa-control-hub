@@ -30,6 +30,33 @@ model Cliente {
   telefono        String?
   tipoAnagrafica  String?
   commesse        Commessa[]
+  
+  // === ESTENSIONI FASE 1 - PARSER PYTHON ===
+  codiceAnagrafica             String?
+  tipoConto                    String?
+  tipoContoDesc                String?
+  tipoSoggetto                 String?
+  tipoSoggettoDesc             String?
+  denominazione                String?
+  sessoDesc                    String?
+  prefissoTelefono             String?
+  codiceIso                    String?
+  idFiscaleEstero              String?
+  
+  // Sottoconti
+  sottocontoAttivo             String?
+  sottocontoCliente            String?
+  sottocontoFornitore          String?
+  
+  // Codici Pagamento Specifici
+  codiceIncassoCliente         String?
+  codicePagamentoFornitore     String?
+  
+  // Flags Calcolati
+  ePersonaFisica               Boolean?
+  eCliente                     Boolean?
+  eFornitore                   Boolean?
+  haPartitaIva                 Boolean?
 }
 
 model Fornitore {
@@ -67,6 +94,38 @@ model Fornitore {
   tipoAnagrafica              String?
   tipoRitenuta                String?
   scritture                   ScritturaContabile[]
+  
+  // === ESTENSIONI FASE 1 - PARSER PYTHON ===
+  codiceAnagrafica             String?
+  tipoConto                    String?
+  tipoContoDesc                String?
+  tipoSoggetto                 String?
+  tipoSoggettoDesc             String?
+  denominazione                String?
+  sessoDesc                    String?
+  prefissoTelefono             String?
+  codiceIso                    String?
+  idFiscaleEstero              String?
+  
+  // Sottoconti
+  sottocontoAttivo             String?
+  sottocontoCliente            String?
+  sottocontoFornitore          String?
+  
+  // Codici Pagamento Specifici
+  codiceIncassoCliente         String?
+  codicePagamentoFornitore     String?
+  
+  // Flags Calcolati
+  ePersonaFisica               Boolean?
+  eCliente                     Boolean?
+  eFornitore                   Boolean?
+  haPartitaIva                 Boolean?
+  
+  // Per Fornitore - Descrizioni aggiuntive
+  quadro770Desc               String?
+  tipoRitenuraDesc             String?
+  contributoPrevid335Desc      String?
 }
 
 model VoceAnalitica {
@@ -91,6 +150,52 @@ model Conto {
   voceAnaliticaId            String?
   voceAnalitica              VoceAnalitica?  @relation(fields: [voceAnaliticaId], references: [id])
   righeScrittura             RigaScrittura[]
+  
+  // === ESTENSIONI FASE 1 - PARSER PYTHON ===
+  // Gerarchia e Classificazione
+  livello                      String?
+  livelloDesc                  String?
+  sigla                        String?
+  gruppo                       String?
+  gruppoDesc                   String?
+  controlloSegno               String?
+  controlloSegnoDesc           String?
+  codificaFormattata           String?
+  
+  // Validità per Tipo Contabilità
+  validoImpresaOrdinaria       Boolean?
+  validoImpresaSemplificata    Boolean?
+  validoProfessionistaOrdinario Boolean?
+  validoProfessionistaSemplificato Boolean?
+  
+  // Classi Fiscali
+  classeIrpefIres              String?
+  classeIrap                   String?
+  classeProfessionista         String?
+  classeIrapProfessionista     String?
+  classeIva                    String?
+  
+  // Conti Collegati
+  contoCostiRicavi             String?
+  contoDareCee                 String?
+  contoAvereCee                String?
+  
+  // Gestione Speciale
+  naturaConto                  String?
+  gestioneBeniAmmortizzabili   String?
+  percDeduzioneManutenzione    Float?
+  dettaglioClienteFornitore    String?
+  
+  // Descrizioni Bilancio
+  descrizioneBilancioDare      String?
+  descrizioneBilancioAvere     String?
+  
+  // Dati Extracontabili
+  classeDatiExtracontabili     String?
+  
+  // Registri Professionisti
+  colonnaRegistroCronologico   String?
+  colonnaRegistroIncassiPagamenti String?
 }
 
 model Commessa {
@@ -170,6 +275,62 @@ model CodiceIva {
   dataFine       DateTime?
   dataInizio     DateTime?
   righeIva       RigaIva[]
+  
+  // === ESTENSIONI FASE 1 - PARSER PYTHON ===
+  // Gestione Plafond
+  plafondAcquisti              String?
+  plafondAcquistiDesc          String?
+  monteAcquisti                Boolean?
+  plafondVendite               String?
+  plafondVenditeDesc           String?
+  noVolumeAffariPlafond        Boolean?
+  
+  // Pro-rata e Compensazioni
+  gestioneProRata              String?
+  gestioneProRataDesc          String?
+  percentualeCompensazione     Float?
+  
+  // Reverse Charge e Operazioni Speciali
+  autofatturaReverseCharge     Boolean?
+  operazioneEsenteOccasionale  Boolean?
+  cesArt38QuaterStornoIva      Boolean?
+  agevolazioniSubforniture     Boolean?
+  
+  // Territorialità
+  indicatoreTerritorialeVendite     String?
+  indicatoreTerritorialeVenditeDesc String?
+  indicatoreTerritorialeAcquisti    String?
+  indicatoreTerritorialeAcquistiDesc String?
+  
+  // Beni Ammortizzabili
+  beniAmmortizzabili           Boolean?
+  analiticoBeniAmmortizzabili  Boolean?
+  
+  // Comunicazioni Dati IVA
+  comunicazioneDatiIvaVendite     String?
+  comunicazioneDatiIvaVenditeDesc String?
+  comunicazioneDatiIvaAcquisti    String?
+  comunicazioneDatiIvaAcquistiDesc String?
+  
+  // Altri Campi Fiscali
+  imponibile50Corrispettivi    Boolean?
+  imposteIntrattenimenti       String?
+  imposteIntrattenimentiDesc   String?
+  ventilazione                 Boolean?
+  aliquotaDiversa              Float?
+  percDetrarreExport           Float?
+  acquistiCessioni             String?
+  acquistiCessioniDesc         String?
+  metodoDaApplicare            String?
+  metodoDaApplicareDesc        String?
+  percentualeForfetaria        String?
+  percentualeForfetariaDesc    String?
+  quotaForfetaria              String?
+  quotaForfetariaDesc          String?
+  acquistiIntracomunitari      Boolean?
+  cessioneProdottiEditoriali   Boolean?
+  provvigioniDm34099           Boolean?
+  acqOperazImponibiliOccasionali Boolean?
 }
 
 model CondizionePagamento {
@@ -181,6 +342,12 @@ model CondizionePagamento {
   inizioScadenza        String?
   numeroRate            Int?
   suddivisione          String?
+  
+  // === ESTENSIONI FASE 1 - PARSER PYTHON ===
+  calcolaGiorniCommerciali     Boolean?
+  consideraPeriodiChiusura     Boolean?
+  suddivisioneDesc             String?
+  inizioScadenzaDesc           String?
 }
 
 model RigaIva {
@@ -205,6 +372,52 @@ model CausaleContabile {
   tipoMovimento     String?
   tipoRegistroIva   String?
   scritture         ScritturaContabile[]
+  
+  // === ESTENSIONI FASE 1 - PARSER PYTHON ===
+  // Descrizioni Decodificate
+  tipoMovimentoDesc            String?
+  tipoAggiornamentoDesc        String?
+  tipoRegistroIvaDesc          String?
+  
+  // Gestione IVA
+  segnoMovimentoIva            String?
+  segnoMovimentoIvaDesc        String?
+  contoIva                     String?
+  contoIvaVendite              String?
+  
+  // Autofatture
+  generazioneAutofattura       Boolean?
+  tipoAutofatturaGenerata      String?
+  tipoAutofatturaDesc          String?
+  
+  // Gestione Fatture
+  fatturaImporto0              Boolean?
+  fatturaValutaEstera          Boolean?
+  nonConsiderareLiquidazioneIva Boolean?
+  fatturaEmessaRegCorrispettivi Boolean?
+  
+  // IVA Esigibilità
+  ivaEsigibilitaDifferita      String?
+  ivaEsigibilitaDifferitaDesc  String?
+  
+  // Gestioni Speciali
+  gestionePartite              String?
+  gestionePartiteDesc          String?
+  gestioneIntrastat            Boolean?
+  gestioneRitenuteEnasarco     String?
+  gestioneRitenuteEnasarcoDesc String?
+  versamentoRitenute           Boolean?
+  
+  // Documenti e Registrazioni
+  descrizioneDocumento         String?
+  identificativoEsteroClifor   Boolean?
+  scritturaRettificaAssestamento Boolean?
+  nonStampareRegCronologico    Boolean?
+  movimentoRegIvaNonRilevante  Boolean?
+  
+  // Contabilità Semplificata
+  tipoMovimentoSemplificata    String?
+  tipoMovimentoSemplificataDesc String?
 }
 
 model CampoDatiPrimari {

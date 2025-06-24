@@ -1,7 +1,8 @@
 import express, { Request, Response } from 'express';
 import { PrismaClient, Prisma, TipoConto } from '@prisma/client';
 import multer from 'multer';
-import { parseFixedWidth, FieldDefinition } from '../lib/fixedWidthParser';
+import { parseFixedWidth, parseFixedWidthRobust, FieldDefinition, ImportStats } from '../lib/fixedWidthParser';
+import * as decoders from '../lib/businessDecoders';
 import moment from 'moment';
 
 const router = express.Router();
@@ -183,16 +184,44 @@ async function handleAnagraficaCliForImport(fileContent: string, res: Response) 
                 codicePagamento: record.codicePagamento || record.codicePagamentoCliente || record.codicePagamentoFornitore || null,
                 codiceValuta: record.codiceValuta || null,
                 
+                // === NUOVI CAMPI FASE 1 ===
+                codiceAnagrafica: record.externalId || null,
+                tipoContoDesc: decoders.decodeTipoContoAnagrafica(record.tipoConto),
+                tipoSoggettoDesc: decoders.decodeTipoSoggetto(record.tipoSoggetto),
+                denominazione: record.ragioneSociale || null,
+                sessoDesc: decoders.decodeSesso(record.sesso),
+                prefissoTelefono: record.prefissoTelefono || null,
+                codiceIso: record.codiceIso || null,
+                idFiscaleEstero: record.identificativoFiscaleEstero || null,
+                
+                // Sottoconti
+                sottocontoAttivo: record.sottocontoCliente || record.sottocontoFornitore || null,
+                sottocontoCliente: record.sottocontoCliente || null,
+                sottocontoFornitore: record.sottocontoFornitore || null,
+                
+                // Codici Pagamento Specifici
+                codiceIncassoCliente: record.codicePagamentoCliente || null,
+                codicePagamentoFornitore: record.codicePagamentoFornitore || null,
+                
+                // Flags Calcolati
+                ePersonaFisica: record.tipoSoggetto === 'PF',
+                eCliente: record.tipoConto === 'C' || record.tipoConto === 'E',
+                eFornitore: record.tipoConto === 'F' || record.tipoConto === 'E',
+                haPartitaIva: !!(record.piva && record.piva.trim()),
+                
                 // Dati specifici fornitore
                 gestione770: record.gestione770 === 'X',
                 soggettoRitenuta: record.soggettoRitenuta === 'X',
                 quadro770: record.quadro770 || null,
+                quadro770Desc: decoders.decodeQuadro770(record.quadro770),
                 contributoPrevidenziale: record.contributoPrevidenziale === 'X',
                 codiceRitenuta: record.codiceRitenuta || null,
                 enasarco: record.enasarco === 'X',
                 tipoRitenuta: record.tipoRitenuta || null,
+                tipoRitenuraDesc: decoders.decodeTipoRitenuta(record.tipoRitenuta),
                 soggettoInail: record.soggettoInail === 'X',
                 contributoPrevidenzialeL335: record.contributoPrevidenzialeL335 || null,
+                contributoPrevid335Desc: decoders.decodeContributoPrevid335(record.contributoPrevidenzialeL335),
                 aliquota: record.aliquota ? parseFloat(record.aliquota) : null,
                 percContributoCassaPrev: record.percContributoCassaPrev ? parseFloat(record.percContributoCassaPrev) : null,
                 attivitaMensilizzazione: record.attivitaMensilizzazione ? parseInt(record.attivitaMensilizzazione) : null,
