@@ -156,24 +156,55 @@ async function main() {
   // 5. Template di Importazione (essenziali per funzionamento) - UPSERT
   console.log('Creazione/Aggiornamento Template di Importazione...');
   
-  // Template Causali
-  await prisma.importTemplate.upsert({
+  // Template Causali - Prima elimina quello esistente
+  const existingCausaliTemplate = await prisma.importTemplate.findUnique({
     where: { name: 'causali' },
-    update: {}, // Non aggiorniamo nulla se esiste già
-    create: {
+    include: { fieldDefinitions: true }
+  });
+  
+  if (existingCausaliTemplate) {
+    await prisma.fieldDefinition.deleteMany({
+      where: { templateId: existingCausaliTemplate.id }
+    });
+    await prisma.importTemplate.delete({
+      where: { id: existingCausaliTemplate.id }
+    });
+  }
+  
+  await prisma.importTemplate.create({
+    data: {
       name: 'causali',
       modelName: 'CausaleContabile',
       fieldDefinitions: { create: [
-        { fieldName: 'id', start: 4, length: 6 },
-        { fieldName: 'externalId', start: 4, length: 6 },
-        { fieldName: 'nome', start: 4, length: 6 },
-        { fieldName: 'descrizione', start: 10, length: 40 },
-        { fieldName: 'tipoMovimento', start: 50, length: 1 },
-        { fieldName: 'tipoAggiornamento', start: 51, length: 1 },
-        { fieldName: 'dataInizio', start: 52, length: 8, format: 'date:YYYYMMDD' },
-        { fieldName: 'dataFine', start: 60, length: 8, format: 'date:YYYYMMDD' },
-        { fieldName: 'tipoRegistroIva', start: 68, length: 1 },
-        { fieldName: 'noteMovimento', start: 101, length: 60 }
+        // Campi principali (bibbia parser_causali.py)
+        { fieldName: 'codiceCausale', start: 4, length: 6 },                          // pos 5-10
+        { fieldName: 'descrizione', start: 10, length: 40 },                         // pos 11-50
+        { fieldName: 'tipoMovimento', start: 50, length: 1 },                        // pos 51
+        { fieldName: 'tipoAggiornamento', start: 51, length: 1 },                    // pos 52
+        { fieldName: 'dataInizio', start: 52, length: 8, format: 'date:DDMMYYYY' },  // pos 53-60
+        { fieldName: 'dataFine', start: 60, length: 8, format: 'date:DDMMYYYY' },    // pos 61-68
+        { fieldName: 'tipoRegistroIva', start: 68, length: 1 },                      // pos 69
+        { fieldName: 'segnoMovimentoIva', start: 69, length: 1 },                    // pos 70
+        { fieldName: 'contoIva', start: 70, length: 10 },                            // pos 71-80
+        { fieldName: 'generazioneAutofattura', start: 80, length: 1 },               // pos 81
+        { fieldName: 'tipoAutofatturaGenerata', start: 81, length: 1 },              // pos 82
+        { fieldName: 'contoIvaVendite', start: 82, length: 10 },                     // pos 83-92
+        { fieldName: 'fatturaImporto0', start: 92, length: 1 },                      // pos 93
+        { fieldName: 'fatturaValutaEstera', start: 93, length: 1 },                  // pos 94
+        { fieldName: 'nonConsiderareLiquidazioneIva', start: 94, length: 1 },        // pos 95
+        { fieldName: 'ivaEsigibilitaDifferita', start: 95, length: 1 },              // pos 96
+        { fieldName: 'fatturaEmessaRegCorrispettivi', start: 96, length: 1 },        // pos 97
+        { fieldName: 'gestionePartite', start: 97, length: 1 },                      // pos 98
+        { fieldName: 'gestioneIntrastat', start: 98, length: 1 },                    // pos 99
+        { fieldName: 'gestioneRitenuteEnasarco', start: 99, length: 1 },             // pos 100
+        { fieldName: 'versamentoRitenute', start: 100, length: 1 },                  // pos 101
+        { fieldName: 'noteMovimento', start: 101, length: 60 },                      // pos 102-161
+        { fieldName: 'descrizioneDocumento', start: 161, length: 5 },                // pos 162-166
+        { fieldName: 'identificativoEsteroClifor', start: 166, length: 1 },          // pos 167
+        { fieldName: 'scritturaRettificaAssestamento', start: 167, length: 1 },      // pos 168
+        { fieldName: 'nonStampareRegCronologico', start: 168, length: 1 },           // pos 169
+        { fieldName: 'movimentoRegIvaNonRilevante', start: 169, length: 1 },         // pos 170
+        { fieldName: 'tipoMovimentoSemplificata', start: 170, length: 1 }            // pos 171
       ] },
     }
   });
@@ -237,18 +268,76 @@ async function main() {
   });
 
   // Template Piano dei Conti
-  await prisma.importTemplate.upsert({
+  // Prima elimina le FieldDefinition esistenti per il template piano_dei_conti
+  const existingTemplate = await prisma.importTemplate.findUnique({
     where: { name: 'piano_dei_conti' },
-    update: {},
-    create: {
+    include: { fieldDefinitions: true }
+  });
+  
+  if (existingTemplate) {
+    // Elimina prima le FieldDefinition
+    await prisma.fieldDefinition.deleteMany({
+      where: { templateId: existingTemplate.id }
+    });
+    // Poi elimina il template
+    await prisma.importTemplate.delete({
+      where: { id: existingTemplate.id }
+    });
+  }
+  
+  await prisma.importTemplate.create({
+    data: {
       name: 'piano_dei_conti',
       modelName: null, // Gestione custom per mappare i tipi
       fieldDefinitions: { create: [
-        { fieldName: 'id', start: 5, length: 10 },
-        { fieldName: 'livello', start: 4, length: 1 },
-        { fieldName: 'codice', start: 5, length: 10 },
-        { fieldName: 'nome', start: 15, length: 60 },
-        { fieldName: 'tipoChar', start: 75, length: 1 }
+        // Campi principali (come parser Python)
+        { fieldName: 'livello', start: 4, length: 1 },                    // pos 5
+        { fieldName: 'codice', start: 5, length: 10 },                    // pos 6-15 CODIFICA
+        { fieldName: 'nome', start: 15, length: 60 },                     // pos 16-75 DESCRIZIONE
+        { fieldName: 'tipoChar', start: 75, length: 1 },                  // pos 76 TIPO
+        { fieldName: 'sigla', start: 76, length: 12 },                    // pos 77-88
+        { fieldName: 'controlloSegno', start: 88, length: 1 },            // pos 89
+        { fieldName: 'contoCostiRicavi', start: 89, length: 10 },         // pos 90-99
+        
+        // Validità per tipo contabilità
+        { fieldName: 'validoImpresaOrd', start: 99, length: 1 },          // pos 100
+        { fieldName: 'validoImpresaSempl', start: 100, length: 1 },       // pos 101
+        { fieldName: 'validoProfOrd', start: 101, length: 1 },            // pos 102
+        { fieldName: 'validoProfSempl', start: 102, length: 1 },          // pos 103
+        
+        // Validità per tipo dichiarazione
+        { fieldName: 'validoUnicoPf', start: 103, length: 1 },            // pos 104
+        { fieldName: 'validoUnicoSp', start: 104, length: 1 },            // pos 105
+        { fieldName: 'validoUnicoSc', start: 105, length: 1 },            // pos 106
+        { fieldName: 'validoUnicoEnc', start: 106, length: 1 },           // pos 107
+        
+        // Classi fiscali
+        { fieldName: 'classeIrpefIres', start: 107, length: 10 },         // pos 108-117
+        { fieldName: 'classeIrap', start: 117, length: 10 },              // pos 118-127
+        { fieldName: 'classeProfessionista', start: 127, length: 10 },    // pos 128-137
+        { fieldName: 'classeIrapProf', start: 137, length: 10 },          // pos 138-147
+        { fieldName: 'classeIva', start: 147, length: 10 },               // pos 148-157
+        
+        // Registro professionisti
+        { fieldName: 'colRegCronologico', start: 157, length: 4 },        // pos 158-161
+        { fieldName: 'colRegIncassiPag', start: 161, length: 4 },         // pos 162-165
+        
+        // Piano dei conti CEE
+        { fieldName: 'contoDare', start: 165, length: 12 },               // pos 166-177
+        { fieldName: 'contoAvere', start: 177, length: 12 },              // pos 178-189
+        
+        // Altri dati
+        { fieldName: 'naturaConto', start: 189, length: 4 },              // pos 190-193
+        { fieldName: 'gestioneBeniAmm', start: 193, length: 1 },          // pos 194
+        { fieldName: 'percDedManut', start: 194, length: 6 },             // pos 195-200
+        
+        { fieldName: 'gruppo', start: 256, length: 1 },                   // pos 257
+        { fieldName: 'classeDatiExtra', start: 257, length: 10 },         // pos 258-267
+        { fieldName: 'dettaglioCliFor', start: 267, length: 1 },          // pos 268
+        
+        // Descrizioni bilancio
+        { fieldName: 'descBilancioDare', start: 268, length: 60 },        // pos 269-328
+        { fieldName: 'descBilancioAvere', start: 328, length: 60 }        // pos 329-388
       ] },
     }
   });
