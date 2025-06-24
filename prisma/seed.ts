@@ -76,6 +76,7 @@ async function main() {
       piva: '01234567890', // Placeholder
     },
   });
+
   console.log(`Cliente '${clientePenisolaVerde.nome}' creato/trovato con ID: ${clientePenisolaVerde.id}`);
 
   // Commesse Principali (Comuni)
@@ -230,14 +231,14 @@ async function main() {
       modelName: 'CondizionePagamento',
       fieldDefinitions: { create: [
         // Campi principali (bibbia parser_codpagam.py)
-        { fieldName: 'codice_pagamento', start: 4, length: 8 },                  // pos 5-12
+        { fieldName: 'codicePagamento', start: 4, length: 8 },                  // pos 5-12
         { fieldName: 'descrizione', start: 12, length: 40 },                     // pos 13-52
-        { fieldName: 'conto_incasso_pagamento', start: 52, length: 10 },         // pos 53-62
-        { fieldName: 'calcola_giorni_commerciali', start: 62, length: 1 },       // pos 63 (X = True)
-        { fieldName: 'considera_periodi_chiusura', start: 63, length: 1 },       // pos 64 (X = True)
+        { fieldName: 'contoIncassoPagamento', start: 52, length: 10 },         // pos 53-62
+        { fieldName: 'calcolaGiorniCommerciali', start: 62, length: 1 },       // pos 63 (X = True)
+        { fieldName: 'consideraPeriodiChiusura', start: 63, length: 1 },       // pos 64 (X = True)
         { fieldName: 'suddivisione', start: 64, length: 1 },                     // pos 65 (D=Dettaglio, T=Totale)
-        { fieldName: 'inizio_scadenza', start: 65, length: 1 },                  // pos 66 (D=Data doc, F=Fine mese, R=Registrazione, P=Reg IVA, N=Non determinata)
-        { fieldName: 'numero_rate', start: 66, length: 2, format: 'number' }     // pos 67-68
+        { fieldName: 'inizioScadenza', start: 65, length: 1 },                  // pos 66 (D=Data doc, F=Fine mese, R=Registrazione, P=Reg IVA, N=Non determinata)
+        { fieldName: 'numeroRate', start: 66, length: 2, format: 'number' }     // pos 67-68
       ] },
     }
   });
@@ -262,44 +263,44 @@ async function main() {
       name: 'codici_iva',
       modelName: 'CodiceIva',
       fieldDefinitions: { create: [
-        // Campi principali (bibbia parser_codiciiva.py)
-        { fieldName: 'codiceIva', start: 4, length: 4 },                                    // pos 5-8
-        { fieldName: 'descrizione', start: 8, length: 40 },                                 // pos 9-48
-        { fieldName: 'tipoCalcolo', start: 48, length: 1 },                                 // pos 49
-        { fieldName: 'aliquota', start: 49, length: 6, format: 'number:decimal' },          // pos 50-55
-        { fieldName: 'indetraibilita', start: 55, length: 3, format: 'number' },            // pos 56-58
-        { fieldName: 'note', start: 58, length: 40 },                                       // pos 59-98
-        { fieldName: 'dataInizio', start: 98, length: 8, format: 'date:DDMMYYYY' },         // pos 99-106
-        { fieldName: 'dataFine', start: 106, length: 8, format: 'date:DDMMYYYY' },          // pos 107-114
-        { fieldName: 'imponibile50Corrispettivi', start: 114, length: 1 },                  // pos 115
-        { fieldName: 'imposteIntrattenimenti', start: 115, length: 2 },                     // pos 116-117
-        { fieldName: 'ventilazione', start: 117, length: 1 },                               // pos 118
-        { fieldName: 'aliquotaDiversa', start: 118, length: 6, format: 'number:decimal' },  // pos 119-124
-        { fieldName: 'plafondAcquisti', start: 124, length: 1 },                            // pos 125
-        { fieldName: 'monteAcquisti', start: 125, length: 1 },                              // pos 126
-        { fieldName: 'plafondVendite', start: 126, length: 1 },                             // pos 127
-        { fieldName: 'noVolumeAffariPlafond', start: 127, length: 1 },                      // pos 128
-        { fieldName: 'gestioneProRata', start: 128, length: 1 },                            // pos 129
-        { fieldName: 'acqOperazImponibiliOccasionali', start: 129, length: 1 },             // pos 130
-        { fieldName: 'comunicazioneDatiIvaVendite', start: 130, length: 1 },                // pos 131
-        { fieldName: 'agevolazioniSubforniture', start: 131, length: 1 },                   // pos 132
-        { fieldName: 'comunicazioneDatiIvaAcquisti', start: 132, length: 1 },               // pos 133
-        { fieldName: 'autofatturaReverseCharge', start: 133, length: 1 },                   // pos 134
-        { fieldName: 'operazioneEsenteOccasionale', start: 134, length: 1 },                // pos 135
-        { fieldName: 'cesArt38QuaterStornoIva', start: 135, length: 1 },                    // pos 136
+        // Mappatura 1:1 da parser_codiciiva.py
+        { fieldName: 'codiceIva', start: 4, length: 4 },                           // pos 5-8
+        { fieldName: 'descrizione', start: 8, length: 40 },                        // pos 9-48
+        { fieldName: 'tipoCalcolo', start: 48, length: 1 },                        // pos 49
+        { fieldName: 'aliquota', start: 49, length: 6, format: 'number:decimal' },  // pos 50-55
+        { fieldName: 'indetraibilita', start: 55, length: 3, format: 'number' },    // pos 56-58
+        { fieldName: 'note', start: 58, length: 40 },                              // pos 59-98
+        { fieldName: 'dataInizio', start: 98, length: 8, format: 'date:DDMMYYYY' }, // pos 99-106
+        { fieldName: 'dataFine', start: 106, length: 8, format: 'date:DDMMYYYY' }, // pos 107-114
+        { fieldName: 'imponibile50Corrispettivi', start: 114, length: 1 },          // pos 115
+        { fieldName: 'imposteIntrattenimenti', start: 115, length: 2 },             // pos 116-117
+        { fieldName: 'ventilazione', start: 117, length: 1 },                      // pos 118 (era ventilazione_aliquota_diversa)
+        { fieldName: 'aliquotaDiversa', start: 118, length: 6, format: 'number:decimal' }, // pos 119-124
+        { fieldName: 'plafondAcquisti', start: 124, length: 1 },                    // pos 125
+        { fieldName: 'monteAcquisti', start: 125, length: 1 },                      // pos 126
+        { fieldName: 'plafondVendite', start: 126, length: 1 },                     // pos 127
+        { fieldName: 'noVolumeAffariPlafond', start: 127, length: 1 },              // pos 128
+        { fieldName: 'gestioneProRata', start: 128, length: 1 },                    // pos 129
+        { fieldName: 'acqOperazImponibiliOccasionali', start: 129, length: 1 },     // pos 130
+        { fieldName: 'comunicazioneDatiIvaVendite', start: 130, length: 1 },        // pos 131
+        { fieldName: 'agevolazioniSubforniture', start: 131, length: 1 },           // pos 132
+        { fieldName: 'comunicazioneDatiIvaAcquisti', start: 132, length: 1 },       // pos 133
+        { fieldName: 'autofatturaReverseCharge', start: 133, length: 1 },           // pos 134
+        { fieldName: 'operazioneEsenteOccasionale', start: 134, length: 1 },        // pos 135
+        { fieldName: 'cesArt38QuaterStornoIva', start: 135, length: 1 },            // pos 136
         { fieldName: 'percDetrarreExport', start: 136, length: 6, format: 'number:decimal' }, // pos 137-142
-        { fieldName: 'acquistiCessioni', start: 142, length: 1 },                           // pos 143
-        { fieldName: 'percentualeCompensazione', start: 143, length: 6, format: 'number:decimal' }, // pos 144-149
-        { fieldName: 'beniAmmortizzabili', start: 149, length: 1 },                         // pos 150
-        { fieldName: 'indicatoreTerritorialeVendite', start: 150, length: 2 },              // pos 151-152
-        { fieldName: 'provvigioniDm34099', start: 152, length: 1 },                         // pos 153
-        { fieldName: 'indicatoreTerritorialeAcquisti', start: 153, length: 2 },             // pos 154-155
-        { fieldName: 'metodoDaApplicare', start: 155, length: 1 },                          // pos 156
-        { fieldName: 'percentualeForfetaria', start: 156, length: 2 },                      // pos 157-158
-        { fieldName: 'analiticoBeniAmmortizzabili', start: 158, length: 1 },                // pos 159
-        { fieldName: 'quotaForfetaria', start: 159, length: 1 },                            // pos 160
-        { fieldName: 'acquistiIntracomunitari', start: 160, length: 1 },                    // pos 161
-        { fieldName: 'cessioneProdottiEditoriali', start: 161, length: 1 }                  // pos 162
+        { fieldName: 'acquistiCessioni', start: 142, length: 1 },                   // pos 143
+        { fieldName: 'percentualeCompensazione', start: 143, length: 6, format: 'number:decimal' },// pos 144-149
+        { fieldName: 'beniAmmortizzabili', start: 149, length: 1 },                 // pos 150
+        { fieldName: 'indicatoreTerritorialeVendite', start: 150, length: 2 },      // pos 151-152
+        { fieldName: 'provvigioniDm34099', start: 152, length: 1 },                 // pos 153
+        { fieldName: 'indicatoreTerritorialeAcquisti', start: 153, length: 2 },     // pos 154-155
+        { fieldName: 'metodoDaApplicare', start: 155, length: 1 },                  // pos 156
+        { fieldName: 'percentualeForfetaria', start: 156, length: 2 },              // pos 157-158
+        { fieldName: 'analiticoBeniAmmortizzabili', start: 158, length: 1 },         // pos 159
+        { fieldName: 'quotaForfetaria', start: 159, length: 1 },                    // pos 160
+        { fieldName: 'acquistiIntracomunitari', start: 160, length: 1 },            // pos 161
+        { fieldName: 'cessioneProdottiEditoriali', start: 161, length: 1 }          // pos 162
       ] },
     }
   });
@@ -322,62 +323,48 @@ async function main() {
   await prisma.importTemplate.create({
     data: {
       name: 'anagrafica_clifor',
-      modelName: null, // Gestione custom per Cliente/Fornitore
+      modelName: 'AnagraficaClifor',
       fieldDefinitions: { create: [
-        // Identificatori principali (bibbia parser_a_clifor.py)
-        { fieldName: 'codice_clifor', start: 4, length: 10 },                    // pos 5-14
-        { fieldName: 'descrizione_clifor', start: 14, length: 18 },              // pos 15-32
-        { fieldName: 'codice_fiscale_clifor', start: 32, length: 16 },           // pos 33-48
-        { fieldName: 'subcodice_clifor', start: 48, length: 1 },                 // pos 49 
-        { fieldName: 'tipo_conto', start: 49, length: 1 },                       // pos 50
-        
-        // Sottoconti
-        { fieldName: 'sottoconto_cliente', start: 50, length: 10 },              // pos 51-60
-        { fieldName: 'sottoconto_fornitore', start: 60, length: 10 },            // pos 61-70
-        { fieldName: 'codice_anagrafica', start: 70, length: 12 },               // pos 71-82
-        
-        // Dati fiscali base
-        { fieldName: 'partita_iva', start: 82, length: 11 },                     // pos 83-93
-        { fieldName: 'tipo_soggetto', start: 93, length: 1 },                    // pos 94
-        { fieldName: 'denominazione', start: 94, length: 60 },                   // pos 95-154
-        
-        // Dati persona fisica
-        { fieldName: 'cognome', start: 154, length: 20 },                        // pos 155-174
-        { fieldName: 'nome', start: 174, length: 20 },                           // pos 175-194
-        { fieldName: 'sesso', start: 194, length: 1 },                           // pos 195
-        { fieldName: 'data_nascita', start: 195, length: 8 },                    // pos 196-203 (GGMMAAAA)
-        { fieldName: 'comune_nascita', start: 203, length: 4 },                  // pos 204-207
-        { fieldName: 'comune_residenza', start: 207, length: 4 },                // pos 208-211
-        
-        // Indirizzo e contatti
-        { fieldName: 'cap', start: 211, length: 5 },                             // pos 212-216
-        { fieldName: 'indirizzo', start: 216, length: 30 },                      // pos 217-246
-        { fieldName: 'prefisso_telefono', start: 246, length: 4 },               // pos 247-250
-        { fieldName: 'numero_telefono', start: 250, length: 11 },                // pos 251-261
-        
-        // Dati internazionali
-        { fieldName: 'id_fiscale_estero', start: 261, length: 20 },              // pos 262-281
-        { fieldName: 'codice_iso', start: 281, length: 2 },                      // pos 282-283
-        
-        // Codici pagamento
-        { fieldName: 'codice_incasso_pagamento', start: 283, length: 8 },        // pos 284-291
-        { fieldName: 'codice_incasso_cliente', start: 291, length: 8 },          // pos 292-299
-        { fieldName: 'codice_pagamento_fornitore', start: 299, length: 8 },      // pos 300-307
-        { fieldName: 'codice_valuta', start: 307, length: 4 },                   // pos 308-311
-        
-        // Dati fiscali fornitori
-        { fieldName: 'gestione_dati_770', start: 311, length: 1 },               // pos 312
-        { fieldName: 'soggetto_a_ritenuta', start: 312, length: 1 },             // pos 313
-        { fieldName: 'quadro_770', start: 313, length: 1 },                      // pos 314
-        { fieldName: 'contributo_previdenziale', start: 314, length: 1 },        // pos 315
-        { fieldName: 'codice_ritenuta', start: 315, length: 5 },                 // pos 316-320
-        { fieldName: 'enasarco', start: 320, length: 1 },                        // pos 321
-        { fieldName: 'tipo_ritenuta', start: 321, length: 1 },                   // pos 322
-        { fieldName: 'soggetto_inail', start: 322, length: 1 },                  // pos 323
-        { fieldName: 'contributo_previd_335', start: 323, length: 1 },           // pos 324
-        { fieldName: 'aliquota', start: 324, length: 6 },                        // pos 325-330
-        { fieldName: 'perc_contributo_cassa', start: 330, length: 6 },           // pos 331-336
-        { fieldName: 'attivita_mensilizzazione', start: 336, length: 2 }         // pos 337-338
+        { fieldName: 'codiceFiscaleAzienda', start: 3, length: 16 },
+        { fieldName: 'subcodiceAzienda', start: 19, length: 1 },
+        { fieldName: 'codiceUnivoco', start: 20, length: 12 },
+        { fieldName: 'codiceFiscaleClifor', start: 32, length: 16 },
+        { fieldName: 'subcodiceClifor', start: 48, length: 1 },
+        { fieldName: 'tipoConto', start: 49, length: 1 },
+        { fieldName: 'sottocontoCliente', start: 50, length: 10 },
+        { fieldName: 'sottocontoFornitore', start: 60, length: 10 },
+        { fieldName: 'codiceAnagrafica', start: 70, length: 12 },
+        { fieldName: 'partitaIva', start: 82, length: 11 },
+        { fieldName: 'tipoSoggetto', start: 93, length: 1 },
+        { fieldName: 'denominazione', start: 94, length: 60 },
+        { fieldName: 'cognome', start: 154, length: 20 },
+        { fieldName: 'nome', start: 174, length: 20 },
+        { fieldName: 'sesso', start: 194, length: 1 },
+        { fieldName: 'dataNascita', start: 195, length: 8, format: 'date:DDMMYYYY' },
+        { fieldName: 'comuneNascita', start: 203, length: 4 },
+        { fieldName: 'comuneResidenza', start: 207, length: 4 },
+        { fieldName: 'cap', start: 211, length: 5 },
+        { fieldName: 'indirizzo', start: 216, length: 30 },
+        { fieldName: 'prefissoTelefono', start: 246, length: 4 },
+        { fieldName: 'numeroTelefono', start: 250, length: 11 },
+        { fieldName: 'idFiscaleEstero', start: 261, length: 20 },
+        { fieldName: 'codiceIso', start: 281, length: 2 },
+        { fieldName: 'codiceIncassoPagamento', start: 283, length: 8 },
+        { fieldName: 'codiceIncassoCliente', start: 291, length: 8 },
+        { fieldName: 'codicePagamentoFornitore', start: 299, length: 8 },
+        { fieldName: 'codiceValuta', start: 307, length: 4 },
+        { fieldName: 'gestioneDati770', start: 311, length: 1 },
+        { fieldName: 'soggettoARitenuta', start: 312, length: 1 },
+        { fieldName: 'quadro770', start: 313, length: 1 },
+        { fieldName: 'contributoPrevidenziale', start: 314, length: 1 },
+        { fieldName: 'codiceRitenuta', start: 315, length: 5 },
+        { fieldName: 'enasarco', start: 320, length: 1 },
+        { fieldName: 'tipoRitenuta', start: 321, length: 1 },
+        { fieldName: 'soggettoInail', start: 322, length: 1 },
+        { fieldName: 'contributoPrevid335', start: 323, length: 1 },
+        { fieldName: 'aliquota', start: 324, length: 6 },
+        { fieldName: 'percContributoCassa', start: 330, length: 6 },
+        { fieldName: 'attivitaMensilizzazione', start: 336, length: 2 }
       ] },
     }
   });
@@ -403,56 +390,56 @@ async function main() {
   await prisma.importTemplate.create({
     data: {
       name: 'piano_dei_conti',
-      modelName: null, // Gestione custom per mappare i tipi
+      modelName: 'Conto',
       fieldDefinitions: { create: [
-        // Campi principali (come parser Python)
-        { fieldName: 'livello', start: 4, length: 1 },                    // pos 5
-        { fieldName: 'codice', start: 5, length: 10 },                    // pos 6-15 CODIFICA
-        { fieldName: 'nome', start: 15, length: 60 },                     // pos 16-75 DESCRIZIONE
-        { fieldName: 'tipoChar', start: 75, length: 1 },                  // pos 76 TIPO
-        { fieldName: 'sigla', start: 76, length: 12 },                    // pos 77-88
-        { fieldName: 'controlloSegno', start: 88, length: 1 },            // pos 89
-        { fieldName: 'contoCostiRicavi', start: 89, length: 10 },         // pos 90-99
+        // Campi principali (allineati a schema.prisma e parser_contigen.py)
+        { fieldName: 'livello', start: 4, length: 1 },                           // pos 5
+        { fieldName: 'codice', start: 5, length: 10 },                           // pos 6-15 -> CODIFICA
+        { fieldName: 'nome', start: 15, length: 60 },                            // pos 16-75 -> DESCRIZIONE
+        { fieldName: 'tipo', start: 75, length: 1 },                             // pos 76
+        { fieldName: 'sigla', start: 76, length: 12 },                           // pos 77-88
+        { fieldName: 'controlloSegno', start: 88, length: 1 },                   // pos 89
+        { fieldName: 'contoCostiRicavi', start: 89, length: 10 },                // pos 90-99
         
         // Validità per tipo contabilità
-        { fieldName: 'validoImpresaOrd', start: 99, length: 1 },          // pos 100
-        { fieldName: 'validoImpresaSempl', start: 100, length: 1 },       // pos 101
-        { fieldName: 'validoProfOrd', start: 101, length: 1 },            // pos 102
-        { fieldName: 'validoProfSempl', start: 102, length: 1 },          // pos 103
+        { fieldName: 'validoImpresaOrdinaria', start: 99, length: 1 },           // pos 100
+        { fieldName: 'validoImpresaSemplificata', start: 100, length: 1 },        // pos 101
+        { fieldName: 'validoProfessionistaOrdinario', start: 101, length: 1 },    // pos 102
+        { fieldName: 'validoProfessionistaSemplificato', start: 102, length: 1 }, // pos 103
         
         // Validità per tipo dichiarazione
-        { fieldName: 'validoUnicoPf', start: 103, length: 1 },            // pos 104
-        { fieldName: 'validoUnicoSp', start: 104, length: 1 },            // pos 105
-        { fieldName: 'validoUnicoSc', start: 105, length: 1 },            // pos 106
-        { fieldName: 'validoUnicoEnc', start: 106, length: 1 },           // pos 107
+        { fieldName: 'validoUnicoPf', start: 103, length: 1 },                   // pos 104
+        { fieldName: 'validoUnicoSp', start: 104, length: 1 },                   // pos 105
+        { fieldName: 'validoUnicoSc', start: 105, length: 1 },                   // pos 106
+        { fieldName: 'validoUnicoEnc', start: 106, length: 1 },                  // pos 107
         
         // Classi fiscali
-        { fieldName: 'classeIrpefIres', start: 107, length: 10 },         // pos 108-117
-        { fieldName: 'classeIrap', start: 117, length: 10 },              // pos 118-127
-        { fieldName: 'classeProfessionista', start: 127, length: 10 },    // pos 128-137
-        { fieldName: 'classeIrapProf', start: 137, length: 10 },          // pos 138-147
-        { fieldName: 'classeIva', start: 147, length: 10 },               // pos 148-157
+        { fieldName: 'classeIrpefIres', start: 107, length: 10 },                // pos 108-117
+        { fieldName: 'classeIrap', start: 117, length: 10 },                     // pos 118-127
+        { fieldName: 'classeProfessionista', start: 127, length: 10 },           // pos 128-137
+        { fieldName: 'classeIrapProfessionista', start: 137, length: 10 },        // pos 138-147
+        { fieldName: 'classeIva', start: 147, length: 10 },                      // pos 148-157
         
         // Registro professionisti
-        { fieldName: 'colRegCronologico', start: 157, length: 4 },        // pos 158-161
-        { fieldName: 'colRegIncassiPag', start: 161, length: 4 },         // pos 162-165
+        { fieldName: 'colonnaRegistroCronologico', start: 157, length: 4 },      // pos 158-161
+        { fieldName: 'colonnaRegistroIncassiPagamenti', start: 161, length: 4 },  // pos 162-165
         
         // Piano dei conti CEE
-        { fieldName: 'contoDare', start: 165, length: 12 },               // pos 166-177
-        { fieldName: 'contoAvere', start: 177, length: 12 },              // pos 178-189
+        { fieldName: 'contoDareCee', start: 165, length: 12 },                   // pos 166-177
+        { fieldName: 'contoAvereCee', start: 177, length: 12 },                  // pos 178-189
         
         // Altri dati
-        { fieldName: 'naturaConto', start: 189, length: 4 },              // pos 190-193
-        { fieldName: 'gestioneBeniAmm', start: 193, length: 1 },          // pos 194
-        { fieldName: 'percDedManut', start: 194, length: 6 },             // pos 195-200
+        { fieldName: 'naturaConto', start: 189, length: 4 },                     // pos 190-193
+        { fieldName: 'gestioneBeniAmmortizzabili', start: 193, length: 1 },       // pos 194
+        { fieldName: 'percDeduzioneManutenzione', start: 194, length: 6 },        // pos 195-200
         
-        { fieldName: 'gruppo', start: 256, length: 1 },                   // pos 257
-        { fieldName: 'classeDatiExtra', start: 257, length: 10 },         // pos 258-267
-        { fieldName: 'dettaglioCliFor', start: 267, length: 1 },          // pos 268
+        { fieldName: 'gruppo', start: 256, length: 1 },                          // pos 257
+        { fieldName: 'classeDatiExtracontabili', start: 257, length: 10 },        // pos 258-267
+        { fieldName: 'dettaglioClienteFornitore', start: 267, length: 1 },       // pos 268
         
         // Descrizioni bilancio
-        { fieldName: 'descBilancioDare', start: 268, length: 60 },        // pos 269-328
-        { fieldName: 'descBilancioAvere', start: 328, length: 60 }        // pos 329-388
+        { fieldName: 'descrizioneBilancioDare', start: 268, length: 60 },        // pos 269-328
+        { fieldName: 'descrizioneBilancioAvere', start: 328, length: 60 }        // pos 329-388
       ] },
     }
   });

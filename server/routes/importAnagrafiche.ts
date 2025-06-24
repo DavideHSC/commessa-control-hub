@@ -98,6 +98,16 @@ router.post('/:templateName', upload.single('file'), async (req: Request, res: R
             return;
         }
 
+        if (templateName === 'causali') {
+            await handleCausaliImport(parsedData, res);
+            return;
+        }
+
+        if (templateName === 'codici_iva') {
+            await handleCodiciIvaImport(parsedData, res);
+            return;
+        }
+
         if (!modelName || !(prisma as any)[modelName]) {
             console.error(`[IMPORT] Errore di configurazione: modelName non specificato o non valido per il template '${templateName}'.`);
             return res.status(400).json({ error: `Il nome del modello per '${templateName}' non è valido.` });
@@ -496,6 +506,390 @@ async function handlePianoDeiContiImport(parsedData: any[], res: Response) {
         message: 'Importazione Piano dei Conti completata con successo', 
         importedCount: processedCount 
     });
+}
+
+/**
+ * === FASE 5: CAUSALI CONTABILI - IMPORT SPECIALIZZATO ===
+ * Basato su parser_causali.py con integrazione completa di tutti i 28 campi
+ * e decodifiche semantiche dal businessDecoders.ts
+ */
+async function handleCausaliImport(parsedData: any[], res: Response) {
+    console.log(`[CAUSALI] Iniziata elaborazione di ${parsedData.length} record`);
+    
+    try {
+        const validRecords = parsedData.map((record, index) => {
+            const codiceCausale = record.codiceCausale?.trim();
+            if (!codiceCausale) {
+                console.warn(`[CAUSALI] Riga ${index + 1}: codice causale mancante, record saltato`);
+                return null;
+            }
+
+            // Conversione date dal formato DDMMYYYY
+            const convertDate = (dateStr: string) => {
+                if (!dateStr || dateStr.trim() === '' || dateStr === '00000000') return null;
+                const cleaned = dateStr.trim();
+                if (cleaned.length === 8) {
+                    const day = cleaned.substring(0, 2);
+                    const month = cleaned.substring(2, 4);
+                    const year = cleaned.substring(4, 8);
+                    return new Date(`${year}-${month}-${day}`);
+                }
+                return null;
+            };
+
+            // Parsing con decodifiche semantiche complete
+            const causaleData = {
+                // Campi base (seguendo la "bibbia" Python)
+                id: codiceCausale, // Usa codice come ID primario
+                codice: codiceCausale,
+                nome: record.descrizione?.trim() || codiceCausale,
+                descrizione: record.descrizione?.trim() || '',
+                externalId: codiceCausale,
+                
+                // === NUOVI CAMPI FASE 1 (18 campi) ===
+                tipoMovimento: record.tipoMovimento?.trim() || null,
+                tipoMovimentoDesc: decoders.decodeTipoMovimento(record.tipoMovimento),
+                tipoAggiornamento: record.tipoAggiornamento?.trim() || null,
+                tipoAggiornamentoDesc: decoders.decodeTipoAggiornamento(record.tipoAggiornamento),
+                dataInizio: convertDate(record.dataInizio),
+                dataFine: convertDate(record.dataFine),
+                tipoRegistroIva: record.tipoRegistroIva?.trim() || null,
+                tipoRegistroIvaDesc: decoders.decodeTipoRegistroIva(record.tipoRegistroIva),
+                segnoMovimentoIva: record.segnoMovimentoIva?.trim() || null,
+                segnoMovimentoIvaDesc: decoders.decodeSegnoMovimentoIva(record.segnoMovimentoIva),
+                contoIva: record.contoIva?.trim() || null,
+                contoIvaVendite: record.contoIvaVendite?.trim() || null,
+                generazioneAutofattura: decoders.decodeBooleanFlag(record.generazioneAutofattura),
+                tipoAutofatturaGenerata: record.tipoAutofatturaGenerata?.trim() || null,
+                tipoAutofatturaDesc: decoders.decodeTipoAutofattura(record.tipoAutofatturaGenerata),
+                fatturaImporto0: decoders.decodeBooleanFlag(record.fatturaImporto0),
+                fatturaValutaEstera: decoders.decodeBooleanFlag(record.fatturaValutaEstera),
+                nonConsiderareLiquidazioneIva: decoders.decodeBooleanFlag(record.nonConsiderareLiquidazioneIva),
+                fatturaEmessaRegCorrispettivi: decoders.decodeBooleanFlag(record.fatturaEmessaRegCorrispettivi),
+                ivaEsigibilitaDifferita: record.ivaEsigibilitaDifferita?.trim() || null,
+                ivaEsigibilitaDifferitaDesc: decoders.decodeIvaEsigibilita(record.ivaEsigibilitaDifferita),
+                gestionePartite: record.gestionePartite?.trim() || null,
+                gestionePartiteDesc: decoders.decodeGestionePartite(record.gestionePartite),
+                gestioneIntrastat: decoders.decodeBooleanFlag(record.gestioneIntrastat),
+                gestioneRitenuteEnasarco: record.gestioneRitenuteEnasarco?.trim() || null,
+                gestioneRitenuteEnasarcoDesc: decoders.decodeGestioneRitenuteEnasarco(record.gestioneRitenuteEnasarco),
+                versamentoRitenute: decoders.decodeBooleanFlag(record.versamentoRitenute),
+                noteMovimento: record.noteMovimento?.trim() || null,
+                descrizioneDocumento: record.descrizioneDocumento?.trim() || null,
+                identificativoEsteroClifor: decoders.decodeBooleanFlag(record.identificativoEsteroClifor),
+                scritturaRettificaAssestamento: decoders.decodeBooleanFlag(record.scritturaRettificaAssestamento),
+                nonStampareRegCronologico: decoders.decodeBooleanFlag(record.nonStampareRegCronologico),
+                movimentoRegIvaNonRilevante: decoders.decodeBooleanFlag(record.movimentoRegIvaNonRilevante),
+                tipoMovimentoSemplificata: record.tipoMovimentoSemplificata?.trim() || null,
+                tipoMovimentoSemplificataDesc: decoders.decodeTipoMovimento(record.tipoMovimentoSemplificata) // Riuso stesso decoder
+            };
+
+            return causaleData;
+        }).filter(record => record !== null);
+
+        console.log(`[CAUSALI] Record validi elaborati: ${validRecords.length}/${parsedData.length}`);
+
+        // Inserimento con upsert per evitare duplicati
+        let insertedCount = 0;
+        let updatedCount = 0;
+        
+        for (const causale of validRecords) {
+            try {
+                const result = await prisma.causaleContabile.upsert({
+                    where: { id: causale.id },
+                    update: {
+                        nome: causale.nome,
+                        descrizione: causale.descrizione,
+                        tipoMovimento: causale.tipoMovimento,
+                        tipoMovimentoDesc: causale.tipoMovimentoDesc,
+                        tipoAggiornamento: causale.tipoAggiornamento,
+                        tipoAggiornamentoDesc: causale.tipoAggiornamentoDesc,
+                        dataInizio: causale.dataInizio,
+                        dataFine: causale.dataFine,
+                        tipoRegistroIva: causale.tipoRegistroIva,
+                        tipoRegistroIvaDesc: causale.tipoRegistroIvaDesc,
+                        segnoMovimentoIva: causale.segnoMovimentoIva,
+                        segnoMovimentoIvaDesc: causale.segnoMovimentoIvaDesc,
+                        contoIva: causale.contoIva,
+                        contoIvaVendite: causale.contoIvaVendite,
+                        generazioneAutofattura: causale.generazioneAutofattura,
+                        tipoAutofatturaGenerata: causale.tipoAutofatturaGenerata,
+                        tipoAutofatturaDesc: causale.tipoAutofatturaDesc,
+                        fatturaImporto0: causale.fatturaImporto0,
+                        fatturaValutaEstera: causale.fatturaValutaEstera,
+                        nonConsiderareLiquidazioneIva: causale.nonConsiderareLiquidazioneIva,
+                        fatturaEmessaRegCorrispettivi: causale.fatturaEmessaRegCorrispettivi,
+                        ivaEsigibilitaDifferita: causale.ivaEsigibilitaDifferita,
+                        ivaEsigibilitaDifferitaDesc: causale.ivaEsigibilitaDifferitaDesc,
+                        gestionePartite: causale.gestionePartite,
+                        gestionePartiteDesc: causale.gestionePartiteDesc,
+                        gestioneIntrastat: causale.gestioneIntrastat,
+                        gestioneRitenuteEnasarco: causale.gestioneRitenuteEnasarco,
+                        gestioneRitenuteEnasarcoDesc: causale.gestioneRitenuteEnasarcoDesc,
+                        versamentoRitenute: causale.versamentoRitenute,
+                        noteMovimento: causale.noteMovimento,
+                        descrizioneDocumento: causale.descrizioneDocumento,
+                        identificativoEsteroClifor: causale.identificativoEsteroClifor,
+                        scritturaRettificaAssestamento: causale.scritturaRettificaAssestamento,
+                        nonStampareRegCronologico: causale.nonStampareRegCronologico,
+                        movimentoRegIvaNonRilevante: causale.movimentoRegIvaNonRilevante,
+                        tipoMovimentoSemplificata: causale.tipoMovimentoSemplificata,
+                        tipoMovimentoSemplificataDesc: causale.tipoMovimentoSemplificataDesc
+                    },
+                    create: causale
+                });
+                
+                // Conta se è un insert o update (Prisma non lo dice direttamente)
+                const existed = await prisma.causaleContabile.findUnique({
+                    where: { id: causale.id }
+                });
+                
+                if (existed) {
+                    updatedCount++;
+                } else {
+                    insertedCount++;
+                }
+                
+                // Log ogni 100 record come nei parser Python
+                if ((insertedCount + updatedCount) % 100 === 0) {
+                    console.log(`[CAUSALI] Elaborati ${insertedCount + updatedCount} record...`);
+                }
+                
+            } catch (error) {
+                console.error(`[CAUSALI] Errore inserimento causale ${causale.codice}:`, error instanceof Error ? error.message : String(error));
+            }
+        }
+
+        // Statistiche come nei parser Python
+        const stats = {
+            totalRecords: parsedData.length,
+            validRecords: validRecords.length,
+            insertedRecords: insertedCount,
+            updatedRecords: updatedCount,
+            errorRecords: parsedData.length - validRecords.length
+        };
+
+        console.log(`[CAUSALI] Completato: ${stats.insertedRecords} inseriti, ${stats.updatedRecords} aggiornati, ${stats.errorRecords} errori`);
+
+        return res.status(200).json({
+            success: true,
+            message: 'Importazione causali completata con successo',
+            stats: stats
+        });
+
+    } catch (error) {
+        console.error('[CAUSALI] Errore fatale durante l\'importazione:', error);
+        return res.status(500).json({
+            success: false,
+            error: 'Errore durante l\'importazione delle causali',
+            details: error instanceof Error ? error.message : String(error)
+        });
+    }
+}
+
+// === IMPORT CODICI IVA - BASATO SU PARSER_CODICIIVA.PY ===
+async function handleCodiciIvaImport(parsedData: any[], res: Response) {
+    let processedCount = 0;
+    let insertedCount = 0;
+    let updatedCount = 0;
+    const batchSize = 50;
+
+    try {
+        console.log(`[CODICI IVA] Inizio elaborazione di ${parsedData.length} record.`);
+
+        // Filtra e mappa i record seguendo la mappatura del SEED
+        const validRecords = parsedData.map(record => {
+            const codiceIva = record.codiceIva?.trim();
+            if (!codiceIva) return null;
+
+            // Parsing seguendo ESATTAMENTE la mappatura del SEED
+            const codiceIvaData = {
+                // Campi base (seguendo il seed template)
+                id: codiceIva, // Usa codiceIva come ID primario
+                codice: codiceIva, // Campo 'codice' del database
+                externalId: codiceIva,
+                descrizione: record.descrizione?.trim() || codiceIva,
+                
+                // Campi core IVA (nomi dal SEED)
+                tipoCalcolo: record.tipoCalcolo?.trim() || null,
+                tipoCalcoloDesc: decoders.decodeTipoCalcolo(record.tipoCalcolo),
+                aliquota: parseDecimalString(record.aliquota),
+                indetraibilita: record.indetraibilita ? parseFloat(record.indetraibilita) : null,
+                note: record.note?.trim() || null,
+                
+                // Date validità (ora presenti nello schema)
+                dataInizio: convertDateString(record.dataInizio),
+                dataFine: convertDateString(record.dataFine),
+                
+                // === CAMPI DAL SEED TEMPLATE (mappatura esatta) ===
+                // Gestione Plafond
+                plafondAcquisti: record.plafondAcquisti?.trim() || null,
+                plafondAcquistiDesc: decoders.decodePlafondAcquisti(record.plafondAcquisti),
+                monteAcquisti: parseBooleanFlag(record.monteAcquisti),
+                plafondVendite: record.plafondVendite?.trim() || null,
+                plafondVenditeDesc: decoders.decodePlafondVendite(record.plafondVendite),
+                noVolumeAffariPlafond: parseBooleanFlag(record.noVolumeAffariPlafond),
+                
+                // Pro-rata e Compensazioni
+                gestioneProRata: record.gestioneProRata?.trim() || null,
+                gestioneProRataDesc: decoders.decodeGestioneProRata(record.gestioneProRata),
+                percentualeCompensazione: parseDecimalString(record.percentualeCompensazione),
+                
+                // Reverse Charge e Operazioni Speciali
+                autofatturaReverseCharge: parseBooleanFlag(record.autofatturaReverseCharge),
+                operazioneEsenteOccasionale: parseBooleanFlag(record.operazioneEsenteOccasionale),
+                cesArt38QuaterStornoIva: parseBooleanFlag(record.cesArt38QuaterStornoIva),
+                agevolazioniSubforniture: parseBooleanFlag(record.agevolazioniSubforniture),
+                
+                // Territorialità
+                indicatoreTerritorialeVendite: record.indicatoreTerritorialeVendite?.trim() || null,
+                indicatoreTerritorialeVenditeDesc: decoders.decodeIndicatoreTerritorialeVendite(record.indicatoreTerritorialeVendite),
+                indicatoreTerritorialeAcquisti: record.indicatoreTerritorialeAcquisti?.trim() || null,
+                indicatoreTerritorialeAcquistiDesc: decoders.decodeIndicatoreTerritorialeAcquisti(record.indicatoreTerritorialeAcquisti),
+                
+                // Beni Ammortizzabili
+                beniAmmortizzabili: parseBooleanFlag(record.beniAmmortizzabili),
+                analiticoBeniAmmortizzabili: parseBooleanFlag(record.analiticoBeniAmmortizzabili),
+                
+                // Comunicazioni Dati IVA
+                comunicazioneDatiIvaVendite: record.comunicazioneDatiIvaVendite?.trim() || null,
+                comunicazioneDatiIvaVenditeDesc: decoders.decodeComunicazioneVendite(record.comunicazioneDatiIvaVendite),
+                comunicazioneDatiIvaAcquisti: record.comunicazioneDatiIvaAcquisti?.trim() || null,
+                comunicazioneDatiIvaAcquistiDesc: decoders.decodeComunicazioneAcquisti(record.comunicazioneDatiIvaAcquisti),
+                
+                // Altri Campi Fiscali
+                imponibile50Corrispettivi: parseBooleanFlag(record.imponibile50Corrispettivi),
+                imposteIntrattenimenti: record.imposteIntrattenimenti?.trim() || null,
+                imposteIntrattenimentiDesc: decoders.decodeImposteIntrattenimenti(record.imposteIntrattenimenti),
+                ventilazione: parseBooleanFlag(record.ventilazione),
+                aliquotaDiversa: parseDecimalString(record.aliquotaDiversa),
+                percDetrarreExport: parseDecimalString(record.percDetrarreExport),
+                acquistiCessioni: record.acquistiCessioni?.trim() || null,
+                acquistiCessioniDesc: decoders.decodeAcquistiCessioni(record.acquistiCessioni),
+                metodoDaApplicare: record.metodoDaApplicare?.trim() || null,
+                metodoDaApplicareDesc: decoders.decodeMetodoApplicare(record.metodoDaApplicare),
+                percentualeForfetaria: record.percentualeForfetaria?.trim() || null,
+                percentualeForfetariaDesc: decoders.decodePercentualeForfetaria(record.percentualeForfetaria),
+                quotaForfetaria: record.quotaForfetaria?.trim() || null,
+                quotaForfetariaDesc: decoders.decodeQuotaForfetaria(record.quotaForfetaria),
+                acquistiIntracomunitari: parseBooleanFlag(record.acquistiIntracomunitari),
+                cessioneProdottiEditoriali: parseBooleanFlag(record.cessioneProdottiEditoriali),
+                provvigioniDm34099: parseBooleanFlag(record.provvigioniDm34099),
+                acqOperazImponibiliOccasionali: parseBooleanFlag(record.acqOperazImponibiliOccasionali),
+                
+                // Flags derivati per compatibilità UI (basati sui campi del seed)
+                // splitPayment: parseBooleanFlag(record.splitPayment),
+                // nonImponibile: parseBooleanFlag(record.nonImponibile),
+                // imponibile: parseBooleanFlag(record.imponibile),
+                // imposta: parseBooleanFlag(record.imposta),
+                // esente: parseBooleanFlag(record.esente),
+                // nonImponibileConPlafond: parseBooleanFlag(record.nonImponibileConPlafond),
+                // inSospensione: parseBooleanFlag(record.inSospensione),
+                // esclusoDaIva: parseBooleanFlag(record.esclusoDaIva),
+                // reverseCharge: parseBooleanFlag(record.reverseCharge),
+                // fuoriCampoIva: parseBooleanFlag(record.fuoriCampoIva),
+                
+                // CAMPI DI STATO
+                inUso: true, 
+                dataAggiornamento: new Date()
+            };
+
+            return codiceIvaData;
+
+        }).filter((record): record is NonNullable<typeof record> => record !== null);
+
+        console.log(`[CODICI IVA] Trovati ${validRecords.length} record validi da processare.`);
+
+        // Processamento a batch
+        for (let i = 0; i < validRecords.length; i += batchSize) {
+            const batch = validRecords.slice(i, i + batchSize);
+            
+            for (const codiceIva of batch) {
+                try {
+                    // DEBUG: Verifica esplicita con logging dettagliato
+                    const existed = await prisma.codiceIva.findUnique({
+                        where: { id: codiceIva.id }
+                    });
+
+                    if (existed) {
+                        console.log(`[DEBUG] Trovato record esistente per ID: ${codiceIva.id}. Contato come AGGIORNAMENTO.`);
+                        updatedCount++;
+                    } else {
+                        console.log(`[DEBUG] Record per ID: ${codiceIva.id} non trovato. Contato come INSERIMENTO.`);
+                        insertedCount++;
+                    }
+
+                    await prisma.codiceIva.upsert({
+                        where: { id: codiceIva.id },
+                        create: codiceIva,
+                        update: codiceIva
+                    });
+
+                    processedCount++;
+
+                    // Log di avanzamento ogni 50 record
+                    if (processedCount % 50 === 0) {
+                        console.log(`[CODICI IVA] Elaborati ${processedCount}/${validRecords.length} record...`);
+                    }
+
+                } catch (error) {
+                    console.error(`[CODICI IVA] Errore inserimento codice IVA ${codiceIva.codice}:`, error instanceof Error ? error.message : String(error));
+                    continue;
+                }
+            }
+        }
+
+        console.log(`[CODICI IVA] Importazione completata:`);
+        console.log(`[CODICI IVA] - Record processati: ${processedCount}`);
+        console.log(`[CODICI IVA] - Nuovi inserimenti: ${insertedCount}`);
+        console.log(`[CODICI IVA] - Aggiornamenti: ${updatedCount}`);
+
+        return res.status(200).json({
+            success: true,
+            message: 'Importazione codici IVA completata con successo',
+            stats: {
+                processed: processedCount,
+                inserted: insertedCount,
+                updated: updatedCount,
+                total: validRecords.length
+            }
+        });
+
+    } catch (error) {
+        console.error('[CODICI IVA] Errore durante l\'importazione:', error instanceof Error ? error.message : String(error));
+        return res.status(500).json({
+            success: false,
+            error: 'Errore durante l\'importazione dei codici IVA',
+            details: error instanceof Error ? error.message : String(error)
+        });
+    }
+}
+
+// Funzione helper per parsare stringhe decimali come fa la "bibbia" Python
+// Prende una stringa come "002200" e la converte in 22.00
+function parseDecimalString(valueStr: string | null | undefined): number | null {
+    // robust check to ensure valueStr is a non-empty string
+    if (typeof valueStr !== 'string' || valueStr.trim() === '') {
+        return null;
+    }
+    
+    const cleanedStr = valueStr.trim();
+    // Inserisce il punto decimale prima delle ultime due cifre
+    const integerPart = cleanedStr.slice(0, -2);
+    const decimalPart = cleanedStr.slice(-2);
+    
+    try {
+        const result = parseFloat(`${integerPart}.${decimalPart}`);
+        return isNaN(result) ? null : result;
+    } catch (error) {
+        return null;
+    }
+}
+
+// Funzione helper per parsing boolean flags (dalla "bibbia" Python)
+function parseBooleanFlag(char: string | undefined): boolean {
+    if (!char) return false;
+    return char.trim().toUpperCase() === 'X';
 }
 
 export default router;

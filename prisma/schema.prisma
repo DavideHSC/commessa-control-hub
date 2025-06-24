@@ -168,6 +168,12 @@ model Conto {
   validoProfessionistaOrdinario Boolean?
   validoProfessionistaSemplificato Boolean?
   
+  // Validità per Dichiarazioni Fiscali (NUOVI)
+  validoUnicoPf                Boolean?
+  validoUnicoSp                Boolean?
+  validoUnicoSc                Boolean?
+  validoUnicoEnc               Boolean?
+  
   // Classi Fiscali
   classeIrpefIres              String?
   classeIrap                   String?
@@ -265,16 +271,32 @@ model Allocazione {
 }
 
 model CodiceIva {
-  id             String    @id
-  externalId     String?   @unique
-  descrizione    String
-  aliquota       Float?
-  indetraibilita Float?
-  note           String?
-  tipoCalcolo    String?
-  dataFine       DateTime?
-  dataInizio     DateTime?
-  righeIva       RigaIva[]
+  id                    String    @id @default(cuid())
+  externalId            String?   @unique
+  descrizione           String
+  aliquota              Float?
+  natura                String?
+  codiceExport          String?
+  inUso                 Boolean?
+  dataAggiornamento     DateTime?
+  note                  String?
+  indetraibilita        Float?
+  codice                String?
+  tipoCalcolo           String?
+  tipoCalcoloDesc       String?
+  dataInizio            DateTime?
+  dataFine              DateTime?
+  splitPayment          Boolean?
+  nonImponibile         Boolean?
+  imponibile            Boolean?
+  esente                Boolean?
+  nonImponibileConPlafond Boolean?
+  inSospensione         Boolean?
+  esclusoDaIva          Boolean?
+  reverseCharge         Boolean?
+  fuoriCampoIva         Boolean?
+  
+  righeIva              RigaIva[]
   
   // === ESTENSIONI FASE 1 - PARSER PYTHON ===
   // Gestione Plafond
@@ -362,6 +384,7 @@ model RigaIva {
 
 model CausaleContabile {
   id                String               @id
+  codice            String?              @unique
   descrizione       String
   externalId        String?              @unique
   nome              String?

@@ -17,7 +17,7 @@ router.post('/', upload.array('files', 10), async (req: Request, res: Response) 
 
     try {
         // 1. Recupera il template di importazione per le scritture contabili
-        const importTemplate = await prisma.importTemplate.findUnique({
+        const importTemplate = await prisma.importTemplate.findFirst({
             where: { modelName: 'scritture_contabili' },
             include: { fieldDefinitions: true },
         });
@@ -33,10 +33,10 @@ router.post('/', upload.array('files', 10), async (req: Request, res: Response) 
                     acc[field.fileIdentifier] = [];
                 }
                 acc[field.fileIdentifier].push({
-                    name: field.nomeCampo,
+                    name: field.fieldName || '',
                     start: field.start,
                     length: field.length,
-                    type: field.type as 'string' | 'number' | 'date',
+                    type: (field.format || 'string') as 'string' | 'number' | 'date',
                 });
             }
             return acc;

@@ -10,6 +10,41 @@ export interface Cliente {
   externalId?: string | null;
   piva?: string | null;
   codiceFiscale?: string | null;
+  cap?: string | null;
+  codicePagamento?: string | null;
+  codiceValuta?: string | null;
+  cognome?: string | null;
+  comune?: string | null;
+  comuneNascita?: string | null;
+  dataNascita?: Date | null;
+  indirizzo?: string | null;
+  nazione?: string | null;
+  nomeAnagrafico?: string | null;
+  provincia?: string | null;
+  sesso?: string | null;
+  telefono?: string | null;
+  tipoAnagrafica?: string | null;
+
+  // Estensioni Fase 1 - Parser Python
+  codiceAnagrafica?: string | null;
+  tipoConto?: string | null;
+  tipoContoDesc?: string | null;
+  tipoSoggetto?: string | null;
+  tipoSoggettoDesc?: string | null;
+  denominazione?: string | null;
+  sessoDesc?: string | null;
+  prefissoTelefono?: string | null;
+  codiceIso?: string | null;
+  idFiscaleEstero?: string | null;
+  sottocontoAttivo?: string | null;
+  sottocontoCliente?: string | null;
+  sottocontoFornitore?: string | null;
+  codiceIncassoCliente?: string | null;
+  codicePagamentoFornitore?: string | null;
+  ePersonaFisica?: boolean | null;
+  eCliente?: boolean | null;
+  eFornitore?: boolean | null;
+  haPartitaIva?: boolean | null;
 }
 
 /**
@@ -21,6 +56,56 @@ export interface Fornitore {
   externalId?: string | null;
   piva?: string | null;
   codiceFiscale?: string | null;
+  aliquota?: number | null;
+  attivitaMensilizzazione?: number | null;
+  cap?: string | null;
+  codicePagamento?: string | null;
+  codiceRitenuta?: string | null;
+  codiceValuta?: string | null;
+  cognome?: string | null;
+  comune?: string | null;
+  comuneNascita?: string | null;
+  contributoPrevidenziale?: boolean | null;
+  contributoPrevidenzialeL335?: string | null;
+  dataNascita?: Date | null;
+  enasarco?: boolean | null;
+  gestione770?: boolean | null;
+  indirizzo?: string | null;
+  nazione?: string | null;
+  nomeAnagrafico?: string | null;
+  percContributoCassaPrev?: number | null;
+  provincia?: string | null;
+  quadro770?: string | null;
+  sesso?: string | null;
+  soggettoInail?: boolean | null;
+  soggettoRitenuta?: boolean | null;
+  telefono?: string | null;
+  tipoAnagrafica?: string | null;
+  tipoRitenuta?: string | null;
+
+  // Estensioni Fase 1 - Parser Python
+  codiceAnagrafica?: string | null;
+  tipoConto?: string | null;
+  tipoContoDesc?: string | null;
+  tipoSoggetto?: string | null;
+  tipoSoggettoDesc?: string | null;
+  denominazione?: string | null;
+  sessoDesc?: string | null;
+  prefissoTelefono?: string | null;
+  codiceIso?: string | null;
+  idFiscaleEstero?: string | null;
+  sottocontoAttivo?: string | null;
+  sottocontoCliente?: string | null;
+  sottocontoFornitore?: string | null;
+  codiceIncassoCliente?: string | null;
+  codicePagamentoFornitore?: string | null;
+  ePersonaFisica?: boolean | null;
+  eCliente?: boolean | null;
+  eFornitore?: boolean | null;
+  haPartitaIva?: boolean | null;
+  quadro770Desc?: string | null;
+  tipoRitenuraDesc?: string | null;
+  contributoPrevid335Desc?: string | null;
 }
 
 /**
@@ -42,6 +127,10 @@ export interface Conto {
   codice: string; // Duplicato dell'id per chiarezza semantica
   nome: string; // Es. "CARBURANTI E LUBRIFICANTI"
   tipo: 'Costo' | 'Ricavo' | 'Patrimoniale' | 'Fornitore' | 'Cliente'; // Ampliato per maggiore specificità
+  validoUnicoPf?: boolean;
+  validoUnicoSp?: boolean;
+  validoUnicoSc?: boolean;
+  validoUnicoEnc?: boolean;
   // Il motore del nostro automatismo: collega un conto a un centro di costo di default.
   voceAnaliticaSuggeritaId?: string; // Es. '2' (gestione automezzi)
   richiedeVoceAnalitica?: boolean; // True se il conto richiede una voce analitica
@@ -92,14 +181,63 @@ export interface CampoDatiPrimari {
  * È il motore degli automatismi di inserimento.
  */
 export interface CausaleContabile {
-  id: string; // Es. 'FATT_ACQ_MERCI'
-  externalId?: string | null; // ID esterno per importazione
-  nome: string; // Nome breve, es. "Fattura Acquisto"
-  descrizione: string; // Es. 'Registrazione Fattura Acquisto Merce'
-  // Lista dei dati che l'utente deve inserire per usare il template
-  datiPrimari: any[]; // Semplificato per ora
-  // Il template vero e proprio per generare le righe
-  templateScrittura: any[]; // Semplificato per ora
+  id: string;
+  codice?: string | null;
+  descrizione: string;
+  externalId?: string | null;
+  nome?: string | null;
+  dataFine?: Date | null;
+  dataInizio?: Date | null;
+  noteMovimento?: string | null;
+  tipoAggiornamento?: string | null;
+  tipoMovimento?: string | null;
+  tipoRegistroIva?: string | null;
+
+  // === ESTENSIONI FASE 1 - PARSER PYTHON ===
+  // Descrizioni Decodificate
+  tipoMovimentoDesc?: string | null;
+  tipoAggiornamentoDesc?: string | null;
+  tipoRegistroIvaDesc?: string | null;
+
+  // Gestione IVA
+  segnoMovimentoIva?: string | null;
+  segnoMovimentoIvaDesc?: string | null;
+  contoIva?: string | null;
+  contoIvaVendite?: string | null;
+
+  // Autofatture
+  generazioneAutofattura?: boolean | null;
+  tipoAutofatturaGenerata?: string | null;
+  tipoAutofatturaDesc?: string | null;
+
+  // Gestione Fatture
+  fatturaImporto0?: boolean | null;
+  fatturaValutaEstera?: boolean | null;
+  nonConsiderareLiquidazioneIva?: boolean | null;
+  fatturaEmessaRegCorrispettivi?: boolean | null;
+
+  // IVA Esigibilità
+  ivaEsigibilitaDifferita?: string | null;
+  ivaEsigibilitaDifferitaDesc?: string | null;
+
+  // Gestioni Speciali
+  gestionePartite?: string | null;
+  gestionePartiteDesc?: string | null;
+  gestioneIntrastat?: boolean | null;
+  gestioneRitenuteEnasarco?: string | null;
+  gestioneRitenuteEnasarcoDesc?: string | null;
+  versamentoRitenute?: boolean | null;
+
+  // Documenti e Registrazioni
+  descrizioneDocumento?: string | null;
+  identificativoEsteroClifor?: boolean | null;
+  scritturaRettificaAssestamento?: boolean | null;
+  nonStampareRegCronologico?: boolean | null;
+  movimentoRegIvaNonRilevante?: boolean | null;
+
+  // Contabilità Semplificata
+  tipoMovimentoSemplificata?: string | null;
+  tipoMovimentoSemplificataDesc?: string | null;
 }
 
 /**
@@ -245,15 +383,88 @@ export interface ImportTemplate {
 
 export interface CodiceIva {
   id: string;
-  externalId?: string;
+  externalId?: string | null;
   descrizione: string;
-  aliquota: number;
+  aliquota?: number | null;
+  natura?: string | null;
+  codiceExport?: string | null;
+  inUso?: boolean | null;
+  dataAggiornamento?: Date | null;
+  note?: string | null;
+  indetraibilita?: number | null;
+  codice?: string | null;
+  tipoCalcolo?: string | null;
+  tipoCalcoloDesc?: string | null;
+  splitPayment?: boolean | null;
+  nonImponibile?: boolean | null;
+  imponibile?: boolean | null;
+  imposta?: boolean | null;
+  esente?: boolean | null;
+  nonImponibileConPlafond?: boolean | null;
+  inSospensione?: boolean | null;
+  esclusoDaIva?: boolean | null;
+  reverseCharge?: boolean | null;
+  fuoriCampoIva?: boolean | null;
+
+  // Estensioni Fase 1 - Parser Python
+  plafondAcquisti?: string | null;
+  plafondAcquistiDesc?: string | null;
+  monteAcquisti?: boolean | null;
+  plafondVendite?: string | null;
+  plafondVenditeDesc?: string | null;
+  noVolumeAffariPlafond?: boolean | null;
+  gestioneProRata?: string | null;
+  gestioneProRataDesc?: string | null;
+  percentualeCompensazione?: number | null;
+  autofatturaReverseCharge?: boolean | null;
+  operazioneEsenteOccasionale?: boolean | null;
+  cesArt38QuaterStornoIva?: boolean | null;
+  agevolazioniSubforniture?: boolean | null;
+  indicatoreTerritorialeVendite?: string | null;
+  indicatoreTerritorialeVenditeDesc?: string | null;
+  indicatoreTerritorialeAcquisti?: string | null;
+  indicatoreTerritorialeAcquistiDesc?: string | null;
+  beniAmmortizzabili?: boolean | null;
+  analiticoBeniAmmortizzabili?: boolean | null;
+  comunicazioneDatiIvaVendite?: string | null;
+  comunicazioneDatiIvaVenditeDesc?: string | null;
+  comunicazioneDatiIvaAcquisti?: string | null;
+  comunicazioneDatiIvaAcquistiDesc?: string | null;
+  imponibile50Corrispettivi?: boolean | null;
+  imposteIntrattenimenti?: string | null;
+  imposteIntrattenimentiDesc?: string | null;
+  ventilazione?: boolean | null;
+  aliquotaDiversa?: number | null;
+  percDetrarreExport?: number | null;
+  acquistiCessioni?: string | null;
+  acquistiCessioniDesc?: string | null;
+  metodoDaApplicare?: string | null;
+  metodoDaApplicareDesc?: string | null;
+  percentualeForfetaria?: string | null;
+  percentualeForfetariaDesc?: string | null;
+  quotaForfetaria?: string | null;
+  quotaForfetariaDesc?: string | null;
+  acquistiIntracomunitari?: boolean | null;
+  cessioneProdottiEditoriali?: boolean | null;
+  provvigioniDm34099?: boolean | null;
+  acqOperazImponibiliOccasionali?: boolean | null;
 }
 
 export interface CondizionePagamento {
   id: string;
-  externalId?: string;
+  externalId?: string | null;
   descrizione: string;
+  codice?: string | null;
+  contoIncassoPagamento?: string | null;
+  inizioScadenza?: string | null;
+  numeroRate?: number | null;
+  suddivisione?: string | null;
+
+  // Estensioni Fase 1 - Parser Python
+  calcolaGiorniCommerciali?: boolean | null;
+  consideraPeriodiChiusura?: boolean | null;
+  suddivisioneDesc?: string | null;
+  inizioScadenzaDesc?: string | null;
 }
 
 export interface TableStats {

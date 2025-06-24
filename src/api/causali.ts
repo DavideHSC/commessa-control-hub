@@ -8,7 +8,7 @@ export const getCausali = async (): Promise<CausaleContabile[]> => {
   return response.json();
 };
 
-export const createCausale = async (data: { id: string; nome: string; descrizione: string; externalId?: string }): Promise<CausaleContabile> => {
+export const createCausale = async (data: Omit<CausaleContabile, 'id'> & { id: string }): Promise<CausaleContabile> => {
   const response = await fetch('/api/causali', {
     method: 'POST',
     headers: {
@@ -24,7 +24,7 @@ export const createCausale = async (data: { id: string; nome: string; descrizion
   return response.json();
 };
 
-export const updateCausale = async (id: string, data: { nome: string; descrizione: string; externalId?: string }): Promise<CausaleContabile> => {
+export const updateCausale = async (id: string, data: Partial<CausaleContabile>): Promise<CausaleContabile> => {
   const response = await fetch(`/api/causali/${id}`, {
     method: 'PUT',
     headers: {

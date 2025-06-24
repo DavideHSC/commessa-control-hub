@@ -96,7 +96,10 @@ export const CodiciIvaTable = () => {
     {
       accessorKey: "aliquota",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Aliquota" />,
-      cell: ({ row }) => `${row.getValue("aliquota")}%`
+      cell: ({ row }) => {
+        const aliquota = row.getValue("aliquota");
+        return aliquota !== null && aliquota !== undefined ? `${aliquota}%` : 'N/A';
+      }
     },
     {
       accessorKey: "externalId",

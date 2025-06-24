@@ -60,14 +60,10 @@ router.get('/', async (req, res) => {
 // POST - Crea una nuova causale contabile
 router.post('/', async (req, res) => {
   try {
-    const { id, descrizione, nome } = req.body;
+    const causaleData = req.body;
     
     const causale = await prisma.causaleContabile.create({
-      data: {
-        id,
-        descrizione,
-        nome
-      }
+      data: causaleData
     });
     
     res.status(201).json(causale);
@@ -81,14 +77,11 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { descrizione, nome } = req.body;
+    const updateData = req.body;
     
     const causale = await prisma.causaleContabile.update({
       where: { id },
-      data: {
-        descrizione,
-        nome
-      }
+      data: updateData
     });
     
     res.json(causale);

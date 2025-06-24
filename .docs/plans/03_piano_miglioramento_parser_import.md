@@ -597,223 +597,48 @@ Implementare template completi per:
 
 ## Fase 5: Miglioramento Logica Import
 
-### Priorità 5.1: Processamento Avanzato
-**Riferimento**: Funzioni `process_*` nei parser Python
-
-**File da modificare**: `server/routes/importAnagrafiche.ts`
-
-**Implementazione**:
-```typescript
-// Basato su parser_causali.py parse_causali_file
-async function handleCausaliImport(fileBuffer: Buffer, templateName: string) {
-  const lines = await parseWithFallbackEncoding(fileBuffer);
-  
-  const { data: causaliData, stats } = await processWithErrorHandling(
-    lines,
-    (line: string, index: number) => {
-      // Validazione lunghezza specifica per causali (171 bytes + CRLF)
-      const cleanLine = line.replace(/\r?\n$/, '');
-      if (cleanLine.length < 171) {
-        throw new Error(`Lunghezza insufficiente: ${cleanLine.length} < 171`);
-      }
-      
-      // Parsing con layout verificato
-      const record = parseLineWithTemplate(line, 'causali');
-      
-      // Arricchimento con decodifiche semantiche
-      return {
-        ...record,
-        tipo_movimento_desc: decodeTipoMovimento(record.tipo_movimento),
-        tipo_aggiornamento_desc: decodeTipoAggiornamento(record.tipo_aggiornamento),
-        tipo_registro_iva_desc: decodeTipoRegistroIva(record.tipo_registro_iva),
-        // ... altre decodifiche
-      };
-    },
-    'causali'
-  );
-  
-  // Inserimento database con statistiche
-  const insertedCount = await insertCausaliWithDeduplication(causaliData);
-  
-  return {
-    success: true,
-    stats: {
-      ...stats,
-      insertedRecords: insertedCount
-    }
-  };
-}
-```
-
-### Priorità 5.2: Statistiche Real-time
-**Riferimento**: Funzioni `create_summary_stats` nei parser Python
-
-**File da creare**: `server/lib/importStatistics.ts`
-
-**Implementazione**:
-```typescript
-// Basato su parser_causali.py create_summary_stats
-export function createCausaliStats(causali: any[]): Record<string, number> {
-  return {
-    'Totale Causali': causali.length,
-    'Causali con Codice': causali.filter(c => c.codice_causale !== '').length,
-    'Causali Contabili': causali.filter(c => c.tipo_movimento === 'C').length,
-    'Causali Contabili/IVA': causali.filter(c => c.tipo_movimento === 'I').length,
-    'Causali Acquisti': causali.filter(c => c.tipo_registro_iva === 'A').length,
-    'Causali Vendite': causali.filter(c => c.tipo_registro_iva === 'V').length,
-    'Con Autofattura': causali.filter(c => c.generazione_autofattura).length,
-    'Con Gestione Partite': causali.filter(c => ['A', 'C', 'H'].includes(c.gestione_partite)).length,
-    'Con Ritenute/Enasarco': causali.filter(c => ['R', 'E', 'T'].includes(c.gestione_ritenute_enasarco)).length,
-    'Con Gestione Intrastat': causali.filter(c => c.gestione_intrastat).length
-  };
-}
-
-// Implementare stats per tutti gli altri tipi seguendo i pattern Python
-```
-
----
-
-## Fase 6: Testing e Validazione
-
-### Priorità 6.1: Test con Dati Reali
-**Riferimento**: Logiche di test implicite nei parser Python
-
-**File da creare**: `tests/import/parser-validation.test.ts`
-
-**Implementazione**:
-```typescript
-describe('Parser Validation', () => {
-  test('Causali - Layout verificato', async () => {
-    // Test con dati che rispettano il layout da parser_causali.py
-    const testLine = '   1CAUS01CAUSALE TEST                             CI20240101202412310V X   CONTO001  X          ';
-    const result = parseLineWithTemplate(testLine, 'causali');
-    
-    expect(result.codice_causale).toBe('CAUS01');
-    expect(result.descrizione_causale).toBe('CAUSALE TEST');
-    expect(result.tipo_movimento).toBe('C');
-    // ... altri test
-  });
-  
-  test('Codici IVA - Gestione aliquote decimali', async () => {
-    // Test basato su parser_codiciiva.py parse_decimal
-    const testData = { aliquota_iva: '002200' }; // 22.00%
-    const formatted = formatAmount(testData.aliquota_iva);
-    expect(formatted).toBe(22.00);
-  });
-  
-  // Test per tutti i parser seguendo i pattern Python
-});
-```
-
-### Priorità 6.2: Validazione Encoding
-**Riferimento**: Test encoding nei parser Python
-
-**Test di fallback encoding**:
-```typescript
-test('Fallback encoding come Python', async () => {
-  // Test sequenza encoding UTF-8 → latin1 → cp1252 → iso-8859-1
-  const encodings = ['utf-8', 'latin1', 'cp1252', 'iso-8859-1'];
-  
-  for (const encoding of encodings) {
-    try {
-      const result = await parseWithFallbackEncoding(testFile);
-      expect(result).toBeDefined();
-      break;
-    } catch (error) {
-      continue;
-    }
-  }
-});
-```
-
----
-
-## Cronologia di Implementazione
-
-### ✅ **COMPLETATO - 24 Gennaio 2025**
-
-#### **Fase 1: Estensione Schema Database (Foundation)**
-- [x] **Estensione schema database** (Priorità 1.1-1.5) - **COMPLETATO**
-  - ✅ CodiceIva: +39 campi (plafond, pro-rata, reverse charge, territorialità, etc.)
-  - ✅ Conto: +22 campi (gerarchia, validità, classi fiscali, conti collegati)
-  - ✅ CausaleContabile: +24 campi (descrizioni, IVA, autofatture, gestioni speciali)
-  - ✅ Cliente/Fornitore: +26 campi (anagrafica estesa, sottoconti, flags calcolati)
-  - ✅ CondizionePagamento: +4 campi (configurazione avanzata, descrizioni)
-- [x] **Migrazione database** - **COMPLETATO**
-  - ✅ Migrazione `20250624102656_fase1_estensioni_parser_python` applicata
-  - ✅ Prisma Client rigenerato
-  - ✅ Tutti i campi opzionali per backward compatibility
-- [x] **Test compatibilità dati esistenti** - **COMPLETATO**
-  - ✅ Build npm run build funzionante
-  - ✅ Dati esistenti preservati
-
-#### **Fase 2: Robustezza Parser Base**
-- [x] **Implementazione fallback encoding** (Priorità 2.1) - **COMPLETATO**
-  - ✅ Sequenza encoding utf-8 → latin1 → cp1252 → iso-8859-1
-  - ✅ Implementato in `server/lib/fixedWidthParser.ts`
-- [x] **Validazione lunghezza record** (Priorità 2.2) - **COMPLETATO**
-  - ✅ RECORD_VALIDATIONS per tutti i template
-  - ✅ Gestione graceful degli errori di lunghezza
-- [x] **Gestione errori graceful** (Priorità 2.3) - **COMPLETATO**
-  - ✅ ImportStats interface per statistiche dettagliate
-  - ✅ Continuazione processing su errori singoli record
-  - ✅ Logging ogni 100 record come pattern Python
-
-#### **Fase 3: Business Logic**
-- [x] **Decodifica semantica** (Priorità 3.1) - **COMPLETATO**
-  - ✅ `server/lib/businessDecoders.ts` creato (442 linee)
-  - ✅ 30+ funzioni di decodifica basate su parser Python
-  - ✅ Tutte le funzioni decode_* implementate
-- [x] **Formattazione dati** (Priorità 3.2) - **COMPLETATO**
-  - ✅ Gestione date, importi, flags booleani
-  - ✅ Validazioni codice fiscale, partita IVA
-- [x] **Validazioni business** (Priorità 3.3) - **COMPLETATO**
-  - ✅ Validazioni integrate nelle funzioni di decodifica
-
-#### **Fase 4: Template Import**
-- [x] **Aggiornamento template con layout verificati** (Priorità 4.1-4.2) - **COMPLETATO**
-  - ✅ **piano_dei_conti**: 5 → **31 campi** (+520%)
-  - ✅ **causali**: 10 → **28 campi** (+180%)
-  - ✅ **codici_iva**: 9 → **37 campi** (+311%)
-  - ✅ **anagrafica_clifor**: 6 → **34 campi** (+467%)
-  - ✅ **condizioni_pagamento**: 7 → **8 campi** (+14%)
-  - ✅ **Totale**: Da 37 → **138 campi** (+273% completezza dati)
-
-#### **Fase 5: Integrazione Import Routes**
-- [x] **Integrazione base** - **COMPLETATO**
-  - ✅ `server/routes/importAnagrafiche.ts` aggiornato per Cliente/Fornitore
-  - ✅ Decodifiche semantiche integrate
-  - ✅ Flags calcolati implementati
-
 ### 🚧 **IN CORSO - Prossimi Passi**
 
-#### **Fase 5: Completamento Logica Import** - **PRIORITÀ IMMEDIATA**
-- [ ] **Aggiornamento handleCausaliImport()** - **PROSSIMO**
-  - Integrazione 18 nuovi campi causali
-  - Decodifiche semantiche complete
-  - Statistiche real-time
-- [ ] **Aggiornamento handleCodiciIvaImport()**
-  - Integrazione 28 nuovi campi IVA
-  - Logiche fiscali avanzate
-- [ ] **Aggiornamento handlePianoDeiContiImport()**
-  - Integrazione 26 nuovi campi piano conti
-  - Logica gerarchica
-- [ ] **Completamento handleAnagraficaImport()**
-  - Gestione completa persona fisica/giuridica
-  - Logiche di deduplica avanzate
+#### **Fase 5.1: Correzione Architetturale Critica** - **🚨 PRIORITÀ MASSIMA**
 
-#### **Fase 6: Testing e Validazione**
-- [ ] Test completi con dati reali (Priorità 6.1-6.2)
-- [ ] Validazione performance
-- [ ] Documentazione finale
+**💡 SCHEMA OPERATIVO CICLICO (da ripetere per ogni model):**
+1.  **Audit & Gap Analysis**: Analisi di un singolo model per identificare le discrepanze.
+2.  **Correzione Schema DB**: Modifica dello `schema.prisma` e creazione della migrazione.
+3.  **Allineamento Tipi & API**: Aggiornamento delle interfacce TypeScript e delle rotte API impattate.
+4.  **Allineamento Completo UI**: Modifica dei componenti React (tabelle, form) per visualizzare e gestire i nuovi campi.
+5.  **Verifica Funzionale E2E**: Test manuale dell'intero flusso per confermare che non ci siano regressioni.
+6.  **Aggiornamento Piano**: Documentazione di tutte le azioni svolte e dello stato di allineamento del model.
 
-### **RISULTATI RAGGIUNTI**
+---
 
-**Completezza Dati**: Da 71/198 campi (36%) → **169/198 campi (85%)** = **+49% miglioramento**
+### **Ciclo 1: `CausaleContabile`**
 
-**Robustezza Import**: Da parser base con errori bloccanti (70%) → fallback encoding, validazione, errori graceful (90%) = **+20% miglioramento**
+- [x] **Audit & Gap Analysis**:
+  - **Stato**: Completato.
+  - **Gap Rilevato**: ❌ Manca il campo `codice`.
+- [x] **Correzione Schema DB**:
+  - **Stato**: Completato.
+  - **Azione Svolta**: ✅ Aggiunto campo `codice: String? @unique` e creata migrazione.
+- [x] **Allineamento Tipi & API**:
+  - **Stato**: Completato.
+  - **Azione Svolta**: ✅ Aggiornata l'interfaccia `CausaleContabile` in `src/types/index.ts`.
+- [ ] **Allineamento Completo UI**:
+  - **Stato**: **Da iniziare**.
+  - **Azione da Svolgere**: Modificare `CausaliTable.tsx` per includere il campo `codice` e gli altri 24 campi estesi nel form e, dove sensato, nella tabella.
+- [ ] **Verifica Funzionale E2E**:
+  - **Stato**: Da iniziare.
+- [ ] **Aggiornamento Piano a Fine Ciclo**:
+  - **Stato**: Da completare.
 
-**Decodifica Semantica**: Da codici grezzi senza interpretazione (0%) → 30+ funzioni complete (95%) = **+95% miglioramento**
+---
+
+### **Ciclo 2: `Conto`**
+
+- [ ] **Audit & Gap Analysis**:
+  - **Stato**: Da iniziare.
+
+---
+*Il resto della vecchia struttura delle sequenze verrà rimosso una volta completati i cicli per ogni model.*
 
 ---
 
@@ -852,4 +677,38 @@ test('Fallback encoding come Python', async () => {
 **Riferimenti Costanti**:
 - Analisi: `analisi_ui_importazione_20250624.md`
 - Parser Python: `.docs/code/parser*.py`
-- Testing: Dati reali cliente come baseline 
+- Testing: Dati reali cliente come baseline
+
+---
+
+## 🔍 **SISTEMA TIPI DATI - RIFERIMENTO COMPLETO**
+
+### **MAPPING TIPI CROSS-LAYER GIÀ IMPLEMENTATO:**
+
+| **Parser Python** | **Seed.ts Format** | **Prisma Type** | **Esempio Campo** |
+|-------------------|-------------------|-----------------|-------------------|
+| `.strip()` | `'string'` | `String?` | `codiceCausale`, `descrizione` |
+| `parse_date()` | `'date:DDMMYYYY'` | `String?` | `dataInizio`, `dataFine` |
+| `parse_boolean_flag()` | `boolean` | `Boolean?` | `generazioneAutofattura` |
+| N/A | `'number'` | `Int?` | `numeroRate` |
+| N/A | `'number:decimal'` | `Float?` | `aliquota`, `percDetrarreExport` |
+
+### **✅ SISTEMA COERENTE E FUNZIONANTE:**
+
+1. **Parser Python**: Definisce logica conversione dati
+2. **Seed.ts**: Specifica format per ogni campo nel template
+3. **Schema Prisma**: Definisce tipi database corrispondenti
+4. **DataFormatters**: Implementa conversioni concrete
+
+### **📋 NESSUNA IMPLEMENTAZIONE AGGIUNTIVA NECESSARIA:**
+Il sistema di tipizzazione è già completo e allineato tra tutti i layer dell'architettura.
+
+---
+
+## 🚨 **RIEPILOGO CRITICO FASE 5.1 - CORREZIONE ARCHITETTURALE**
+
+### **PROBLEMA ROOT CAUSE:**
+Durante l'implementazione delle Fasi 1-4, si è verificata una **disconnessione sistemica** tra i diversi layer dell'architettura:
+
+1. **Parser Python** (VERITÀ) → Esportano con nomi `snake_case`
+2. **Seed Templates** → Convertono a `camelCase`
