@@ -8,7 +8,7 @@ export const getImportTemplates = async (): Promise<ImportTemplate[]> => {
     return response.json();
 };
 
-export const createImportTemplate = async (templateData: Omit<ImportTemplate, 'id' | 'fields'> & { fields: Omit<ImportTemplate['fields'][0], 'id'>[] }): Promise<ImportTemplate> => {
+export const createImportTemplate = async (templateData: Omit<ImportTemplate, 'id' | 'fieldDefinitions'> & { fields: Omit<ImportTemplate['fieldDefinitions'][0], 'id'>[] }): Promise<ImportTemplate> => {
     const response = await fetch('/api/import-templates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

@@ -19,7 +19,7 @@ export const getColumns = (
     onDelete: (template: ImportTemplate) => void
 ): ColumnDef<ImportTemplate>[] => [
   {
-    accessorKey: "nome",
+    accessorKey: "name",
     header: ({ column }) => {
       return (
         <DataTableColumnHeader column={column} title="Nome Template" />
@@ -27,11 +27,11 @@ export const getColumns = (
     },
   },
   {
-    accessorKey: "fields",
+    accessorKey: "fieldDefinitions",
     header: "Numero Campi",
     cell: ({ row }) => {
-        const fields = row.getValue("fields") as any[];
-        return <div className="text-center">{fields.length}</div>;
+        const fields = row.getValue("fieldDefinitions") as any[];
+        return <div className="text-center">{fields?.length || 0}</div>;
     }
   },
   {

@@ -43,7 +43,7 @@ interface TemplateFormDialogProps {
 
 const fieldSchema = z.object({
   id: z.string().optional(),
-  nomeCampo: z.string().min(1, "Il nome del campo è obbligatorio."),
+  fieldName: z.string().min(1, "Il nome del campo è obbligatorio."),
   start: z.coerce.number().min(0, "L'inizio deve essere non negativo."),
   length: z.coerce.number().min(1, "La lunghezza deve essere almeno 1."),
   type: z.enum(['string', 'number', 'date']),
@@ -51,7 +51,7 @@ const fieldSchema = z.object({
 });
 
 const templateSchema = z.object({
-  nome: z.string().min(2, "Il nome del template è obbligatorio."),
+  name: z.string().min(2, "Il nome del template è obbligatorio."),
   fields: z.array(fieldSchema).min(1, "Deve esserci almeno un campo."),
 });
 
@@ -60,7 +60,7 @@ export const TemplateFormDialog: React.FC<TemplateFormDialogProps> = ({ isOpen, 
   const form = useForm<z.infer<typeof templateSchema>>({
     resolver: zodResolver(templateSchema),
     defaultValues: {
-      nome: '',
+      name: '',
       fields: [],
     },
   });
@@ -73,24 +73,30 @@ export const TemplateFormDialog: React.FC<TemplateFormDialogProps> = ({ isOpen, 
   useEffect(() => {
     if (template) {
       form.reset({
-        nome: template.nome,
-        fields: template.fields.map(f => ({...f, id: f.id || undefined }))
+        name: template.name,
+        fields: template.fieldDefinitions.map(f => ({...f, id: f.id || undefined }))
       });
     } else {
       form.reset({
-        nome: '',
-        fields: [{ nomeCampo: '', start: 0, length: 1, type: 'string', fileIdentifier: '' }],
+        name: '',
+        fields: [{ fieldName: '', start: 0, length: 1, type: 'string', fileIdentifier: '' }],
       });
     }
   }, [template, form]);
 
   const onSubmit = async (values: z.infer<typeof templateSchema>) => {
     try {
+        // Trasforma i dati dal formato del form al formato del backend
+        const backendData = {
+            name: values.name,
+            fieldDefinitions: values.fields
+        };
+        
         if (template) {
-            await updateImportTemplate(template.id, values as Omit<ImportTemplate, 'id'>);
+            await updateImportTemplate(template.id, backendData);
             toast.success("Template aggiornato con successo.");
         } else {
-            await createImportTemplate(values as any); // any to match the API signature
+            await createImportTemplate(backendData as any);
             toast.success("Template creato con successo.");
         }
         onClose(true);
@@ -113,7 +119,7 @@ export const TemplateFormDialog: React.FC<TemplateFormDialogProps> = ({ isOpen, 
             <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4">
                 <FormField
                     control={form.control}
-                    name="nome"
+                    name="name"
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Nome Template</FormLabel>
@@ -132,7 +138,7 @@ export const TemplateFormDialog: React.FC<TemplateFormDialogProps> = ({ isOpen, 
                         <div key={field.id} className="flex items-end space-x-2 p-3 border rounded-md">
                             <FormField
                                 control={form.control}
-                                name={`fields.${index}.nomeCampo`}
+                                name={`fields.${index}.fieldName`}
                                 render={({ field }) => (
                                     <FormItem><FormLabel>Nome Campo</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                                 )}
@@ -185,7 +191,7 @@ export const TemplateFormDialog: React.FC<TemplateFormDialogProps> = ({ isOpen, 
                         variant="outline"
                         size="sm"
                         className="mt-4"
-                        onClick={() => append({ nomeCampo: '', start: 0, length: 1, type: 'string', fileIdentifier: '' })}>
+                        onClick={() => append({ fieldName: '', start: 0, length: 1, type: 'string', fileIdentifier: '' })}>
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Aggiungi Campo
                     </Button>

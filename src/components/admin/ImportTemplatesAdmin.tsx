@@ -41,7 +41,7 @@ const ImportTemplatesAdmin: React.FC = () => {
       fetchData: refreshData,
     } = useAdvancedTable<ImportTemplate>({
       endpoint: '/api/import-templates',
-      initialSorting: [{ id: 'nome', desc: false }]
+      initialSorting: [{ id: 'name', desc: false }]
     });
 
     const handleEdit = (template: ImportTemplate) => {
@@ -53,7 +53,7 @@ const ImportTemplatesAdmin: React.FC = () => {
         if (!deletingTemplate) return;
         try {
             await deleteImportTemplate(deletingTemplate.id);
-            toast.success(`Template "${deletingTemplate.nome}" eliminato con successo.`);
+            toast.success(`Template "${deletingTemplate.name}" eliminato con successo.`);
             refreshData();
         } catch (error) {
             toast.error((error as Error).message);
@@ -108,7 +108,7 @@ const ImportTemplatesAdmin: React.FC = () => {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Sei sicuro?</AlertDialogTitle>
                         <AlertDialogDescription>
-                            Vuoi davvero eliminare il template "<b>{deletingTemplate?.nome}</b>"? 
+                            Vuoi davvero eliminare il template "<b>{deletingTemplate?.name}</b>"? 
                             Questa azione non può essere annullata.
                         </AlertDialogDescription>
                     </AlertDialogHeader>

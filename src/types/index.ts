@@ -226,11 +226,11 @@ export interface DashboardData {
  * Rappresenta la definizione di un singolo campo in un file a larghezza fissa.
  */
 export interface FieldDefinition {
-  id: string;
-  nomeCampo: string;
-  start: number;
-  length: number;
-  type: 'string' | 'number' | 'date';
+  id?: string;
+  fieldName?: string;
+  start?: number;
+  length?: number;
+  type?: 'string' | 'number' | 'date';
   fileIdentifier?: string | null;
 }
 
@@ -239,8 +239,8 @@ export interface FieldDefinition {
  */
 export interface ImportTemplate {
   id: string;
-  nome: string;
-  fields: FieldDefinition[];
+  name: string;
+  fieldDefinitions: FieldDefinition[];
 }
 
 export interface CodiceIva {
