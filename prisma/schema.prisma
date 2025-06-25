@@ -168,11 +168,14 @@ model Conto {
   validoProfessionistaOrdinario Boolean?
   validoProfessionistaSemplificato Boolean?
   
-  // Validità per Dichiarazioni Fiscali (NUOVI)
+  // Validità per Dichiarazioni Fiscali (NUOVI DA PARSER)
   validoUnicoPf                Boolean?
   validoUnicoSp                Boolean?
   validoUnicoSc                Boolean?
   validoUnicoEnc               Boolean?
+
+  // Identificativo software di origine (NUOVO DA PARSER)
+  tabellaItalstudio            String?
   
   // Classi Fiscali
   classeIrpefIres              String?

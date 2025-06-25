@@ -19,6 +19,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -39,7 +40,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { createConto, updateConto, deleteConto } from '@/api/conti';
-import { Conto, VoceAnalitica } from '@/types';
+import { Conto as ContoType, VoceAnalitica } from '@/types';
 import { TipoConto } from '@prisma/client';
 import { contoSchema } from '@/schemas/database';
 import { useCrudTable } from '@/hooks/useCrudTable';
@@ -63,7 +64,7 @@ export const ContiTable = () => {
       try {
         // Carichiamo *tutte* le voci analitiche per la dropdown, quindi usiamo un limite alto
         const result = await getVociAnalitiche({ limit: 1000 }); 
-        setVociAnalitiche(result.data);
+        setVociAnalitiche(result);
       } catch (error) {
         console.error("Failed to fetch voci analitiche", error);
       }
@@ -84,7 +85,7 @@ export const ContiTable = () => {
     onSearchChange,
     onSortingChange,
     fetchData: refreshData,
-  } = useAdvancedTable<Conto>({
+  } = useAdvancedTable<ContoType>({
     endpoint: '/api/conti',
     initialSorting: [{ id: 'codice', desc: false }]
   });
@@ -99,10 +100,10 @@ export const ContiTable = () => {
     handleOpenDialog,
     onSubmit,
     handleDelete,
-  } = useCrudTable<Conto, ContoFormValues>({
+  } = useCrudTable<ContoType, ContoFormValues>({
     schema: contoSchema,
     api: {
-        create: (values) => createConto(values as Conto),
+        create: (values) => createConto(values as ContoType),
         update: updateConto,
         delete: deleteConto,
     },
@@ -114,7 +115,7 @@ export const ContiTable = () => {
       nome: "",
       tipo: TipoConto.Costo,
       richiedeVoceAnalitica: false,
-      voceAnaliticaSuggeritaId: null,
+      voceAnaliticaId: null,
     },
     getId: (conto) => conto.id,
   });
@@ -138,7 +139,7 @@ export const ContiTable = () => {
     }
   };
 
-  const columns: ColumnDef<Conto>[] = [
+  const columns: ColumnDef<ContoType>[] = [
     {
         accessorKey: "codice",
         header: ({ column }) => <DataTableColumnHeader column={column} title="Codice" />,
@@ -238,6 +239,9 @@ export const ContiTable = () => {
           <DialogContent className="max-w-2xl">
               <DialogHeader>
                   <DialogTitle>{editingConto ? 'Modifica Conto' : 'Nuovo Conto'}</DialogTitle>
+                  <DialogDescription>
+                    {editingConto ? 'Modifica i dettagli del conto selezionato.' : 'Inserisci i dettagli per creare un nuovo conto.'}
+                  </DialogDescription>
               </DialogHeader>
               <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -265,14 +269,18 @@ export const ContiTable = () => {
                           <FormMessage />
                         </FormItem>
                       )}/>
-                      <FormField control={form.control} name="voceAnaliticaSuggeritaId" render={({ field }) => (
+                      <FormField control={form.control} name="voceAnaliticaId" render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Voce Analitica Suggerita</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value || ''}>
+                          <FormLabel>Voce Analitica</FormLabel>
+                          <Select 
+                            onValueChange={(value) => field.onChange(value === 'NONE' ? null : value)} 
+                            value={field.value || 'NONE'}
+                          >
                             <FormControl><SelectTrigger><SelectValue placeholder="Nessuna" /></SelectTrigger></FormControl>
                             <SelectContent>
-                              <SelectItem value="">Nessuna</SelectItem>
-                              {vociAnalitiche.map(voce => <SelectItem key={voce.id} value={voce.id}>{voce.nome}</SelectItem>)}
+                              <SelectItem value="NONE">Nessuna</SelectItem>
+                              {vociAnalitiche
+                                .map(voce => <SelectItem key={voce.id} value={voce.id}>{voce.nome}</SelectItem>)}
                             </SelectContent>
                           </Select>
                           <FormMessage />

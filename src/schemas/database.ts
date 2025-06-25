@@ -75,7 +75,7 @@ export const contoSchema = z.object({
     nome: z.string().min(2, "Il nome è obbligatorio."),
     tipo: z.nativeEnum(TipoConto),
     richiedeVoceAnalitica: z.boolean().default(false),
-    voceAnaliticaSuggeritaId: z.string().optional().nullable(),
+    voceAnaliticaId: z.string().optional().nullable(),
 });
 
 export const commessaSchema = z.object({

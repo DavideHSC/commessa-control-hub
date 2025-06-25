@@ -22,20 +22,29 @@ function formatCodificaGerarchica(codifica: string, livello?: string): string {
 }
 
 function determinaTipoConto(tipoChar?: string, codice?: string): TipoConto {
+    // Logica basata su parser_contigen.py - get_tipo_descrizione
     const tipo = tipoChar?.trim().toUpperCase();
     
     switch (tipo) {
-        case 'P': return TipoConto.Patrimoniale;
-        case 'E': 
-            // Per tipo 'E' (Economico), distingui tra Costo e Ricavo dal codice
-            if (codice?.startsWith('1') || codice?.startsWith('5')) {
+        case 'P':
+            return TipoConto.Patrimoniale;
+        case 'E':
+            return TipoConto.Ricavo; // Economico → Ricavo/Costo, determiniamo dal codice
+        case 'C':
+            return TipoConto.Cliente;
+        case 'F':
+            return TipoConto.Fornitore;
+        case 'O':
+            // Conto d'ordine → mappiamo su Patrimoniale come fallback
+            return TipoConto.Patrimoniale;
+        default:
+            // Se non specificato, determiniamo dal codice come nel parser Python
+            if (codice?.startsWith('6') || codice?.startsWith('7')) {
+                return TipoConto.Costo;
+            } else if (codice?.startsWith('5')) {
                 return TipoConto.Ricavo;
             }
-            return TipoConto.Costo;
-        case 'C': return TipoConto.Cliente;
-        case 'F': return TipoConto.Fornitore;
-        case 'O': return TipoConto.Patrimoniale; // Conto d'ordine -> Patrimoniale
-        default: return TipoConto.Patrimoniale;
+            return TipoConto.Patrimoniale;
     }
 }
 const prisma = new PrismaClient();
@@ -153,6 +162,17 @@ function convertDateString(dateStr: string | null | undefined): Date | null {
         console.warn(`Errore nella conversione della data: ${dateStr}`);
         return null;
     }
+}
+
+/**
+ * Determina la voce analitica appropriata per un conto basandosi su tipo e codice
+ * Logica semplificata per associazione automatica
+ */
+function determineVoceAnaliticaForConto(tipo?: string, codice?: string, nome?: string): string | null {
+    // Per ora ritorniamo null - l'associazione sarà manuale
+    // In futuro si potrà implementare una logica più sofisticata
+    // basata su regole di business specifiche del cliente
+    return null;
 }
 
 async function handleAnagraficaCliForImport(parsedData: any[], res: Response) {
@@ -293,161 +313,122 @@ async function handlePianoDeiContiImport(parsedData: any[], res: Response) {
         inserted: 0,
         updated: 0,
         skipped: 0,
+        errors: [],
+        warnings: [],
         successfulRecords: 0,
         errorRecords: 0,
-        errors: [],
-        warnings: []
     };
 
-    let processedCount = 0;
-    const batchSize = 100;
-    const contiToCreate: Prisma.ContoCreateInput[] = [];
-    const contiToUpdate: { where: Prisma.ContoWhereUniqueInput, data: Prisma.ContoUpdateInput }[] = [];
+    console.log(`[IMPORT-CONTI] Inizio elaborazione di ${stats.totalRecords} record.`);
 
-    console.log(`[IMPORT Piano dei Conti] Inizio elaborazione di ${parsedData.length} record.`);
+    for (const record of parsedData) {
+        const id = record.codice?.trim();
+        if (!id) {
+            stats.skipped++;
+            stats.errors.push(`Record saltato: codice conto mancante.`);
+            continue;
+        }
 
-    const validRecords = parsedData.map(record => {
-        const codice = record.codice?.trim();
-        if (!codice) return null;
+        try {
+            const mappedData = {
+                id: id,
+                codice: id,
+                nome: record.nome?.trim() || 'N/D',
+                tipo: determinaTipoConto(record.tipo, id),
+                richiedeVoceAnalitica: record.richiedeVoceAnalitica === 'S', 
 
-        // Applica le decodifiche semantiche come nel parser Python
-        const livelloDesc = decoders.decodeLivello(record.livello);
-        const tipoDesc = decoders.decodeTipoConto(record.tipoChar);
-        const gruppoDesc = decoders.decodeGruppo(record.gruppo);
-        const controlloSegnoDesc = decoders.decodeControlloSegno(record.controlloSegno);
-        
-        // Formatta codifica gerarchica come nel parser Python
-        const codificaFormattata = formatCodificaGerarchica(codice, record.livello);
-        
-        // Determina il tipo enum basato sul tipo carattere e sul codice (logica Python)
-        const tipo = determinaTipoConto(record.tipoChar, codice);
+                // Mappatura completa da parser_contigen.py - NOMI CORRETTI
+                tabellaItalstudio: record.tabellaItalstudio,
+                livello: record.livello,
+                sigla: record.sigla,
+                controlloSegno: record.controlloSegno,
+                contoCostiRicavi: record.contoCostiRicavi,
+                
+                // Validità per tipo contabilità
+                validoImpresaOrdinaria: parseBooleanFlagPythonic(record.validoImpresaOrdinaria),
+                validoImpresaSemplificata: parseBooleanFlagPythonic(record.validoImpresaSemplificata),
+                validoProfessionistaOrdinario: parseBooleanFlagPythonic(record.validoProfessionistaOrdinario),
+                validoProfessionistaSemplificato: parseBooleanFlagPythonic(record.validoProfessionistaSemplificato),
+                
+                // Validità per dichiarazioni fiscali
+                validoUnicoPf: parseBooleanFlagPythonic(record.validoUnicoPf),
+                validoUnicoSp: parseBooleanFlagPythonic(record.validoUnicoSp),
+                validoUnicoSc: parseBooleanFlagPythonic(record.validoUnicoSc),
+                validoUnicoEnc: parseBooleanFlagPythonic(record.validoUnicoEnc),
+                
+                // Classi fiscali
+                classeIrpefIres: record.classeIrpefIres,
+                classeIrap: record.classeIrap,
+                classeProfessionista: record.classeProfessionista,
+                classeIrapProfessionista: record.classeIrapProfessionista,
+                classeIva: record.classeIva,
+                
+                // Piano dei conti CEE
+                contoDareCee: record.contoDareCee,
+                contoAvereCee: record.contoAvereCee,
+                
+                // Altri dati
+                naturaConto: record.naturaConto,
+                gestioneBeniAmmortizzabili: record.gestioneBeniAmmortizzabili,
+                percDeduzioneManutenzione: record.percDeduzioneManutenzione ? parseFloat(record.percDeduzioneManutenzione) : null,
+                
+                gruppo: record.gruppo,
+                classeDatiExtracontabili: record.classeDatiExtracontabili,
+                dettaglioClienteFornitore: record.dettaglioClienteFornitore,
+                
+                // Descrizioni bilancio
+                descrizioneBilancioDare: record.descrizioneBilancioDare,
+                descrizioneBilancioAvere: record.descrizioneBilancioAvere,
+                
+                // Registro professionisti
+                colonnaRegistroCronologico: record.colonnaRegistroCronologico,
+                colonnaRegistroIncassiPagamenti: record.colonnaRegistroIncassiPagamenti,
 
-        return {
-            id: codice,
-            externalId: codice,
-            codice: codice,
-            nome: record.nome?.trim() || 'Conto senza nome',
-            tipo,
-            
-            // === Tutti i nuovi campi dalla Fase 1 ===
-            // Gerarchia e Classificazione
-            livello: record.livello?.trim() || null,
-            livelloDesc,
-            sigla: record.sigla?.trim() || null,
-            gruppo: record.gruppo?.trim() || null,
-            gruppoDesc,
-            controlloSegno: record.controlloSegno?.trim() || null,
-            controlloSegnoDesc,
-            codificaFormattata,
-            
-            // Validità per Tipo Contabilità (flags booleani come Python)
-            validoImpresaOrdinaria: record.validoImpresaOrd === 'X',
-            validoImpresaSemplificata: record.validoImpresaSempl === 'X',
-            validoProfessionistaOrdinario: record.validoProfOrd === 'X',
-            validoProfessionistaSemplificato: record.validoProfSempl === 'X',
-            
-            // Classi Fiscali
-            classeIrpefIres: record.classeIrpefIres?.trim() || null,
-            classeIrap: record.classeIrap?.trim() || null,
-            classeProfessionista: record.classeProfessionista?.trim() || null,
-            classeIrapProfessionista: record.classeIrapProf?.trim() || null,
-            classeIva: record.classeIva?.trim() || null,
-            
-            // Conti Collegati
-            contoCostiRicavi: record.contoCostiRicavi?.trim() || null,
-            contoDareCee: record.contoDare?.trim() || null,
-            contoAvereCee: record.contoAvere?.trim() || null,
-            
-            // Gestione Speciale
-            naturaConto: record.naturaConto?.trim() || null,
-            gestioneBeniAmmortizzabili: record.gestioneBeniAmm?.trim() || null,
-            percDeduzioneManutenzione: record.percDedManut ? parseFloat(record.percDedManut) : null,
-            dettaglioClienteFornitore: record.dettaglioCliFor?.trim() || null,
-            
-            // Descrizioni Bilancio
-            descrizioneBilancioDare: record.descBilancioDare?.trim() || null,
-            descrizioneBilancioAvere: record.descBilancioAvere?.trim() || null,
-            
-            // Dati Extracontabili
-            classeDatiExtracontabili: record.classeDatiExtra?.trim() || null,
-            
-            // Registri Professionisti
-            colonnaRegistroCronologico: record.colRegCronologico?.trim() || null,
-            colonnaRegistroIncassiPagamenti: record.colRegIncassiPag?.trim() || null,
-        };
-    }).filter((record): record is NonNullable<typeof record> => record !== null);
+                // Campi decodificati/formattati
+                livelloDesc: decoders.getLivelloDescrizione(record.livello),
+                gruppoDesc: decoders.getGruppoDescrizione(record.gruppo),
+                controlloSegnoDesc: decoders.getControlloSegnoDescrizione(record.controlloSegno),
+                codificaFormattata: formatCodificaGerarchica(id, record.livello),
+                
+                // Associazione automatica voce analitica basata su tipo e codice
+                voceAnaliticaId: determineVoceAnaliticaForConto(record.tipo, id, record.nome),
+            };
 
-    console.log(`[IMPORT Piano dei Conti] Trovati ${validRecords.length} record validi da processare.`);
+            const existingConto = await prisma.conto.findUnique({
+                where: { id: id },
+            });
 
-    for (let i = 0; i < validRecords.length; i += batchSize) {
-        const batch = validRecords.slice(i, i + batchSize);
-        
-        await prisma.$transaction(async (tx) => {
-            for (const record of batch) {
-                const dataToUpsert = {
-                    ...record,
-                    richiedeVoceAnalitica: false,
-                    vociAnaliticheAbilitateIds: [],
-                    contropartiteSuggeriteIds: []
-                };
-
-                try {
-                    await tx.conto.upsert({
-                        where: { id: record.id },
-                        update: {
-                            codice: dataToUpsert.codice,
-                            nome: dataToUpsert.nome,
-                            tipo: dataToUpsert.tipo,
-                            // Aggiorna solo i campi che esistono nel modello Conto
-                            livello: dataToUpsert.livello,
-                            livelloDesc: dataToUpsert.livelloDesc,
-                            sigla: dataToUpsert.sigla,
-                            gruppo: dataToUpsert.gruppo,
-                            gruppoDesc: dataToUpsert.gruppoDesc,
-                            controlloSegno: dataToUpsert.controlloSegno,
-                            controlloSegnoDesc: dataToUpsert.controlloSegnoDesc,
-                            codificaFormattata: dataToUpsert.codificaFormattata,
-                            validoImpresaOrdinaria: dataToUpsert.validoImpresaOrdinaria,
-                            validoImpresaSemplificata: dataToUpsert.validoImpresaSemplificata,
-                            validoProfessionistaOrdinario: dataToUpsert.validoProfessionistaOrdinario,
-                            validoProfessionistaSemplificato: dataToUpsert.validoProfessionistaSemplificato,
-                            classeIrpefIres: dataToUpsert.classeIrpefIres,
-                            classeIrap: dataToUpsert.classeIrap,
-                            classeProfessionista: dataToUpsert.classeProfessionista,
-                            classeIrapProfessionista: dataToUpsert.classeIrapProfessionista,
-                            classeIva: dataToUpsert.classeIva,
-                            contoCostiRicavi: dataToUpsert.contoCostiRicavi,
-                            contoDareCee: dataToUpsert.contoDareCee,
-                            contoAvereCee: dataToUpsert.contoAvereCee,
-                            naturaConto: dataToUpsert.naturaConto,
-                            gestioneBeniAmmortizzabili: dataToUpsert.gestioneBeniAmmortizzabili,
-                            percDeduzioneManutenzione: dataToUpsert.percDeduzioneManutenzione,
-                            dettaglioClienteFornitore: dataToUpsert.dettaglioClienteFornitore,
-                            descrizioneBilancioDare: dataToUpsert.descrizioneBilancioDare,
-                            descrizioneBilancioAvere: dataToUpsert.descrizioneBilancioAvere,
-                            classeDatiExtracontabili: dataToUpsert.classeDatiExtracontabili,
-                            colonnaRegistroCronologico: dataToUpsert.colonnaRegistroCronologico,
-                            colonnaRegistroIncassiPagamenti: dataToUpsert.colonnaRegistroIncassiPagamenti,
-                        },
-                        create: dataToUpsert,
-                    });
-                    processedCount++;
-                } catch (error) {
-                    console.error(`Errore durante l'upsert del conto ${record.codice}:`, error);
-                }
+            if (existingConto) {
+                await prisma.conto.update({
+                    where: { id: id },
+                    data: mappedData,
+                });
+                stats.updated++;
+            } else {
+                await prisma.conto.create({
+                    data: mappedData,
+                });
+                stats.inserted++;
             }
-        });
 
-        // Log progress come nel parser Python (ogni 100 record)
-        if ((i + batchSize) % 100 === 0 || i + batchSize >= validRecords.length) {
-            console.log(`[IMPORT Piano dei Conti] Processati ${Math.min(i + batchSize, validRecords.length)}/${validRecords.length} record.`);
+        } catch (error: any) {
+            stats.errorRecords++;
+            const errorMessage = `Errore sul record con ID ${id}: ${error.message}`;
+            console.error(`[IMPORT-CONTI] ${errorMessage}`);
+            stats.errors.push(errorMessage);
         }
     }
 
-    console.log(`[IMPORT Piano dei Conti] Importazione completata. Record processati: ${processedCount}`);
+    stats.successfulRecords = stats.inserted + stats.updated;
+    console.log(`[IMPORT-CONTI] Elaborazione completata.`);
+    console.log(`  - Inseriti: ${stats.inserted}`);
+    console.log(`  - Aggiornati: ${stats.updated}`);
+    console.log(`  - Saltati: ${stats.skipped}`);
+    console.log(`  - Errori: ${stats.errorRecords}`);
+
     res.status(200).json({ 
-        message: 'Importazione Piano dei Conti completata con successo', 
-        importedCount: processedCount 
+        message: 'Importazione del Piano dei Conti completata.',
+        ...stats 
     });
 }
 

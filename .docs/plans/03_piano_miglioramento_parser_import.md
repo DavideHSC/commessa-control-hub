@@ -14,6 +14,10 @@ Implementare un sistema di importazione robusto e completo basandosi sui parser 
 
 A seguito delle difficoltà riscontrate, i seguenti principi diventano **obbligatori e non derogabili** per tutte le fasi successive di questo piano:
 
+**NUOVO PRINCIPIO FONDAMENTALE (0): ADERENZA TOTALE E OBBLIGATORIA**
+- **Cosa significa**: Prima di iniziare qualsiasi task di importazione, è obbligatorio analizzare il parser Python di riferimento. **Tutte le colonne, logiche di conversione e tecniche implementative presenti nel parser devono essere replicate fedelmente (1:1)**, senza omissioni o interpretazioni, anche se alcuni campi sembrano non avere rilevanza immediata. Il parser Python è la fonte di verità assoluta e la sua implementazione deve essere completa.
+- **Azione richiesta**: Ogni implementazione TypeScript deve mappare il 100% dei campi e delle logiche del rispettivo parser Python. Qualsiasi deviazione deve essere esplicitamente discussa e approvata.
+
 1.  **Il Codice Eseguibile è la Fonte di Verità Assoluta.**
     -   **Cosa significa:** L'analisi non si deve basare sui commenti (`pos 5-8`), ma esclusivamente sul codice operativo (`line[4:8]`). I commenti possono essere obsoleti o imprecisi; il codice eseguibile è l'unica rappresentazione fedele della logica.
     -   **Azione richiesta:** Prima di implementare qualsiasi logica di parsing, è mandatorio eseguire un'analisi dettagliata del codice di slicing, conversione e validazione dello script Python di riferimento.
@@ -25,6 +29,14 @@ A seguito delle difficoltà riscontrate, i seguenti principi diventano **obbliga
 3.  **Priorità alla Causa Radice, non ai Sintomi.**
     -   **Cosa significa:** Di fronte a un errore, l'ipotesi di lavoro iniziale deve sempre essere che ci sia un difetto nel punto più fondamentale e profondo del processo (es. il parsing a basso livello), non in layer successivi (es. la logica di business).
     -   **Azione richiesta:** In caso di fallimento dell'import, la prima azione di debug deve essere quella di verificare l'output grezzo del parser e confrontarlo con l'output atteso dallo script Python, mettendo in discussione le assunzioni di base.
+
+4.  **LA REPLICA DEI TIPI DEVE ESSERE ESATTA (Nuova Lezione Appresa)**:
+    -   **Cosa significa:** Non basta una logica "simile" a quella Python. La conversione dei tipi, specialmente per i flag booleani, deve essere una replica 1:1.
+    -   **Azione richiesta:** Implementare la logica di conversione dei tipi (es. `valore === 'X'`) in modo identico a come appare nello script Python di riferimento, senza interpretazioni o semplificazioni.
+
+5.  **IL LOGGING DEVE PUNTARE ALLA TRANSAZIONE DB (Nuova Lezione Appresa)**:
+    -   **Cosa significa:** Per diagnosticare errori di inserimento, il debug deve arrivare fino al layer del database.
+    -   **Azione richiesta:** In caso di errori durante l'import, loggare sistematicamente l'esatto payload di dati inviato a Prisma (es. nell'oggetto `create` o `update` di `upsert`) e l'errore specifico restituito dal database.
 
 L'aderenza a questi principi è essenziale per evitare cicli di debug inefficienti e garantire un'implementazione corretta e robusta.
 
@@ -73,18 +85,31 @@ L'aderenza a questi principi è essenziale per evitare cicli di debug inefficien
 2.  **Verificare l'Intero Flusso Dati**: L'errore non era solo nel parsing, ma anche nella post-elaborazione (gestione date) e nella logica di reporting (conteggio insert/update). L'analisi deve essere veramente end-to-end.
 3.  **I Log non Mentono**: Il log "0 inseriti, X aggiornati" era un sintomo corretto di un bug logico, non solo un problema di dati. Bisogna fidarsi dei sintomi e investigare la causa radice.
 
+### ✅ COMPLETATO: `parser_a_clifor.py` - Clienti/Fornitori (ALTA PRIORITÀ)
+
+**Risultato**: **100% FUNZIONANTE** - Allineamento completo con `parser_a_clifor.py`
+
+**Problemi Risolti**:
+1.  **Errore di Tipo sui Flag Booleani**: L'errore critico `Expected Boolean or Null, provided String` impediva l'inserimento nel DB. Il parser passava stringhe vuote (`""`) invece di `false`, causando un conflitto di tipi con Prisma.
+2.  **Logica di Conversione Non Fedele**: Una prima funzione di correzione `parseBooleanFlag` non replicava *esattamente* il comportamento del parser Python (`valore == 'X'`). È stata sostituita da una funzione `parseBooleanFlagPythonic` che implementa la logica 1:1.
+3.  **Debugging Efficace**: L'aggiunta di log mirati sulla transazione Prisma ha permesso di identificare immediatamente il disallineamento dei tipi, superando le false piste iniziali.
+
+**Metriche di Successo**:
+- ✅ **526/526 record** processati e inseriti correttamente senza errori (100%).
+- ✅ Classificazione Cliente/Fornitore/Entrambi gestita correttamente.
+- ✅ Tutti i campi, inclusi i flag fiscali, sono ora mappati e convertiti secondo la "bibbia" Python.
+
+**Lezioni Critiche Apprese**:
+1.  **LA REPLICA DEVE ESSERE ESATTA**: Non basta una logica "simile". La conversione dei tipi deve essere una replica 1:1 di quella del parser Python. La differenza tra `valore.trim().toUpperCase() === 'X'` e una gestione più complessa di `null` era la causa di tutti gli errori.
+2.  **IL LOGGING DEVE PUNTARE ALLA TRANSAZIONE**: Il debug più efficace è quello che mostra l'esatto payload di dati inviato al database (`prisma.upsert`) e l'errore specifico restituito da Prisma. Questo bypassa le false piste.
+
 ### 🔄 PROSSIMI PARSER DA ALLINEARE (Priorità Decrescente)
 
-1. **`parser_a_clifor.py`** - Clienti/Fornitori (ALTA PRIORITÀ)
-   - Template esistente da validare
-   - 37 campi da mappare correttamente
-   - Logica di smistamento tra `Cliente` e `Fornitore` da verificare.
+1.  **`parser_contigen.py`** - Piano dei Conti (MEDIA PRIORITÀ)
+    -   Struttura gerarchica complessa
+    -   Validazioni business specifiche
 
-2. **`parser_contigen.py`** - Piano dei Conti (MEDIA PRIORITÀ)
-   - Struttura gerarchica complessa
-   - Validazioni business specifiche
-
-3. **`parser_codpagam.py`** - Condizioni Pagamento (BASSA PRIORITÀ)
+2. **`parser_codpagam.py`** - Condizioni Pagamento (BASSA PRIORITÀ)
    - Parser più semplice
    - Meno campi da gestire
 
@@ -801,3 +826,5 @@ Durante l'implementazione delle Fasi 1-4, si è verificata una **disconnessione 
 
 1. **Parser Python** (VERITÀ) → Esportano con nomi `snake_case`
 2. **Seed Templates** → Convertono a `camelCase`
+
+---

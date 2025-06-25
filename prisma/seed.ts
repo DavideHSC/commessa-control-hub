@@ -330,54 +330,55 @@ async function main() {
       name: 'piano_dei_conti',
       modelName: 'Conto',
       fieldDefinitions: { create: [
-        // Campi principali (allineati a schema.prisma e parser_contigen.py)
-        { fieldName: 'livello', start: 4, length: 1 },                           // pos 5
-        { fieldName: 'codice', start: 5, length: 10 },                           // pos 6-15 -> CODIFICA
-        { fieldName: 'nome', start: 15, length: 60 },                            // pos 16-75 -> DESCRIZIONE
-        { fieldName: 'tipo', start: 75, length: 1 },                             // pos 76
-        { fieldName: 'sigla', start: 76, length: 12 },                           // pos 77-88
-        { fieldName: 'controlloSegno', start: 88, length: 1 },                   // pos 89
-        { fieldName: 'contoCostiRicavi', start: 89, length: 10 },                // pos 90-99
+        // LAYOUT CORRETTO basato su parser_contigen.py - POSIZIONI PYTHON → TYPESCRIPT
+        { fieldName: 'tabellaItalstudio', start: 3, length: 1, format: 'string' },    // (3,4) → start 3
+        { fieldName: 'livello', start: 4, length: 1, format: 'string' },             // (4,5) → start 4
+        { fieldName: 'codice', start: 5, length: 10, format: 'string' },             // (5,15) → start 5
+        { fieldName: 'nome', start: 15, length: 60, format: 'string' },              // (15,75) → start 15
+        { fieldName: 'tipo', start: 75, length: 1, format: 'string' },               // (75,76) → start 75
+        { fieldName: 'sigla', start: 76, length: 12, format: 'string' },             // (76,88) → start 76
+        { fieldName: 'controlloSegno', start: 88, length: 1, format: 'string' },     // (88,89) → start 88
+        { fieldName: 'contoCostiRicavi', start: 89, length: 10, format: 'string' },  // (89,99) → start 89
         
         // Validità per tipo contabilità
-        { fieldName: 'validoImpresaOrdinaria', start: 99, length: 1 },           // pos 100
-        { fieldName: 'validoImpresaSemplificata', start: 100, length: 1 },        // pos 101
-        { fieldName: 'validoProfessionistaOrdinario', start: 101, length: 1 },    // pos 102
-        { fieldName: 'validoProfessionistaSemplificato', start: 102, length: 1 }, // pos 103
+        { fieldName: 'validoImpresaOrdinaria', start: 99, length: 1 },               // (99,100) → start 99
+        { fieldName: 'validoImpresaSemplificata', start: 100, length: 1 },           // (100,101) → start 100
+        { fieldName: 'validoProfessionistaOrdinario', start: 101, length: 1 },       // (101,102) → start 101
+        { fieldName: 'validoProfessionistaSemplificato', start: 102, length: 1 },    // (102,103) → start 102
         
-        // Validità per tipo dichiarazione
-        { fieldName: 'validoUnicoPf', start: 103, length: 1 },                   // pos 104
-        { fieldName: 'validoUnicoSp', start: 104, length: 1 },                   // pos 105
-        { fieldName: 'validoUnicoSc', start: 105, length: 1 },                   // pos 106
-        { fieldName: 'validoUnicoEnc', start: 106, length: 1 },                  // pos 107
+        // Validità per tipo dichiarazione (CAMPI CORRETTI DAL PARSER PYTHON)
+        { fieldName: 'validoUnicoPf', start: 103, length: 1 },                       // (103,104) → start 103
+        { fieldName: 'validoUnicoSp', start: 104, length: 1 },                       // (104,105) → start 104
+        { fieldName: 'validoUnicoSc', start: 105, length: 1 },                       // (105,106) → start 105
+        { fieldName: 'validoUnicoEnc', start: 106, length: 1 },                      // (106,107) → start 106
         
         // Classi fiscali
-        { fieldName: 'classeIrpefIres', start: 107, length: 10 },                // pos 108-117
-        { fieldName: 'classeIrap', start: 117, length: 10 },                     // pos 118-127
-        { fieldName: 'classeProfessionista', start: 127, length: 10 },           // pos 128-137
-        { fieldName: 'classeIrapProfessionista', start: 137, length: 10 },        // pos 138-147
-        { fieldName: 'classeIva', start: 147, length: 10 },                      // pos 148-157
+        { fieldName: 'classeIrpefIres', start: 107, length: 10 },                    // (107,117) → start 107
+        { fieldName: 'classeIrap', start: 117, length: 10 },                         // (117,127) → start 117
+        { fieldName: 'classeProfessionista', start: 127, length: 10 },               // (127,137) → start 127
+        { fieldName: 'classeIrapProfessionista', start: 137, length: 10 },           // (137,147) → start 137
+        { fieldName: 'classeIva', start: 147, length: 10 },                          // (147,157) → start 147
         
         // Registro professionisti
-        { fieldName: 'colonnaRegistroCronologico', start: 157, length: 4 },      // pos 158-161
-        { fieldName: 'colonnaRegistroIncassiPagamenti', start: 161, length: 4 },  // pos 162-165
+        { fieldName: 'colonnaRegistroCronologico', start: 157, length: 4 },          // (157,161) → start 157
+        { fieldName: 'colonnaRegistroIncassiPagamenti', start: 161, length: 4 },     // (161,165) → start 161
         
         // Piano dei conti CEE
-        { fieldName: 'contoDareCee', start: 165, length: 12 },                   // pos 166-177
-        { fieldName: 'contoAvereCee', start: 177, length: 12 },                  // pos 178-189
+        { fieldName: 'contoDareCee', start: 165, length: 12 },                       // (165,177) → start 165
+        { fieldName: 'contoAvereCee', start: 177, length: 12 },                      // (177,189) → start 177
         
         // Altri dati
-        { fieldName: 'naturaConto', start: 189, length: 4 },                     // pos 190-193
-        { fieldName: 'gestioneBeniAmmortizzabili', start: 193, length: 1 },       // pos 194
-        { fieldName: 'percDeduzioneManutenzione', start: 194, length: 6 },        // pos 195-200
+        { fieldName: 'naturaConto', start: 189, length: 4 },                         // (189,193) → start 189
+        { fieldName: 'gestioneBeniAmmortizzabili', start: 193, length: 1 },          // (193,194) → start 193
+        { fieldName: 'percDeduzioneManutenzione', start: 194, length: 6 },           // (194,200) → start 194
         
-        { fieldName: 'gruppo', start: 256, length: 1 },                          // pos 257
-        { fieldName: 'classeDatiExtracontabili', start: 257, length: 10 },        // pos 258-267
-        { fieldName: 'dettaglioClienteFornitore', start: 267, length: 1 },       // pos 268
+        { fieldName: 'gruppo', start: 256, length: 1 },                              // (256,257) → start 256
+        { fieldName: 'classeDatiExtracontabili', start: 257, length: 10 },           // (257,267) → start 257
+        { fieldName: 'dettaglioClienteFornitore', start: 267, length: 1 },           // (267,268) → start 267
         
         // Descrizioni bilancio
-        { fieldName: 'descrizioneBilancioDare', start: 268, length: 60 },        // pos 269-328
-        { fieldName: 'descrizioneBilancioAvere', start: 328, length: 60 }        // pos 329-388
+        { fieldName: 'descrizioneBilancioDare', start: 268, length: 60 },            // (268,328) → start 268
+        { fieldName: 'descrizioneBilancioAvere', start: 328, length: 60 }            // (328,388) → start 328
       ] },
     }
   });

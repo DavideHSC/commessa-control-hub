@@ -123,19 +123,23 @@ export interface VoceAnalitica {
  * Esempio: "6005000850 CARBURANTI E LUBRIFICANTI"
  */
 export interface Conto {
-  id: string; // Corrisponde al codice conto, es. "6005000850"
-  codice: string; // Duplicato dell'id per chiarezza semantica
-  nome: string; // Es. "CARBURANTI E LUBRIFICANTI"
-  tipo: 'Costo' | 'Ricavo' | 'Patrimoniale' | 'Fornitore' | 'Cliente'; // Ampliato per maggiore specificità
+  id: string;
+  codice: string;
+  nome: string;
+  tipo: 'Costo' | 'Ricavo' | 'Patrimoniale' | 'Fornitore' | 'Cliente';
   validoUnicoPf?: boolean;
   validoUnicoSp?: boolean;
   validoUnicoSc?: boolean;
   validoUnicoEnc?: boolean;
-  // Il motore del nostro automatismo: collega un conto a un centro di costo di default.
-  voceAnaliticaSuggeritaId?: string; // Es. '2' (gestione automezzi)
-  richiedeVoceAnalitica?: boolean; // True se il conto richiede una voce analitica
-  vociAnaliticheAbilitateIds?: string[]; // Lista di Voci Analitiche permesse per questo conto
-  contropartiteSuggeriteIds?: string[]; // Lista di conti suggeriti come contropartita
+  richiedeVoceAnalitica: boolean;
+  voceAnaliticaId: string | null;
+  voceAnalitica?: VoceAnalitica;
+
+  // Campi dal parser
+  livello?: string | null;
+  livelloDesc?: string | null;
+  vociAnaliticheAbilitateIds?: string[];
+  contropartiteSuggeriteIds?: string[];
 }
 
 /**

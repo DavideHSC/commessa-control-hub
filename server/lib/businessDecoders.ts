@@ -299,6 +299,37 @@ export function formatCodificaGerarchica(codifica: string, livello: string): str
   }
 }
 
+export function getLivelloDescrizione(livello: string): string {
+    const livelli: Record<string, string> = {
+        '1': 'Mastro',
+        '2': 'Conto', 
+        '3': 'Sottoconto'
+    };
+    return livelli[livello] || `Livello ${livello}`;
+}
+
+export function getGruppoDescrizione(gruppo: string): string {
+    const gruppi: Record<string, string> = {
+        'A': 'Attività',
+        'C': 'Costo',
+        'N': 'Patrimonio Netto',
+        'P': 'Passività',
+        'R': 'Ricavo',
+        'V': 'Rettifiche di Costo',
+        'Z': 'Rettifiche di Ricavo'
+    };
+    return gruppi[gruppo] || `Gruppo ${gruppo}`;
+}
+
+export function getControlloSegnoDescrizione(segno: string): string {
+    const segni: Record<string, string> = {
+        'A': 'Avere',
+        'D': 'Dare',
+        '': 'Non specificato'
+    };
+    return segni[segno] || `Segno ${segno}`;
+}
+
 // === CLIENTI/FORNITORI (parser_a_clifor.py) ===
 
 export function decodeTipoContoAnagrafica(code: string): string {

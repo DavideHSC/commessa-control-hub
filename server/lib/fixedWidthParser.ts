@@ -70,6 +70,9 @@ function getDefaultValue(type?: 'string' | 'number' | 'date' | 'boolean') {
  * Legge file con fallback su diversi encoding (basato su parser Python)
  */
 async function readFileWithFallbackEncoding(filePath: string): Promise<string[]> {
+  // Sequenza di encoding comuni usata nei parser Python per massima compatibilità
+  // NOTA: cp1252 e iso-8859-1 non sono supportati nativamente come BufferEncoding in Node.js,
+  // 'latin1' è il fallback più vicino e gestisce la maggior parte dei caratteri.
   const encodings: BufferEncoding[] = ['utf-8', 'latin1', 'ascii'];
   
   for (const encoding of encodings) {
@@ -226,7 +229,7 @@ export function parseFixedWidth<T>(
 
     for (const def of definitions) {
       const { name, start, length, type } = def;
-      const startIndex = start - 1; 
+      const startIndex = start; 
       
       if (startIndex < 0 || startIndex >= line.length) {
         record[name] = getDefaultValue(type);
@@ -283,6 +286,17 @@ export async function parseFixedWidthRobust<T>(
   definitions: FieldDefinition[],
   templateName: string
 ): Promise<ParseResult<T>> {
+  const stats: ImportStats = {
+    totalRecords: 0,
+    successfulRecords: 0,
+    errorRecords: 0,
+    inserted: 0,
+    updated: 0,
+    skipped: 0,
+    warnings: [],
+    errors: [],
+  };
+
   try {
     // Leggi file con encoding fallback
     const lines = await readFileWithFallbackEncoding(filePath);
@@ -294,7 +308,7 @@ export async function parseFixedWidthRobust<T>(
 
       for (const def of definitions) {
         const { name, start, length, type } = def;
-        const startIndex = start - 1;
+        const startIndex = start;
         
         if (startIndex < 0 || startIndex >= line.length) {
           record[name] = getDefaultValue(type);
@@ -345,6 +359,9 @@ export async function parseFixedWidthRobust<T>(
       totalRecords: 0,
       successfulRecords: 0,
       errorRecords: 1,
+      inserted: 0,
+      updated: 0,
+      skipped: 0,
       warnings: [],
       errors: [error.message]
     };
