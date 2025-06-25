@@ -50,11 +50,95 @@ export const causaleSchema = z.object({
 });
 
 export const codiceIvaSchema = z.object({
-    id: z.string().min(1, { message: "L'ID è obbligatorio." }),
-    descrizione: z.string().min(2, { message: "La descrizione deve essere di almeno 2 caratteri." }),
-    aliquota: z.number().min(0).max(100, { message: "L'aliquota deve essere tra 0 e 100." }),
-    externalId: z.string().optional(),
-  });
+  // Campi base
+  id: z.string().min(1, { message: "L'ID è obbligatorio." }),
+  externalId: z.string().optional().nullable(),
+  codice: z.string().optional().nullable(),
+  descrizione: z.string().min(2, { message: "La descrizione deve essere di almeno 2 caratteri." }),
+  
+  // Campi principali
+  aliquota: z.number().min(0).max(100, { message: "L'aliquota deve essere tra 0 e 100." }).optional().nullable(),
+  percentuale: z.number().min(0).max(100).optional().nullable(),
+  natura: z.string().optional().nullable(),
+  codiceExport: z.string().optional().nullable(),
+  inUso: z.boolean().optional().nullable(),
+  dataAggiornamento: z.date().optional().nullable(),
+  note: z.string().optional().nullable(),
+  indetraibilita: z.number().min(0).max(100).optional().nullable(),
+  tipoCalcolo: z.string().optional().nullable(),
+  tipoCalcoloDesc: z.string().optional().nullable(),
+  dataInizio: z.date().optional().nullable(),
+  dataFine: z.date().optional().nullable(),
+  validitaInizio: z.date().optional().nullable(),
+  validitaFine: z.date().optional().nullable(),
+  
+  // Flags principali
+  splitPayment: z.boolean().optional().nullable(),
+  nonImponibile: z.boolean().optional().nullable(),
+  imponibile: z.boolean().optional().nullable(),
+  esente: z.boolean().optional().nullable(),
+  nonImponibileConPlafond: z.boolean().optional().nullable(),
+  inSospensione: z.boolean().optional().nullable(),
+  esclusoDaIva: z.boolean().optional().nullable(),
+  reverseCharge: z.boolean().optional().nullable(),
+  fuoriCampoIva: z.boolean().optional().nullable(),
+  
+  // === ESTENSIONI FASE 1 - PARSER PYTHON ===
+  // Gestione Plafond
+  plafondAcquisti: z.string().optional().nullable(),
+  plafondAcquistiDesc: z.string().optional().nullable(),
+  monteAcquisti: z.boolean().optional().nullable(),
+  plafondVendite: z.string().optional().nullable(),
+  plafondVenditeDesc: z.string().optional().nullable(),
+  noVolumeAffariPlafond: z.boolean().optional().nullable(),
+  
+  // Pro-rata e Compensazioni
+  gestioneProRata: z.string().optional().nullable(),
+  gestioneProRataDesc: z.string().optional().nullable(),
+  percentualeCompensazione: z.number().min(0).max(100).optional().nullable(),
+  
+  // Reverse Charge e Operazioni Speciali
+  autofatturaReverseCharge: z.boolean().optional().nullable(),
+  operazioneEsenteOccasionale: z.boolean().optional().nullable(),
+  cesArt38QuaterStornoIva: z.boolean().optional().nullable(),
+  agevolazioniSubforniture: z.boolean().optional().nullable(),
+  
+  // Territorialità
+  indicatoreTerritorialeVendite: z.string().optional().nullable(),
+  indicatoreTerritorialeVenditeDesc: z.string().optional().nullable(),
+  indicatoreTerritorialeAcquisti: z.string().optional().nullable(),
+  indicatoreTerritorialeAcquistiDesc: z.string().optional().nullable(),
+  
+  // Beni Ammortizzabili
+  beniAmmortizzabili: z.boolean().optional().nullable(),
+  analiticoBeniAmmortizzabili: z.boolean().optional().nullable(),
+  
+  // Comunicazioni Dati IVA
+  comunicazioneDatiIvaVendite: z.string().optional().nullable(),
+  comunicazioneDatiIvaVenditeDesc: z.string().optional().nullable(),
+  comunicazioneDatiIvaAcquisti: z.string().optional().nullable(),
+  comunicazioneDatiIvaAcquistiDesc: z.string().optional().nullable(),
+  
+  // Altri Campi Fiscali
+  imponibile50Corrispettivi: z.boolean().optional().nullable(),
+  imposteIntrattenimenti: z.string().optional().nullable(),
+  imposteIntrattenimentiDesc: z.string().optional().nullable(),
+  ventilazione: z.boolean().optional().nullable(),
+  aliquotaDiversa: z.number().min(0).max(100).optional().nullable(),
+  percDetrarreExport: z.number().min(0).max(100).optional().nullable(),
+  acquistiCessioni: z.string().optional().nullable(),
+  acquistiCessioniDesc: z.string().optional().nullable(),
+  metodoDaApplicare: z.string().optional().nullable(),
+  metodoDaApplicareDesc: z.string().optional().nullable(),
+  percentualeForfetaria: z.string().optional().nullable(),
+  percentualeForfetariaDesc: z.string().optional().nullable(),
+  quotaForfetaria: z.string().optional().nullable(),
+  quotaForfetariaDesc: z.string().optional().nullable(),
+  acquistiIntracomunitari: z.boolean().optional().nullable(),
+  cessioneProdottiEditoriali: z.boolean().optional().nullable(),
+  provvigioniDm34099: z.boolean().optional().nullable(),
+  acqOperazImponibiliOccasionali: z.boolean().optional().nullable(),
+});
 
 export const condizioneSchema = z.object({
     id: z.string().min(1, { message: "L'ID è obbligatorio." }),

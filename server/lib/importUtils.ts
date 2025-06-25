@@ -1,4 +1,5 @@
 import { Prisma, PrismaClient, TipoConto } from '@prisma/client';
+import moment from 'moment';
 
 const prisma = new PrismaClient();
 const SYSTEM_CUSTOMER_ID = 'system_customer_01'; // Assicurati che questo ID sia nel seed
@@ -191,29 +192,58 @@ export function convertDateString(dateStr: string | null | undefined): Date | nu
     }
 }
 
-export function parseDecimalString(valueStr: string | null | undefined): number | null {
-    if (!valueStr || typeof valueStr !== 'string' || valueStr.trim() === '') {
-        return null;
+/**
+ * Converte un flag booleano da una stringa (es. 'X' o 'S') a un valore booleano.
+ * Robusto contro valori null o undefined.
+ * @param flag La stringa da parsare.
+ * @param trueFlag Il carattere che rappresenta 'true' (default: 'X').
+ * @returns boolean
+ */
+export function parseBooleanFlag(flag: string | null | undefined, trueFlag: string = 'X'): boolean {
+    if (!flag) {
+        return false;
     }
-
-    try {
-        const cleanedStr = valueStr.trim();
-
-        if (cleanedStr.length < 3) {
-            const result = parseInt(cleanedStr, 10);
-            return isNaN(result) ? null : result;
-        }
-
-        const integerPart = cleanedStr.slice(0, -2) || '0';
-        const decimalPart = cleanedStr.slice(-2);
-        const result = parseFloat(`${integerPart}.${decimalPart}`);
-        return isNaN(result) ? null : result;
-    } catch (error) {
-        console.warn(`Errore nel parsing del numero decimale: ${valueStr}`);
-        return null;
-    }
+    return flag.trim().toUpperCase() === trueFlag;
 }
 
-export function parseBooleanFlag(char: string | undefined): boolean {
-    return char?.trim().toUpperCase() === 'S' || char?.trim().toUpperCase() === 'X';
+/**
+ * Converte una stringa numerica in un numero, gestendo i decimali impliciti.
+ * @param value La stringa da parsare.
+ * @returns Un numero o null se il parsing fallisce.
+ */
+export function parseDecimalString(value: string | null | undefined): number | null {
+    if (!value) {
+        return null;
+    }
+    const cleaned = value.trim().replace(',', '.');
+    if (cleaned === '') {
+        return null;
+    }
+    const num = parseFloat(cleaned);
+    return isNaN(num) ? null : num;
+}
+
+/**
+ * Converte un flag stringa in un booleano, con una logica più allineata ai parser Python.
+ * Gestisce diversi caratteri per 'true' (es. X, S, Y, 1) e restituisce null per stringhe vuote/nulle.
+ * Qualsiasi altro carattere non vuoto viene interpretato come 'false'.
+ * @param flag La stringa da parsare.
+ * @returns true, false, o null.
+ */
+export function parseBooleanPythonic(flag: string | null | undefined): boolean | null {
+    if (flag === null || flag === undefined) {
+        return null;
+    }
+    const upperFlag = flag.trim().toUpperCase();
+    if (upperFlag === '') {
+        return null;
+    }
+
+    // Valori comuni per 'true' basati sull'analisi dei tracciati record
+    const trueValues = ['X', 'S', 'Y', '1', 'V']; 
+    if (trueValues.includes(upperFlag)) {
+        return true;
+    }
+
+    return false;
 } 

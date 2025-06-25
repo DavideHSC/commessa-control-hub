@@ -80,4 +80,14 @@ router.delete('/scritture', async (req, res) => {
   }
 });
 
+router.delete('/codici-iva', async (req, res) => {
+  try {
+    await prisma.codiceIva.deleteMany({});
+    res.status(200).json({ message: 'Tabella Codici IVA svuotata con successo.' });
+  } catch (error) {
+    console.error("Errore durante lo svuotamento della tabella Codici IVA:", error);
+    res.status(500).json({ error: 'Errore interno del server durante la pulizia dei codici IVA.' });
+  }
+});
+
 export default router; 

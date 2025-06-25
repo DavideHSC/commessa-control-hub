@@ -434,21 +434,29 @@ export interface ImportTemplate {
 export interface CodiceIva {
   id: string;
   externalId?: string | null;
+  codice?: string | null;
   descrizione: string;
+  
+  // Campi principali
   aliquota?: number | null;
+  percentuale?: number | null;
   natura?: string | null;
   codiceExport?: string | null;
   inUso?: boolean | null;
   dataAggiornamento?: Date | null;
   note?: string | null;
   indetraibilita?: number | null;
-  codice?: string | null;
   tipoCalcolo?: string | null;
   tipoCalcoloDesc?: string | null;
+  dataInizio?: Date | null;
+  dataFine?: Date | null;
+  validitaInizio?: Date | null;
+  validitaFine?: Date | null;
+  
+  // Flags principali
   splitPayment?: boolean | null;
   nonImponibile?: boolean | null;
   imponibile?: boolean | null;
-  imposta?: boolean | null;
   esente?: boolean | null;
   nonImponibileConPlafond?: boolean | null;
   inSospensione?: boolean | null;
@@ -456,30 +464,43 @@ export interface CodiceIva {
   reverseCharge?: boolean | null;
   fuoriCampoIva?: boolean | null;
 
-  // Estensioni Fase 1 - Parser Python
+  // === ESTENSIONI FASE 1 - PARSER PYTHON ===
+  // Gestione Plafond
   plafondAcquisti?: string | null;
   plafondAcquistiDesc?: string | null;
   monteAcquisti?: boolean | null;
   plafondVendite?: string | null;
   plafondVenditeDesc?: string | null;
   noVolumeAffariPlafond?: boolean | null;
+  
+  // Pro-rata e Compensazioni
   gestioneProRata?: string | null;
   gestioneProRataDesc?: string | null;
   percentualeCompensazione?: number | null;
+  
+  // Reverse Charge e Operazioni Speciali
   autofatturaReverseCharge?: boolean | null;
   operazioneEsenteOccasionale?: boolean | null;
   cesArt38QuaterStornoIva?: boolean | null;
   agevolazioniSubforniture?: boolean | null;
+  
+  // Territorialità
   indicatoreTerritorialeVendite?: string | null;
   indicatoreTerritorialeVenditeDesc?: string | null;
   indicatoreTerritorialeAcquisti?: string | null;
   indicatoreTerritorialeAcquistiDesc?: string | null;
+  
+  // Beni Ammortizzabili
   beniAmmortizzabili?: boolean | null;
   analiticoBeniAmmortizzabili?: boolean | null;
+  
+  // Comunicazioni Dati IVA
   comunicazioneDatiIvaVendite?: string | null;
   comunicazioneDatiIvaVenditeDesc?: string | null;
   comunicazioneDatiIvaAcquisti?: string | null;
   comunicazioneDatiIvaAcquistiDesc?: string | null;
+  
+  // Altri Campi Fiscali
   imponibile50Corrispettivi?: boolean | null;
   imposteIntrattenimenti?: string | null;
   imposteIntrattenimentiDesc?: string | null;

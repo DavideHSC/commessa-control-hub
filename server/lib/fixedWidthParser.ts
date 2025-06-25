@@ -9,6 +9,7 @@ export interface FieldDefinition {
   start: number;
   length: number;
   type?: 'string' | 'number' | 'date' | 'boolean';
+  format?: 'percentage' | 'date:DDMMYYYY';
 }
 
 /**
@@ -211,6 +212,25 @@ function parseDecimal(value: string, decimals: number = 2): number | null {
   }
 }
 
+/**
+ * Parser percentage (basato su logica parser Python)
+ * Converte stringhe come "002200" in 22 (percentuale)
+ */
+function parsePercentage(value: string): number | null {
+  if (!value || value.trim() === '') return null;
+  
+  try {
+    const cleanValue = value.trim();
+    const numericValue = parseInt(cleanValue, 10);
+    
+    if (isNaN(numericValue)) return null;
+    
+    // Dividi per 100 per convertire da formato "002200" a 22
+    return numericValue / 100;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Esegue il parsing di una stringa di testo a larghezza fissa.
@@ -228,8 +248,8 @@ export function parseFixedWidth<T>(
     let hasData = false;
 
     for (const def of definitions) {
-      const { name, start, length, type } = def;
-      const startIndex = start; 
+      const { name, start, length, type, format } = def;
+      const startIndex = start - 1;
       
       if (startIndex < 0 || startIndex >= line.length) {
         record[name] = getDefaultValue(type);
@@ -243,25 +263,30 @@ export function parseFixedWidth<T>(
       }
 
       try {
-        switch (type) {
-          case 'boolean':
-            record[name] = parseBooleanFlag(rawValue);
-            break;
-          case 'number':
-            record[name] = parseDecimal(rawValue);
-            break;
-          case 'date':
-            if (rawValue && rawValue !== '00000000') {
-              const parsedDate = moment(rawValue, 'DDMMYYYY', true);
-              record[name] = parsedDate.isValid() ? parsedDate.toDate() : null;
-            } else {
-              record[name] = null;
-            }
-            break;
-          case 'string':
-          default:
-            record[name] = rawValue;
-            break;
+        // Gestione formato percentage
+        if (format === 'percentage') {
+          record[name] = parsePercentage(rawValue);
+        } else {
+          switch (type) {
+            case 'boolean':
+              record[name] = parseBooleanFlag(rawValue);
+              break;
+            case 'number':
+              record[name] = parseDecimal(rawValue);
+              break;
+            case 'date':
+              if (rawValue && rawValue !== '00000000') {
+                const parsedDate = moment(rawValue, 'DDMMYYYY', true);
+                record[name] = parsedDate.isValid() ? parsedDate.toDate() : null;
+              } else {
+                record[name] = null;
+              }
+              break;
+            case 'string':
+            default:
+              record[name] = rawValue;
+              break;
+          }
         }
       } catch (e) {
         console.error(`[Parser] Errore nella conversione del campo '${name}' con valore "${rawValue}" per la riga ${index + 1}.`, e);
@@ -307,8 +332,8 @@ export async function parseFixedWidthRobust<T>(
       let hasData = false;
 
       for (const def of definitions) {
-        const { name, start, length, type } = def;
-        const startIndex = start;
+        const { name, start, length, type, format } = def;
+        const startIndex = start - 1;
         
         if (startIndex < 0 || startIndex >= line.length) {
           record[name] = getDefaultValue(type);
@@ -321,25 +346,30 @@ export async function parseFixedWidthRobust<T>(
           hasData = true;
         }
 
-        switch (type) {
-          case 'boolean':
-            record[name] = parseBooleanFlag(rawValue);
-            break;
-          case 'number':
-            record[name] = parseDecimal(rawValue);
-            break;
-          case 'date':
-            if (rawValue && rawValue !== '00000000') {
-              const parsedDate = moment(rawValue, 'DDMMYYYY', true);
-              record[name] = parsedDate.isValid() ? parsedDate.toDate() : null;
-            } else {
-              record[name] = null;
-            }
-            break;
-          case 'string':
-          default:
-            record[name] = rawValue;
-            break;
+        // Gestione formato percentage
+        if (format === 'percentage') {
+          record[name] = parsePercentage(rawValue);
+        } else {
+          switch (type) {
+            case 'boolean':
+              record[name] = parseBooleanFlag(rawValue);
+              break;
+            case 'number':
+              record[name] = parseDecimal(rawValue);
+              break;
+            case 'date':
+              if (rawValue && rawValue !== '00000000') {
+                const parsedDate = moment(rawValue, 'DDMMYYYY', true);
+                record[name] = parsedDate.isValid() ? parsedDate.toDate() : null;
+              } else {
+                record[name] = null;
+              }
+              break;
+            case 'string':
+            default:
+              record[name] = rawValue;
+              break;
+          }
         }
       }
 

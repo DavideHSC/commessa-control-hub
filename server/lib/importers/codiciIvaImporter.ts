@@ -1,71 +1,74 @@
 import { Response } from 'express';
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import * as decoders from '../businessDecoders';
-import { convertDateString } from '../importUtils';
+import { parseBooleanPythonic } from '../importUtils';
 
 const prisma = new PrismaClient();
 
-// Funzione di importazione per i Codici IVA
+// Funzione di importazione per i Codici IVA - CORRETTA
+// Si fida dei dati già parsati da fixedWidthParser in base al template in seed.ts
 export async function handleCodiciIvaImport(parsedData: any[], res: Response) {
-    let processedCount = 0;
     let insertedCount = 0;
     let updatedCount = 0;
+    let errorCount = 0;
 
-    try {
-        console.log(`[CODICI IVA] Inizio elaborazione di ${parsedData.length} record.`);
+    for (const record of parsedData) {
+        try {
+            const externalId = record.codice;
+            if (!externalId) {
+                errorCount++;
+                continue;
+            }
 
-        const validRecords = parsedData.map(record => {
-            const codice = record.codice?.trim();
-            if (!codice) return null;
-
-            return {
-                id: codice,
-                codice: codice,
-                externalId: codice,
-                descrizione: record.descrizione?.trim() || codice,
-                aliquota: typeof record.aliquota === 'number' ? record.aliquota : null,
-                indetraibilita: record.percentualeIndetraibilita ? parseFloat(record.percentualeIndetraibilita) : null,
-                note: record.note?.trim() || null,
-                tipoCalcolo: record.tipoCalcolo?.trim() || null,
-                tipoCalcoloDesc: decoders.decodeTipoCalcolo(record.tipoCalcolo),
-                dataInizio: convertDateString(record.dataInizioValidita),
-                dataFine: convertDateString(record.dataFineValidita),
-                inUso: true,
+            // Mappatura diretta con conversioni corrette
+            const dataToUpsert = {
+                externalId:                     externalId,
+                codice:                         externalId,
+                descrizione:                    record.descrizione,
+                aliquota:                       record.aliquota,
+                indetraibilita:                 record.indetraibilita,
+                note:                           record.note,
+                tipoCalcolo:                    record.tipoCalcolo,
+                validitaInizio:                 record.validitaInizio,
+                validitaFine:                   record.validitaFine
             };
-        }).filter((r): r is NonNullable<typeof r> => r !== null);
 
-        console.log(`[CODICI IVA] Trovati ${validRecords.length} record validi da processare.`);
+            const result = await prisma.codiceIva.upsert({
+                where: { externalId },
+                update: dataToUpsert,
+                create: dataToUpsert,
+            });
 
-        for (const record of validRecords) {
-            try {
-                const existing = await prisma.codiceIva.findUnique({ where: { id: record.id }});
-
-                await prisma.codiceIva.upsert({
-                    where: { id: record.id },
-                    create: record,
-                    update: record,
+            if (result) {
+                // Controlla se è stato inserito o aggiornato
+                const existing = await prisma.codiceIva.findFirst({
+                    where: { externalId },
+                    select: { id: true }
                 });
-
+                
                 if (existing) {
                     updatedCount++;
                 } else {
                     insertedCount++;
                 }
-                processedCount++;
-                
-                if (processedCount % 100 === 0) {
-                    console.log(`[CODICI IVA] Elaborati ${processedCount}/${validRecords.length} record...`);
-                }
-            } catch (error) {
-                console.error(`[CODICI IVA] Errore durante upsert del record ${record.codice}:`, error);
             }
+
+        } catch (error) {
+            console.error(`Errore durante l'importazione del codice IVA ${record.codice}:`, error);
+            errorCount++;
         }
-
-        console.log(`[CODICI IVA] Importazione completata. Record inseriti: ${insertedCount}, aggiornati: ${updatedCount}`);
-        res.status(200).json({ message: 'Importazione completata', insertedCount, updatedCount });
-
-    } catch (error) {
-        console.error(`[CODICI IVA] Errore durante l'importazione:`, error);
-        res.status(500).json({ error: 'Errore interno del server durante l\'importazione dei codici IVA' });
     }
+
+    const stats = {
+        inserted: insertedCount,
+        updated: updatedCount,
+        errors: errorCount
+    };
+
+    console.log(`Import codici IVA completato: ${insertedCount} inseriti, ${updatedCount} aggiornati, ${errorCount} errori`);
+
+    res.status(200).json({
+        message: `Import completato con successo`,
+        stats
+    });
 } 
