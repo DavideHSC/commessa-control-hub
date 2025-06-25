@@ -164,4 +164,56 @@ export async function processScrittureInBatches(data: { testate: any[], righeCon
 
     console.log(`[Import] Elaborazione batch completata. Successo: ${processedCount}, Errori: ${errorCount}.`);
     return { processedCount, errorCount };
+}
+
+export function convertDateString(dateStr: string | null | undefined): Date | null {
+    if (!dateStr || typeof dateStr !== 'string' || dateStr.trim().length !== 8 || dateStr.trim() === '00000000') {
+        return null;
+    }
+
+    try {
+        const cleanDateStr = dateStr.trim();
+        const day = cleanDateStr.substring(0, 2);
+        const month = cleanDateStr.substring(2, 4);
+        const year = cleanDateStr.substring(4, 8);
+        
+        const isoDate = `${year}-${month}-${day}`;
+        const date = new Date(isoDate);
+        
+        if (isNaN(date.getTime())) {
+            return null;
+        }
+        
+        return date;
+    } catch (error) {
+        console.warn(`Errore nella conversione della data: ${dateStr}`);
+        return null;
+    }
+}
+
+export function parseDecimalString(valueStr: string | null | undefined): number | null {
+    if (!valueStr || typeof valueStr !== 'string' || valueStr.trim() === '') {
+        return null;
+    }
+
+    try {
+        const cleanedStr = valueStr.trim();
+
+        if (cleanedStr.length < 3) {
+            const result = parseInt(cleanedStr, 10);
+            return isNaN(result) ? null : result;
+        }
+
+        const integerPart = cleanedStr.slice(0, -2) || '0';
+        const decimalPart = cleanedStr.slice(-2);
+        const result = parseFloat(`${integerPart}.${decimalPart}`);
+        return isNaN(result) ? null : result;
+    } catch (error) {
+        console.warn(`Errore nel parsing del numero decimale: ${valueStr}`);
+        return null;
+    }
+}
+
+export function parseBooleanFlag(char: string | undefined): boolean {
+    return char?.trim().toUpperCase() === 'S' || char?.trim().toUpperCase() === 'X';
 } 
