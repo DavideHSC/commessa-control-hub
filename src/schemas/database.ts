@@ -143,7 +143,20 @@ export const codiceIvaSchema = z.object({
 export const condizioneSchema = z.object({
     id: z.string().min(1, { message: "L'ID è obbligatorio." }),
     descrizione: z.string().min(2, { message: "La descrizione deve essere di almeno 2 caratteri." }),
-    externalId: z.string().optional(),
+    codice: z.string().optional().nullable(),
+    externalId: z.string().optional().nullable(),
+    numeroRate: z.number().int().optional().nullable(),
+    giorniPrimaScadenza: z.number().int().optional().nullable(),
+    giorniTraRate: z.number().int().optional().nullable(),
+    dataRiferimento: z.string().optional().nullable(),
+    suddivisione: z.string().optional().nullable(),
+    sconto: z.number().optional().nullable(),
+    banca: z.string().optional().nullable(),
+    note: z.string().optional().nullable(),
+    calcolaGiorniCommerciali: z.boolean().optional().nullable(),
+    consideraPeriodiChiusura: z.boolean().optional().nullable(),
+    suddivisioneDesc: z.string().optional().nullable(),
+    inizioScadenzaDesc: z.string().optional().nullable(),
 });
 
 export const voceSchema = z.object({

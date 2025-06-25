@@ -124,7 +124,7 @@ def format_codifica_gerarchica(codifica, livello):
 def process_piano_conti():
     """Elabora il file CONTIGEN.TXT"""
     # Percorso corretto del file come da struttura del progetto
-    filepath = '.docs/dati_cliente/ContiGen.txt'
+    filepath = '../dati_cliente/ContiGen.txt'
     filename = os.path.basename(filepath)
     
     # Prova diversi encoding per gestire file legacy
@@ -179,6 +179,7 @@ def process_piano_conti():
             conto['VALIDO_IMP_SEMPL_BOOL'] = conto['VALIDO_IMPRESA_SEMPL'] == 'X'
             conto['VALIDO_PROF_ORD_BOOL'] = conto['VALIDO_PROF_ORD'] == 'X'
             conto['VALIDO_PROF_SEMPL_BOOL'] = conto['VALIDO_PROF_SEMPL'] == 'X'
+            
             
             conti.append(conto)
             righe_elaborate += 1

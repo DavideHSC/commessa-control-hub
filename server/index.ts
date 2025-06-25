@@ -40,7 +40,7 @@ app.use('/api/registrazioni', registrazioniRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/database', databaseRoutes);
 app.use('/api/import/scritture', importPrimaNota);
-app.use('/api/import/anagrafica', importAnagraficheRoutes);
+app.use('/api/import/anagrafiche', importAnagraficheRoutes);
 app.use('/api/causali', causaliRoutes);
 app.use('/api/voci-analitiche', vociAnaliticheRoutes);
 app.use('/api/conti', contiRoutes);

@@ -36,7 +36,11 @@ function determinaTipoConto(tipoChar?: string, codice?: string): TipoConto {
     }
 }
 
-export async function handlePianoDeiContiImport(parsedData: any[], res: Response) {
+interface ParsedRecord {
+    [key: string]: any;
+}
+
+export async function handlePianoDeiContiImport(parsedData: ParsedRecord[], res: Response) {
     let processedCount = 0;
     const batchSize = 100;
 
@@ -62,7 +66,7 @@ export async function handlePianoDeiContiImport(parsedData: any[], res: Response
             id: codice,
             externalId: codice,
             codice: codice,
-            nome: record.nome?.trim() || 'Conto senza nome',
+            nome: record.descrizione?.trim() || 'Conto senza nome',
             tipo,
             
             // === Tutti i nuovi campi dalla Fase 1 ===

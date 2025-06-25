@@ -8,8 +8,14 @@ import { handleCodiciIvaImport } from '../lib/importers/codiciIvaImporter';
 import { handleCausaliImport } from '../lib/importers/causaliImporter';
 import { handlePianoDeiContiImport } from '../lib/importers/pianoDeiContiImporter';
 import { handleAnagraficaCliForImport } from '../lib/importers/anagraficaCliForImporter';
+import { processCondizioniPagamento } from '../lib/importers/condizioniPagamentoImporter';
 
 const router = express.Router();
+
+// Definiamo un'interfaccia base per i dati parsati
+interface ParsedRecord {
+  [key: string]: string;
+}
 
 const prisma = new PrismaClient();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -70,6 +76,22 @@ router.post('/:templateName', upload.single('file'), async (req: Request, res: R
             await handleCodiciIvaImport(parsedData, res);
         } else if (templateName === 'anagrafica_clifor') {
             await handleAnagraficaCliForImport(parsedData, res);
+        } else if (templateName === 'condizioni_pagamento') {
+            const stats: ImportStats = {
+                totalRecords: parsedData.length,
+                successfulRecords: 0,
+                errorRecords: 0,
+                inserted: 0,
+                updated: 0,
+                skipped: 0,
+                warnings: [],
+                errors: []
+            };
+            await processCondizioniPagamento(parsedData as ParsedRecord[], stats);
+            res.status(200).json({
+                message: "Importazione completata",
+                stats
+            });
         } else {
             return res.status(400).json({ error: `Gestore per il template '${templateName}' non implementato.` });
         }

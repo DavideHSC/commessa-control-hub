@@ -230,15 +230,15 @@ async function main() {
       name: 'condizioni_pagamento',
       modelName: 'CondizionePagamento',
       fieldDefinitions: { create: [
-        // Campi principali (bibbia parser_codpagam.py)
-        { fieldName: 'codicePagamento', start: 4, length: 8 },                  // pos 5-12
-        { fieldName: 'descrizione', start: 12, length: 40 },                     // pos 13-52
-        { fieldName: 'contoIncassoPagamento', start: 52, length: 10 },         // pos 53-62
-        { fieldName: 'calcolaGiorniCommerciali', start: 62, length: 1 },       // pos 63 (X = True)
-        { fieldName: 'consideraPeriodiChiusura', start: 63, length: 1 },       // pos 64 (X = True)
-        { fieldName: 'suddivisione', start: 64, length: 1 },                     // pos 65 (D=Dettaglio, T=Totale)
-        { fieldName: 'inizioScadenza', start: 65, length: 1 },                  // pos 66 (D=Data doc, F=Fine mese, R=Registrazione, P=Reg IVA, N=Non determinata)
-        { fieldName: 'numeroRate', start: 66, length: 2, format: 'number' }     // pos 67-68
+        // Campi principali (bibbia parser_codpagam.py) - POSIZIONI CORRETTE
+        { fieldName: 'codicePagamento', start: 5, length: 8 },                  // pos 5-12
+        { fieldName: 'descrizione', start: 13, length: 40 },                    // pos 13-52
+        { fieldName: 'contoIncassoPagamento', start: 53, length: 10 },        // pos 53-62
+        { fieldName: 'calcolaGiorniCommerciali', start: 63, length: 1, format: 'boolean' },       // pos 63 (X = True)
+        { fieldName: 'consideraPeriodiChiusura', start: 64, length: 1, format: 'boolean' },       // pos 64 (X = True)
+        { fieldName: 'suddivisione', start: 65, length: 1 },                    // pos 65 (D=Dettaglio, T=Totale)
+        { fieldName: 'inizioScadenza', start: 66, length: 1 },                 // pos 66 (D=Data doc, F=Fine mese, R=Registrazione, P=Reg IVA, N=Non determinata)
+        { fieldName: 'numeroRate', start: 67, length: 2, format: 'number' }    // pos 67-68
       ] },
     }
   });
@@ -306,84 +306,75 @@ async function main() {
     }
   });
 
-  // Template Piano dei Conti
-  // Prima elimina le FieldDefinition esistenti per il template piano_dei_conti
-  const existingTemplate = await prisma.importTemplate.findUnique({
+  // Template Piano dei Conti - Ricostruito e Completo
+  const existingPianoDeiContiTemplate = await prisma.importTemplate.findUnique({
     where: { name: 'piano_dei_conti' },
     include: { fieldDefinitions: true }
   });
-  
-  if (existingTemplate) {
-    // Elimina prima le FieldDefinition
+
+  if (existingPianoDeiContiTemplate) {
     await prisma.fieldDefinition.deleteMany({
-      where: { templateId: existingTemplate.id }
+      where: { templateId: existingPianoDeiContiTemplate.id }
     });
-    // Poi elimina il template
     await prisma.importTemplate.delete({
-      where: { id: existingTemplate.id }
+      where: { id: existingPianoDeiContiTemplate.id }
     });
   }
-  
+
   await prisma.importTemplate.create({
     data: {
       name: 'piano_dei_conti',
       modelName: 'Conto',
-      fieldDefinitions: { create: [
-        // LAYOUT CORRETTO basato su parser_contigen.py - POSIZIONI PYTHON → TYPESCRIPT
-        { fieldName: 'tabellaItalstudio', start: 3, length: 1, format: 'string' },    // (3,4) → start 3
-        { fieldName: 'livello', start: 4, length: 1, format: 'string' },             // (4,5) → start 4
-        { fieldName: 'codice', start: 5, length: 10, format: 'string' },             // (5,15) → start 5
-        { fieldName: 'nome', start: 15, length: 60, format: 'string' },              // (15,75) → start 15
-        { fieldName: 'tipo', start: 75, length: 1, format: 'string' },               // (75,76) → start 75
-        { fieldName: 'sigla', start: 76, length: 12, format: 'string' },             // (76,88) → start 76
-        { fieldName: 'controlloSegno', start: 88, length: 1, format: 'string' },     // (88,89) → start 88
-        { fieldName: 'contoCostiRicavi', start: 89, length: 10, format: 'string' },  // (89,99) → start 89
-        
-        // Validità per tipo contabilità
-        { fieldName: 'validoImpresaOrdinaria', start: 99, length: 1 },               // (99,100) → start 99
-        { fieldName: 'validoImpresaSemplificata', start: 100, length: 1 },           // (100,101) → start 100
-        { fieldName: 'validoProfessionistaOrdinario', start: 101, length: 1 },       // (101,102) → start 101
-        { fieldName: 'validoProfessionistaSemplificato', start: 102, length: 1 },    // (102,103) → start 102
-        
-        // Validità per tipo dichiarazione (CAMPI CORRETTI DAL PARSER PYTHON)
-        { fieldName: 'validoUnicoPf', start: 103, length: 1 },                       // (103,104) → start 103
-        { fieldName: 'validoUnicoSp', start: 104, length: 1 },                       // (104,105) → start 104
-        { fieldName: 'validoUnicoSc', start: 105, length: 1 },                       // (105,106) → start 105
-        { fieldName: 'validoUnicoEnc', start: 106, length: 1 },                      // (106,107) → start 106
-        
-        // Classi fiscali
-        { fieldName: 'classeIrpefIres', start: 107, length: 10 },                    // (107,117) → start 107
-        { fieldName: 'classeIrap', start: 117, length: 10 },                         // (117,127) → start 117
-        { fieldName: 'classeProfessionista', start: 127, length: 10 },               // (127,137) → start 127
-        { fieldName: 'classeIrapProfessionista', start: 137, length: 10 },           // (137,147) → start 137
-        { fieldName: 'classeIva', start: 147, length: 10 },                          // (147,157) → start 147
-        
-        // Registro professionisti
-        { fieldName: 'colonnaRegistroCronologico', start: 157, length: 4 },          // (157,161) → start 157
-        { fieldName: 'colonnaRegistroIncassiPagamenti', start: 161, length: 4 },     // (161,165) → start 161
-        
-        // Piano dei conti CEE
-        { fieldName: 'contoDareCee', start: 165, length: 12 },                       // (165,177) → start 165
-        { fieldName: 'contoAvereCee', start: 177, length: 12 },                      // (177,189) → start 177
-        
-        // Altri dati
-        { fieldName: 'naturaConto', start: 189, length: 4 },                         // (189,193) → start 189
-        { fieldName: 'gestioneBeniAmmortizzabili', start: 193, length: 1 },          // (193,194) → start 193
-        { fieldName: 'percDeduzioneManutenzione', start: 194, length: 6 },           // (194,200) → start 194
-        
-        { fieldName: 'gruppo', start: 256, length: 1 },                              // (256,257) → start 256
-        { fieldName: 'classeDatiExtracontabili', start: 257, length: 10 },           // (257,267) → start 257
-        { fieldName: 'dettaglioClienteFornitore', start: 267, length: 1 },           // (267,268) → start 267
-        
-        // Descrizioni bilancio
-        { fieldName: 'descrizioneBilancioDare', start: 268, length: 60 },            // (268,328) → start 268
-        { fieldName: 'descrizioneBilancioAvere', start: 328, length: 60 }            // (328,388) → start 328
-      ] },
+      fieldDefinitions: {
+        create: [
+          // Allineato 1:1 con parser_contigen.py
+          { fieldName: 'livello', start: 5, length: 1 },
+          { fieldName: 'codice', start: 6, length: 10 },
+          { fieldName: 'descrizione', start: 16, length: 60 },
+          { fieldName: 'tipo', start: 76, length: 1 },
+          { fieldName: 'sigla', start: 77, length: 12 },
+          { fieldName: 'controlloSegno', start: 89, length: 1 },
+          { fieldName: 'contoCostiRicavi', start: 90, length: 10 },
+          { fieldName: 'validoImpresaOrdinaria', start: 100, length: 1, format: 'boolean' },
+          { fieldName: 'validoImpresaSemplificata', start: 101, length: 1, format: 'boolean' },
+          { fieldName: 'validoProfessionistaOrdinario', start: 102, length: 1, format: 'boolean' },
+          { fieldName: 'validoProfessionistaSemplificato', start: 103, length: 1, format: 'boolean' },
+          { fieldName: 'validoUnicoPf', start: 104, length: 1, format: 'boolean' },
+          { fieldName: 'validoUnicoSp', start: 105, length: 1, format: 'boolean' },
+          { fieldName: 'validoUnicoSc', start: 106, length: 1, format: 'boolean' },
+          { fieldName: 'validoUnicoEnc', start: 107, length: 1, format: 'boolean' },
+          { fieldName: 'classeIrpefIres', start: 108, length: 10 },
+          { fieldName: 'classeIrap', start: 118, length: 10 },
+          { fieldName: 'classeProfessionista', start: 128, length: 10 },
+          { fieldName: 'classeIrapProfessionista', start: 138, length: 10 },
+          { fieldName: 'classeIva', start: 148, length: 10 },
+          { fieldName: 'colonnaRegistroCronologico', start: 158, length: 4 },
+          { fieldName: 'colonnaRegistroIncassiPagamenti', start: 162, length: 4 },
+          { fieldName: 'contoDareCee', start: 166, length: 12 },
+          { fieldName: 'contoAvereCee', start: 178, length: 12 },
+          { fieldName: 'naturaConto', start: 190, length: 4 },
+          { fieldName: 'gestioneBeniAmmortizzabili', start: 194, length: 1 },
+          { fieldName: 'percDeduzioneManutenzione', start: 195, length: 6, format: 'number:decimal' },
+          { fieldName: 'gruppo', start: 257, length: 1 },
+          { fieldName: 'classeDatiExtracontabili', start: 258, length: 10 },
+          { fieldName: 'dettaglioClienteFornitore', start: 268, length: 1 },
+          { fieldName: 'descrizioneBilancioDare', start: 269, length: 60 },
+          { fieldName: 'descrizioneBilancioAvere', start: 329, length: 60 },
+        ]
+      },
     }
   });
 
   // Template Scritture Contabili
-  const scrittureContabiliFields: any = [
+  type ScritturaField = {
+    fileIdentifier: string;
+    fieldName: string;
+    start: number;
+    length: number;
+    format?: string;
+  };
+  
+  const scrittureContabiliFields: ScritturaField[] = [
     // PNTESTA.TXT
     { fileIdentifier: 'PNTESTA.TXT', fieldName: 'externalId', start: 20, length: 12 },
     { fileIdentifier: 'PNTESTA.TXT', fieldName: 'causaleId', start: 39, length: 6 },

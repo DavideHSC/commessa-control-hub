@@ -81,8 +81,8 @@ async function readFileWithFallbackEncoding(filePath: string): Promise<string[]>
       const content = await fs.readFile(filePath, { encoding });
       console.log(`[Parser] File aperto con encoding: ${encoding}`);
       return content.split(/\r?\n/);
-    } catch (error: any) {
-      if (error.code === 'ENOENT') {
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'ENOENT') {
         throw new Error(`File non trovato: ${filePath}`);
       }
       console.warn(`[Parser] Encoding ${encoding} fallito, provo il prossimo...`);
@@ -164,9 +164,9 @@ async function processWithErrorHandling<T>(
         console.log(`[Parser] Elaborati ${stats.successfulRecords} record...`);
       }
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       stats.errorRecords++;
-      const errorMsg = `Errore riga ${i + 1}: ${error.message}`;
+      const errorMsg = `Errore riga ${i + 1}: ${(error as Error).message}`;
       stats.errors.push(errorMsg);
       console.error(`[Parser] ${errorMsg}`);
       
@@ -244,7 +244,7 @@ export function parseFixedWidth<T>(
   const results: T[] = [];
 
   lines.forEach((line, index) => {
-    const record: { [key: string]: any } = {};
+    const record: Record<string, unknown> = {};
     let hasData = false;
 
     for (const def of definitions) {
@@ -330,7 +330,7 @@ export async function parseFixedWidthRobust<T>(
     
     // Processor function per ogni linea
     const processor = (line: string, index: number): T => {
-      const record: { [key: string]: any } = {};
+      const record: Record<string, unknown> = {};
       let hasData = false;
 
       for (const def of definitions) {
@@ -387,7 +387,7 @@ export async function parseFixedWidthRobust<T>(
     // Elabora con gestione errori
     return await processWithErrorHandling(lines, processor, templateName);
     
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Errore fatale
     const stats: ImportStats = {
       totalRecords: 0,
@@ -397,7 +397,7 @@ export async function parseFixedWidthRobust<T>(
       updated: 0,
       skipped: 0,
       warnings: [],
-      errors: [error.message]
+      errors: [(error as Error).message]
     };
     
     return { data: [], stats };

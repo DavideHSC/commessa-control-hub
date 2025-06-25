@@ -72,7 +72,7 @@ const ImportPage: React.FC = () => {
         formData.append('file', anagraficaFiles[0]);
 
         try {
-            const response = await fetch(`/api/import/anagrafica/${selectedAnagraficaTemplate}`, {
+            const response = await fetch(`/api/import/anagrafiche/${selectedAnagraficaTemplate}`, {
                 method: 'POST',
                 body: formData,
             });

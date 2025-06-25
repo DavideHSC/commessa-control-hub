@@ -19,17 +19,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import * as z from 'zod';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { createCondizionePagamento, updateCondizionePagamento, deleteCondizionePagamento, CondizionePagamento } from '@/api/condizioniPagamento';
 import { condizioneSchema } from '@/schemas/database';
 import { useCrudTable } from '@/hooks/useCrudTable';
@@ -37,11 +30,30 @@ import { useAdvancedTable } from '@/hooks/useAdvancedTable';
 import { AdvancedDataTable } from '../ui/advanced-data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from '../ui/data-table-column-header';
+import { CondizionePagamentoForm } from './CondizionePagamentoForm';
 
 type CondizioneFormValues = z.infer<typeof condizioneSchema>;
 
-export const CondizioniPagamentoTable = () => {
+const emptyCondizione: CondizioneFormValues = {
+  id: "",
+  descrizione: "",
+  codice: null,
+  externalId: null,
+  numeroRate: null,
+  giorniPrimaScadenza: null,
+  giorniTraRate: null,
+  dataRiferimento: null,
+  suddivisione: null,
+  sconto: null,
+  banca: null,
+  note: null,
+  calcolaGiorniCommerciali: false,
+  consideraPeriodiChiusura: false,
+  suddivisioneDesc: null,
+  inizioScadenzaDesc: null,
+};
 
+export const CondizioniPagamentoTable = () => {
   const {
     data,
     totalCount,
@@ -79,7 +91,7 @@ export const CondizioniPagamentoTable = () => {
     },
     onDataChange: () => refreshData(),
     resourceName: "Condizione di pagamento",
-    defaultValues: { id: "", descrizione: "", externalId: "" },
+    defaultValues: emptyCondizione,
     getId: (condizione) => condizione.id,
   });
 
@@ -94,9 +106,13 @@ export const CondizioniPagamentoTable = () => {
       header: ({ column }) => <DataTableColumnHeader column={column} title="Descrizione" />,
     },
     {
-      accessorKey: "externalId",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="ID Esterno" />,
-      cell: ({ row }) => row.getValue("externalId") || 'N/A'
+      accessorKey: "numeroRate",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="N. Rate" />,
+    },
+    {
+      accessorKey: "codice",
+      header: ({ column }) => <DataTableColumnHeader column={column} title="Cod. Esterno" />,
+      cell: ({ row }) => row.getValue("codice") || 'N/A'
     },
     {
       id: "actions",
@@ -136,51 +152,16 @@ export const CondizioniPagamentoTable = () => {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingCondizione ? 'Modifica Condizione' : 'Nuova Condizione'}</DialogTitle>
+             <DialogDescription>
+                {editingCondizione ? 'Modifica i dettagli della condizione di pagamento.' : 'Inserisci i dettagli per una nuova condizione di pagamento.'}
+            </DialogDescription>
           </DialogHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ID</FormLabel>
-                    <FormControl>
-                      <Input {...field} disabled={!!editingCondizione} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="descrizione"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Descrizione</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="externalId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ID Esterno</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <CondizionePagamentoForm />
               <DialogFooter>
                 <Button type="submit">{editingCondizione ? 'Aggiorna' : 'Crea'}</Button>
               </DialogFooter>

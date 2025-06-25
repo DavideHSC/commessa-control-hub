@@ -243,10 +243,8 @@ export function decodeImposteIntrattenimenti(code: string): string {
 export function decodeLivello(livello: string): string {
   const mapping: Record<string, string> = {
     '1': 'Mastro',
-    '2': 'Categoria',
-    '3': 'Conto',
-    '4': 'Sottoconto',
-    '5': 'Dettaglio'
+    '2': 'Conto',
+    '3': 'Sottoconto'
   };
   return mapping[livello?.trim()] || livello?.trim() || '';
 }
