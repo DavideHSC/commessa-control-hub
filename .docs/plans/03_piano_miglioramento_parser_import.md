@@ -8,6 +8,8 @@
 
 Implementare un sistema di importazione robusto e completo basandosi sui parser Python sviluppati, che rappresentano la "bibbia" per schemi dati e tecniche implementative verificate su dati reali.
 
+> **N.B. Contesto Architetturale**: Questo piano opera nel contesto del refactoring definito in `.docs/plans/recovery_plan_v2.md`. Tutta la logica di importazione è stata modularizzata e spostata da `server/routes/importAnagrafiche.ts` a file specifici dentro `server/lib/importers/`. Qualsiasi verifica o modifica deve tenere conto di questa nuova struttura.
+
 ---
 
 ## Principi Guida Fondamentali per l'Implementazione
@@ -42,66 +44,64 @@ L'aderenza a questi principi è essenziale per evitare cicli di debug inefficien
 
 ---
 
-## 🎯 STATO ATTUALE - AGGIORNAMENTO 24 GIUGNO 2025
+## 🛠️ Metodologia di Troubleshooting e Validazione (Nuovo Standard Operativo)
+
+A seguito degli ultimi interventi, abbiamo sviluppato una metodologia di debug infallibile che diventa da oggi il nostro **protocollo standard** per affrontare qualsiasi anomalia durante l'importazione di un nuovo tracciato.
+
+**Quando eseguire questa procedura**: Ogni volta che un'importazione fallisce, produce dati palesemente errati (es. aliquote a 0, campi slittati) o si comporta in modo inatteso.
+
+**Procedura passo-passo:**
+
+1.  **Non fidarsi, Verificare (Python è l'Oracolo)**:
+    *   **Azione**: Prendere lo script Python di riferimento (es. `parser_codiciiva.py`).
+    *   **Scopo**: Usarlo come fonte di verità assoluta per l'output atteso.
+
+2.  **Creare un "Golden Record" di Debug**:
+    *   **Azione**: Modificare temporaneamente lo script Python:
+        *   Rimuovere le dipendenze non necessarie (es. `openpyxl` per l'export Excel).
+        *   Aggiungere `print()` dettagliati all'interno del ciclo di parsing per stampare a console i valori estratti per i **primi 5-10 record**.
+    *   **Scopo**: Generare un output di testo pulito che mostri esattamente come dovrebbero essere i dati dopo il parsing (es. `{'codice': '10', 'aliquota': 10.0, ...}`).
+
+3.  **Eseguire il Test con Dati Reali**:
+    *   **Azione**: Lanciare lo script Python modificato sul **file di dati effettivo** (es. `CodicIva.txt`), non sui file di documentazione.
+    *   **Scopo**: Ottenere l'output di debug che useremo come metro di paragone.
+
+4.  **Abilitare il Debug su TypeScript**:
+    *   **Azione**: Aggiungere `console.log` mirati nel codice TypeScript, in particolare:
+        *   In `server/routes/importAnagrafiche.ts` per vedere l'array `parsedData` restituito da `fixedWidthParser`.
+        *   Nel gestore specifico (es. `server/lib/importers/codiciIvaImporter.ts`) per vedere il singolo `record` ricevuto.
+    *   **Scopo**: Vedere cosa sta producendo *realmente* il nostro codice.
+
+5.  **Il Confronto è la Chiave**:
+    *   **Azione**: Mettere fianco a fianco l'output del `print()` di Python e quello del `console.log()` di TypeScript.
+    *   **Scopo**: Individuare **immediatamente** la discrepanza. L'errore sarà evidente (es. Python produce `'10'`, TypeScript produce `'0  I'`). Questo punta in modo inequivocabile alla causa radice, quasi sempre un errore di indicizzazione (1-based vs 0-based) o di lunghezza nel template di `seed.ts`.
+
+6.  **Risolvere e Pulire**:
+    *   **Azione**: Correggere il bug identificato. Una volta che l'importazione funziona, **rimuovere tutti i log di debug** sia da Python che da TypeScript.
+    *   **Scopo**: Mantenere la codebase pulita.
+
+---
+
+## 🎯 STATO ATTUALE - AGGIORNAMENTO 25 GIUGNO 2025 (POST-REFACTORING)
 
 ### ✅ COMPLETATO: Parser Codici IVA (CRITICO)
 
-**Risultato**: **100% FUNZIONANTE** - Allineamento completo con `parser_codiciiva.py`
+**Risultato**: **100% FUNZIONANTE** - Allineato, testato e validato con la nuova metodologia.
 
-**Problemi Risolti**:
-1. **Errore di Indicizzazione**: Corretto `start: 4` → `start: 5` per allinearsi al codice Python `line[4:8]`
-2. **Mapping Proprietà**: Risolto disallineamento `fieldName` vs `name` tra database e parser
-3. **Gestione Date**: Aggiunto controllo di tipo in `convertDateString` per valori null/undefined
-4. **Doppia Conversione Aliquote**: Eliminata conversione ridondante - il parser già converte `format: 'percentage'`
+**Problemi Risolti (Lezione Fondamentale)**:
+- **Errore di Indicizzazione 1-based vs 0-based**: Il problema critico era nel `fixedWidthParser.ts` che non sottraeva `1` all'indice `start` del template, causando uno sfasamento completo di tutti i campi. La nuova metodologia di debug ha permesso di identificarlo immediatamente confrontando l'output Python e TypeScript.
 
 **Metriche di Successo**:
-- ✅ **816/816 record** processati correttamente (100%)
-- ✅ **Aliquote** visualizzate correttamente (10, 22, 4, ecc.) invece di "N/A"
-- ✅ **Codici** estratti perfettamente (CV22, V22, V22P, V22S)
-- ✅ **Performance** mantenuta: ~2-3 secondi per 816 record
+- ✅ **816/816 record** processati e visualizzati correttamente.
+- ✅ **Aliquote, codici e descrizioni** perfettamente allineati all'output del parser Python.
 
-**Lezioni Critiche Apprese**:
-1. **Analisi del Codice Eseguibile**: Il commento `pos 5-8` era fuorviante; il codice `line[4:8]` era la verità
-2. **Debug Sistematico**: L'aggiunta di log di debug ha rivelato immediatamente la doppia conversione
-3. **Principi Guida**: L'applicazione rigorosa dei principi documentati ha accelerato la risoluzione
+### 🟡 DA RIVERIFICARE: Parser Causali Contabili (ALTA PRIORITÀ)
 
-### ✅ COMPLETATO: Parser Causali Contabili (ALTA PRIORITÀ)
+**Stato**: **Da Riverificare**. L'implementazione originale era considerata completa, ma deve essere testata di nuovo seguendo il nuovo protocollo di validazione per garantire che non soffra dello stesso errore di indicizzazione o di altri bug latenti.
 
-**Risultato**: **100% FUNZIONANTE** - Allineamento completo con `parser_causali.py`
+### 🟡 DA RIVERIFICARE: `parser_a_clifor.py` - Clienti/Fornitori (ALTA PRIORITÀ)
 
-**Problemi Risolti**:
-1.  **Errore Critico di Indicizzazione**: Corrette tutte le 28 posizioni nel template `causali` in `seed.ts` per allinearsi allo slicing 0-based del parser Python (`line[4:10]` -> `start: 5`).
-2.  **Errore di Processo Fondamentale**: Identificato e risolto il blocco principale: le modifiche al `seed.ts` non venivano applicate perché mancava il comando `npx prisma db seed`. Questo ha causato cicli di debug su dati obsoleti.
-3.  **Conflitto di Tipi sulle Date**: Rimosso un parser di date ridondante in `importAnagrafiche.ts` che causava un `TypeError`, dato che il parser principale (`fixedWidthParser`) già forniva oggetti `Date` corretti.
-4.  **Logica di Conteggio Errata**: Corretto il bug che riportava sempre "record aggiornati" invece di "inseriti" a causa di un controllo post-operazione.
-
-**Metriche di Successo**:
-- ✅ **183/183 record** processati e inseriti correttamente al primo tentativo con DB pulito.
-- ✅ **Valori decodificati** (`tipoMovimentoDesc`, etc.) ora corretti e non più "Non specificato".
-- ✅ **Flusso di lavoro corretto** stabilito per le future modifiche ai template.
-
-**Lezioni Critiche Apprese**:
-1.  **IL COMANDO `db seed` È OBBLIGATORIO**: Qualsiasi modifica ai template in `prisma/seed.ts` DEVE essere seguita da `npx prisma db seed` per essere efficace. Questo passaggio è ora parte integrante della metodologia.
-2.  **Verificare l'Intero Flusso Dati**: L'errore non era solo nel parsing, ma anche nella post-elaborazione (gestione date) e nella logica di reporting (conteggio insert/update). L'analisi deve essere veramente end-to-end.
-3.  **I Log non Mentono**: Il log "0 inseriti, X aggiornati" era un sintomo corretto di un bug logico, non solo un problema di dati. Bisogna fidarsi dei sintomi e investigare la causa radice.
-
-### ✅ COMPLETATO: `parser_a_clifor.py` - Clienti/Fornitori (ALTA PRIORITÀ)
-
-**Risultato**: **100% FUNZIONANTE** - Allineamento completo con `parser_a_clifor.py`
-
-**Problemi Risolti**:
-1.  **Errore di Tipo sui Flag Booleani**: L'errore critico `Expected Boolean or Null, provided String` impediva l'inserimento nel DB. Il parser passava stringhe vuote (`""`) invece di `false`, causando un conflitto di tipi con Prisma.
-2.  **Logica di Conversione Non Fedele**: Una prima funzione di correzione `parseBooleanFlag` non replicava *esattamente* il comportamento del parser Python (`valore == 'X'`). È stata sostituita da una funzione `parseBooleanFlagPythonic` che implementa la logica 1:1.
-3.  **Debugging Efficace**: L'aggiunta di log mirati sulla transazione Prisma ha permesso di identificare immediatamente il disallineamento dei tipi, superando le false piste iniziali.
-
-**Metriche di Successo**:
-- ✅ **526/526 record** processati e inseriti correttamente senza errori (100%).
-- ✅ Classificazione Cliente/Fornitore/Entrambi gestita correttamente.
-- ✅ Tutti i campi, inclusi i flag fiscali, sono ora mappati e convertiti secondo la "bibbia" Python.
-
-**Lezioni Critiche Apprese**:
-1.  **LA REPLICA DEVE ESSERE ESATTA**: Non basta una logica "simile". La conversione dei tipi deve essere una replica 1:1 di quella del parser Python. La differenza tra `valore.trim().toUpperCase() === 'X'` e una gestione più complessa di `null` era la causa di tutti gli errori.
-2.  **IL LOGGING DEVE PUNTARE ALLA TRANSAZIONE**: Il debug più efficace è quello che mostra l'esatto payload di dati inviato al database (`prisma.upsert`) e l'errore specifico restituito da Prisma. Questo bypassa le false piste.
+**Stato**: **Da Riverificare**. Stessa situazione delle Causali Contabili. L'implementazione deve essere validata contro l'output del parser Python di riferimento.
 
 ### 🔄 PROSSIMI PARSER DA ALLINEARE (Priorità Decrescente)
 
