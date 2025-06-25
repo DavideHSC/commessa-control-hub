@@ -41,6 +41,13 @@ function determinaTipoConto(tipoChar?: string, codice?: string): TipoConto {
 const prisma = new PrismaClient();
 const upload = multer({ storage: multer.memoryStorage() });
 
+// Funzione per replicare ESATTAMENTE il comportamento del parser Python: `valore == 'X'`
+const parseBooleanFlagPythonic = (char: any): boolean => {
+  if (typeof char !== 'string') {
+    return false;
+  }
+  return char.trim().toUpperCase() === 'X';
+};
 
 router.post('/:templateName', upload.single('file'), async (req: Request, res: Response) => {
     const { templateName } = req.params;
@@ -89,6 +96,18 @@ router.post('/:templateName', upload.single('file'), async (req: Request, res: R
                 };
             });
 
+        // Debug: analizza il file raw prima del parsing
+        if (templateName === 'anagrafica_clifor') {
+            const rawLines = fileContent.split(/\r?\n/).filter(line => line.trim().length > 0);
+            if (rawLines.length > 0) {
+                const firstLine = rawLines[0];
+                console.log(`[DEBUG-RAW] Prima riga file (lunghezza: ${firstLine.length}):`, JSON.stringify(firstLine.substring(0, 100)));
+                console.log(`[DEBUG-RAW] Carattere posizione 50 (tipoConto):`, `'${firstLine[49]}' (ASCII: ${firstLine.charCodeAt(49)})`);
+                console.log(`[DEBUG-RAW] Caratteri posizioni 49-52:`, JSON.stringify(firstLine.substring(49, 52)));
+                console.log(`[DEBUG-RAW] Caratteri posizioni 70-82 (codiceAnagrafica):`, JSON.stringify(firstLine.substring(70, 82)));
+            }
+        }
+        
         // Esegui il parsing del file
         const parsedData = parseFixedWidth(fileContent, templateFields);
         console.log(`[IMPORT] Parsing completato. Numero di record estratti: ${parsedData.length}`);
@@ -111,50 +130,6 @@ router.post('/:templateName', upload.single('file'), async (req: Request, res: R
         res.status(500).json({ error: `Errore durante l'importazione di ${templateName}.` });
     }
 });
-
-const anagraficaCliForFields: FieldDefinition[] = [
-    { name: 'filler', start: 1, length: 3, type: 'string' },
-    { name: 'codiceFiscaleAzienda', start: 4, length: 16, type: 'string' },
-    { name: 'subcodiceAzienda', start: 20, length: 1, type: 'string' },
-    { name: 'codiceUnivocoScaricamento', start: 21, length: 12, type: 'string' },
-    { name: 'codiceFiscale', start: 33, length: 16, type: 'string' },
-    { name: 'subcodiceCliFor', start: 49, length: 1, type: 'string' },
-    { name: 'tipoConto', start: 50, length: 1, type: 'string' },
-    { name: 'sottocontoCliente', start: 51, length: 10, type: 'string' },
-    { name: 'sottocontoFornitore', start: 61, length: 10, type: 'string' },
-    { name: 'externalId', start: 71, length: 12, type: 'string' },
-    { name: 'piva', start: 83, length: 11, type: 'string' },
-    { name: 'tipoSoggetto', start: 94, length: 1, type: 'string' },
-    { name: 'ragioneSociale', start: 95, length: 60, type: 'string' },
-    { name: 'cognome', start: 155, length: 20, type: 'string' },
-    { name: 'nome', start: 175, length: 20, type: 'string' },
-    { name: 'sesso', start: 195, length: 1, type: 'string' },
-    { name: 'dataNascita', start: 196, length: 8, type: 'string' },
-    { name: 'comuneNascita', start: 204, length: 4, type: 'string' },
-    { name: 'comuneResidenza', start: 208, length: 4, type: 'string' },
-    { name: 'cap', start: 212, length: 5, type: 'string' },
-    { name: 'indirizzo', start: 217, length: 30, type: 'string' },
-    { name: 'prefissoTelefono', start: 247, length: 4, type: 'string' },
-    { name: 'numeroTelefono', start: 251, length: 11, type: 'string' },
-    { name: 'identificativoFiscaleEstero', start: 262, length: 20, type: 'string' },
-    { name: 'codiceIso', start: 282, length: 2, type: 'string' },
-    { name: 'codicePagamento', start: 284, length: 8, type: 'string' },
-    { name: 'codicePagamentoCliente', start: 292, length: 8, type: 'string' },
-    { name: 'codicePagamentoFornitore', start: 300, length: 8, type: 'string' },
-    { name: 'codiceValuta', start: 308, length: 4, type: 'string' },
-    { name: 'gestione770', start: 312, length: 1, type: 'string' },
-    { name: 'soggettoRitenuta', start: 313, length: 1, type: 'string' },
-    { name: 'quadro770', start: 314, length: 1, type: 'string' },
-    { name: 'contributoPrevidenziale', start: 315, length: 1, type: 'string' },
-    { name: 'codiceRitenuta', start: 316, length: 5, type: 'string' },
-    { name: 'enasarco', start: 321, length: 1, type: 'string' },
-    { name: 'tipoRitenuta', start: 322, length: 1, type: 'string' },
-    { name: 'soggettoInail', start: 323, length: 1, type: 'string' },
-    { name: 'contributoPrevidenzialeL335', start: 324, length: 1, type: 'string' },
-    { name: 'aliquota', start: 325, length: 6, type: 'string' },
-    { name: 'percContributoCassaPrev', start: 331, length: 6, type: 'string' },
-    { name: 'attivitaMensilizzazione', start: 337, length: 2, type: 'string' },
-];
 
 // Funzione per convertire date dal formato DDMMYYYY a Date
 function convertDateString(dateStr: string | null | undefined): Date | null {
@@ -181,167 +156,153 @@ function convertDateString(dateStr: string | null | undefined): Date | null {
 }
 
 async function handleAnagraficaCliForImport(parsedData: any[], res: Response) {
-    let processedCount = 0;
-    const batchSize = 100;
+    const stats: ImportStats = {
+        totalRecords: parsedData.length,
+        inserted: 0,
+        updated: 0,
+        skipped: 0,
+        errors: [],
+        warnings: [],
+        successfulRecords: 0,
+        errorRecords: 0,
+    };
 
-    try {
-        const validRecords = parsedData.map(record => {
-            const externalId = record.externalId?.trim();
-            if (!externalId) return null;
+    console.log(`[IMPORT-CLIFOR] Inizio elaborazione di ${stats.totalRecords} record.`);
 
-            const data = {
-                externalId: externalId,
-                nome: record.ragioneSociale?.trim() || 'Soggetto senza nome',
-                piva: record.piva || null,
-                codiceFiscale: record.codiceFiscale || null,
-                tipoAnagrafica: record.tipoSoggetto === '0' ? 'Persona Fisica' : 'Soggetto Diverso',
-                cognome: record.cognome || null,
-                nomeAnagrafico: record.nome || null,
-                sesso: record.sesso || null,
-                dataNascita: convertDateString(record.dataNascita),
-                comuneNascita: record.comuneNascita || null,
-                indirizzo: record.indirizzo || null,
-                cap: record.cap || null,
-                comune: record.comuneResidenza || null,
-                nazione: record.codiceIso || null,
-                telefono: `${record.prefissoTelefono || ''}${record.numeroTelefono || ''}`.trim() || null,
-                codicePagamento: record.codicePagamento || record.codicePagamentoCliente || record.codicePagamentoFornitore || null,
-                codiceValuta: record.codiceValuta || null,
-                
-                // === NUOVI CAMPI FASE 1 ===
-                codiceAnagrafica: record.externalId || null,
-                tipoContoDesc: decoders.decodeTipoContoAnagrafica(record.tipoConto),
-                tipoSoggettoDesc: decoders.decodeTipoSoggetto(record.tipoSoggetto),
-                denominazione: record.ragioneSociale || null,
+    for (const record of parsedData) {
+        const codiceAnagrafica = record.codiceAnagrafica?.trim();
+        if (!codiceAnagrafica) {
+            stats.skipped++;
+            stats.errors.push(`Record saltato: codice anagrafica mancante.`);
+            continue;
+        }
+
+        try {
+            const isCliente = record.tipoConto === 'C' || record.tipoConto === 'E';
+            const isFornitore = record.tipoConto === 'F' || record.tipoConto === 'E';
+
+            // Debug per capire perché non vengono inseriti record
+            if (!isCliente && !isFornitore) {
+                console.warn(`[WARN-CLIFOR] Record ${codiceAnagrafica} saltato: tipoConto='${record.tipoConto}' non è né C, né F, né E`);
+            }
+
+            // Mappatura dati comuni
+            const commonData = {
+                externalId: codiceAnagrafica,
+                codiceAnagrafica: codiceAnagrafica,
+                nome: record.denominazione?.trim() || `${record.cognome?.trim()} ${record.nome?.trim()}`.trim() || 'N/D',
+                piva: record.partitaIva?.trim() || null,
+                codiceFiscale: record.codiceFiscaleClifor?.trim() || null,
+                denominazione: record.denominazione?.trim() || null,
+                cognome: record.cognome?.trim() || null,
+                nomeAnagrafico: record.nome?.trim() || null, // Mappato su 'nome' del template
+                sesso: record.sesso?.trim() || null,
+                dataNascita: record.dataNascita, // Già oggetto Date dal parser
+                comuneNascita: record.comuneNascita?.trim() || null,
+                indirizzo: record.indirizzo?.trim() || null,
+                cap: record.cap?.trim() || null,
+                comune: record.comuneResidenza?.trim() || null, // Mappato su comuneResidenza
+                nazione: record.codiceIso?.trim() || null,
+                telefono: `${record.prefissoTelefono?.trim() || ''}${record.numeroTelefono?.trim() || ''}`.trim() || null,
+                prefissoTelefono: record.prefissoTelefono?.trim() || null,
+                codiceIso: record.codiceIso?.trim() || null,
+                idFiscaleEstero: record.idFiscaleEstero?.trim() || null,
+                tipoSoggetto: record.tipoSoggetto?.trim() || null,
+                tipoConto: record.tipoConto?.trim() || null,
+                sottocontoCliente: record.sottocontoCliente?.trim() || null,
+                sottocontoFornitore: record.sottocontoFornitore?.trim() || null,
+                codiceIncassoCliente: record.codiceIncassoCliente?.trim() || null,
+                codicePagamentoFornitore: record.codicePagamentoFornitore?.trim() || record.codiceIncassoPagamento?.trim() || null,
+
+                // Campi calcolati e decodificati
                 sessoDesc: decoders.decodeSesso(record.sesso),
-                prefissoTelefono: record.prefissoTelefono || null,
-                codiceIso: record.codiceIso || null,
-                idFiscaleEstero: record.identificativoFiscaleEstero || null,
-                
-                // Sottoconti
-                sottocontoAttivo: record.sottocontoCliente || record.sottocontoFornitore || null,
-                sottocontoCliente: record.sottocontoCliente || null,
-                sottocontoFornitore: record.sottocontoFornitore || null,
-                
-                // Codici Pagamento Specifici
-                codiceIncassoCliente: record.codicePagamentoCliente || null,
-                codicePagamentoFornitore: record.codicePagamentoFornitore || null,
-                
-                // Flags Calcolati
-                ePersonaFisica: record.tipoSoggetto === 'PF',
-                eCliente: record.tipoConto === 'C' || record.tipoConto === 'E',
-                eFornitore: record.tipoConto === 'F' || record.tipoConto === 'E',
-                haPartitaIva: !!(record.piva && record.piva.trim()),
-                
-                // Dati specifici fornitore
-                gestione770: record.gestione770 === 'X',
-                soggettoRitenuta: record.soggettoRitenuta === 'X',
-                quadro770: record.quadro770 || null,
+                tipoSoggettoDesc: decoders.decodeTipoSoggetto(record.tipoSoggetto),
+                tipoContoDesc: decoders.decodeTipoContoAnagrafica(record.tipoConto),
+                ePersonaFisica: record.tipoSoggetto === '0',
+                eCliente: isCliente,
+                eFornitore: isFornitore,
+                haPartitaIva: !!(record.partitaIva && record.partitaIva.trim()),
+                sottocontoAttivo: decoders.determineSottocontoAttivo(record.tipoConto, record.sottocontoCliente, record.sottocontoFornitore),
+            };
+
+            // Dati specifici fornitore
+            const fornitoreData = {
+                ...commonData,
+                codicePagamento: record.codicePagamentoFornitore?.trim() || record.codiceIncassoPagamento?.trim() || null,
+                gestione770: parseBooleanFlagPythonic(record.gestioneDati770),
+                soggettoRitenuta: parseBooleanFlagPythonic(record.soggettoARitenuta),
+                quadro770: record.quadro770?.trim() || null,
+                contributoPrevidenziale: parseBooleanFlagPythonic(record.contributoPrevidenziale),
+                codiceRitenuta: record.codiceRitenuta?.trim() || null,
+                enasarco: parseBooleanFlagPythonic(record.enasarco),
+                tipoRitenuta: record.tipoRitenuta?.trim() || null,
+                soggettoInail: parseBooleanFlagPythonic(record.soggettoInail),
+                contributoPrevidenzialeL335: record.contributoPrevid335?.trim() || null,
+                aliquota: record.aliquota, // Già numero dal parser
+                percContributoCassaPrev: record.percContributoCassa, // Già numero dal parser
+                attivitaMensilizzazione: record.attivitaMensilizzazione ? parseInt(record.attivitaMensilizzazione, 10) : null,
+                // Descrizioni decodificate
                 quadro770Desc: decoders.decodeQuadro770(record.quadro770),
-                contributoPrevidenziale: record.contributoPrevidenziale === 'X',
-                codiceRitenuta: record.codiceRitenuta || null,
-                enasarco: record.enasarco === 'X',
-                tipoRitenuta: record.tipoRitenuta || null,
                 tipoRitenuraDesc: decoders.decodeTipoRitenuta(record.tipoRitenuta),
-                soggettoInail: record.soggettoInail === 'X',
-                contributoPrevidenzialeL335: record.contributoPrevidenzialeL335 || null,
-                contributoPrevid335Desc: decoders.decodeContributoPrevid335(record.contributoPrevidenzialeL335),
-                aliquota: record.aliquota ? parseFloat(record.aliquota) : null,
-                percContributoCassaPrev: record.percContributoCassaPrev ? parseFloat(record.percContributoCassaPrev) : null,
-                attivitaMensilizzazione: record.attivitaMensilizzazione ? parseInt(record.attivitaMensilizzazione) : null,
-                
-                // Campo per lo smistamento
-                tipoConto: record.tipoConto?.toUpperCase(),
+                contributoPrevid335Desc: decoders.decodeContributoPrevid335(record.contributoPrevid335),
             };
             
-            const id = `${data.externalId}`;
+            // Dati specifici cliente
+            const clienteData = {
+                ...commonData,
+                codicePagamento: record.codiceIncassoCliente?.trim() || record.codiceIncassoPagamento?.trim() || null,
+            };
 
-            return { id, ...data };
-            
-        }).filter((record): record is NonNullable<typeof record> => record !== null);
-
-        console.log(`[IMPORT Clienti/Fornitori] Trovati ${validRecords.length} record validi da processare.`);
-
-        for (let i = 0; i < validRecords.length; i += batchSize) {
-            const batch = validRecords.slice(i, i + batchSize);
             await prisma.$transaction(async (tx) => {
-                for (const record of batch) {
-                    const { tipoConto, ...dataToSave } = record;
-
-                    const commonData = {
-                        id: dataToSave.id,
-                        externalId: dataToSave.externalId,
-                        nome: dataToSave.nome,
-                        piva: dataToSave.piva,
-                        codiceFiscale: dataToSave.codiceFiscale,
-                        tipoAnagrafica: dataToSave.tipoAnagrafica,
-                        cognome: dataToSave.cognome,
-                        nomeAnagrafico: dataToSave.nomeAnagrafico,
-                        sesso: dataToSave.sesso,
-                        dataNascita: dataToSave.dataNascita,
-                        comuneNascita: dataToSave.comuneNascita,
-                        indirizzo: dataToSave.indirizzo,
-                        cap: dataToSave.cap,
-                        comune: dataToSave.comune,
-                        nazione: dataToSave.nazione,
-                        telefono: dataToSave.telefono,
-                        codicePagamento: dataToSave.codicePagamento,
-                        codiceValuta: dataToSave.codiceValuta,
-                    };
-
-                    const fornitoreData = {
-                        ...commonData,
-                        gestione770: dataToSave.gestione770,
-                        soggettoRitenuta: dataToSave.soggettoRitenuta,
-                        quadro770: dataToSave.quadro770,
-                        contributoPrevidenziale: dataToSave.contributoPrevidenziale,
-                        codiceRitenuta: dataToSave.codiceRitenuta,
-                        enasarco: dataToSave.enasarco,
-                        tipoRitenuta: dataToSave.tipoRitenuta,
-                        soggettoInail: dataToSave.soggettoInail,
-                        contributoPrevidenzialeL335: dataToSave.contributoPrevidenzialeL335,
-                        aliquota: dataToSave.aliquota,
-                        percContributoCassaPrev: dataToSave.percContributoCassaPrev,
-                        attivitaMensilizzazione: dataToSave.attivitaMensilizzazione,
-                    };
-                    
-                    const upsertCliente = () => tx.cliente.upsert({
-                        where: { id: record.id },
-                        update: commonData,
-                        create: commonData,
+                if (isCliente) {
+                    const existing = await tx.cliente.findUnique({ where: { externalId: codiceAnagrafica } });
+                    if (existing) stats.updated++; else stats.inserted++;
+                    await tx.cliente.upsert({
+                        where: { externalId: codiceAnagrafica },
+                        update: clienteData,
+                        create: clienteData,
                     });
-                    
-                    const upsertFornitore = () => tx.fornitore.upsert({
-                        where: { id: record.id },
+                }
+                if (isFornitore) {
+                    // Se non è solo cliente, aggiorniamo/inseriamo anche fornitore
+                    if (!isCliente) {
+                       const existing = await tx.fornitore.findUnique({ where: { externalId: codiceAnagrafica } });
+                       // Contiamo inserted/updated solo una volta per record
+                       if (!existing) stats.inserted++; else stats.updated++;
+                    }
+                    await tx.fornitore.upsert({
+                        where: { externalId: codiceAnagrafica },
                         update: fornitoreData,
                         create: fornitoreData,
                     });
-                    
-                    if (tipoConto === 'C') {
-                        await upsertCliente();
-                    } else if (tipoConto === 'F') {
-                        await upsertFornitore();
-                    } else if (tipoConto === 'E') {
-                        await upsertCliente();
-                        await upsertFornitore();
-                    }
                 }
             });
-            processedCount += batch.length;
-            console.log(`[IMPORT Clienti/Fornitori] Processati ${processedCount}/${validRecords.length} record.`);
+
+        } catch (error) {
+            stats.errors.push(`Errore sul record ${codiceAnagrafica}: ${error instanceof Error ? error.message : String(error)}`);
         }
-
-        res.status(200).json({ message: 'Importazione completata con successo', importedCount: validRecords.length });
-
-    } catch (error) {
-        console.error('Errore durante l\'importazione di anagrafica clienti/fornitori:', error);
-        res.status(500).json({ error: 'Errore interno del server durante l\'importazione' });
     }
+
+    console.log(`[IMPORT-CLIFOR] Importazione completata. Inseriti: ${stats.inserted}, Aggiornati: ${stats.updated}, Saltati: ${stats.skipped}, Errori: ${stats.errors.length}`);
+    return res.status(200).json(stats);
 }
 
 async function handlePianoDeiContiImport(parsedData: any[], res: Response) {
+    const stats: ImportStats = {
+        totalRecords: parsedData.length,
+        inserted: 0,
+        updated: 0,
+        skipped: 0,
+        successfulRecords: 0,
+        errorRecords: 0,
+        errors: [],
+        warnings: []
+    };
+
     let processedCount = 0;
     const batchSize = 100;
+    const contiToCreate: Prisma.ContoCreateInput[] = [];
+    const contiToUpdate: { where: Prisma.ContoWhereUniqueInput, data: Prisma.ContoUpdateInput }[] = [];
 
     console.log(`[IMPORT Piano dei Conti] Inizio elaborazione di ${parsedData.length} record.`);
 
@@ -659,11 +620,22 @@ async function handleCausaliImport(parsedData: any[], res: Response) {
 
 // === IMPORT CODICI IVA - Allineato a Schema e Parser Python ===
 async function handleCodiciIvaImport(parsedData: any[], res: Response) {
+    console.log(`[IMPORT-IVA] Ricevuti ${parsedData.length} record da elaborare.`);
+    const stats: ImportStats = {
+        totalRecords: parsedData.length,
+        inserted: 0,
+        updated: 0,
+        skipped: 0,
+        errors: [],
+        warnings: [],
+        successfulRecords: 0,
+        errorRecords: 0,
+    };
+    
     let processedCount = 0;
     let insertedCount = 0;
     let updatedCount = 0;
-
-    console.log(`[CODICI IVA] Inizio elaborazione di ${parsedData.length} record.`);
+    const batchSize = 100;
 
     const validRecords = parsedData.map(record => {
         const codice = record.codice?.trim();
@@ -690,7 +662,7 @@ async function handleCodiciIvaImport(parsedData: any[], res: Response) {
         };
     }).filter((r): r is NonNullable<typeof r> => r !== null);
 
-    console.log(`[CODICI IVA] Trovati ${validRecords.length} record validi da processare.`);
+    console.log(`[IMPORT-IVA] Trovati ${validRecords.length} record validi da processare.`);
 
     for (const record of validRecords) {
         try {
@@ -703,15 +675,15 @@ async function handleCodiciIvaImport(parsedData: any[], res: Response) {
             // Questo conteggio è approssimativo senza leggere prima, ma sufficiente per il debug
             processedCount++;
             if (processedCount % 100 === 0) {
-                console.log(`[CODICI IVA] Elaborati ${processedCount}/${validRecords.length} record...`);
+                console.log(`[IMPORT-IVA] Elaborati ${processedCount}/${validRecords.length} record...`);
             }
         } catch (error) {
-            console.error(`[CODICI IVA] Errore durante upsert del record ${record.codice}:`, error);
+            console.error(`[IMPORT-IVA] Errore durante upsert del record ${record.codice}:`, error);
         }
     }
 
     // Qui il conteggio di inserted/updated non è accurato ma il processo è corretto
-    console.log(`[CODICI IVA] Importazione completata. Record processati con successo: ${processedCount}`);
+    console.log(`[IMPORT-IVA] Importazione completata. Record processati con successo: ${processedCount}`);
     res.status(200).json({ message: 'Importazione completata', importedCount: processedCount });
 }
 
@@ -741,12 +713,6 @@ function parseDecimalString(valueStr: string | null | undefined): number | null 
     } catch (error) {
         return null;
     }
-}
-
-// Funzione helper per parsing boolean flags (dalla "bibbia" Python)
-function parseBooleanFlag(char: string | undefined): boolean {
-    if (!char) return false;
-    return char.trim().toUpperCase() === 'X';
 }
 
 export default router;

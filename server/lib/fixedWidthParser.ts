@@ -27,6 +27,9 @@ export interface ImportStats {
   totalRecords: number;
   successfulRecords: number;
   errorRecords: number;
+  inserted: number;
+  updated: number;
+  skipped: number;
   warnings: string[];
   errors: string[];
 }
@@ -118,6 +121,9 @@ async function processWithErrorHandling<T>(
     totalRecords: 0,
     successfulRecords: 0,
     errorRecords: 0,
+    inserted: 0,
+    updated: 0,
+    skipped: 0,
     warnings: [],
     errors: []
   };

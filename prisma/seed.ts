@@ -307,70 +307,6 @@ async function main() {
     }
   });
 
-  // Template Anagrafica Clienti/Fornitori - Prima elimina quello esistente
-  const existingAnagraficaTemplate = await prisma.importTemplate.findUnique({
-    where: { name: 'anagrafica_clifor' },
-    include: { fieldDefinitions: true }
-  });
-  
-  if (existingAnagraficaTemplate) {
-    await prisma.fieldDefinition.deleteMany({
-      where: { templateId: existingAnagraficaTemplate.id }
-    });
-    await prisma.importTemplate.delete({
-      where: { id: existingAnagraficaTemplate.id }
-    });
-  }
-  
-  await prisma.importTemplate.create({
-    data: {
-      name: 'anagrafica_clifor',
-      modelName: 'AnagraficaClifor',
-      fieldDefinitions: { create: [
-        { fieldName: 'codiceFiscaleAzienda', start: 3, length: 16 },
-        { fieldName: 'subcodiceAzienda', start: 19, length: 1 },
-        { fieldName: 'codiceUnivoco', start: 20, length: 12 },
-        { fieldName: 'codiceFiscaleClifor', start: 32, length: 16 },
-        { fieldName: 'subcodiceClifor', start: 48, length: 1 },
-        { fieldName: 'tipoConto', start: 49, length: 1 },
-        { fieldName: 'sottocontoCliente', start: 50, length: 10 },
-        { fieldName: 'sottocontoFornitore', start: 60, length: 10 },
-        { fieldName: 'codiceAnagrafica', start: 70, length: 12 },
-        { fieldName: 'partitaIva', start: 82, length: 11 },
-        { fieldName: 'tipoSoggetto', start: 93, length: 1 },
-        { fieldName: 'denominazione', start: 94, length: 60 },
-        { fieldName: 'cognome', start: 154, length: 20 },
-        { fieldName: 'nome', start: 174, length: 20 },
-        { fieldName: 'sesso', start: 194, length: 1 },
-        { fieldName: 'dataNascita', start: 195, length: 8, format: 'date:DDMMYYYY' },
-        { fieldName: 'comuneNascita', start: 203, length: 4 },
-        { fieldName: 'comuneResidenza', start: 207, length: 4 },
-        { fieldName: 'cap', start: 211, length: 5 },
-        { fieldName: 'indirizzo', start: 216, length: 30 },
-        { fieldName: 'prefissoTelefono', start: 246, length: 4 },
-        { fieldName: 'numeroTelefono', start: 250, length: 11 },
-        { fieldName: 'idFiscaleEstero', start: 261, length: 20 },
-        { fieldName: 'codiceIso', start: 281, length: 2 },
-        { fieldName: 'codiceIncassoPagamento', start: 283, length: 8 },
-        { fieldName: 'codiceIncassoCliente', start: 291, length: 8 },
-        { fieldName: 'codicePagamentoFornitore', start: 299, length: 8 },
-        { fieldName: 'codiceValuta', start: 307, length: 4 },
-        { fieldName: 'gestioneDati770', start: 311, length: 1 },
-        { fieldName: 'soggettoARitenuta', start: 312, length: 1 },
-        { fieldName: 'quadro770', start: 313, length: 1 },
-        { fieldName: 'contributoPrevidenziale', start: 314, length: 1 },
-        { fieldName: 'codiceRitenuta', start: 315, length: 5 },
-        { fieldName: 'enasarco', start: 320, length: 1 },
-        { fieldName: 'tipoRitenuta', start: 321, length: 1 },
-        { fieldName: 'soggettoInail', start: 322, length: 1 },
-        { fieldName: 'contributoPrevid335', start: 323, length: 1 },
-        { fieldName: 'aliquota', start: 324, length: 6 },
-        { fieldName: 'percContributoCassa', start: 330, length: 6 },
-        { fieldName: 'attivitaMensilizzazione', start: 336, length: 2 }
-      ] },
-    }
-  });
-
   // Template Piano dei Conti
   // Prima elimina le FieldDefinition esistenti per il template piano_dei_conti
   const existingTemplate = await prisma.importTemplate.findUnique({
@@ -494,7 +430,76 @@ async function main() {
     },
   });
 
-  console.log('Template di importazione creati/aggiornati.');
+  // Template Anagrafica Clienti/Fornitori - Prima elimina quello esistente
+  const existingCliForTemplate = await prisma.importTemplate.findUnique({
+    where: { name: 'anagrafica_clifor' },
+    include: { fieldDefinitions: true }
+  });
+
+  if (existingCliForTemplate) {
+    await prisma.fieldDefinition.deleteMany({
+      where: { templateId: existingCliForTemplate.id }
+    });
+    await prisma.importTemplate.delete({
+      where: { id: existingCliForTemplate.id }
+    });
+  }
+
+  await prisma.importTemplate.create({
+    data: {
+      name: 'anagrafica_clifor',
+      modelName: 'AnagraficaCliFor', // Virtual model name, handled in backend
+      fieldDefinitions: {
+        create: [
+          // Layout basato su .docs/code/parser_a_clifor.py - CORRETTO CON START A BASE 1
+          // Python slice line[py_start:py_end] -> { start: py_start + 1, length: py_end - py_start }
+          { fieldName: 'codiceFiscaleAzienda', start: 4, length: 16 },      // (3, 19)
+          { fieldName: 'subcodiceAzienda', start: 20, length: 1 },         // (19, 20)
+          { fieldName: 'codiceUnivoco', start: 21, length: 12 },          // (20, 32)
+          { fieldName: 'codiceFiscaleClifor', start: 33, length: 16 },   // (32, 48)
+          { fieldName: 'subcodiceClifor', start: 49, length: 1 },         // (48, 49)
+          { fieldName: 'tipoConto', start: 50, length: 1 },              // (49, 50)
+          { fieldName: 'sottocontoCliente', start: 51, length: 10 },      // (50, 60)
+          { fieldName: 'sottocontoFornitore', start: 61, length: 10 },    // (60, 70)
+          { fieldName: 'codiceAnagrafica', start: 71, length: 12 },       // (70, 82)
+          { fieldName: 'partitaIva', start: 83, length: 11 },             // (82, 93)
+          { fieldName: 'tipoSoggetto', start: 94, length: 1 },           // (93, 94)
+          { fieldName: 'denominazione', start: 95, length: 60 },          // (94, 154)
+          { fieldName: 'cognome', start: 155, length: 20 },               // (154, 174)
+          { fieldName: 'nome', start: 175, length: 20 },                  // (174, 194)
+          { fieldName: 'sesso', start: 195, length: 1 },                 // (194, 195)
+          { fieldName: 'dataNascita', start: 196, length: 8, format: 'date:DDMMYYYY' }, // (195, 203)
+          { fieldName: 'comuneNascita', start: 204, length: 4 },        // (203, 207)
+          { fieldName: 'comuneResidenza', start: 208, length: 4 },      // (207, 211)
+          { fieldName: 'cap', start: 212, length: 5 },                   // (211, 216)
+          { fieldName: 'indirizzo', start: 217, length: 30 },             // (216, 246)
+          { fieldName: 'prefissoTelefono', start: 247, length: 4 },      // (246, 250)
+          { fieldName: 'numeroTelefono', start: 251, length: 11 },        // (250, 261)
+          { fieldName: 'idFiscaleEstero', start: 262, length: 20 },      // (261, 281)
+          { fieldName: 'codiceIso', start: 282, length: 2 },            // (281, 283)
+          { fieldName: 'codiceIncassoPagamento', start: 284, length: 8 },  // (283, 291)
+          { fieldName: 'codiceIncassoCliente', start: 292, length: 8 },    // (291, 299)
+          { fieldName: 'codicePagamentoFornitore', start: 300, length: 8 },// (299, 307)
+          { fieldName: 'codiceValuta', start: 308, length: 4 },           // (307, 311)
+          { fieldName: 'gestioneDati770', start: 312, length: 1, format: 'boolean' },        // (311, 312)
+          { fieldName: 'soggettoARitenuta', start: 313, length: 1, format: 'boolean' },      // (312, 313)
+          { fieldName: 'quadro770', start: 314, length: 1 },              // (313, 314)
+          { fieldName: 'contributoPrevidenziale', start: 315, length: 1, format: 'boolean' },// (314, 315)
+          { fieldName: 'codiceRitenuta', start: 316, length: 5 },         // (315, 320)
+          { fieldName: 'enasarco', start: 321, length: 1, format: 'boolean' },                // (320, 321)
+          { fieldName: 'tipoRitenuta', start: 322, length: 1 },           // (321, 322)
+          { fieldName: 'soggettoInail', start: 323, length: 1, format: 'boolean' },          // (322, 323)
+          { fieldName: 'contributoPrevid335', start: 324, length: 1 },   // (323, 324)
+          { fieldName: 'aliquota', start: 325, length: 6, format: 'percentage' },               // (324, 330)
+          { fieldName: 'percContributoCassa', start: 331, length: 6, format: 'percentage' },   // (330, 336)
+          { fieldName: 'attivitaMensilizzazione', start: 337, length: 2 } // (336, 338)
+        ]
+      },
+    }
+  });
+
+  console.log('Template creati/aggiornati.');
+
   console.log('Seeding completato.');
 }
 

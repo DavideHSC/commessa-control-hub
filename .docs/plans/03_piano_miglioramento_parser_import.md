@@ -53,21 +53,38 @@ L'aderenza a questi principi è essenziale per evitare cicli di debug inefficien
 2. **Debug Sistematico**: L'aggiunta di log di debug ha rivelato immediatamente la doppia conversione
 3. **Principi Guida**: L'applicazione rigorosa dei principi documentati ha accelerato la risoluzione
 
+### ✅ COMPLETATO: Parser Causali Contabili (ALTA PRIORITÀ)
+
+**Risultato**: **100% FUNZIONANTE** - Allineamento completo con `parser_causali.py`
+
+**Problemi Risolti**:
+1.  **Errore Critico di Indicizzazione**: Corrette tutte le 28 posizioni nel template `causali` in `seed.ts` per allinearsi allo slicing 0-based del parser Python (`line[4:10]` -> `start: 5`).
+2.  **Errore di Processo Fondamentale**: Identificato e risolto il blocco principale: le modifiche al `seed.ts` non venivano applicate perché mancava il comando `npx prisma db seed`. Questo ha causato cicli di debug su dati obsoleti.
+3.  **Conflitto di Tipi sulle Date**: Rimosso un parser di date ridondante in `importAnagrafiche.ts` che causava un `TypeError`, dato che il parser principale (`fixedWidthParser`) già forniva oggetti `Date` corretti.
+4.  **Logica di Conteggio Errata**: Corretto il bug che riportava sempre "record aggiornati" invece di "inseriti" a causa di un controllo post-operazione.
+
+**Metriche di Successo**:
+- ✅ **183/183 record** processati e inseriti correttamente al primo tentativo con DB pulito.
+- ✅ **Valori decodificati** (`tipoMovimentoDesc`, etc.) ora corretti e non più "Non specificato".
+- ✅ **Flusso di lavoro corretto** stabilito per le future modifiche ai template.
+
+**Lezioni Critiche Apprese**:
+1.  **IL COMANDO `db seed` È OBBLIGATORIO**: Qualsiasi modifica ai template in `prisma/seed.ts` DEVE essere seguita da `npx prisma db seed` per essere efficace. Questo passaggio è ora parte integrante della metodologia.
+2.  **Verificare l'Intero Flusso Dati**: L'errore non era solo nel parsing, ma anche nella post-elaborazione (gestione date) e nella logica di reporting (conteggio insert/update). L'analisi deve essere veramente end-to-end.
+3.  **I Log non Mentono**: Il log "0 inseriti, X aggiornati" era un sintomo corretto di un bug logico, non solo un problema di dati. Bisogna fidarsi dei sintomi e investigare la causa radice.
+
 ### 🔄 PROSSIMI PARSER DA ALLINEARE (Priorità Decrescente)
 
-1. **`parser_causali.py`** - Causali Contabili (ALTA PRIORITÀ)
-   - Template già presente ma da verificare allineamento
-   - Logica di import da testare con dati reali
-
-2. **`parser_a_clifor.py`** - Clienti/Fornitori (MEDIA PRIORITÀ)  
+1. **`parser_a_clifor.py`** - Clienti/Fornitori (ALTA PRIORITÀ)
    - Template esistente da validare
    - 37 campi da mappare correttamente
+   - Logica di smistamento tra `Cliente` e `Fornitore` da verificare.
 
-3. **`parser_contigen.py`** - Piano dei Conti (MEDIA PRIORITÀ)
+2. **`parser_contigen.py`** - Piano dei Conti (MEDIA PRIORITÀ)
    - Struttura gerarchica complessa
    - Validazioni business specifiche
 
-4. **`parser_codpagam.py`** - Condizioni Pagamento (BASSA PRIORITÀ)
+3. **`parser_codpagam.py`** - Condizioni Pagamento (BASSA PRIORITÀ)
    - Parser più semplice
    - Meno campi da gestire
 
