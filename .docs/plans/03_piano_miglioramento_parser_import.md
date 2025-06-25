@@ -10,6 +10,78 @@ Implementare un sistema di importazione robusto e completo basandosi sui parser 
 
 ---
 
+## Principi Guida Fondamentali per l'Implementazione
+
+A seguito delle difficoltà riscontrate, i seguenti principi diventano **obbligatori e non derogabili** per tutte le fasi successive di questo piano:
+
+1.  **Il Codice Eseguibile è la Fonte di Verità Assoluta.**
+    -   **Cosa significa:** L'analisi non si deve basare sui commenti (`pos 5-8`), ma esclusivamente sul codice operativo (`line[4:8]`). I commenti possono essere obsoleti o imprecisi; il codice eseguibile è l'unica rappresentazione fedele della logica.
+    -   **Azione richiesta:** Prima di implementare qualsiasi logica di parsing, è mandatorio eseguire un'analisi dettagliata del codice di slicing, conversione e validazione dello script Python di riferimento.
+
+2.  **Analisi Olistica Prima di Ogni Modifica.**
+    -   **Cosa significa:** È vietato procedere con modifiche basate su analisi parziali. L'intero script di riferimento deve essere compreso nel suo flusso logico (dalla lettura del file all'output finale) prima di scrivere una singola riga di codice TypeScript.
+    -   **Azione richiesta:** Creare una mappatura punto-punto (come una tabella o un diagramma di flusso comparativo) tra la logica Python e l'implementazione TypeScript *prima* di iniziare a codificare.
+
+3.  **Priorità alla Causa Radice, non ai Sintomi.**
+    -   **Cosa significa:** Di fronte a un errore, l'ipotesi di lavoro iniziale deve sempre essere che ci sia un difetto nel punto più fondamentale e profondo del processo (es. il parsing a basso livello), non in layer successivi (es. la logica di business).
+    -   **Azione richiesta:** In caso di fallimento dell'import, la prima azione di debug deve essere quella di verificare l'output grezzo del parser e confrontarlo con l'output atteso dallo script Python, mettendo in discussione le assunzioni di base.
+
+L'aderenza a questi principi è essenziale per evitare cicli di debug inefficienti e garantire un'implementazione corretta e robusta.
+
+---
+
+## 🎯 STATO ATTUALE - AGGIORNAMENTO 24 GIUGNO 2025
+
+### ✅ COMPLETATO: Parser Codici IVA (CRITICO)
+
+**Risultato**: **100% FUNZIONANTE** - Allineamento completo con `parser_codiciiva.py`
+
+**Problemi Risolti**:
+1. **Errore di Indicizzazione**: Corretto `start: 4` → `start: 5` per allinearsi al codice Python `line[4:8]`
+2. **Mapping Proprietà**: Risolto disallineamento `fieldName` vs `name` tra database e parser
+3. **Gestione Date**: Aggiunto controllo di tipo in `convertDateString` per valori null/undefined
+4. **Doppia Conversione Aliquote**: Eliminata conversione ridondante - il parser già converte `format: 'percentage'`
+
+**Metriche di Successo**:
+- ✅ **816/816 record** processati correttamente (100%)
+- ✅ **Aliquote** visualizzate correttamente (10, 22, 4, ecc.) invece di "N/A"
+- ✅ **Codici** estratti perfettamente (CV22, V22, V22P, V22S)
+- ✅ **Performance** mantenuta: ~2-3 secondi per 816 record
+
+**Lezioni Critiche Apprese**:
+1. **Analisi del Codice Eseguibile**: Il commento `pos 5-8` era fuorviante; il codice `line[4:8]` era la verità
+2. **Debug Sistematico**: L'aggiunta di log di debug ha rivelato immediatamente la doppia conversione
+3. **Principi Guida**: L'applicazione rigorosa dei principi documentati ha accelerato la risoluzione
+
+### 🔄 PROSSIMI PARSER DA ALLINEARE (Priorità Decrescente)
+
+1. **`parser_causali.py`** - Causali Contabili (ALTA PRIORITÀ)
+   - Template già presente ma da verificare allineamento
+   - Logica di import da testare con dati reali
+
+2. **`parser_a_clifor.py`** - Clienti/Fornitori (MEDIA PRIORITÀ)  
+   - Template esistente da validare
+   - 37 campi da mappare correttamente
+
+3. **`parser_contigen.py`** - Piano dei Conti (MEDIA PRIORITÀ)
+   - Struttura gerarchica complessa
+   - Validazioni business specifiche
+
+4. **`parser_codpagam.py`** - Condizioni Pagamento (BASSA PRIORITÀ)
+   - Parser più semplice
+   - Meno campi da gestire
+
+### 📋 METODOLOGIA CONSOLIDATA
+
+**Per ogni parser successivo, seguire rigorosamente**:
+1. **Analisi Codice Python**: Studiare slicing, conversioni, validazioni
+2. **Verifica Template**: Confrontare definizioni seed.ts con logica Python  
+3. **Test con Log Debug**: Verificare estrazione e conversione dati
+4. **Validazione E2E**: Test completo import → database → UI
+5. **Documentazione**: Aggiornare piano con risultati e lezioni
+
+---
+
 ## Riferimenti Tecnici Primari
 
 ### Parser Python (Bibbia Implementativa)

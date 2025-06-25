@@ -177,35 +177,35 @@ async function main() {
       name: 'causali',
       modelName: 'CausaleContabile',
       fieldDefinitions: { create: [
-        // Campi principali (bibbia parser_causali.py)
-        { fieldName: 'codiceCausale', start: 4, length: 6 },                          // pos 5-10
-        { fieldName: 'descrizione', start: 10, length: 40 },                         // pos 11-50
-        { fieldName: 'tipoMovimento', start: 50, length: 1 },                        // pos 51
-        { fieldName: 'tipoAggiornamento', start: 51, length: 1 },                    // pos 52
-        { fieldName: 'dataInizio', start: 52, length: 8, format: 'date:DDMMYYYY' },  // pos 53-60
-        { fieldName: 'dataFine', start: 60, length: 8, format: 'date:DDMMYYYY' },    // pos 61-68
-        { fieldName: 'tipoRegistroIva', start: 68, length: 1 },                      // pos 69
-        { fieldName: 'segnoMovimentoIva', start: 69, length: 1 },                    // pos 70
-        { fieldName: 'contoIva', start: 70, length: 10 },                            // pos 71-80
-        { fieldName: 'generazioneAutofattura', start: 80, length: 1 },               // pos 81
-        { fieldName: 'tipoAutofatturaGenerata', start: 81, length: 1 },              // pos 82
-        { fieldName: 'contoIvaVendite', start: 82, length: 10 },                     // pos 83-92
-        { fieldName: 'fatturaImporto0', start: 92, length: 1 },                      // pos 93
-        { fieldName: 'fatturaValutaEstera', start: 93, length: 1 },                  // pos 94
-        { fieldName: 'nonConsiderareLiquidazioneIva', start: 94, length: 1 },        // pos 95
-        { fieldName: 'ivaEsigibilitaDifferita', start: 95, length: 1 },              // pos 96
-        { fieldName: 'fatturaEmessaRegCorrispettivi', start: 96, length: 1 },        // pos 97
-        { fieldName: 'gestionePartite', start: 97, length: 1 },                      // pos 98
-        { fieldName: 'gestioneIntrastat', start: 98, length: 1 },                    // pos 99
-        { fieldName: 'gestioneRitenuteEnasarco', start: 99, length: 1 },             // pos 100
-        { fieldName: 'versamentoRitenute', start: 100, length: 1 },                  // pos 101
-        { fieldName: 'noteMovimento', start: 101, length: 60 },                      // pos 102-161
-        { fieldName: 'descrizioneDocumento', start: 161, length: 5 },                // pos 162-166
-        { fieldName: 'identificativoEsteroClifor', start: 166, length: 1 },          // pos 167
-        { fieldName: 'scritturaRettificaAssestamento', start: 167, length: 1 },      // pos 168
-        { fieldName: 'nonStampareRegCronologico', start: 168, length: 1 },           // pos 169
-        { fieldName: 'movimentoRegIvaNonRilevante', start: 169, length: 1 },         // pos 170
-        { fieldName: 'tipoMovimentoSemplificata', start: 170, length: 1 }            // pos 171
+        // Campi principali (bibbia parser_causali.py) - POSIZIONI CORRETTE Python → TypeScript
+        { fieldName: 'codiceCausale', start: 5, length: 6 },                          // line[4:10] → start 5
+        { fieldName: 'descrizione', start: 11, length: 40 },                         // line[10:50] → start 11
+        { fieldName: 'tipoMovimento', start: 51, length: 1 },                        // line[50:51] → start 51
+        { fieldName: 'tipoAggiornamento', start: 52, length: 1 },                    // line[51:52] → start 52
+        { fieldName: 'dataInizio', start: 53, length: 8, format: 'date:DDMMYYYY' },  // line[52:60] → start 53
+        { fieldName: 'dataFine', start: 61, length: 8, format: 'date:DDMMYYYY' },    // line[60:68] → start 61
+        { fieldName: 'tipoRegistroIva', start: 69, length: 1 },                      // line[68:69] → start 69
+        { fieldName: 'segnoMovimentoIva', start: 70, length: 1 },                    // line[69:70] → start 70
+        { fieldName: 'contoIva', start: 71, length: 10 },                            // line[70:80] → start 71
+        { fieldName: 'generazioneAutofattura', start: 81, length: 1 },               // line[80:81] → start 81
+        { fieldName: 'tipoAutofatturaGenerata', start: 82, length: 1 },              // line[81:82] → start 82
+        { fieldName: 'contoIvaVendite', start: 83, length: 10 },                     // line[82:92] → start 83
+        { fieldName: 'fatturaImporto0', start: 93, length: 1 },                      // line[92:93] → start 93
+        { fieldName: 'fatturaValutaEstera', start: 94, length: 1 },                  // line[93:94] → start 94
+        { fieldName: 'nonConsiderareLiquidazioneIva', start: 95, length: 1 },        // line[94:95] → start 95
+        { fieldName: 'ivaEsigibilitaDifferita', start: 96, length: 1 },              // line[95:96] → start 96
+        { fieldName: 'fatturaEmessaRegCorrispettivi', start: 97, length: 1 },        // line[96:97] → start 97
+        { fieldName: 'gestionePartite', start: 98, length: 1 },                      // line[97:98] → start 98
+        { fieldName: 'gestioneIntrastat', start: 99, length: 1 },                    // line[98:99] → start 99
+        { fieldName: 'gestioneRitenuteEnasarco', start: 100, length: 1 },            // line[99:100] → start 100
+        { fieldName: 'versamentoRitenute', start: 101, length: 1 },                  // line[100:101] → start 101
+        { fieldName: 'noteMovimento', start: 102, length: 60 },                      // line[101:161] → start 102
+        { fieldName: 'descrizioneDocumento', start: 162, length: 5 },                // line[161:166] → start 162
+        { fieldName: 'identificativoEsteroClifor', start: 167, length: 1 },          // line[166:167] → start 167
+        { fieldName: 'scritturaRettificaAssestamento', start: 168, length: 1 },      // line[167:168] → start 168
+        { fieldName: 'nonStampareRegCronologico', start: 169, length: 1 },           // line[168:169] → start 169
+        { fieldName: 'movimentoRegIvaNonRilevante', start: 170, length: 1 },         // line[169:170] → start 170
+        { fieldName: 'tipoMovimentoSemplificata', start: 171, length: 1 }            // line[170:171] → start 171
       ] },
     }
   });
@@ -262,35 +262,37 @@ async function main() {
     data: {
       name: 'codici_iva',
       modelName: 'CodiceIva',
+      fileIdentifier: 'CODICIVA.TXT',
       fieldDefinitions: { create: [
-        // Mappatura 1:1 da parser_codiciiva.py
-        { fieldName: 'codiceIva', start: 4, length: 4 },                           // pos 5-8
-        { fieldName: 'descrizione', start: 8, length: 40 },                        // pos 9-48
-        { fieldName: 'tipoCalcolo', start: 48, length: 1 },                        // pos 49
-        { fieldName: 'aliquota', start: 49, length: 6, format: 'number:decimal' },  // pos 50-55
-        { fieldName: 'indetraibilita', start: 55, length: 3, format: 'number' },    // pos 56-58
-        { fieldName: 'note', start: 58, length: 40 },                              // pos 59-98
-        { fieldName: 'dataInizio', start: 98, length: 8, format: 'date:DDMMYYYY' }, // pos 99-106
-        { fieldName: 'dataFine', start: 106, length: 8, format: 'date:DDMMYYYY' }, // pos 107-114
-        { fieldName: 'imponibile50Corrispettivi', start: 114, length: 1 },          // pos 115
-        { fieldName: 'imposteIntrattenimenti', start: 115, length: 2 },             // pos 116-117
-        { fieldName: 'ventilazione', start: 117, length: 1 },                      // pos 118 (era ventilazione_aliquota_diversa)
-        { fieldName: 'aliquotaDiversa', start: 118, length: 6, format: 'number:decimal' }, // pos 119-124
-        { fieldName: 'plafondAcquisti', start: 124, length: 1 },                    // pos 125
-        { fieldName: 'monteAcquisti', start: 125, length: 1 },                      // pos 126
-        { fieldName: 'plafondVendite', start: 126, length: 1 },                     // pos 127
-        { fieldName: 'noVolumeAffariPlafond', start: 127, length: 1 },              // pos 128
-        { fieldName: 'gestioneProRata', start: 128, length: 1 },                    // pos 129
-        { fieldName: 'acqOperazImponibiliOccasionali', start: 129, length: 1 },     // pos 130
-        { fieldName: 'comunicazioneDatiIvaVendite', start: 130, length: 1 },        // pos 131
-        { fieldName: 'agevolazioniSubforniture', start: 131, length: 1 },           // pos 132
-        { fieldName: 'comunicazioneDatiIvaAcquisti', start: 132, length: 1 },       // pos 133
-        { fieldName: 'autofatturaReverseCharge', start: 133, length: 1 },           // pos 134
-        { fieldName: 'operazioneEsenteOccasionale', start: 134, length: 1 },        // pos 135
-        { fieldName: 'cesArt38QuaterStornoIva', start: 135, length: 1 },            // pos 136
-        { fieldName: 'percDetrarreExport', start: 136, length: 6, format: 'number:decimal' }, // pos 137-142
-        { fieldName: 'acquistiCessioni', start: 142, length: 1 },                   // pos 143
-        { fieldName: 'percentualeCompensazione', start: 143, length: 6, format: 'number:decimal' },// pos 144-149
+        // Bibbia di riferimento: .docs/code/parser_codiciiva.py
+        // Il parser python usa line[4:8], che in logica 1-based significa "parti dalla posizione 5".
+        { fieldName: 'codice', start: 5, length: 4 },                             // pos 5-8. CORRETTO.
+        { fieldName: 'descrizione', start: 9, length: 40 },                      // pos 9-48
+        { fieldName: 'tipoCalcolo', start: 49, length: 1 },                        // pos 49
+        { fieldName: 'aliquota', start: 50, length: 6, format: 'percentage' },  // pos 50-55. NOTA: Mappato su 'aliquota' per coerenza DB.
+        { fieldName: 'indetraibilita', start: 56, length: 3, format: 'percentage'},// pos 56-58 (formato 999)
+        { fieldName: 'note', start: 59, length: 40 },                              // pos 59-98
+        { fieldName: 'dataInizio', start: 99, length: 8, format: 'date:DDMMYYYY' }, // pos 99-106
+        { fieldName: 'dataFine', start: 107, length: 8, format: 'date:DDMMYYYY' }, // pos 107-114
+        { fieldName: 'imponibile50Corrispettivi', start: 115, length: 1 },          // pos 115
+        { fieldName: 'imposteIntrattenimenti', start: 116, length: 2 },             // pos 116-117
+        { fieldName: 'ventilazione', start: 118, length: 1 },                      // pos 118 (era ventilazione_aliquota_diversa)
+        { fieldName: 'aliquotaDiversa', start: 119, length: 6, format: 'number:decimal' }, // pos 119-124
+        { fieldName: 'plafondAcquisti', start: 125, length: 1 },                    // pos 125
+        { fieldName: 'monteAcquisti', start: 126, length: 1 },                      // pos 126
+        { fieldName: 'plafondVendite', start: 127, length: 1 },                     // pos 127
+        { fieldName: 'noVolumeAffariPlafond', start: 128, length: 1 },              // pos 128
+        { fieldName: 'gestioneProRata', start: 129, length: 1 },                    // pos 129
+        { fieldName: 'acqOperazImponibiliOccasionali', start: 130, length: 1 },     // pos 130
+        { fieldName: 'comunicazioneDatiIvaVendite', start: 131, length: 1 },        // pos 131
+        { fieldName: 'agevolazioniSubforniture', start: 132, length: 1 },           // pos 132
+        { fieldName: 'comunicazioneDatiIvaAcquisti', start: 133, length: 1 },       // pos 133
+        { fieldName: 'autofatturaReverseCharge', start: 134, length: 1 },           // pos 134
+        { fieldName: 'operazioneEsenteOccasionale', start: 135, length: 1 },        // pos 135
+        { fieldName: 'cesArt38QuaterStornoIva', start: 136, length: 1 },            // pos 136
+        { fieldName: 'percDetrarreExport', start: 137, length: 6, format: 'number:decimal' }, // pos 137-142
+        { fieldName: 'acquistiCessioni', start: 143, length: 1 },                   // pos 143
+        { fieldName: 'percentualeCompensazione', start: 144, length: 6, format: 'number:decimal' },// pos 144-149
         { fieldName: 'beniAmmortizzabili', start: 149, length: 1 },                 // pos 150
         { fieldName: 'indicatoreTerritorialeVendite', start: 150, length: 2 },      // pos 151-152
         { fieldName: 'provvigioniDm34099', start: 152, length: 1 },                 // pos 153

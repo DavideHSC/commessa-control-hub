@@ -10,82 +10,96 @@
  */
 
 // === CAUSALI CONTABILI (parser_causali.py) ===
+// CORRETTE SEGUENDO LA BIBBIA PYTHON - .docs/code/parser_causali.py
 
 export function decodeTipoMovimento(code: string): string {
   const mapping: Record<string, string> = {
-    'C': 'Solo Contabile',
-    'I': 'Contabile e IVA',
-    'V': 'Solo IVA',
-    'E': 'Solo Extracontabile',
-    'A': 'Contabile, IVA e Extracontabile',
-    'R': 'Ritenute'
+    'C': 'Contabile',
+    'I': 'Contabile/Iva',
+    '': 'Non specificato'
   };
-  return mapping[code?.trim()] || code?.trim() || '';
+  return mapping[code?.trim()] || `Codice sconosciuto: ${code}`;
 }
 
 export function decodeTipoAggiornamento(code: string): string {
   const mapping: Record<string, string> = {
-    'A': 'Automatico',
-    'M': 'Manuale',
-    'S': 'Semi-automatico'
+    'I': 'Saldo Iniziale',
+    'P': 'Saldo Progressivo', 
+    'F': 'Saldo Finale',
+    '': 'Non specificato'
   };
-  return mapping[code?.trim()] || code?.trim() || '';
+  return mapping[code?.trim()] || `Codice sconosciuto: ${code}`;
 }
 
 export function decodeTipoRegistroIva(code: string): string {
   const mapping: Record<string, string> = {
-    'V': 'Vendite',
     'A': 'Acquisti',
     'C': 'Corrispettivi',
-    'R': 'Reverse Charge'
+    'V': 'Vendite',
+    '': 'Non applicabile'
   };
-  return mapping[code?.trim()] || code?.trim() || '';
+  return mapping[code?.trim()] || `Codice sconosciuto: ${code}`;
 }
 
 export function decodeSegnoMovimentoIva(code: string): string {
   const mapping: Record<string, string> = {
-    'D': 'Dare',
-    'A': 'Avere',
-    'N': 'Neutro'
+    'I': 'Incrementa (+)',
+    'D': 'Decrementa (-)',
+    '': 'Non applicabile'
   };
-  return mapping[code?.trim()] || code?.trim() || '';
+  return mapping[code?.trim()] || `Codice sconosciuto: ${code}`;
 }
 
 export function decodeTipoAutofattura(code: string): string {
   const mapping: Record<string, string> = {
-    'RC': 'Reverse Charge',
-    'AU': 'Autofattura Standard',
-    'SP': 'Split Payment',
-    'IN': 'Intracomunitaria'
+    'A': 'Altre Gestioni',
+    'C': 'CEE',
+    'E': 'Reverse Charge',
+    'R': 'RSM',
+    '': 'Non applicabile'
   };
-  return mapping[code?.trim()] || code?.trim() || '';
+  return mapping[code?.trim()] || `Codice sconosciuto: ${code}`;
 }
 
 export function decodeIvaEsigibilita(code: string): string {
   const mapping: Record<string, string> = {
-    'I': 'Immediata',
-    'D': 'Differita',
-    'S': 'Split Payment'
+    'N': 'Nessuna',
+    'E': 'Emessa/Ricevuta Fattura',
+    'I': 'Incasso/Pagamento Fattura',
+    '': 'Non specificato'
   };
-  return mapping[code?.trim()] || code?.trim() || '';
+  return mapping[code?.trim()] || `Codice sconosciuto: ${code}`;
 }
 
 export function decodeGestionePartite(code: string): string {
   const mapping: Record<string, string> = {
-    'A': 'Automatica',
-    'M': 'Manuale',
-    'N': 'Nessuna gestione'
+    'N': 'Nessuna',
+    'A': 'Creazione + Chiusura automatica',
+    'C': 'Creazione',
+    'H': 'Creazione + Chiusura',
+    '': 'Non specificato'
   };
-  return mapping[code?.trim()] || code?.trim() || '';
+  return mapping[code?.trim()] || `Codice sconosciuto: ${code}`;
 }
 
 export function decodeGestioneRitenuteEnasarco(code: string): string {
   const mapping: Record<string, string> = {
-    'A': 'Automatica',
-    'M': 'Manuale',
-    'N': 'Nessuna'
+    'R': 'Ritenuta',
+    'E': 'Enasarco',
+    'T': 'Ritenuta/Enasarco',
+    '': 'Non applicabile'
   };
-  return mapping[code?.trim()] || code?.trim() || '';
+  return mapping[code?.trim()] || `Codice sconosciuto: ${code}`;
+}
+
+// Decodifica tipo movimento per contabilità semplificata (riutilizzata)
+export function decodeTipoMovimentoSemplificata(code: string): string {
+  const mapping: Record<string, string> = {
+    'C': 'Costi',
+    'R': 'Ricavi',
+    '': 'Non applicabile'
+  };
+  return mapping[code?.trim()] || `Codice sconosciuto: ${code}`;
 }
 
 // === CODICI IVA (parser_codiciiva.py) ===

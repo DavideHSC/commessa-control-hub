@@ -275,6 +275,7 @@ model CodiceIva {
   externalId            String?   @unique
   descrizione           String
   aliquota              Float?
+  percentuale           Float?    // Campo allineato al parser Python
   natura                String?
   codiceExport          String?
   inUso                 Boolean?
@@ -286,6 +287,8 @@ model CodiceIva {
   tipoCalcoloDesc       String?
   dataInizio            DateTime?
   dataFine              DateTime?
+  validitaInizio        DateTime? // Campo allineato al parser Python
+  validitaFine          DateTime? // Campo allineato al parser Python
   splitPayment          Boolean?
   nonImponibile         Boolean?
   imponibile            Boolean?
