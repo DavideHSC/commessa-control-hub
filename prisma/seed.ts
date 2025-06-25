@@ -375,41 +375,41 @@ async function main() {
   };
   
   const scrittureContabiliFields: ScritturaField[] = [
-    // PNTESTA.TXT
-    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'externalId', start: 20, length: 12 },
-    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'causaleId', start: 39, length: 6 },
-    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'dataRegistrazione', start: 85, length: 8, format: 'date:YYYYMMDD' },
-    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'clienteFornitoreCodiceFiscale', start: 99, length: 16 },
-    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'dataDocumento', start: 128, length: 8, format: 'date:YYYYMMDD' },
-    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'numeroDocumento', start: 136, length: 12 },
-    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'totaleDocumento', start: 172, length: 12, format: 'number' },
-    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'noteMovimento', start: 192, length: 60 },
+    // PNTESTA.TXT - POSIZIONI CORRETTE (1-based)
+    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'externalId', start: 21, length: 12 },
+    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'causaleId', start: 40, length: 6 },
+    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'dataRegistrazione', start: 86, length: 8, format: 'date:DDMMYYYY' },
+    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'clienteFornitoreCodiceFiscale', start: 100, length: 16 },
+    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'dataDocumento', start: 129, length: 8, format: 'date:DDMMYYYY' },
+    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'numeroDocumento', start: 137, length: 12 },
+    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'totaleDocumento', start: 173, length: 12, format: 'number' },
+    { fileIdentifier: 'PNTESTA.TXT', fieldName: 'noteMovimento', start: 193, length: 60 },
 
-    // PNRIGCON.TXT
-    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'externalId', start: 3, length: 12 },
-    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'progressivoRigo', start: 15, length: 3, format: 'number' },
-    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'tipoConto', start: 18, length: 1 },
-    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'clienteFornitoreCodiceFiscale', start: 19, length: 16 },
-    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'conto', start: 48, length: 10 },
-    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'importoDare', start: 58, length: 12, format: 'number' },
-    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'importoAvere', start: 70, length: 12, format: 'number' },
-    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'note', start: 82, length: 60 },
-    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'movimentiAnalitici', start: 247, length: 1 },
+    // PNRIGCON.TXT - POSIZIONI CORRETTE (1-based)
+    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'externalId', start: 4, length: 12 },
+    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'progressivoRigo', start: 16, length: 3, format: 'number' },
+    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'tipoConto', start: 19, length: 1 },
+    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'clienteFornitoreCodiceFiscale', start: 20, length: 16 },
+    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'conto', start: 49, length: 10 },
+    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'importoDare', start: 59, length: 12, format: 'number' },
+    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'importoAvere', start: 71, length: 12, format: 'number' },
+    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'note', start: 83, length: 60 },
+    { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'movimentiAnalitici', start: 248, length: 1 },
 
-    // PNRIGIVA.TXT
-    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'externalId', start: 3, length: 12 },
-    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'codiceIva', start: 15, length: 4 },
-    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'contropartita', start: 19, length: 10 },
-    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'imponibile', start: 29, length: 12, format: 'number' },
-    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'imposta', start: 41, length: 12, format: 'number' },
-    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'importoLordo', start: 89, length: 12, format: 'number' },
-    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'note', start: 101, length: 60 },
+    // PNRIGIVA.TXT - POSIZIONI CORRETTE (1-based)
+    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'externalId', start: 4, length: 12 },
+    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'codiceIva', start: 16, length: 4 },
+    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'contropartita', start: 20, length: 10 },
+    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'imponibile', start: 30, length: 12, format: 'number' },
+    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'imposta', start: 42, length: 12, format: 'number' },
+    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'importoLordo', start: 90, length: 12, format: 'number' },
+    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'note', start: 102, length: 60 },
 
-    // MOVANAC.TXT
-    { fileIdentifier: 'MOVANAC.TXT', fieldName: 'externalId', start: 3, length: 12 },
-    { fileIdentifier: 'MOVANAC.TXT', fieldName: 'progressivoRigoContabile', start: 15, length: 3, format: 'number' },
-    { fileIdentifier: 'MOVANAC.TXT', fieldName: 'centroDiCosto', start: 18, length: 4 },
-    { fileIdentifier: 'MOVANAC.TXT', fieldName: 'parametro', start: 22, length: 12, format: 'number' }
+    // MOVANAC.TXT - POSIZIONI CORRETTE (1-based)
+    { fileIdentifier: 'MOVANAC.TXT', fieldName: 'externalId', start: 4, length: 12 },
+    { fileIdentifier: 'MOVANAC.TXT', fieldName: 'progressivoRigoContabile', start: 16, length: 3, format: 'number' },
+    { fileIdentifier: 'MOVANAC.TXT', fieldName: 'centroDiCosto', start: 19, length: 4 },
+    { fileIdentifier: 'MOVANAC.TXT', fieldName: 'parametro', start: 23, length: 12, format: 'number' }
   ];
   await prisma.importTemplate.upsert({
     where: { name: 'scritture_contabili' },
