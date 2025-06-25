@@ -105,18 +105,6 @@ router.post('/:templateName', upload.single('file'), async (req: Request, res: R
                 };
             });
 
-        // Debug: analizza il file raw prima del parsing
-        if (templateName === 'anagrafica_clifor') {
-            const rawLines = fileContent.split(/\r?\n/).filter(line => line.trim().length > 0);
-            if (rawLines.length > 0) {
-                const firstLine = rawLines[0];
-                console.log(`[DEBUG-RAW] Prima riga file (lunghezza: ${firstLine.length}):`, JSON.stringify(firstLine.substring(0, 100)));
-                console.log(`[DEBUG-RAW] Carattere posizione 50 (tipoConto):`, `'${firstLine[49]}' (ASCII: ${firstLine.charCodeAt(49)})`);
-                console.log(`[DEBUG-RAW] Caratteri posizioni 49-52:`, JSON.stringify(firstLine.substring(49, 52)));
-                console.log(`[DEBUG-RAW] Caratteri posizioni 70-82 (codiceAnagrafica):`, JSON.stringify(firstLine.substring(70, 82)));
-            }
-        }
-        
         // Esegui il parsing del file
         const parsedData = parseFixedWidth(fileContent, templateFields);
         console.log(`[IMPORT] Parsing completato. Numero di record estratti: ${parsedData.length}`);

@@ -127,17 +127,63 @@ export interface Conto {
   codice: string;
   nome: string;
   tipo: 'Costo' | 'Ricavo' | 'Patrimoniale' | 'Fornitore' | 'Cliente';
-  validoUnicoPf?: boolean;
-  validoUnicoSp?: boolean;
-  validoUnicoSc?: boolean;
-  validoUnicoEnc?: boolean;
   richiedeVoceAnalitica: boolean;
   voceAnaliticaId: string | null;
   voceAnalitica?: VoceAnalitica;
 
-  // Campi dal parser
+  // === ESTENSIONI FASE 1 - PARSER PYTHON (parser_contigen.py) ===
+  tabellaItalstudio?: string | null;
   livello?: string | null;
   livelloDesc?: string | null;
+  sigla?: string | null;
+  gruppo?: string | null;
+  gruppoDesc?: string | null;
+  controlloSegno?: string | null;
+  controlloSegnoDesc?: string | null;
+  codificaFormattata?: string | null;
+  
+  // Validità per Tipo Contabilità
+  validoImpresaOrdinaria?: boolean | null;
+  validoImpresaSemplificata?: boolean | null;
+  validoProfessionistaOrdinario?: boolean | null;
+  validoProfessionistaSemplificato?: boolean | null;
+  
+  // Validità per Dichiarazioni
+  validoUnicoPf?: boolean | null;
+  validoUnicoSp?: boolean | null;
+  validoUnicoSc?: boolean | null;
+  validoUnicoEnc?: boolean | null;
+  
+  // Classi Fiscali
+  classeIrpefIres?: string | null;
+  classeIrap?: string | null;
+  classeProfessionista?: string | null;
+  classeIrapProfessionista?: string | null;
+  classeIva?: string | null;
+  
+  // Conti Collegati
+  contoCostiRicavi?: string | null;
+  contoDareCee?: string | null;
+  contoAvereCee?: string | null;
+  
+  // Gestione Speciale
+  naturaConto?: string | null;
+  gestioneBeniAmmortizzabili?: string | null;
+  percDeduzioneManutenzione?: number | null;
+  dettaglioClienteFornitore?: string | null;
+  
+  // Descrizioni Bilancio
+  descrizioneBilancioDare?: string | null;
+  descrizioneBilancioAvere?: string | null;
+  
+  // Dati Extracontabili
+  classeDatiExtracontabili?: string | null;
+  
+  // Registri Professionisti
+  colonnaRegistroCronologico?: string | null;
+  colonnaRegistroIncassiPagamenti?: string | null;
+
+  // Campi deprecati o da rivedere
   vociAnaliticheAbilitateIds?: string[];
   contropartiteSuggeriteIds?: string[];
 }

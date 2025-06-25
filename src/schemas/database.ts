@@ -76,6 +76,58 @@ export const contoSchema = z.object({
     tipo: z.nativeEnum(TipoConto),
     richiedeVoceAnalitica: z.boolean().default(false),
     voceAnaliticaId: z.string().optional().nullable(),
+
+    // === ESTENSIONI FASE 1 - PARSER PYTHON (parser_contigen.py) ===
+    tabellaItalstudio: z.string().optional().nullable(),
+    livello: z.string().optional().nullable(),
+    livelloDesc: z.string().optional().nullable(),
+    sigla: z.string().optional().nullable(),
+    gruppo: z.string().optional().nullable(),
+    gruppoDesc: z.string().optional().nullable(),
+    controlloSegno: z.string().optional().nullable(),
+    controlloSegnoDesc: z.string().optional().nullable(),
+    codificaFormattata: z.string().optional().nullable(),
+    
+    // Validità per Tipo Contabilità
+    validoImpresaOrdinaria: z.boolean().default(false).optional().nullable(),
+    validoImpresaSemplificata: z.boolean().default(false).optional().nullable(),
+    validoProfessionistaOrdinario: z.boolean().default(false).optional().nullable(),
+    validoProfessionistaSemplificato: z.boolean().default(false).optional().nullable(),
+    
+    // Validità per Dichiarazioni
+    validoUnicoPf: z.boolean().default(false).optional().nullable(),
+    validoUnicoSp: z.boolean().default(false).optional().nullable(),
+    validoUnicoSc: z.boolean().default(false).optional().nullable(),
+    validoUnicoEnc: z.boolean().default(false).optional().nullable(),
+    
+    // Classi Fiscali
+    classeIrpefIres: z.string().optional().nullable(),
+    classeIrap: z.string().optional().nullable(),
+    classeProfessionista: z.string().optional().nullable(),
+    classeIrapProfessionista: z.string().optional().nullable(),
+    classeIva: z.string().optional().nullable(),
+    
+    // Conti Collegati
+    contoCostiRicavi: z.string().optional().nullable(),
+    contoDareCee: z.string().optional().nullable(),
+    contoAvereCee: z.string().optional().nullable(),
+    
+    // Gestione Speciale
+    naturaConto: z.string().optional().nullable(),
+    gestioneBeniAmmortizzabili: z.string().optional().nullable(),
+    percDeduzioneManutenzione: z.number().optional().nullable(),
+    dettaglioClienteFornitore: z.string().optional().nullable(),
+    
+    // Descrizioni Bilancio
+    descrizioneBilancioDare: z.string().optional().nullable(),
+    descrizioneBilancioAvere: z.string().optional().nullable(),
+    
+    // Dati Extracontabili
+    classeDatiExtracontabili: z.string().optional().nullable(),
+    
+    // Registri Professionisti
+    colonnaRegistroCronologico: z.string().optional().nullable(),
+    colonnaRegistroIncassiPagamenti: z.string().optional().nullable(),
 });
 
 export const commessaSchema = z.object({

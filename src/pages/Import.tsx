@@ -143,14 +143,6 @@ const ImportPage: React.FC = () => {
                 </p>
             </div>
 
-            <Alert>
-                <FileText className="h-4 w-4" />
-                <AlertTitle>Importante</AlertTitle>
-                <AlertDescription>
-                    Esegui sempre il **Passo 1** per importare o aggiornare le anagrafiche prima di procedere con le scritture contabili per evitare errori di dati mancanti.
-                </AlertDescription>
-            </Alert>
-
             <Card className="bg-amber-50 border-amber-200">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
