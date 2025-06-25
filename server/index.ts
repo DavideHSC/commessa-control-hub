@@ -24,6 +24,9 @@ import statsRoutes from './routes/stats';
 import importPrimaNota from './routes/importPrimaNota';
 import reconciliationRoutes from './routes/reconciliation';
 
+// Import delle nuove rotte V2
+import importRouterV2 from './routes/v2/import.js';
+
 const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3001;
@@ -51,6 +54,9 @@ app.use('/api/condizioni-pagamento', condizioniPagamentoRoutes);
 app.use('/api/system', systemRoutes);
 app.use('/api/database/stats', statsRoutes);
 app.use('/api/reconciliation', reconciliationRoutes);
+
+// Setup delle nuove rotte V2
+app.use('/api/v2', importRouterV2);
 
 // Endpoint di base per testare il server
 app.get('/api', (req: Request, res: Response) => {
