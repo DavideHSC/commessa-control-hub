@@ -49,36 +49,13 @@ const anagraficaCliForFields: FieldDefinition[] = [
     { name: 'attivitaMensilizzazione', start: 337, length: 2, type: 'string' },
 ];
 
-// Funzione per convertire date dal formato DDMMYYYY a Date
-function convertDateString(dateStr: string | null): Date | null {
-    if (!dateStr || dateStr.trim().length !== 8) return null;
-    
-    try {
-        const day = dateStr.substring(0, 2);
-        const month = dateStr.substring(2, 4);
-        const year = dateStr.substring(4, 8);
-        
-        // Crea la data nel formato ISO (YYYY-MM-DD)
-        const isoDate = `${year}-${month}-${day}`;
-        const date = new Date(isoDate);
-        
-        // Verifica che la data sia valida
-        if (isNaN(date.getTime())) return null;
-        
-        return date;
-    } catch (error) {
-        console.warn(`Errore nella conversione della data: ${dateStr}`);
-        return null;
-    }
-}
-
 export async function handleAnagraficaCliForImport(parsedData: any[], res: Response) {
     let processedCount = 0;
     const batchSize = 100;
 
     try {
         const validRecords = parsedData.map(record => {
-            const externalId = record.externalId?.trim();
+            const externalId = record.codiceAnagrafica?.trim();
             if (!externalId) return null;
 
             const data = {
@@ -90,7 +67,7 @@ export async function handleAnagraficaCliForImport(parsedData: any[], res: Respo
                 cognome: record.cognome || null,
                 nomeAnagrafico: record.nome || null,
                 sesso: record.sesso || null,
-                dataNascita: convertDateString(record.dataNascita),
+                dataNascita: record.dataNascita,
                 comuneNascita: record.comuneNascita || null,
                 indirizzo: record.indirizzo || null,
                 cap: record.cap || null,
@@ -229,4 +206,4 @@ export async function handleAnagraficaCliForImport(parsedData: any[], res: Respo
         console.error('Errore durante l\'importazione di anagrafica clienti/fornitori:', error);
         res.status(500).json({ error: 'Errore interno del server durante l\'importazione' });
     }
-} 
+}

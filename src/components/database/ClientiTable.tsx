@@ -19,26 +19,56 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import * as z from 'zod';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { createCliente, updateCliente, deleteCliente } from '@/api/clienti';
 import { Cliente } from '@/types';
-import { baseSchema } from '@/schemas/database';
+import { clienteSchema, ClienteFormValues } from '@/schemas/database';
 import { useCrudTable } from '@/hooks/useCrudTable';
 import { useAdvancedTable } from '@/hooks/useAdvancedTable';
 import { AdvancedDataTable } from '../ui/advanced-data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from '../ui/data-table-column-header';
+import { ClienteForm } from './ClienteForm';
 
-type ClienteFormValues = z.infer<typeof baseSchema>;
+const emptyCliente: ClienteFormValues = {
+  nome: '',
+  externalId: '',
+  piva: '',
+  codiceFiscale: '',
+  cap: '',
+  codicePagamento: '',
+  codiceValuta: '',
+  cognome: '',
+  comune: '',
+  comuneNascita: '',
+  dataNascita: undefined,
+  indirizzo: '',
+  nazione: '',
+  nomeAnagrafico: '',
+  provincia: '',
+  sesso: '',
+  telefono: '',
+  tipoAnagrafica: '',
+  codiceAnagrafica: '',
+  tipoConto: '',
+  tipoContoDesc: '',
+  tipoSoggetto: '',
+  tipoSoggettoDesc: '',
+  denominazione: '',
+  sessoDesc: '',
+  prefissoTelefono: '',
+  codiceIso: '',
+  idFiscaleEstero: '',
+  sottocontoAttivo: '',
+  sottocontoCliente: '',
+  sottocontoFornitore: '',
+  codiceIncassoCliente: '',
+  codicePagamentoFornitore: '',
+  ePersonaFisica: false,
+  eCliente: true,
+  eFornitore: false,
+  haPartitaIva: false,
+};
 
 export const ClientiTable = () => {
 
@@ -71,11 +101,11 @@ export const ClientiTable = () => {
     onSubmit,
     handleDelete,
   } = useCrudTable<Cliente, ClienteFormValues>({
-    schema: baseSchema,
+    schema: clienteSchema,
     api: { create: createCliente, update: updateCliente, delete: deleteCliente },
     onDataChange: () => refreshData(),
     resourceName: "Cliente",
-    defaultValues: { nome: "", externalId: "" },
+    defaultValues: emptyCliente,
     getId: (cliente) => cliente.id,
   });
 
@@ -137,39 +167,17 @@ export const ClientiTable = () => {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent>
+          <DialogContent className="max-w-4xl">
               <DialogHeader>
                   <DialogTitle>{editingCliente ? 'Modifica Cliente' : 'Nuovo Cliente'}</DialogTitle>
               </DialogHeader>
               <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      <FormField
-                          control={form.control}
-                          name="nome"
-                          render={({ field }) => (
-                              <FormItem>
-                                  <FormLabel>Nome</FormLabel>
-                                  <FormControl>
-                                      <Input placeholder="Nome Cliente" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                              </FormItem>
-                          )}
-                      />
-                      <FormField
-                          control={form.control}
-                          name="externalId"
-                          render={({ field }) => (
-                              <FormItem>
-                                  <FormLabel>ID Esterno (opzionale)</FormLabel>
-                                  <FormControl>
-                                      <Input placeholder="ID del sistema esterno" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                              </FormItem>
-                          )}
-                      />
+                      <div className="max-h-[70vh] overflow-y-auto p-1">
+                        <ClienteForm />
+                      </div>
                       <DialogFooter>
+                          <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Annulla</Button>
                           <Button type="submit">Salva</Button>
                       </DialogFooter>
                   </form>

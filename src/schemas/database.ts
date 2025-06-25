@@ -220,3 +220,75 @@ export const commessaSchema = z.object({
     descrizione: z.string().optional(),
     clienteId: z.string().min(1, "È obbligatorio selezionare un cliente."),
 });
+
+export const clienteSchema = z.object({
+  id: z.string().optional(),
+  externalId: z.string().optional().nullable(),
+  nome: z.string().min(2, { message: "Il nome deve essere di almeno 2 caratteri." }),
+  piva: z.string().optional().nullable(),
+  codiceFiscale: z.string().optional().nullable(),
+  cap: z.string().optional().nullable(),
+  codicePagamento: z.string().optional().nullable(),
+  codiceValuta: z.string().optional().nullable(),
+  cognome: z.string().optional().nullable(),
+  comune: z.string().optional().nullable(),
+  comuneNascita: z.string().optional().nullable(),
+  dataNascita: z.date().optional().nullable(),
+  indirizzo: z.string().optional().nullable(),
+  nazione: z.string().optional().nullable(),
+  nomeAnagrafico: z.string().optional().nullable(),
+  provincia: z.string().optional().nullable(),
+  sesso: z.string().optional().nullable(),
+  telefono: z.string().optional().nullable(),
+  tipoAnagrafica: z.string().optional().nullable(),
+  
+  // Estensioni
+  codiceAnagrafica: z.string().optional().nullable(),
+  tipoConto: z.string().optional().nullable(),
+  tipoContoDesc: z.string().optional().nullable(),
+  tipoSoggetto: z.string().optional().nullable(),
+  tipoSoggettoDesc: z.string().optional().nullable(),
+  denominazione: z.string().optional().nullable(),
+  sessoDesc: z.string().optional().nullable(),
+  prefissoTelefono: z.string().optional().nullable(),
+  codiceIso: z.string().optional().nullable(),
+  idFiscaleEstero: z.string().optional().nullable(),
+  
+  // Sottoconti
+  sottocontoAttivo: z.string().optional().nullable(),
+  sottocontoCliente: z.string().optional().nullable(),
+  sottocontoFornitore: z.string().optional().nullable(),
+  
+  // Codici Pagamento
+  codiceIncassoCliente: z.string().optional().nullable(),
+  codicePagamentoFornitore: z.string().optional().nullable(),
+  
+  // Flags
+  ePersonaFisica: z.boolean().optional().nullable(),
+  eCliente: z.boolean().optional().nullable(),
+  eFornitore: z.boolean().optional().nullable(),
+  haPartitaIva: z.boolean().optional().nullable(),
+});
+
+export const fornitoreSchema = clienteSchema.extend({
+  aliquota: z.number().optional().nullable(),
+  attivitaMensilizzazione: z.number().int().optional().nullable(),
+  codiceRitenuta: z.string().optional().nullable(),
+  contributoPrevidenziale: z.boolean().optional().nullable(),
+  contributoPrevidenzialeL335: z.string().optional().nullable(),
+  enasarco: z.boolean().optional().nullable(),
+  gestione770: z.boolean().optional().nullable(),
+  percContributoCassaPrev: z.number().optional().nullable(),
+  quadro770: z.string().optional().nullable(),
+  soggettoInail: z.boolean().optional().nullable(),
+  soggettoRitenuta: z.boolean().optional().nullable(),
+  tipoRitenuta: z.string().optional().nullable(),
+  
+  // Descrizioni aggiuntive
+  quadro770Desc: z.string().optional().nullable(),
+  tipoRitenutaDesc: z.string().optional().nullable(),
+  contributoPrevid335Desc: z.string().optional().nullable(),
+});
+
+export type ClienteFormValues = z.infer<typeof clienteSchema>;
+export type FornitoreFormValues = z.infer<typeof fornitoreSchema>;

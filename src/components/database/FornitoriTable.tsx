@@ -19,26 +19,72 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import * as z from 'zod';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { createFornitore, updateFornitore, deleteFornitore } from '@/api/fornitori';
 import { Fornitore } from '@/types';
-import { baseSchema } from '@/schemas/database';
+import { fornitoreSchema, FornitoreFormValues } from '@/schemas/database';
 import { useCrudTable } from '@/hooks/useCrudTable';
 import { useAdvancedTable } from '@/hooks/useAdvancedTable';
 import { AdvancedDataTable } from '../ui/advanced-data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from '../ui/data-table-column-header';
+import { FornitoreForm } from './FornitoreForm';
 
-type FornitoreFormValues = z.infer<typeof baseSchema>;
+const emptyFornitore: FornitoreFormValues = {
+  nome: '',
+  externalId: '',
+  piva: '',
+  codiceFiscale: '',
+  cap: '',
+  codicePagamento: '',
+  codiceValuta: '',
+  cognome: '',
+  comune: '',
+  comuneNascita: '',
+  dataNascita: undefined,
+  indirizzo: '',
+  nazione: '',
+  nomeAnagrafico: '',
+  provincia: '',
+  sesso: '',
+  telefono: '',
+  tipoAnagrafica: '',
+  codiceAnagrafica: '',
+  tipoConto: '',
+  tipoContoDesc: '',
+  tipoSoggetto: '',
+  tipoSoggettoDesc: '',
+  denominazione: '',
+  sessoDesc: '',
+  prefissoTelefono: '',
+  codiceIso: '',
+  idFiscaleEstero: '',
+  sottocontoAttivo: '',
+  sottocontoCliente: '',
+  sottocontoFornitore: '',
+  codiceIncassoCliente: '',
+  codicePagamentoFornitore: '',
+  ePersonaFisica: false,
+  eCliente: false,
+  eFornitore: true,
+  haPartitaIva: false,
+  // Campi specifici del fornitore
+  aliquota: null,
+  attivitaMensilizzazione: null,
+  codiceRitenuta: '',
+  contributoPrevidenziale: false,
+  contributoPrevidenzialeL335: '',
+  enasarco: false,
+  gestione770: false,
+  percContributoCassaPrev: null,
+  quadro770: '',
+  soggettoInail: false,
+  soggettoRitenuta: false,
+  tipoRitenuta: '',
+  quadro770Desc: '',
+  tipoRitenutaDesc: '',
+  contributoPrevid335Desc: '',
+};
 
 export const FornitoriTable = () => {
 
@@ -71,11 +117,11 @@ export const FornitoriTable = () => {
     onSubmit,
     handleDelete,
   } = useCrudTable<Fornitore, FornitoreFormValues>({
-    schema: baseSchema,
+    schema: fornitoreSchema,
     api: { create: createFornitore, update: updateFornitore, delete: deleteFornitore },
     onDataChange: () => refreshData(),
     resourceName: "Fornitore",
-    defaultValues: { nome: "", externalId: "" },
+    defaultValues: emptyFornitore,
     getId: (fornitore) => fornitore.id,
   });
 
@@ -137,39 +183,17 @@ export const FornitoriTable = () => {
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent>
+          <DialogContent className="max-w-4xl">
               <DialogHeader>
                   <DialogTitle>{editingFornitore ? 'Modifica Fornitore' : 'Nuovo Fornitore'}</DialogTitle>
               </DialogHeader>
               <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      <FormField
-                          control={form.control}
-                          name="nome"
-                          render={({ field }) => (
-                              <FormItem>
-                                  <FormLabel>Nome</FormLabel>
-                                  <FormControl>
-                                      <Input placeholder="Nome Fornitore" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                              </FormItem>
-                          )}
-                      />
-                      <FormField
-                          control={form.control}
-                          name="externalId"
-                          render={({ field }) => (
-                              <FormItem>
-                                  <FormLabel>ID Esterno (opzionale)</FormLabel>
-                                  <FormControl>
-                                      <Input placeholder="ID del sistema esterno" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                              </FormItem>
-                          )}
-                      />
+                      <div className="max-h-[70vh] overflow-y-auto p-1">
+                        <FornitoreForm />
+                      </div>
                       <DialogFooter>
+                          <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Annulla</Button>
                           <Button type="submit">Salva</Button>
                       </DialogFooter>
                   </form>

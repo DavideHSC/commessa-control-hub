@@ -9,7 +9,7 @@ export interface FieldDefinition {
   start: number;
   length: number;
   type?: 'string' | 'number' | 'date' | 'boolean';
-  format?: 'percentage' | 'date:DDMMYYYY';
+  format?: 'percentage' | 'date:DDMMYYYY' | 'boolean';
 }
 
 /**
@@ -266,6 +266,8 @@ export function parseFixedWidth<T>(
         // Gestione formato percentage
         if (format === 'percentage') {
           record[name] = parsePercentage(rawValue);
+        } else if (format === 'boolean') {
+          record[name] = parseBooleanFlag(rawValue);
         } else {
           switch (type) {
             case 'boolean':
@@ -349,6 +351,8 @@ export async function parseFixedWidthRobust<T>(
         // Gestione formato percentage
         if (format === 'percentage') {
           record[name] = parsePercentage(rawValue);
+        } else if (format === 'boolean') {
+          record[name] = parseBooleanFlag(rawValue);
         } else {
           switch (type) {
             case 'boolean':

@@ -14,7 +14,7 @@ export async function handleCausaliImport(parsedData: any[], res: Response) {
     
     try {
         const validRecords = parsedData.map(record => {
-            const externalId = record.codice?.trim();
+            const externalId = record.codiceCausale?.trim();
             if (!externalId) {
                 return null;
             }

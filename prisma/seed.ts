@@ -187,24 +187,24 @@ async function main() {
         { fieldName: 'tipoRegistroIva', start: 69, length: 1 },                      // line[68:69] → start 69
         { fieldName: 'segnoMovimentoIva', start: 70, length: 1 },                    // line[69:70] → start 70
         { fieldName: 'contoIva', start: 71, length: 10 },                            // line[70:80] → start 71
-        { fieldName: 'generazioneAutofattura', start: 81, length: 1 },               // line[80:81] → start 81
+        { fieldName: 'generazioneAutofattura', start: 81, length: 1, format: 'boolean' }, // line[80:81] → start 81
         { fieldName: 'tipoAutofatturaGenerata', start: 82, length: 1 },              // line[81:82] → start 82
         { fieldName: 'contoIvaVendite', start: 83, length: 10 },                     // line[82:92] → start 83
-        { fieldName: 'fatturaImporto0', start: 93, length: 1 },                      // line[92:93] → start 93
-        { fieldName: 'fatturaValutaEstera', start: 94, length: 1 },                  // line[93:94] → start 94
-        { fieldName: 'nonConsiderareLiquidazioneIva', start: 95, length: 1 },        // line[94:95] → start 95
+        { fieldName: 'fatturaImporto0', start: 93, length: 1, format: 'boolean' },   // line[92:93] → start 93
+        { fieldName: 'fatturaValutaEstera', start: 94, length: 1, format: 'boolean' },// line[93:94] → start 94
+        { fieldName: 'nonConsiderareLiquidazioneIva', start: 95, length: 1, format: 'boolean' }, // line[94:95] → start 95
         { fieldName: 'ivaEsigibilitaDifferita', start: 96, length: 1 },              // line[95:96] → start 96
-        { fieldName: 'fatturaEmessaRegCorrispettivi', start: 97, length: 1 },        // line[96:97] → start 97
+        { fieldName: 'fatturaEmessaRegCorrispettivi', start: 97, length: 1, format: 'boolean' }, // line[96:97] → start 97
         { fieldName: 'gestionePartite', start: 98, length: 1 },                      // line[97:98] → start 98
-        { fieldName: 'gestioneIntrastat', start: 99, length: 1 },                    // line[98:99] → start 99
+        { fieldName: 'gestioneIntrastat', start: 99, length: 1, format: 'boolean' }, // line[98:99] → start 99
         { fieldName: 'gestioneRitenuteEnasarco', start: 100, length: 1 },            // line[99:100] → start 100
-        { fieldName: 'versamentoRitenute', start: 101, length: 1 },                  // line[100:101] → start 101
+        { fieldName: 'versamentoRitenute', start: 101, length: 1, format: 'boolean' }, // line[100:101] → start 101
         { fieldName: 'noteMovimento', start: 102, length: 60 },                      // line[101:161] → start 102
         { fieldName: 'descrizioneDocumento', start: 162, length: 5 },                // line[161:166] → start 162
-        { fieldName: 'identificativoEsteroClifor', start: 167, length: 1 },          // line[166:167] → start 167
-        { fieldName: 'scritturaRettificaAssestamento', start: 168, length: 1 },      // line[167:168] → start 168
-        { fieldName: 'nonStampareRegCronologico', start: 169, length: 1 },           // line[168:169] → start 169
-        { fieldName: 'movimentoRegIvaNonRilevante', start: 170, length: 1 },         // line[169:170] → start 170
+        { fieldName: 'identificativoEsteroClifor', start: 167, length: 1, format: 'boolean' }, // line[166:167] → start 167
+        { fieldName: 'scritturaRettificaAssestamento', start: 168, length: 1, format: 'boolean' }, // line[167:168] → start 168
+        { fieldName: 'nonStampareRegCronologico', start: 169, length: 1, format: 'boolean' },    // line[168:169] → start 169
+        { fieldName: 'movimentoRegIvaNonRilevante', start: 170, length: 1, format: 'boolean' },  // line[169:170] → start 170
         { fieldName: 'tipoMovimentoSemplificata', start: 171, length: 1 }            // line[170:171] → start 171
       ] },
     }
@@ -289,10 +289,10 @@ async function main() {
           { fieldName: 'autofatturaReverseCharge', start: 134, length: 1 },      // line[133:134]
           { fieldName: 'operazioneEsenteOccasionale', start: 135, length: 1 },    // line[134:135]
           { fieldName: 'cesArt38QuaterStornoIva', start: 136, length: 1 },        // line[135:136]
-          { fieldName: 'percDetrarreExport', start: 137, length: 6, format: 'percentage' },// line[136:142]
+          { fieldName: 'percDetrarreExport', start: 137, length: 6, format: 'number:decimal' },// line[136:142]
           { fieldName: 'acquistiCessioni', start: 143, length: 1 },                // line[142:143]
           { fieldName: 'percentualeCompensazione', start: 144, length: 6, format: 'percentage' },// line[143:149]
-          { fieldName: 'beniAmmortizzabili', start: 150, length: 1 },             // line[149:150]
+          { fieldName: 'beniAmmortizzabili', start: 150, length: 1, format: 'boolean' },             // line[149:150]
           { fieldName: 'indicatoreTerritorialeVendite', start: 151, length: 2 },   // line[150:152]
           { fieldName: 'provvigioniDm34099', start: 153, length: 1 },             // line[152:153]
           { fieldName: 'indicatoreTerritorialeAcquisti', start: 154, length: 2 },  // line[153:155]
@@ -495,7 +495,7 @@ async function main() {
           { fieldName: 'attivitaMensilizzazione', start: 337, length: 2 } // (336, 338)
         ]
       },
-    }
+    },
   });
 
   console.log('Template creati/aggiornati.');
