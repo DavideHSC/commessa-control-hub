@@ -345,10 +345,13 @@ server/
     -   **Complessità**: Minima, ideale come PoC.
     -   **Stato**: Completato, ha consolidato il workflow.
 
-#### 🎯 **IN CODA (Ordine di Esecuzione)**
-3.  **Parser 3: Codici IVA** (⭐⭐) - **PROSSIMO TASK**
+#### 🟡 **IN CORSO DI FINALIZZAZIONE E TEST**
+3.  **Parser 3: Codici IVA** (⭐⭐)
     -   **Complessità**: Media, richiede decodifiche.
-    -   **Obiettivo**: Validare la gestione di logica di business moderata.
+    -   **Stato**: Sviluppo completato secondo la nuova architettura. Creati tutti i componenti: `codiceIvaDecoders`, `codiceIvaValidator`, `codiceIvaTransformer`, `importCodiceIvaWorkflow`, e l'endpoint API V2 (`/api/v2/import/codici-iva`). La fase di test ha rivelato e permesso di risolvere diversi problemi (routing, validazione Zod, inserimento nullo). **Il problema finale identificato riguarda una discrepanza nel case dei nomi dei campi tra l'output del parser (`camelCase`) e le attese del trasformatore (`SCREAMING_SNAKE_CASE`).**
+    -   **Obiettivo Prossimo**: Correggere il `codiceIvaTransformer` e completare i test di validazione (UAT).
+
+#### 🎯 **IN CODA (Ordine di Esecuzione)**
 4.  **Parser 2: Causali Contabili** (⭐⭐)
     -   **Complessità**: Media, decodifiche multiple.
     -   **Obiettivo**: Testare la robustezza dei decodificatori.
