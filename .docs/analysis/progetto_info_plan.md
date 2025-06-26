@@ -335,33 +335,29 @@ server/
 
 ## PRIORITIZZAZIONE ESECUZIONE
 
-### Ordine di Implementazione Parser (dal più semplice al più complesso):
+### Ordine di Implementazione Parser (Stato Attuale)
 
-1. **Parser 4: Condizioni Pagamento** (Proof of Concept)
-   - Semplicità ideale per validare architettura
-   - Pochi campi, logica minimal
-   - Test bed perfetto
+#### ✅ **COMPLETATI E VALIDATI (UAT)**
+1.  **Parser 5: Piano dei Conti** (⭐⭐⭐⭐)
+    -   **Complessità**: Logica gerarchica e classificazione.
+    -   **Stato**: Architettura validata con successo su un caso complesso.
+2.  **Parser 4: Condizioni Pagamento** (⭐)
+    -   **Complessità**: Minima, ideale come PoC.
+    -   **Stato**: Completato, ha consolidato il workflow.
 
-2. **Parser 3: Codici IVA** (Architecture Validation)
-   - Complessità moderata
-   - Validazione pattern con decodifiche
-
-3. **Parser 2: Causali Contabili** (Business Logic Test)
-   - Test decodifiche complesse
-   - Validation pattern enterprise
-
-4. **Parser 1: Anagrafiche** (Multi-entity Challenge)
-   - Challenge: Cliente vs Fornitore split
-   - Test logica condizionale complessa
-
-5. **Parser 5: Piano dei Conti** (Complex Business Rules)
-   - **FOCUS INIZIALE** - Più complesso single-file
-   - Logica gerarchica e classificazione
-   - Test completo architettura
-
-6. **Parser 6: Scritture Contabili** (Multi-file Orchestration)
-   - Complessità massima
-   - Test definitivo coordinamento multi-file
+#### 🎯 **IN CODA (Ordine di Esecuzione)**
+3.  **Parser 3: Codici IVA** (⭐⭐) - **PROSSIMO TASK**
+    -   **Complessità**: Media, richiede decodifiche.
+    -   **Obiettivo**: Validare la gestione di logica di business moderata.
+4.  **Parser 2: Causali Contabili** (⭐⭐)
+    -   **Complessità**: Media, decodifiche multiple.
+    -   **Obiettivo**: Testare la robustezza dei decodificatori.
+5.  **Parser 1: Anagrafiche** (⭐⭐⭐)
+    -   **Complessità**: Alta, logica condizionale (Cliente/Fornitore/Entrambi).
+    -   **Obiettivo**: Gestire la trasformazione in entità multiple.
+6.  **Parser 6: Scritture Contabili** (⭐⭐⭐⭐⭐)
+    -   **Complessità**: Estrema, orchestrazione multi-file.
+    -   **Obiettivo**: Sfida finale, validazione dell'intera architettura su un caso complesso e interconnesso.
 
 ## 📊 Metriche di Successo
 

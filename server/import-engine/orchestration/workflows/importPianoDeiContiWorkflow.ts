@@ -40,7 +40,7 @@ export async function importPianoDeiContiWorkflow(filePath: string): Promise<Wor
 
   // Adatta le FieldDefinition al formato richiesto dal parser legacy
   const definitions: LegacyFieldDefinition[] = template.fieldDefinitions.map(fd => ({
-      name: fd.fieldName!,
+      fieldName: fd.fieldName!,
       start: fd.start,
       length: fd.length,
       type: 'string', // Per ora trattiamo tutto come stringa

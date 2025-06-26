@@ -5,7 +5,7 @@ import fs from 'fs/promises';
  * Definizione di un campo per il parser a larghezza fissa.
  */
 export interface FieldDefinition {
-  name: string;
+  fieldName: string | null;
   start: number;
   length: number;
   type?: 'string' | 'number' | 'date' | 'boolean';
@@ -248,7 +248,8 @@ export function parseFixedWidth<T>(
     let hasData = false;
 
     for (const def of definitions) {
-      const { name, start, length, type, format } = def;
+      const { fieldName, start, length, type, format } = def;
+      const name = fieldName ?? 'unknown'; // Fallback per il nome del campo
       const startIndex = start - 1;
       
       if (startIndex < 0 || startIndex >= line.length) {
@@ -334,7 +335,8 @@ export async function parseFixedWidthRobust<T>(
       let hasData = false;
 
       for (const def of definitions) {
-        const { name, start, length, type, format } = def;
+        const { fieldName, start, length, type, format } = def;
+        const name = fieldName ?? 'unknown'; // Fallback per il nome del campo
         const startIndex = start - 1;
         
         if (startIndex < 0 || startIndex >= line.length) {
