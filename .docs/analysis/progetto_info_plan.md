@@ -344,20 +344,22 @@ server/
 2.  **Parser 4: Condizioni Pagamento** (⭐)
     -   **Complessità**: Minima, ideale come PoC.
     -   **Stato**: Completato, ha consolidato il workflow.
-
-#### 🟡 **IN CORSO DI FINALIZZAZIONE E TEST**
 3.  **Parser 3: Codici IVA** (⭐⭐)
     -   **Complessità**: Media, richiede decodifiche.
-    -   **Stato**: Sviluppo completato secondo la nuova architettura. Creati tutti i componenti: `codiceIvaDecoders`, `codiceIvaValidator`, `codiceIvaTransformer`, `importCodiceIvaWorkflow`, e l'endpoint API V2 (`/api/v2/import/codici-iva`). La fase di test ha rivelato e permesso di risolvere diversi problemi (routing, validazione Zod, inserimento nullo). **Il problema finale identificato riguarda una discrepanza nel case dei nomi dei campi tra l'output del parser (`camelCase`) e le attese del trasformatore (`SCREAMING_SNAKE_CASE`).**
-    -   **Obiettivo Prossimo**: Correggere il `codiceIvaTransformer` e completare i test di validazione (UAT).
+    -   **Stato**: Completato, ha validato la gestione della logica di business e la correzione di errori end-to-end.
+4.  **Parser 2: Causali Contabili** (⭐⭐) - **✅ COMPLETATO**
+    -   **Complessità**: Media, decodifiche multiple.
+    -   **Stato**: **COMPLETATO** - Implementata architettura completa con 9 decoders, validazione Zod, trasformazione type-safe e workflow orchestrato. Processati con successo 183/183 record. Risolti bug critici: regex parsing, logging mancante, campi vuoti nel database.
+    -   **Risultati**: Consolidata architettura enterprise con gestione robusta degli errori e logging completo.
 
 #### 🎯 **IN CODA (Ordine di Esecuzione)**
-4.  **Parser 2: Causali Contabili** (⭐⭐)
-    -   **Complessità**: Media, decodifiche multiple.
-    -   **Obiettivo**: Testare la robustezza dei decodificatori.
-5.  **Parser 1: Anagrafiche** (⭐⭐⭐)
+5.  **Parser 1: Anagrafiche** (⭐⭐⭐) - **PROSSIMO TASK**
     -   **Complessità**: Alta, logica condizionale (Cliente/Fornitore/Entrambi).
     -   **Obiettivo**: Gestire la trasformazione in entità multiple.
+    -   **File Sorgente**: `A_CLIFOR.TXT`
+    -   **Tracciato**: `.docs/dati_cliente/tracciati/A_CLIFOR.TXT`
+    -   **Parser Python**: `.docs/code/parser_anagrafica.py`
+    -   **Dati Test**: `.docs/dati_cliente/A_CLIFOR.txt`
 6.  **Parser 6: Scritture Contabili** (⭐⭐⭐⭐⭐)
     -   **Complessità**: Estrema, orchestrazione multi-file.
     -   **Obiettivo**: Sfida finale, validazione dell'intera architettura su un caso complesso e interconnesso.

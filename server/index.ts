@@ -25,7 +25,7 @@ import importPrimaNota from './routes/importPrimaNota';
 import reconciliationRoutes from './routes/reconciliation';
 
 // Import delle nuove rotte V2
-import importRouterV2 from './routes/v2/codiciIva';
+import importRouterV2 from './routes/v2/import';
 
 const app = express();
 const prisma = new PrismaClient();
