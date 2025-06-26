@@ -1,32 +1,48 @@
-import type { FieldDefinition } from '@prisma/client';
+/**
+ * TYPE-SAFE FIXED WIDTH PARSER
+ * Wrapper type-safe del parser legacy esistente
+ * 
+ * Utilizza il parseFixedWidth legacy ma con tipizzazione migliorata
+ */
+
+import { parseFixedWidth as legacyParseBasic, parseFixedWidthRobust } from '../../../lib/fixedWidthParser';
+import type { ImportStats, ParseResult } from '../../../lib/fixedWidthParser';
+import { writeFile } from 'fs/promises';
+import path from 'path';
+
+export interface TypeSafeParseResult<T = Record<string, any>> {
+  data: T[];
+  stats: ImportStats;
+}
 
 /**
- * Esegue il parsing di un contenuto testuale a larghezza fissa in un array di oggetti tipizzati.
- * @param content Il contenuto del file da parsare.
- * @param definitions Le definizioni dei campi che guidano il parsing.
- * @returns Un array di oggetti del tipo generico `T`.
+ * Parser type-safe per file a larghezza fissa
+ * Wrapper del parser legacy esistente
  */
-export function parse<T>(
-  content: string,
-  definitions: FieldDefinition[]
-): T[] {
-  const lines = content.split(/\r?\n/).filter(line => line.trim().length > 0);
-  const results: T[] = [];
-
-  for (const line of lines) {
-    const record: Record<string, unknown> = {};
-
-    for (const def of definitions) {
-      if (def.fieldName) {
-        // Le posizioni start sono 1-based, convertiamo in 0-based
-        const start = def.start - 1;
-        const end = start + def.length;
-        const value = line.substring(start, end);
-        record[def.fieldName] = value;
-      }
+export async function parseFixedWidth<T = Record<string, any>>(
+  fileContent: string,
+  templateName: string
+): Promise<TypeSafeParseResult<T>> {
+  
+  // Crea un file temporaneo per il parser legacy che richiede un file path
+  const tempFilePath = path.join(process.cwd(), 'uploads', `temp_${Date.now()}.txt`);
+  
+  try {
+    await writeFile(tempFilePath, fileContent, 'utf-8');
+    
+    // Utilizza il parser legacy robusto che accetta templateName
+    const result: ParseResult<T> = await parseFixedWidthRobust(tempFilePath, [], templateName);
+    
+    return {
+      data: result.data,
+      stats: result.stats
+    };
+  } finally {
+    // Cleanup del file temporaneo
+    try {
+      await import('fs/promises').then(fs => fs.unlink(tempFilePath));
+    } catch (error) {
+      console.warn(`Impossibile eliminare file temporaneo: ${tempFilePath}`);
     }
-    results.push(record as T);
   }
-
-  return results;
 } 

@@ -1,5 +1,9 @@
+import { PrismaClient } from '@prisma/client';
 import moment from 'moment';
 import fs from 'fs/promises';
+import iconv from 'iconv-lite';
+
+const prisma = new PrismaClient();
 
 /**
  * Definizione di un campo per il parser a larghezza fissa.
@@ -307,6 +311,16 @@ export function parseFixedWidth<T>(
 }
 
 /**
+ * Converte camelCase a UPPER_CASE con underscore per compatibilità validator
+ */
+function camelToUpperCase(str: string): string {
+  return str
+    .replace(/([A-Z])/g, '_$1')
+    .toUpperCase()
+    .replace(/^_/, ''); // Rimuove underscore iniziale se presente
+}
+
+/**
  * NUOVA VERSIONE ROBUSTA - Parsing con encoding fallback e gestione errori
  */
 export async function parseFixedWidthRobust<T>(
@@ -326,6 +340,39 @@ export async function parseFixedWidthRobust<T>(
   };
 
   try {
+    let actualDefinitions = definitions;
+    
+    // Se non ci sono definitions, caricale dal database usando templateName
+    if (definitions.length === 0 && templateName) {
+      console.log(`[Parser] Caricamento template '${templateName}' dal database...`);
+      
+      const template = await prisma.importTemplate.findUnique({
+        where: { name: templateName },
+        include: { fieldDefinitions: true }
+      });
+      
+      if (!template) {
+        throw new Error(`Template '${templateName}' non trovato nel database`);
+      }
+      
+      if (template.fieldDefinitions.length === 0) {
+        throw new Error(`Template '${templateName}' non ha field definitions`);
+      }
+      
+      // Converti FieldDefinition da Prisma al formato FieldDefinition locale
+      actualDefinitions = template.fieldDefinitions.map(field => ({
+        fieldName: field.fieldName ? camelToUpperCase(field.fieldName) : null,
+        start: field.start,
+        length: field.length,
+        type: 'string' as const, // Default type
+        format: field.format ? 
+          (field.format as 'boolean' | 'percentage' | 'date:DDMMYYYY') : 
+          undefined
+      }));
+      
+      console.log(`[Parser] Caricato template con ${actualDefinitions.length} field definitions`);
+    }
+
     // Leggi file con encoding fallback
     const lines = await readFileWithFallbackEncoding(filePath);
     
@@ -334,7 +381,7 @@ export async function parseFixedWidthRobust<T>(
       const record: Record<string, unknown> = {};
       let hasData = false;
 
-      for (const def of definitions) {
+      for (const def of actualDefinitions) {
         const { fieldName, start, length, type, format } = def;
         const name = fieldName ?? 'unknown'; // Fallback per il nome del campo
         const startIndex = start - 1;

@@ -1,5 +1,5 @@
 import { PrismaClient, FieldDefinition } from '@prisma/client';
-import { parse } from '../../acquisition/parsers/typeSafeFixedWidthParser';
+import { parseFixedWidth } from '../../acquisition/parsers/typeSafeFixedWidthParser';
 import { causaleContabileValidator, ValidatedCausaleContabile } from '../../acquisition/validators/causaleContabileValidator';
 import { transformCausaleContabile } from '../../transformation/transformers/causaleContabileTransformer';
 import { RawCausali } from '../../core/types/generated';
@@ -40,7 +40,8 @@ export async function runImportCausaliContabiliWorkflow(fileContent: string): Pr
   }
 
   // 2. Parsa il file
-  const rawRecords = parse<RawCausali>(fileContent, fieldDefinitions);
+  const parseResult = await parseFixedWidth(fileContent, 'causali');
+  const rawRecords = parseResult.data;
   stats.totalRecords = rawRecords.length;
   console.log(`[Workflow Causali] Parsati ${stats.totalRecords} record grezzi dal file.`);
 
