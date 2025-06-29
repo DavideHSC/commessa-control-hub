@@ -298,7 +298,7 @@ export class ImportScrittureContabiliWorkflow {
         const validated = validatedPnTestaSchema.parse(rawData.pnTesta[i]);
         validatedData.testate.push(validated);
       } catch (error) {
-        console.error(`Errore validazione PNTESTA.TXT riga ${i + 1}:`, error);
+        console.error(`Errore validazione PNTESTA.TXT riga ${i + 1}:`, JSON.stringify(error, null, 2));
         await this.dlqService.logError(jobId, 'PNTESTA.TXT', i + 1, rawData.pnTesta[i], 'validation', error);
       }
     }

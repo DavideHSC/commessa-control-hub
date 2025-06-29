@@ -1,697 +1,693 @@
+> commessa-control-hub@0.0.0 dev
+> concurrently "npm:dev:server" "npm:dev:client"
+
+[dev:server] 
+[dev:server] > commessa-control-hub@0.0.0 dev:server
+[dev:server] > tsx watch -r dotenv/config server/index.ts
+[dev:server] 
+[dev:client] 
+[dev:client] > commessa-control-hub@0.0.0 dev:client
+[dev:client] > vite
+[dev:client] 
+[dev:client] 
+[dev:client]   VITE v5.4.19  ready in 453 ms
+[dev:client] 
+[dev:client]   ➜  Local:   http://localhost:8080/
+[dev:client]   ➜  Network: http://192.168.1.224:8080/
+[dev:client]   ➜  Network: http://172.18.96.1:8080/
+[dev:client]   ➜  Network: http://172.31.48.1:8080/
+[dev:server] 
+[dev:server] node:internal/modules/run_main:123
+[dev:server]     triggerUncaughtException(
+[dev:server]     ^
+[dev:server] Error [TransformError]: Transform failed with 1 error:
+[dev:server] G:\HSC\Reale\commessa-control-hub\server\import-engine\acquisition\definitions\scrittureContabiliDefinitions.ts:99:6: ERROR: Expected "]" but found ":"
+[dev:server]     at failureErrorWithLog (G:\HSC\Reale\commessa-control-hub\node_modules\esbuild\lib\main.js:1463:15)     
+[dev:server]     at G:\HSC\Reale\commessa-control-hub\node_modules\esbuild\lib\main.js:734:50
+[dev:server]     at responseCallbacks.<computed> (G:\HSC\Reale\commessa-control-hub\node_modules\esbuild\lib\main.js:601:9)
+[dev:server]     at handleIncomingPacket (G:\HSC\Reale\commessa-control-hub\node_modules\esbuild\lib\main.js:656:12)     
+[dev:server]     at Socket.readFromStdout (G:\HSC\Reale\commessa-control-hub\node_modules\esbuild\lib\main.js:579:7)     
+[dev:server]     at Socket.emit (node:events:518:28)
+[dev:server]     at addChunk (node:internal/streams/readable:561:12)
+[dev:server]     at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+[dev:server]     at Readable.push (node:internal/streams/readable:392:5)
+[dev:server]     at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)
+[dev:server]
+[dev:server] Node.js v22.16.0
+
+PROBLEMI DEL FILE @server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts:
 [{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2307",
+	"code": "2304",
 	"severity": 8,
-	"message": "Non è possibile trovare il modulo '@prisma/client' o le relative dichiarazioni di tipo corrispondenti.",
+	"message": "Il nome 'type' non è stato trovato.",
 	"source": "ts",
-	"startLineNumber": 7,
-	"startColumn": 30,
-	"endLineNumber": 7,
-	"endColumn": 46,
-	"modelVersionId": 5
+	"startLineNumber": 99,
+	"startColumn": 3,
+	"endLineNumber": 99,
+	"endColumn": 7,
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2580",
+	"code": "1005",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'Buffer'. È necessario installare le definizioni di tipo per il nodo? Provare con `npm i --save-dev @types/node`.",
+	"message": "È previsto ','.",
 	"source": "ts",
-	"startLineNumber": 47,
-	"startColumn": 12,
-	"endLineNumber": 47,
-	"endColumn": 18,
-	"modelVersionId": 5
+	"startLineNumber": 99,
+	"startColumn": 7,
+	"endLineNumber": 99,
+	"endColumn": 8,
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2580",
+	"code": "1005",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'Buffer'. È necessario installare le definizioni di tipo per il nodo? Provare con `npm i --save-dev @types/node`.",
+	"message": "È previsto ','.",
 	"source": "ts",
-	"startLineNumber": 48,
-	"startColumn": 13,
-	"endLineNumber": 48,
+	"startLineNumber": 99,
+	"startColumn": 18,
+	"endLineNumber": 99,
 	"endColumn": 19,
-	"modelVersionId": 5
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2580",
+	"code": "1128",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'Buffer'. È necessario installare le definizioni di tipo per il nodo? Provare con `npm i --save-dev @types/node`.",
+	"message": "È prevista la dichiarazione o l'istruzione.",
 	"source": "ts",
-	"startLineNumber": 49,
-	"startColumn": 14,
-	"endLineNumber": 49,
+	"startLineNumber": 99,
+	"startColumn": 19,
+	"endLineNumber": 99,
 	"endColumn": 20,
-	"modelVersionId": 5
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2580",
+	"code": "2695",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'Buffer'. È necessario installare le definizioni di tipo per il nodo? Provare con `npm i --save-dev @types/node`.",
-	"source": "ts",
-	"startLineNumber": 50,
-	"startColumn": 13,
-	"endLineNumber": 50,
-	"endColumn": 19,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
+	"message": "Il lato sinistro dell'operatore virgola non è usato e non ha effetti collaterali.",
 	"source": "ts",
 	"startLineNumber": 100,
-	"startColumn": 5,
+	"startColumn": 16,
 	"endLineNumber": 100,
-	"endColumn": 12,
-	"modelVersionId": 5
+	"endColumn": 39,
+	"tags": [
+		1
+	],
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2584",
+	"code": "2304",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
+	"message": "Il nome 'length' non è stato trovato.",
+	"source": "ts",
+	"startLineNumber": 100,
+	"startColumn": 41,
+	"endLineNumber": 100,
+	"endColumn": 47,
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "1005",
+	"severity": 8,
+	"message": "È previsto ';'.",
+	"source": "ts",
+	"startLineNumber": 100,
+	"startColumn": 47,
+	"endLineNumber": 100,
+	"endColumn": 48,
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "2695",
+	"severity": 8,
+	"message": "Il lato sinistro dell'operatore virgola non è usato e non ha effetti collaterali.",
+	"source": "ts",
+	"startLineNumber": 100,
+	"startColumn": 49,
+	"endLineNumber": 100,
+	"endColumn": 51,
+	"tags": [
+		1
+	],
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "2304",
+	"severity": 8,
+	"message": "Il nome 'start' non è stato trovato.",
+	"source": "ts",
+	"startLineNumber": 100,
+	"startColumn": 53,
+	"endLineNumber": 100,
+	"endColumn": 58,
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "1005",
+	"severity": 8,
+	"message": "È previsto ';'.",
+	"source": "ts",
+	"startLineNumber": 100,
+	"startColumn": 58,
+	"endLineNumber": 100,
+	"endColumn": 59,
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "2695",
+	"severity": 8,
+	"message": "Il lato sinistro dell'operatore virgola non è usato e non ha effetti collaterali.",
+	"source": "ts",
+	"startLineNumber": 100,
+	"startColumn": 60,
+	"endLineNumber": 100,
+	"endColumn": 62,
+	"tags": [
+		1
+	],
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "2304",
+	"severity": 8,
+	"message": "Il nome 'end' non è stato trovato.",
+	"source": "ts",
+	"startLineNumber": 100,
+	"startColumn": 64,
+	"endLineNumber": 100,
+	"endColumn": 67,
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "1005",
+	"severity": 8,
+	"message": "È previsto ';'.",
+	"source": "ts",
+	"startLineNumber": 100,
+	"startColumn": 67,
+	"endLineNumber": 100,
+	"endColumn": 68,
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "2695",
+	"severity": 8,
+	"message": "Il lato sinistro dell'operatore virgola non è usato e non ha effetti collaterali.",
+	"source": "ts",
+	"startLineNumber": 100,
+	"startColumn": 69,
+	"endLineNumber": 100,
+	"endColumn": 71,
+	"tags": [
+		1
+	],
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "2304",
+	"severity": 8,
+	"message": "Il nome 'type' non è stato trovato.",
+	"source": "ts",
+	"startLineNumber": 100,
+	"startColumn": 73,
+	"endLineNumber": 100,
+	"endColumn": 77,
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "1005",
+	"severity": 8,
+	"message": "È previsto ';'.",
+	"source": "ts",
+	"startLineNumber": 100,
+	"startColumn": 77,
+	"endLineNumber": 100,
+	"endColumn": 78,
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "1128",
+	"severity": 8,
+	"message": "È prevista la dichiarazione o l'istruzione.",
+	"source": "ts",
+	"startLineNumber": 100,
+	"startColumn": 89,
+	"endLineNumber": 100,
+	"endColumn": 90,
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "2695",
+	"severity": 8,
+	"message": "Il lato sinistro dell'operatore virgola non è usato e non ha effetti collaterali.",
 	"source": "ts",
 	"startLineNumber": 101,
-	"startColumn": 5,
+	"startColumn": 18,
 	"endLineNumber": 101,
-	"endColumn": 12,
-	"modelVersionId": 5
+	"endColumn": 32,
+	"tags": [
+		1
+	],
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2584",
+	"code": "2304",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
+	"message": "Il nome 'length' non è stato trovato.",
+	"source": "ts",
+	"startLineNumber": 101,
+	"startColumn": 34,
+	"endLineNumber": 101,
+	"endColumn": 40,
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "1005",
+	"severity": 8,
+	"message": "È previsto ';'.",
+	"source": "ts",
+	"startLineNumber": 101,
+	"startColumn": 40,
+	"endLineNumber": 101,
+	"endColumn": 41,
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "2695",
+	"severity": 8,
+	"message": "Il lato sinistro dell'operatore virgola non è usato e non ha effetti collaterali.",
+	"source": "ts",
+	"startLineNumber": 101,
+	"startColumn": 42,
+	"endLineNumber": 101,
+	"endColumn": 44,
+	"tags": [
+		1
+	],
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "2304",
+	"severity": 8,
+	"message": "Il nome 'start' non è stato trovato.",
+	"source": "ts",
+	"startLineNumber": 101,
+	"startColumn": 46,
+	"endLineNumber": 101,
+	"endColumn": 51,
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "1005",
+	"severity": 8,
+	"message": "È previsto ';'.",
+	"source": "ts",
+	"startLineNumber": 101,
+	"startColumn": 51,
+	"endLineNumber": 101,
+	"endColumn": 52,
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "2695",
+	"severity": 8,
+	"message": "Il lato sinistro dell'operatore virgola non è usato e non ha effetti collaterali.",
+	"source": "ts",
+	"startLineNumber": 101,
+	"startColumn": 53,
+	"endLineNumber": 101,
+	"endColumn": 55,
+	"tags": [
+		1
+	],
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "2304",
+	"severity": 8,
+	"message": "Il nome 'end' non è stato trovato.",
+	"source": "ts",
+	"startLineNumber": 101,
+	"startColumn": 57,
+	"endLineNumber": 101,
+	"endColumn": 60,
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "1005",
+	"severity": 8,
+	"message": "È previsto ';'.",
+	"source": "ts",
+	"startLineNumber": 101,
+	"startColumn": 60,
+	"endLineNumber": 101,
+	"endColumn": 61,
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "2695",
+	"severity": 8,
+	"message": "Il lato sinistro dell'operatore virgola non è usato e non ha effetti collaterali.",
+	"source": "ts",
+	"startLineNumber": 101,
+	"startColumn": 62,
+	"endLineNumber": 101,
+	"endColumn": 65,
+	"tags": [
+		1
+	],
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "2304",
+	"severity": 8,
+	"message": "Il nome 'type' non è stato trovato.",
+	"source": "ts",
+	"startLineNumber": 101,
+	"startColumn": 67,
+	"endLineNumber": 101,
+	"endColumn": 71,
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "1005",
+	"severity": 8,
+	"message": "È previsto ';'.",
+	"source": "ts",
+	"startLineNumber": 101,
+	"startColumn": 71,
+	"endLineNumber": 101,
+	"endColumn": 72,
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "1128",
+	"severity": 8,
+	"message": "È prevista la dichiarazione o l'istruzione.",
+	"source": "ts",
+	"startLineNumber": 101,
+	"startColumn": 83,
+	"endLineNumber": 101,
+	"endColumn": 84,
+	"modelVersionId": 1
+},{
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
+	"owner": "typescript",
+	"code": "2695",
+	"severity": 8,
+	"message": "Il lato sinistro dell'operatore virgola non è usato e non ha effetti collaterali.",
 	"source": "ts",
 	"startLineNumber": 102,
-	"startColumn": 5,
+	"startColumn": 16,
 	"endLineNumber": 102,
-	"endColumn": 12,
-	"modelVersionId": 5
+	"endColumn": 22,
+	"tags": [
+		1
+	],
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2584",
+	"code": "2304",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
+	"message": "Il nome 'length' non è stato trovato.",
 	"source": "ts",
-	"startLineNumber": 108,
-	"startColumn": 7,
-	"endLineNumber": 108,
-	"endColumn": 14,
-	"modelVersionId": 5
+	"startLineNumber": 102,
+	"startColumn": 24,
+	"endLineNumber": 102,
+	"endColumn": 30,
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2584",
+	"code": "1005",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
+	"message": "È previsto ';'.",
 	"source": "ts",
-	"startLineNumber": 109,
-	"startColumn": 7,
-	"endLineNumber": 109,
-	"endColumn": 14,
-	"modelVersionId": 5
+	"startLineNumber": 102,
+	"startColumn": 30,
+	"endLineNumber": 102,
+	"endColumn": 31,
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2584",
+	"code": "2695",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
+	"message": "Il lato sinistro dell'operatore virgola non è usato e non ha effetti collaterali.",
 	"source": "ts",
-	"startLineNumber": 110,
-	"startColumn": 7,
-	"endLineNumber": 110,
-	"endColumn": 14,
-	"modelVersionId": 5
+	"startLineNumber": 102,
+	"startColumn": 32,
+	"endLineNumber": 102,
+	"endColumn": 34,
+	"tags": [
+		1
+	],
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2584",
+	"code": "2304",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
+	"message": "Il nome 'start' non è stato trovato.",
 	"source": "ts",
-	"startLineNumber": 111,
-	"startColumn": 7,
-	"endLineNumber": 111,
-	"endColumn": 14,
-	"modelVersionId": 5
+	"startLineNumber": 102,
+	"startColumn": 36,
+	"endLineNumber": 102,
+	"endColumn": 41,
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2584",
+	"code": "1005",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
+	"message": "È previsto ';'.",
 	"source": "ts",
-	"startLineNumber": 112,
-	"startColumn": 7,
-	"endLineNumber": 112,
-	"endColumn": 14,
-	"modelVersionId": 5
+	"startLineNumber": 102,
+	"startColumn": 41,
+	"endLineNumber": 102,
+	"endColumn": 42,
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2584",
+	"code": "2695",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
+	"message": "Il lato sinistro dell'operatore virgola non è usato e non ha effetti collaterali.",
 	"source": "ts",
-	"startLineNumber": 113,
-	"startColumn": 7,
-	"endLineNumber": 113,
-	"endColumn": 14,
-	"modelVersionId": 5
+	"startLineNumber": 102,
+	"startColumn": 43,
+	"endLineNumber": 102,
+	"endColumn": 46,
+	"tags": [
+		1
+	],
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2584",
+	"code": "2304",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
+	"message": "Il nome 'end' non è stato trovato.",
 	"source": "ts",
-	"startLineNumber": 114,
-	"startColumn": 7,
-	"endLineNumber": 114,
-	"endColumn": 14,
-	"modelVersionId": 5
+	"startLineNumber": 102,
+	"startColumn": 48,
+	"endLineNumber": 102,
+	"endColumn": 51,
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2584",
+	"code": "1005",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
+	"message": "È previsto ';'.",
 	"source": "ts",
-	"startLineNumber": 122,
-	"startColumn": 7,
-	"endLineNumber": 122,
-	"endColumn": 14,
-	"modelVersionId": 5
+	"startLineNumber": 102,
+	"startColumn": 51,
+	"endLineNumber": 102,
+	"endColumn": 52,
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2584",
+	"code": "1128",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
+	"message": "È prevista la dichiarazione o l'istruzione.",
 	"source": "ts",
-	"startLineNumber": 123,
-	"startColumn": 7,
-	"endLineNumber": 123,
-	"endColumn": 14,
-	"modelVersionId": 5
+	"startLineNumber": 102,
+	"startColumn": 58,
+	"endLineNumber": 102,
+	"endColumn": 59,
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2584",
+	"code": "2695",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
+	"message": "Il lato sinistro dell'operatore virgola non è usato e non ha effetti collaterali.",
 	"source": "ts",
-	"startLineNumber": 124,
-	"startColumn": 7,
-	"endLineNumber": 124,
-	"endColumn": 14,
-	"modelVersionId": 5
+	"startLineNumber": 103,
+	"startColumn": 16,
+	"endLineNumber": 103,
+	"endColumn": 36,
+	"tags": [
+		1
+	],
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2584",
+	"code": "2304",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
+	"message": "Il nome 'length' non è stato trovato.",
 	"source": "ts",
-	"startLineNumber": 125,
-	"startColumn": 7,
-	"endLineNumber": 125,
-	"endColumn": 14,
-	"modelVersionId": 5
+	"startLineNumber": 103,
+	"startColumn": 38,
+	"endLineNumber": 103,
+	"endColumn": 44,
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2584",
+	"code": "1005",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
+	"message": "È previsto ';'.",
 	"source": "ts",
-	"startLineNumber": 126,
-	"startColumn": 7,
-	"endLineNumber": 126,
-	"endColumn": 14,
-	"modelVersionId": 5
+	"startLineNumber": 103,
+	"startColumn": 44,
+	"endLineNumber": 103,
+	"endColumn": 45,
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2584",
+	"code": "2695",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
+	"message": "Il lato sinistro dell'operatore virgola non è usato e non ha effetti collaterali.",
 	"source": "ts",
-	"startLineNumber": 127,
-	"startColumn": 7,
-	"endLineNumber": 127,
-	"endColumn": 14,
-	"modelVersionId": 5
+	"startLineNumber": 103,
+	"startColumn": 46,
+	"endLineNumber": 103,
+	"endColumn": 48,
+	"tags": [
+		1
+	],
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2584",
+	"code": "2304",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
+	"message": "Il nome 'start' non è stato trovato.",
 	"source": "ts",
-	"startLineNumber": 130,
-	"startColumn": 7,
-	"endLineNumber": 130,
-	"endColumn": 14,
-	"modelVersionId": 5
+	"startLineNumber": 103,
+	"startColumn": 50,
+	"endLineNumber": 103,
+	"endColumn": 55,
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2584",
+	"code": "1005",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
+	"message": "È previsto ';'.",
 	"source": "ts",
-	"startLineNumber": 131,
-	"startColumn": 7,
-	"endLineNumber": 131,
-	"endColumn": 14,
-	"modelVersionId": 5
+	"startLineNumber": 103,
+	"startColumn": 55,
+	"endLineNumber": 103,
+	"endColumn": 56,
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2584",
+	"code": "2695",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
+	"message": "Il lato sinistro dell'operatore virgola non è usato e non ha effetti collaterali.",
 	"source": "ts",
-	"startLineNumber": 139,
-	"startColumn": 7,
-	"endLineNumber": 139,
-	"endColumn": 14,
-	"modelVersionId": 5
+	"startLineNumber": 103,
+	"startColumn": 57,
+	"endLineNumber": 103,
+	"endColumn": 60,
+	"tags": [
+		1
+	],
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2584",
+	"code": "2304",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
+	"message": "Il nome 'end' non è stato trovato.",
 	"source": "ts",
-	"startLineNumber": 140,
-	"startColumn": 7,
-	"endLineNumber": 140,
-	"endColumn": 14,
-	"modelVersionId": 5
+	"startLineNumber": 103,
+	"startColumn": 62,
+	"endLineNumber": 103,
+	"endColumn": 65,
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2584",
+	"code": "1005",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
+	"message": "È previsto ';'.",
 	"source": "ts",
-	"startLineNumber": 141,
-	"startColumn": 7,
-	"endLineNumber": 141,
-	"endColumn": 14,
-	"modelVersionId": 5
+	"startLineNumber": 103,
+	"startColumn": 65,
+	"endLineNumber": 103,
+	"endColumn": 66,
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2584",
+	"code": "1128",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
+	"message": "È prevista la dichiarazione o l'istruzione.",
 	"source": "ts",
-	"startLineNumber": 142,
-	"startColumn": 7,
-	"endLineNumber": 142,
-	"endColumn": 14,
-	"modelVersionId": 5
+	"startLineNumber": 103,
+	"startColumn": 72,
+	"endLineNumber": 103,
+	"endColumn": 73,
+	"modelVersionId": 1
 },{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
+	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/acquisition/definitions/scrittureContabiliDefinitions.ts",
 	"owner": "typescript",
-	"code": "2584",
+	"code": "1128",
 	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
+	"message": "È prevista la dichiarazione o l'istruzione.",
 	"source": "ts",
-	"startLineNumber": 143,
-	"startColumn": 7,
-	"endLineNumber": 143,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 144,
-	"startColumn": 7,
-	"endLineNumber": 144,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 145,
-	"startColumn": 7,
-	"endLineNumber": 145,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 148,
-	"startColumn": 7,
-	"endLineNumber": 148,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 149,
-	"startColumn": 7,
-	"endLineNumber": 149,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 158,
-	"startColumn": 7,
-	"endLineNumber": 158,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 159,
-	"startColumn": 7,
-	"endLineNumber": 159,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 160,
-	"startColumn": 7,
-	"endLineNumber": 160,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 161,
-	"startColumn": 7,
-	"endLineNumber": 161,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 162,
-	"startColumn": 7,
-	"endLineNumber": 162,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 165,
-	"startColumn": 7,
-	"endLineNumber": 165,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 166,
-	"startColumn": 7,
-	"endLineNumber": 166,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 192,
-	"startColumn": 7,
-	"endLineNumber": 192,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 193,
-	"startColumn": 7,
-	"endLineNumber": 193,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 194,
-	"startColumn": 7,
-	"endLineNumber": 194,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 195,
-	"startColumn": 7,
-	"endLineNumber": 195,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 196,
-	"startColumn": 7,
-	"endLineNumber": 196,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 197,
-	"startColumn": 7,
-	"endLineNumber": 197,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 198,
-	"startColumn": 7,
-	"endLineNumber": 198,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 199,
-	"startColumn": 7,
-	"endLineNumber": 199,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 200,
-	"startColumn": 7,
-	"endLineNumber": 200,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 201,
-	"startColumn": 7,
-	"endLineNumber": 201,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 202,
-	"startColumn": 7,
-	"endLineNumber": 202,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 203,
-	"startColumn": 7,
-	"endLineNumber": 203,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 204,
-	"startColumn": 7,
-	"endLineNumber": 204,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 213,
-	"startColumn": 7,
-	"endLineNumber": 213,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 214,
-	"startColumn": 7,
-	"endLineNumber": 214,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 215,
-	"startColumn": 7,
-	"endLineNumber": 215,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 216,
-	"startColumn": 7,
-	"endLineNumber": 216,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 217,
-	"startColumn": 7,
-	"endLineNumber": 217,
-	"endColumn": 14,
-	"modelVersionId": 5
-},{
-	"resource": "/g:/HSC/Reale/commessa-control-hub/server/import-engine/orchestration/workflows/importScrittureContabiliWorkflow.ts",
-	"owner": "typescript",
-	"code": "2584",
-	"severity": 8,
-	"message": "Non è possibile trovare il nome 'console'. È necessario modificare la libreria di destinazione? Provare a modificare l'opzione 'lib' del compilatore in modo che includa 'dom'.",
-	"source": "ts",
-	"startLineNumber": 218,
-	"startColumn": 7,
-	"endLineNumber": 218,
-	"endColumn": 14,
-	"modelVersionId": 5
+	"startLineNumber": 104,
+	"startColumn": 1,
+	"endLineNumber": 104,
+	"endColumn": 2,
+	"modelVersionId": 1
 }]

@@ -58,8 +58,18 @@ const RECORD_VALIDATIONS: Record<string, RecordValidation> = {
   'condizioni_pagamento': { expectedLength: 68, required: true }
 };
 
-function getDefaultValue(): string {
-    return '';
+function getDefaultValue(type?: 'string' | 'number' | 'date' | 'boolean') {
+    switch (type) {
+        case 'number':
+            return 0;
+        case 'date':
+            return null;
+        case 'boolean':
+            return false;
+        case 'string':
+        default:
+            return '';
+    }
 }
 
 // === FASE 2.1: FALLBACK ENCODING ROBUSTO ===
@@ -184,6 +194,51 @@ async function processWithErrorHandling<T>(
 }
 
 /**
+ * Parser boolean flag (come in Python)
+ */
+function parseBooleanFlag(char: string): boolean {
+  return char.trim().toUpperCase() === 'X';
+}
+
+/**
+ * Parser decimal con gestione errori (migliorato)
+ */
+function parseDecimal(value: string, decimals: number = 2): number | null {
+  if (!value || value.trim() === '') return null;
+  
+  try {
+    const cleanValue = value.trim().replace(',', '.');
+    const numericValue = parseFloat(cleanValue);
+    
+    if (isNaN(numericValue)) return null;
+    
+    return decimals > 0 ? Math.round(numericValue * Math.pow(10, decimals)) / Math.pow(10, decimals) : numericValue;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Parser percentage (basato su logica parser Python)
+ * Converte stringhe come "002200" in 22 (percentuale)
+ */
+function parsePercentage(value: string): number | null {
+  if (!value || value.trim() === '') return null;
+  
+  try {
+    const cleanValue = value.trim();
+    const numericValue = parseInt(cleanValue, 10);
+    
+    if (isNaN(numericValue)) return null;
+    
+    // Dividi per 100 per convertire da formato "002200" a 22
+    return numericValue / 100;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Esegue il parsing di una stringa di testo a larghezza fissa.
  * VERSIONE LEGACY - mantenuta per compatibilità
  */
@@ -204,7 +259,7 @@ export function parseFixedWidth<T>(
       const startIndex = start - 1;
       
       if (startIndex < 0 || startIndex >= line.length) {
-        record[name] = getDefaultValue();
+        record[name] = getDefaultValue(type);
         continue;
       }
 
@@ -214,7 +269,38 @@ export function parseFixedWidth<T>(
         hasData = true;
       }
 
-      record[name] = rawValue;
+      try {
+        // Gestione formato percentage
+        if (format === 'percentage') {
+          record[name] = parsePercentage(rawValue);
+        } else if (format === 'boolean') {
+          record[name] = parseBooleanFlag(rawValue);
+        } else {
+          switch (type) {
+            case 'boolean':
+              record[name] = parseBooleanFlag(rawValue);
+              break;
+            case 'number':
+              record[name] = parseDecimal(rawValue);
+              break;
+            case 'date':
+              if (rawValue && rawValue !== '00000000') {
+                const parsedDate = moment(rawValue, 'DDMMYYYY', true);
+                record[name] = parsedDate.isValid() ? parsedDate.toDate() : null;
+              } else {
+                record[name] = null;
+              }
+              break;
+            case 'string':
+            default:
+              record[name] = rawValue;
+              break;
+          }
+        }
+      } catch (e) {
+        console.error(`[Parser] Errore nella conversione del campo '${name}' con valore "${rawValue}" per la riga ${index + 1}.`, e);
+        record[name] = getDefaultValue(type);
+      }
     }
 
     if (hasData) {
@@ -281,6 +367,7 @@ export async function parseFixedWidthRobust<T>(
         start: field.start,
         length: field.length,
         end: field.end, // Ensure 'end' is included
+        type: field.type as 'string' | 'number' | 'date' | 'boolean',
         format: field.format ? 
           (field.format as 'boolean' | 'percentage' | 'date:DDMMYYYY') : 
           undefined
@@ -298,12 +385,12 @@ export async function parseFixedWidthRobust<T>(
       let hasData = false;
 
       for (const def of actualDefinitions) {
-        const { fieldName, start, length, format } = def;
+        const { fieldName, start, length, type, format } = def;
         const name = fieldName ?? 'unknown'; // Fallback per il nome del campo
         const startIndex = start - 1;
         
         if (startIndex < 0 || startIndex >= line.length) {
-          record[name] = getDefaultValue();
+          record[name] = getDefaultValue(type);
           continue;
         }
 
@@ -313,7 +400,33 @@ export async function parseFixedWidthRobust<T>(
           hasData = true;
         }
 
-        record[name] = rawValue;
+        // Gestione formato percentage
+        if (format === 'percentage') {
+          record[name] = parsePercentage(rawValue);
+        } else if (format === 'boolean') {
+          record[name] = parseBooleanFlag(rawValue);
+        } else {
+          switch (type) {
+            case 'boolean':
+              record[name] = parseBooleanFlag(rawValue);
+              break;
+            case 'number':
+              record[name] = parseDecimal(rawValue);
+              break;
+            case 'date':
+              if (rawValue && rawValue !== '00000000') {
+                const parsedDate = moment(rawValue, 'DDMMYYYY', true);
+                record[name] = parsedDate.isValid() ? parsedDate.toDate() : null;
+              } else {
+                record[name] = null;
+              }
+              break;
+            case 'string':
+            default:
+              record[name] = rawValue;
+              break;
+          }
+        }
       }
 
       if (!hasData) {

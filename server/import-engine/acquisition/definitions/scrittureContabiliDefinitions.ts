@@ -75,7 +75,7 @@ export const pnRigConDefinitions: FieldDefinition[] = [
   { fieldName: 'dataRegistrazioneApertura', length: 8, start: 220, end: 227, type: 'string' },
   { fieldName: 'contoDaRilevareMovimento1', length: 10, start: 228, end: 237 },
   { fieldName: 'contoDaRilevareMovimento2', length: 10, start: 238, end: 247 },
-  { fieldName: 'insDatiMovimentiAnalitici', length: 1, start: 248, end: 248, type: 'boolean', format: 'boolean' },
+  { fieldName: 'insDatiMovimentiAnalitici', length: 1, start: 248, end: 248, type: 'string' },
   { fieldName: 'dataInizioCompetenzaAnalit', length: 8, start: 249, end: 256, type: 'string' },
   { fieldName: 'dataFineCompetenzaAnalit', length: 8, start: 257, end: 264, type: 'string' },
   { fieldName: 'insDatiStudiDiSettore', length: 1, start: 265, end: 265 },
@@ -96,8 +96,9 @@ export const pnRigIvaDefinitions: FieldDefinition[] = [
   { fieldName: 'imposta', length: 12, start: 45, end: 56, type: 'string' },
   { fieldName: 'impostaIntrattenimenti', length: 12, start: 57, end: 68, type: 'string' },
   { fieldName: 'imponibile50CorrNonCons', length: 12, start: 69, end: 80, type: 'string' },
+
   { fieldName: 'impostaNonConsiderata', length: 12, start: 81, end: 92, type: 'string' },
-  { fieldName: 'importoLordo', length: 12, start: 93, end: 104, type: 'string' },
+    { fieldName: 'importoLordo', length: 12, start: 93, end: 104, type: 'string' },
   { fieldName: 'note', length: 60, start: 105, end: 164 },
   { fieldName: 'siglaContropartita', length: 12, start: 165, end: 176 },
 ];

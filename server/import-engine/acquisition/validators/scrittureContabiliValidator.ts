@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import moment from 'moment';
 
 // =============================================================================
 // PARSER 6: SCRITTURE CONTABILI - VALIDATORI ZOD
@@ -17,55 +18,39 @@ import { z } from 'zod';
 // UTILITY DI VALIDAZIONE CONDIVISE
 // -----------------------------------------------------------------------------
 
-/**
- * Converte data GGMMAAAA in Date object
- * Gestisce valori nulli, vuoti e date non valide (00000000)
- */
 const dateTransform = z
   .string()
+  .nullable()
   .transform((val) => {
-    if (!val || val.trim() === '' || val.trim() === '00000000') {
-      return null;
-    }
-    
-    const cleaned = val.trim().padStart(8, '0');
-    if (cleaned.length !== 8) return null;
-    
-    const day = cleaned.substring(0, 2);
-    const month = cleaned.substring(2, 4);
-    const year = cleaned.substring(4, 8);
-    
-    const date = new Date(`${year}-${month}-${day}`);
-    return isNaN(date.getTime()) ? null : date;
-  })
-  .nullable();
+    if (!val || val.trim() === '00000000' || val.trim() === '') return null;
+    const parsedDate = moment(val, 'DDMMYYYY', true);
+    return parsedDate.isValid() ? parsedDate.toDate() : null;
+  });
 
-/**
- * Converte numeri con decimali impliciti (divide per 100)
- * Gestisce valori vuoti, null e non numerici
- * Accetta sia stringhe che numeri dal parsing
- */
 const currencyTransform = z
   .string()
   .nullable()
   .transform((val) => {
     if (!val || val.trim() === '') return 0;
-    const cleaned = val.trim();
-    if (cleaned.includes('.') || cleaned.includes(',')) {
-      const parsed = parseFloat(cleaned.replace(',', '.'));
-      return isNaN(parsed) ? 0 : parsed;
-    } else {
+    const cleaned = val.trim().replace(',', '.');
+    // Handle implicit decimals (e.g., "12345" -> 123.45)
+    if (!cleaned.includes('.')) {
       const parsed = parseInt(cleaned, 10);
       return isNaN(parsed) ? 0 : parsed / 100;
     }
+    const parsed = parseFloat(cleaned);
+    return isNaN(parsed) ? 0 : parsed;
   });
 
-/**
- * Converte flag '1'/'0' in boolean
- */
 const flagTransform = z
   .string()
-  .transform((val) => val?.trim() === '1');
+  .nullable()
+  .optional()
+  .transform((val) => {
+    if (!val) return false;
+    const trueValues = ['1', 's', 'y', 't'];
+    return trueValues.includes(val.trim().toLowerCase());
+  });
 
 // -----------------------------------------------------------------------------
 // VALIDATORI PER OGNI FILE
@@ -78,16 +63,27 @@ const flagTransform = z
 export const rawPnTestaSchema = z.object({
   externalId: z.string(),
   causaleId: z.string(),
-  dataRegistrazione: z.date().nullable(),
+  dataRegistrazione: z.string().nullable(),
   clienteFornitoreCodiceFiscale: z.string(),
-  dataDocumento: z.date().nullable(),
+  dataDocumento: z.string().nullable(),
   numeroDocumento: z.string(),
   totaleDocumento: z.string().nullable(),
   noteMovimento: z.string(),
+  dataRegistroIva: z.string().nullable(),
+  dataCompetenzaLiquidIva: z.string().nullable(),
+  dataCompetenzaContabile: z.string().nullable(),
+  dataPlafond: z.string().nullable(),
+  annoProRata: z.string().nullable(),
+  ritenute: z.string().nullable(),
+  enasarco: z.string().nullable(),
+  totaleInValuta: z.string().nullable(),
+  versamentoData: z.string().nullable(),
+  documentoDataPartita: z.string().nullable(),
+  documentoOperazione: z.string().nullable(),
 });
 
 export const validatedPnTestaSchema = z.object({
-  externalId: z.string().trim().min(1, "External ID richiesto"),
+  externalId: z.string().trim().min(1, 'External ID richiesto'),
   causaleId: z.string().trim(),
   dataRegistrazione: dateTransform,
   clienteFornitoreCodiceFiscale: z.string().trim().optional(),
@@ -95,7 +91,18 @@ export const validatedPnTestaSchema = z.object({
   numeroDocumento: z.string().trim().optional(),
   totaleDocumento: currencyTransform,
   noteMovimento: z.string().trim().optional(),
-});
+  dataRegistroIva: dateTransform,
+  dataCompetenzaLiquidIva: dateTransform,
+  dataCompetenzaContabile: dateTransform,
+  dataPlafond: dateTransform,
+  annoProRata: z.string().nullable(),
+  ritenute: currencyTransform,
+  enasarco: currencyTransform,
+  totaleInValuta: currencyTransform,
+  versamentoData: dateTransform,
+  documentoDataPartita: dateTransform,
+  documentoOperazione: dateTransform,
+}).passthrough();
 
 /**
  * PNRIGCON.TXT - Righe contabili
@@ -110,24 +117,24 @@ export const rawPnRigConSchema = z.object({
   importoDare: z.string().nullable(),
   importoAvere: z.string().nullable(),
   note: z.string(),
-  insDatiMovimentiAnalitici: z.boolean(),
-  dataInizioCompetenza: z.date().nullable(),
-  dataFineCompetenza: z.date().nullable(),
-  dataRegistrazioneApertura: z.date().nullable(),
-  dataInizioCompetenzaAnalit: z.date().nullable(),
-  dataFineCompetenzaAnalit: z.date().nullable(),
+  insDatiMovimentiAnalitici: z.string().nullable(),
+  dataInizioCompetenza: z.string().nullable(),
+  dataFineCompetenza: z.string().nullable(),
+  dataRegistrazioneApertura: z.string().nullable(),
+  dataInizioCompetenzaAnalit: z.string().nullable(),
+  dataFineCompetenzaAnalit: z.string().nullable(),
 });
 
 export const validatedPnRigConSchema = z.object({
-  externalId: z.string().trim().min(1, "External ID richiesto"),
-  progressivoRigo: z.coerce.number().int().min(0, "Progressivo deve essere >= 0").nullable().transform(val => val ?? 0),
+  externalId: z.string().trim().min(1, 'External ID richiesto'),
+  progressivoRigo: z.string().nullable().transform((val) => val ?? '0'),
   tipoConto: z.string().trim().optional(),
   clienteFornitoreCodiceFiscale: z.string().trim().optional(),
   conto: z.string().trim().optional(),
   importoDare: currencyTransform,
   importoAvere: currencyTransform,
   note: z.string().trim().optional(),
-  insDatiMovimentiAnalitici: z.boolean().optional(),
+  insDatiMovimentiAnalitici: flagTransform,
 });
 
 /**
@@ -142,10 +149,11 @@ export const rawPnRigIvaSchema = z.object({
   imposta: z.string().nullable(),
   importoLordo: z.string().nullable(),
   note: z.string(),
+  riga: z.string().nullable(),
 });
 
 export const validatedPnRigIvaSchema = z.object({
-  externalId: z.string().trim().min(1, "External ID richiesto"),
+  externalId: z.string().trim().min(1, 'External ID richiesto'),
   riga: z.string().trim(),
   codiceIva: z.string().trim().optional(),
   contropartita: z.string().trim().optional(),
@@ -164,12 +172,11 @@ export const rawMovAnacSchema = z.object({
   progressivoRigoContabile: z.string().nullable(),
   centroDiCosto: z.string(),
   parametro: z.string().nullable(),
-  documentoOperazione: z.date().nullable(),
 });
 
 export const validatedMovAnacSchema = z.object({
-  externalId: z.string().trim().min(1, "External ID richiesto"),
-  progressivoRigoContabile: z.coerce.number().int().min(0, "Progressivo riga deve essere >= 0").nullable().transform(val => val ?? 0),
+  externalId: z.string().trim().min(1, 'External ID richiesto'),
+  progressivoRigoContabile: z.string().nullable().transform((val) => val ?? '0'),
   centroDiCosto: z.string().trim().optional(),
   parametro: currencyTransform,
 });
