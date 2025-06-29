@@ -156,18 +156,21 @@ export async function executeAnagraficheImportWorkflow(
       console.log('🗑️  Eliminazione dati esistenti...');
       
       // L'ordine di eliminazione è FONDAMENTALE per rispettare i vincoli di Foreign Key.
-      // 1. Eliminiamo le tabelle che dipendono da Cliente e Fornitore.
-      const deletedCommesse = await tx.commessa.deleteMany({});
-      const deletedScritture = await tx.scritturaContabile.deleteMany({}); // Questo gestisce a cascata le righe di scrittura
-
-      // 2. Ora possiamo eliminare Clienti e Fornitori in sicurezza.
-      const deletedClienti = await tx.cliente.deleteMany({});
-      const deletedFornitori = await tx.fornitore.deleteMany({});
+      // Si parte dalle tabelle "figlio" per risalire ai "padri".
       
-      console.log(`   - Commesse eliminate: ${deletedCommesse.count}`);
-      console.log(`   - Scritture contabili eliminate: ${deletedScritture.count}`);
-      console.log(`   - Clienti eliminati: ${deletedClienti.count}`);
-      console.log(`   - Fornitori eliminati: ${deletedFornitori.count}`);
+      // 1. Eliminare le tabelle che hanno dipendenze multiple (join tables)
+      await tx.allocazione.deleteMany({});
+      await tx.rigaIva.deleteMany({});
+      
+      // 2. Eliminare le tabelle che dipendono da Cliente/Fornitore ma sono "padri" di altre
+      await tx.scritturaContabile.deleteMany({}); // Questo elimina a cascata RigaScrittura
+      await tx.commessa.deleteMany({});
+
+      // 3. Ora possiamo eliminare Clienti e Fornitori in sicurezza.
+      await tx.cliente.deleteMany({});
+      await tx.fornitore.deleteMany({});
+      
+      console.log(`   - Dati precedenti eliminati con successo.`);
       
       // Salvataggio Clienti
       if (transformResult.clienti.length > 0) {
