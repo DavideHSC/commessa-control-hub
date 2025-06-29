@@ -36,9 +36,9 @@ export async function importCodiceIvaWorkflow(
   // 1. Parsing
   const rawRecords = parseFixedWidth<RawCodiceIva>(fileContent, parserFields);
   
-  let insertedCount = 0;
-  let updatedCount = 0;
-  const errorLogs: any[] = []; // Placeholder for DLQ
+  const insertedCount = 0;
+  const updatedCount = 0;
+  const errorLogs: Array<{ lineNumber: number; rawData: RawCodiceIva; errors: z.ZodError<RawCodiceIva>; }> = []; // Placeholder for DLQ
 
   // 2. Validation & Coercion
   const validationPromises = rawRecords.map(async (rawRecord, index) => {
@@ -85,7 +85,7 @@ export async function importCodiceIvaWorkflow(
             updatedCount++; 
         }
     });
-  } catch(e) {
+  } catch(e: unknown) {
       // TODO: proper error handling
       console.error(e);
       throw new Error("Failed to persist data during transaction.");

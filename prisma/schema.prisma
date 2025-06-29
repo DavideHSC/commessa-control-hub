@@ -482,6 +482,7 @@ model FieldDefinition {
   id             String         @id @default(cuid())
   start          Int
   length         Int
+  end            Int
   templateId     String
   fileIdentifier String?
   fieldName      String?

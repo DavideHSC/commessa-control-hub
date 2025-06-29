@@ -12,7 +12,7 @@ interface WorkflowResult {
   totalRecords: number;
   successfulRecords: number;
   errorRecords: number;
-  errors: { row: number; message: string; data: any }[];
+  errors: { row: number; message: string; data: unknown }[];
 }
 
 /**

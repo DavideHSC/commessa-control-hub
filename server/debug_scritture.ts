@@ -28,9 +28,10 @@ async function debugScritture() {
           acc[field.fileIdentifier] = [];
         }
         acc[field.fileIdentifier].push({
-          name: field.fieldName || '',
+          fieldName: field.fieldName || '',
           start: field.start,
           length: field.length,
+          end: field.start + field.length - 1,
           type: (field.format || 'string') as 'string' | 'number' | 'date',
         });
       }

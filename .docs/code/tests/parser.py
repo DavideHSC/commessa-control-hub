@@ -1,5 +1,5 @@
 import os
-import pandas as pd
+# import pandas as pd  # Temporaneamente commentato per il debug
 from datetime import datetime
 
 # LAYOUT CORRETTI - Tutti verificati sui dati reali
@@ -28,7 +28,8 @@ PNTESTA_LAYOUT = {
     'TOTALE_DOC': (172, 184),           # pos 173-184 -> indici 172-184
     'DATA_COMPETENZA_CONT': (184, 192), # pos 185-192 -> indici 184-192
     'NOTE_MOVIMENTO': (192, 252),       # pos 193-252 -> indici 192-252
-    'STATO': (340, 341)                 # pos 341 -> indice 340-341
+    'STATO': (340, 341),                # pos 341 -> indice 340-341
+    'PARAMETRO': (22, 34)               # pos 23-34 -> indici 22-34 ✓ CORRETTO
 }
 
 PNRIGCON_LAYOUT = {
@@ -276,99 +277,8 @@ def process_files_robust():
 
 def export_to_excel(data_correlati, filename="report_contabile_definitivo.xlsx"):
     """Esporta i dati in Excel con formattazione migliorata"""
-    if not data_correlati:
-        print("[AVVISO] Nessun dato da esportare")
-        return
-
-    excel_data = []
-    
-    for code, data in data_correlati.items():
-        testata = data.get('testata', {})
-        
-        # Informazioni base dalla testata
-        base_info = {
-            'Codice Univoco': code,
-            'Codice Fiscale': testata.get('CODICE_FISCALE', ''),
-            'Data Registrazione': testata.get('DATA_REG', ''),
-            'Descrizione Causale': testata.get('DESCRIZIONE_CAUSALE', ''),
-            'Data Documento': testata.get('DATA_DOC', ''),
-            'Numero Documento': testata.get('NUM_DOC', ''),
-            'Totale Documento': testata.get('TOTALE_DOC', ''),
-            'Cliente/Fornitore CF': testata.get('CLIENTE_FORNITORE_CF', ''),
-            'Cliente/Fornitore Sigla': testata.get('CLIENTE_FORNITORE_SIGLA', ''),
-            'Codice Causale': testata.get('CODICE_CAUSALE', ''),
-            'Tipo Registro IVA': testata.get('TIPO_REGISTRO_IVA', ''),
-            'Stato': testata.get('STATO', '')
-        }
-        
-        has_details = (len(data.get('righe_contabili', [])) > 0 or 
-                      len(data.get('righe_iva', [])) > 0)
-
-        if not has_details:
-            row = base_info.copy()
-            row['Tipo Riga'] = 'Solo Testata'
-            excel_data.append(row)
-            continue
-        
-        # Aggiungi righe contabili
-        for riga_con in data.get('righe_contabili', []):
-            row = base_info.copy()
-            row.update({
-                'Tipo Riga': 'Contabile',
-                'Prog. Rigo': riga_con.get('PROG_RIGO', ''),
-                'Tipo Conto': riga_con.get('TIPO_CONTO', ''),
-                'Conto': riga_con.get('CONTO', ''),
-                'CLI/FOR CF Riga': riga_con.get('CLI_FOR_CF', ''),
-                'CLI/FOR Sigla Riga': riga_con.get('CLI_FOR_SIGLA', ''),
-                'Importo Dare': riga_con.get('IMPORTO_DARE', ''),
-                'Importo Avere': riga_con.get('IMPORTO_AVERE', ''),
-                'Note Riga': riga_con.get('NOTE', ''),
-                'Centri di Costo': " | ".join([
-                    f"CC:{m.get('CENTRO_COSTO', '')},Param:{m.get('PARAMETRO', '')}" 
-                    for m in riga_con.get('mov_analitici', [])
-                ])
-            })
-            excel_data.append(row)
-        
-        # Aggiungi righe IVA
-        for riga_iva in data.get('righe_iva', []):
-            row = base_info.copy()
-            row.update({
-                'Tipo Riga': 'IVA',
-                'Codice IVA': riga_iva.get('CODICE_IVA', ''),
-                'Contropartita IVA': riga_iva.get('CONTROPARTITA', ''),
-                'Sigla Contropartita': riga_iva.get('SIGLA_CONTROPARTITA', ''),
-                'Imponibile': riga_iva.get('IMPONIBILE', ''),
-                'Imposta': riga_iva.get('IMPOSTA', ''),
-                'Imposta Intrattenimenti': riga_iva.get('IMPOSTA_INTRATTENIMENTI', ''),
-                'Importo Lordo IVA': riga_iva.get('IMPORTO_LORDO', ''),
-                'Note IVA': riga_iva.get('NOTE', '')
-            })
-            excel_data.append(row)
-
-    try:
-        df = pd.DataFrame(excel_data)
-        df.to_excel(filename, index=False, engine='openpyxl')
-        print(f"\n✅ ESPORTAZIONE COMPLETATA CON SUCCESSO!")
-        print(f"📁 File creato: {filename}")
-        print(f"📊 Righe esportate: {len(excel_data)}")
-        print(f"🏢 Transazioni elaborate: {len(data_correlati)}")
-        
-        # Statistiche dettagliate
-        solo_testata = len([r for r in excel_data if r.get('Tipo Riga') == 'Solo Testata'])
-        righe_contabili = len([r for r in excel_data if r.get('Tipo Riga') == 'Contabile'])
-        righe_iva = len([r for r in excel_data if r.get('Tipo Riga') == 'IVA'])
-        
-        print(f"📈 Dettaglio:")
-        print(f"   - Solo Testata: {solo_testata}")
-        print(f"   - Righe Contabili: {righe_contabili}")
-        print(f"   - Righe IVA: {righe_iva}")
-        
-    except PermissionError:
-        print(f"\n✗ ERRORE: Impossibile scrivere '{filename}'")
-        print("  Il file potrebbe essere aperto in Excel. Chiuderlo e riprovare.")
-    except Exception as e:
-        print(f"\n✗ ERRORE durante la creazione del file Excel: {e}")
+    print("\n[DEBUG] Esportazione Excel saltata (dipendenza pandas rimossa per debug).")
+    pass
 
 def print_summary(data_correlati):
     """Stampa un riepilogo dei dati elaborati"""
@@ -410,19 +320,53 @@ def print_summary(data_correlati):
         righe_iva = len(data.get('righe_iva', []))
         print(f"   {i+1}. {code} - {testata.get('DESCRIZIONE_CAUSALE', 'N/A')[:30]} - RC:{righe_cont} - RI:{righe_iva}")
 
+def debug_golden_record_to_file():
+    """Genera un file 'golden_record.txt' con l'output di debug per TUTTI E 4 I FILE."""
+    output_filename = os.path.join(os.path.dirname(__file__), "golden_record.txt")
+    
+    with open(output_filename, "w", encoding="utf-8") as f:
+        f.write("🔬 GOLDEN RECORD DEBUG - PARSER PYTHON (4 FILE)\\n")
+        f.write("=" * 60 + "\\n")
+        
+        sample_pntesta_line = "000123456789012345X123456789012345ABCAAA2025CAUS01CAUSALE DI TEST MOLTO LUNGA    2512202502AACAU0123456789ABCDEF123456789012SIGLA_TEST  2412202412345       D2412202412345 D2412202410000240000002412202412345678901234567890123456789012345678901234567890123456789012340000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        sample_pnrigcon_line = "000123456789012001C123456789ABCDEF 123456789  1234567890  12345678900120000012345678901234567890123456789012345678901234567890000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001                                                                                                                                                             0"
+        sample_pnrigiva_line = "000123456789012IV01CONTROP123  12345678901 12345678901 12345678901 12345678901 12345678901 12345678901 12345678901 NOTE RIGA IVA 12345678901234567890123456789012345678901234567890123456789 SIGLA_CTR123"
+        sample_movanac_line = "000123456789012001CC01123456789012"
+        
+        layouts = {
+            "PNTESTA.TXT": (PNTESTA_LAYOUT, sample_pntesta_line),
+            "PNRIGCON.TXT": (PNRIGCON_LAYOUT, sample_pnrigcon_line),
+            "PNRIGIVA.TXT": (PNRIGIVA_LAYOUT, sample_pnrigiva_line),
+            "MOVANAC.TXT": (MOVANAC_LAYOUT, sample_movanac_line)
+        }
+
+        for filename, (layout, line) in layouts.items():
+            f.write(f"\\n🔍 FILE: {filename}:\\n")
+            f.write(f"   📏 Lunghezza linea test: {len(line)} bytes\\n")
+            record = parse_line(line, layout)
+            for field, value in record.items():
+                f.write(f"   {field:25} = '{value}'\\n")
+                
+        f.write("\\n" + "=" * 60 + "\\n")
+        f.write("✅ Golden Record COMPLETO generato per tutti i 4 file.\\n")
+
+    print(f"✅ Golden Record scritto nel file: {os.path.abspath(output_filename)}")
+
 # --- ESECUZIONE PRINCIPALE ---
 if __name__ == "__main__":
-    print("🚀 PARSER CONTABILITA' EVOLUTION - VERSIONE DEFINITIVA")
+    print("🚀 PARSER CONTABILITA' EVOLUTION - MODALITA' DEBUG")
     print("=" * 60)
     
-    dati_contabili = process_files_robust()
+    debug_golden_record_to_file()
     
-    if dati_contabili:
-        print_summary(dati_contabili)
-        print("\n" + "=" * 60)
-        print("📊 Esportazione in Excel...")
-        export_to_excel(dati_contabili)
-        print("🎉 ELABORAZIONE COMPLETATA!")
-    else:
-        print("\n❌ Elaborazione terminata senza risultati.")
-        print("Verificare che i file siano presenti nella cartella 'dati'")
+    # L'esecuzione reale viene saltata durante il debug
+    # print("\\n--- ESECUZIONE REALE DISABILITATA ---")
+    # dati_contabili = process_files_robust()
+    # 
+    # if dati_contabili:
+    #     print_summary(dati_contabili)
+    #     export_to_excel(dati_contabili)
+    #     print("🎉 ELABORAZIONE COMPLETATA!")
+    # else:
+    #     print("\n❌ Elaborazione terminata senza risultati.")
+    #     print("Verificare che i file siano presenti nella cartella 'dati'")

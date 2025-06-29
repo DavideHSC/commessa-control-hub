@@ -222,8 +222,13 @@ function createClienteInput(transformed: TransformedAnagrafica): Prisma.ClienteC
     codiceAnagrafica: transformed.codiceAnagrafica,
     
     // === CORREZIONE ===
-    // 'nome' è obbligatorio (String) nello schema, usiamo 'nomeCompleto' che è sempre valorizzato.
-    nome: transformed.nomeCompleto,
+    // Se è persona fisica, usa il nome completo (es. "Mario Rossi")
+    // Altrimenti, se è società/ente, usa la denominazione (es. "CARM SNC")
+    // Se entrambi sono vuoti, usa un placeholder per rispettare l'obbligatorietà del campo.
+    nome: transformed.isPersonaFisica
+      ? transformed.nomeCompleto
+      : transformed.denominazione || 'Soggetto senza nome',
+      
     // 'denominazione' è opzionale (String?), usiamo il valore originale.
     denominazione: transformed.denominazione || null,
     
@@ -277,8 +282,13 @@ function createFornitoreInput(transformed: TransformedAnagrafica): Prisma.Fornit
     codiceAnagrafica: transformed.codiceAnagrafica,
     
     // === CORREZIONE ===
-    // 'nome' è obbligatorio (String) nello schema, usiamo 'nomeCompleto' che è sempre valorizzato.
-    nome: transformed.nomeCompleto,
+    // Se è persona fisica, usa il nome completo (es. "Mario Rossi")
+    // Altrimenti, se è società/ente, usa la denominazione (es. "CARM SNC")
+    // Se entrambi sono vuoti, usa un placeholder per rispettare l'obbligatorietà del campo.
+    nome: transformed.isPersonaFisica
+      ? transformed.nomeCompleto
+      : transformed.denominazione || 'Soggetto senza nome',
+      
     // 'denominazione' è opzionale (String?), usiamo il valore originale.
     denominazione: transformed.denominazione || null,
     

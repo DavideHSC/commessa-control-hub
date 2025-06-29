@@ -27,6 +27,13 @@ import reconciliationRoutes from './routes/reconciliation';
 // Import delle nuove rotte V2
 import importRouterV2 from './routes/v2/import';
 
+// Imports for temporary test route
+import { ImportScrittureContabiliWorkflow } from './import-engine/orchestration/workflows/importScrittureContabiliWorkflow';
+import { DLQService } from './import-engine/persistence/dlq/DLQService';
+import { TelemetryService } from './import-engine/core/telemetry/TelemetryService';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+
 const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 3001;
@@ -61,6 +68,44 @@ app.use('/api/v2/import', importRouterV2);
 // Endpoint di base per testare il server
 app.get('/api', (req: Request, res: Response) => {
   res.json({ message: 'Commessa Control Hub API' });
+});
+
+// Temporary test route for ImportScrittureContabiliWorkflow
+app.get('/test-import-scritture', async (req: Request, res: Response) => {
+  console.log(`
+--- Starting ImportScrittureContabiliWorkflow Test ---`);
+  const dlqService = new DLQService(prisma);
+  const telemetryService = new TelemetryService(prisma);
+  const workflow = new ImportScrittureContabiliWorkflow(prisma, dlqService, telemetryService);
+
+  const dataPath = 'G:/HSC/Reale/commessa-control-hub/.docs/dati_cliente/prima_nota/';
+  const pnTestaPath = path.join(dataPath, 'PNTESTA.TXT');
+  const pnRigConPath = path.join(dataPath, 'PNRIGCON.TXT');
+  const pnRigIvaPath = path.join(dataPath, 'PNRIGIVA.TXT');
+  const movAnacPath = path.join(dataPath, 'MOVANAC.TXT');
+
+  try {
+    const pnTestaContent = await fs.readFile(pnTestaPath);
+    const pnRigConContent = await fs.readFile(pnRigConPath);
+    const pnRigIvaContent = await fs.readFile(pnRigIvaPath);
+    const movAnacContent = await fs.readFile(movAnacPath);
+
+    const files = {
+      pnTesta: pnTestaContent,
+      pnRigCon: pnRigConContent,
+      pnRigIva: pnRigIvaContent,
+      movAnac: movAnacContent,
+    };
+
+    const result = await workflow.execute(files);
+    console.log('ImportScrittureContabiliWorkflow Test Result:', JSON.stringify(result, null, 2));
+    res.json({ message: 'Test completed', result });
+  } catch (error) {
+    console.error('ImportScrittureContabiliWorkflow Test Failed:', error);
+    res.status(500).json({ message: 'Test failed', error: error instanceof Error ? error.message : String(error) });
+  }
+  console.log(`--- Finished ImportScrittureContabiliWorkflow Test ---
+`);
 });
 
 // Gestione errori globale (esempio base)

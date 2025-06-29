@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Parser per CODICIVA.TXT - Codici IVA - VERSIONE DEBUG
+Parser per CODICIVA.TXT - Codici IVA
 Contabilità Evolution - File ASCII lunghezza fissa 164 bytes (162 + CRLF)
 
 Struttura record:
@@ -47,6 +47,7 @@ Struttura record:
 - CRLF: pos 163-164 (2 caratteri)
 """
 
+import pandas as pd
 import os
 from datetime import datetime
 import logging
@@ -56,6 +57,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
+        logging.FileHandler('codiciva_parser.log', encoding='utf-8'),
         logging.StreamHandler()
     ]
 )
@@ -106,20 +108,154 @@ def parse_integer(value_str):
     except ValueError:
         return None
 
+def decode_tipo_calcolo(code):
+    """Decodifica tipo calcolo"""
+    mapping = {
+        'N': 'Nessuno',
+        'O': 'Normale',
+        'A': 'Solo imposta',
+        'I': 'Imposta non assolta',
+        'S': 'Scorporo',
+        'T': 'Scorporo per intrattenimento',
+        'E': 'Esente/Non imponibile/Escluso',
+        'V': 'Ventilazione corrispettivi',
+        '': 'Non specificato'
+    }
+    return mapping.get(code.strip(), f'Codice sconosciuto: {code}')
+
+def decode_plafond_acquisti(code):
+    """Decodifica plafond acquisti"""
+    mapping = {
+        'I': 'Interno/Intra',
+        'E': 'Importazioni',
+        '': 'Non applicabile'
+    }
+    return mapping.get(code.strip(), f'Codice sconosciuto: {code}')
+
+def decode_plafond_vendite(code):
+    """Decodifica plafond vendite"""
+    mapping = {
+        'E': 'Esportazioni',
+        '': 'Non applicabile'
+    }
+    return mapping.get(code.strip(), f'Codice sconosciuto: {code}')
+
+def decode_gestione_pro_rata(code):
+    """Decodifica gestione pro rata"""
+    mapping = {
+        'D': "Volume d'affari",
+        'E': 'Esente',
+        'N': 'Escluso',
+        '': 'Non specificato'
+    }
+    return mapping.get(code.strip(), f'Codice sconosciuto: {code}')
+
+def decode_comunicazione_vendite(code):
+    """Decodifica comunicazione dati IVA vendite"""
+    mapping = {
+        '1': 'Op.Attive CD1.1',
+        '2': 'Op.Attive (di cui intra) CD1.4',
+        '3': 'Op.Attive (di cui non impon.) CD1.2',
+        '4': 'Op.Attive (di cui esenti) CD1.3',
+        '': 'Non applicabile'
+    }
+    return mapping.get(code.strip(), f'Codice sconosciuto: {code}')
+
+def decode_comunicazione_acquisti(code):
+    """Decodifica comunicazione dati IVA acquisti"""
+    mapping = {
+        '1': 'Op.Passive CD2.1',
+        '2': 'Op.Passive (di cui intra) CD2.4',
+        '3': 'Importazioni oro/argento CD3.1 CD3.2',
+        '4': 'Op.Passive (di cui non impon.) CD2.2',
+        '5': 'Op.Passive (di cui esenti) CD2.3',
+        '6': 'Importazioni rottami CD3.3 CD3.4',
+        '': 'Non applicabile'
+    }
+    return mapping.get(code.strip(), f'Codice sconosciuto: {code}')
+
+def decode_acquisti_cessioni(code):
+    """Decodifica acquisti/cessioni"""
+    mapping = {
+        'A': 'Tabella A1',
+        'B': 'Beni Attività connesse',
+        '': 'Non applicabile'
+    }
+    return mapping.get(code.strip(), f'Codice sconosciuto: {code}')
+
+def decode_indicatore_territoriale_vendite(code):
+    """Decodifica indicatore territoriale vendite"""
+    mapping = {
+        'VC': 'Vendita CEE',
+        'VX': 'Vendita Extra CEE',
+        'VM': 'Vendita Mista CEE/Extra CEE',
+        '': 'Non applicabile'
+    }
+    return mapping.get(code.strip(), f'Codice sconosciuto: {code}')
+
+def decode_indicatore_territoriale_acquisti(code):
+    """Decodifica indicatore territoriale acquisti"""
+    mapping = {
+        'AC': 'Acquisto CEE',
+        'AX': 'Acquisto Extra CEE',
+        'MC': 'Acquisto misto parte CEE',
+        'MX': 'Acquisto misto parte Extra CEE',
+        '': 'Non applicabile'
+    }
+    return mapping.get(code.strip(), f'Codice sconosciuto: {code}')
+
+def decode_metodo_applicare(code):
+    """Decodifica metodo da applicare"""
+    mapping = {
+        'T': 'Analitico/Globale',
+        'F': 'Forfetario',
+        '': 'Non applicabile'
+    }
+    return mapping.get(code.strip(), f'Codice sconosciuto: {code}')
+
+def decode_percentuale_forfetaria(code):
+    """Decodifica percentuale forfetaria"""
+    mapping = {
+        '25': '25%',
+        '50': '50%',
+        '60': '60%',
+        '': 'Non applicabile'
+    }
+    return mapping.get(code.strip(), f'Codice sconosciuto: {code}')
+
+def decode_quota_forfetaria(code):
+    """Decodifica quota forfetaria"""
+    mapping = {
+        '1': "1/10 dell'imposta",
+        '2': "1/2 dell'imposta",
+        '3': "1/3 dell'imposta",
+        '': 'Non applicabile'
+    }
+    return mapping.get(code.strip(), f'Codice sconosciuto: {code}')
+
+def decode_imposta_intrattenimenti(code):
+    """Decodifica imposta intrattenimenti"""
+    mapping = {
+        '6': '6%',
+        '8': '8%',
+        '10': '10%',
+        '16': '16%',
+        '60': '60%',
+        '': 'Non applicabile'
+    }
+    return mapping.get(code.strip(), f'Codice sconosciuto: {code}')
+
 def parse_boolean_flag(char):
     """Converte carattere in boolean (X = True, altro = False)"""
     return char.strip().upper() == 'X'
 
-def parse_codiciva_file_debug(file_path, max_records=10):
+def parse_codiciva_file(file_path):
     """
-    Parsing del file CODICIVA.TXT - VERSIONE DEBUG
+    Parsing del file CODICIVA.TXT
     """
     codici_iva_data = []
     total_records = 0
     error_records = 0
-    
-    print(f"\n🔍 DEBUG: Inizio parsing file {file_path}")
-    print("="*80)
     
     # Prova diversi encoding
     encodings = ['utf-8', 'latin1', 'cp1252']
@@ -127,123 +263,220 @@ def parse_codiciva_file_debug(file_path, max_records=10):
     for encoding in encodings:
         try:
             with open(file_path, 'r', encoding=encoding) as file:
-                print(f"✅ File aperto con encoding: {encoding}")
+                logging.info(f"File aperto con encoding: {encoding}")
                 
                 for line_num, line in enumerate(file, 1):
                     total_records += 1
                     
-                    # Limita output per debug
-                    if len(codici_iva_data) >= max_records:
-                        break
-                    
                     try:
                         # Rimuovi CRLF finale se presente
-                        original_line = line
                         if line.endswith('\r\n'):
                             line = line[:-2]
                         elif line.endswith('\n'):
                             line = line[:-1]
                         
-                        # Debug: mostra riga grezza
-                        print(f"\n📝 RIGA {line_num} (lunghezza: {len(line)}):")
-                        print(f"RAW: '{line}'")
-                        
                         # Verifica lunghezza minima
                         if len(line) < 162:
-                            print(f"⚠️  Riga troppo corta ({len(line)} < 162)")
+                            logging.warning(f"Riga {line_num}: lunghezza insufficiente ({len(line)} < 162)")
                             continue
-                        
-                        # Debug: estrazione campi chiave
-                        print(f"\n🔬 ESTRAZIONE CAMPI:")
-                        codice_raw = line[4:8]
-                        descrizione_raw = line[8:48]
-                        tipo_calcolo_raw = line[48:49]
-                        aliquota_raw = line[49:55]
-                        
-                        print(f"  Codice [4:8]:      '{codice_raw}' -> '{codice_raw.strip()}'")
-                        print(f"  Descrizione [8:48]: '{descrizione_raw}' -> '{descrizione_raw.strip()}'")
-                        print(f"  Tipo Calc [48:49]:  '{tipo_calcolo_raw}' -> '{tipo_calcolo_raw.strip()}'")
-                        print(f"  Aliquota [49:55]:   '{aliquota_raw}' -> {parse_decimal(aliquota_raw)}")
-                        
-                        # Estrazione completa
+                            
+                        # Estrazione campi (posizioni 1-based convertite in 0-based)
+                        # Saltiamo FILLER (pos 1-3) e TABELLA_ITALSTUDIO (pos 4)
                         record = {
                             'codice_iva': line[4:8].strip(),
                             'descrizione': line[8:48].strip(),
                             'tipo_calcolo': line[48:49].strip(),
+                            'tipo_calcolo_desc': decode_tipo_calcolo(line[48:49]),
                             'aliquota_iva': parse_decimal(line[49:55]),
                             'percentuale_indetraibilita': parse_integer(line[55:58]),
                             'note': line[58:98].strip(),
                             'data_inizio_validita': parse_date(line[98:106]),
                             'data_fine_validita': parse_date(line[106:114]),
+                            'imponibile_50_corrispettivi': parse_boolean_flag(line[114:115]),
+                            'imposta_intrattenimenti': line[115:117].strip(),
+                            'imposta_intrattenimenti_desc': decode_imposta_intrattenimenti(line[115:117]),
+                            'ventilazione_aliquota_diversa': parse_boolean_flag(line[117:118]),
+                            'aliquota_diversa': parse_decimal(line[118:124]),
+                            'plafond_acquisti': line[124:125].strip(),
+                            'plafond_acquisti_desc': decode_plafond_acquisti(line[124:125]),
+                            'monte_acquisti': parse_boolean_flag(line[125:126]),
+                            'plafond_vendite': line[126:127].strip(),
+                            'plafond_vendite_desc': decode_plafond_vendite(line[126:127]),
+                            'no_volume_affari_plafond': parse_boolean_flag(line[127:128]),
+                            'gestione_pro_rata': line[128:129].strip(),
+                            'gestione_pro_rata_desc': decode_gestione_pro_rata(line[128:129]),
+                            'acq_operaz_imponibili_occasionali': parse_boolean_flag(line[129:130]),
+                            'comunicazione_dati_iva_vendite': line[130:131].strip(),
+                            'comunicazione_dati_iva_vendite_desc': decode_comunicazione_vendite(line[130:131]),
+                            'agevolazioni_subforniture': parse_boolean_flag(line[131:132]),
+                            'comunicazione_dati_iva_acquisti': line[132:133].strip(),
+                            'comunicazione_dati_iva_acquisti_desc': decode_comunicazione_acquisti(line[132:133]),
+                            'autofattura_reverse_charge': parse_boolean_flag(line[133:134]),
+                            'operazione_esente_occasionale': parse_boolean_flag(line[134:135]),
+                            'ces_art38_quater_storno_iva': parse_boolean_flag(line[135:136]),
+                            'perc_detrarre_export': parse_decimal(line[136:142]),
+                            'acquisti_cessioni': line[142:143].strip(),
+                            'acquisti_cessioni_desc': decode_acquisti_cessioni(line[142:143]),
+                            'percentuale_compensazione': parse_decimal(line[143:149]),
+                            'beni_ammortizzabili': parse_boolean_flag(line[149:150]),
+                            'indicatore_territoriale_vendite': line[150:152].strip(),
+                            'indicatore_territoriale_vendite_desc': decode_indicatore_territoriale_vendite(line[150:152]),
+                            'provvigioni_dm340_99': parse_boolean_flag(line[152:153]),
+                            'indicatore_territoriale_acquisti': line[153:155].strip(),
+                            'indicatore_territoriale_acquisti_desc': decode_indicatore_territoriale_acquisti(line[153:155]),
+                            'metodo_da_applicare': line[155:156].strip(),
+                            'metodo_da_applicare_desc': decode_metodo_applicare(line[155:156]),
+                            'percentuale_forfetaria': line[156:158].strip(),
+                            'percentuale_forfetaria_desc': decode_percentuale_forfetaria(line[156:158]),
+                            'analitico_beni_ammortizzabili': parse_boolean_flag(line[158:159]),
+                            'quota_forfetaria': line[159:160].strip(),
+                            'quota_forfetaria_desc': decode_quota_forfetaria(line[159:160]),
+                            'acquisti_intracomunitari': parse_boolean_flag(line[160:161]),
+                            'cessione_prodotti_editoriali': parse_boolean_flag(line[161:162]) if len(line) > 161 else False
                         }
                         
-                        print(f"\n📊 RECORD FINALE:")
-                        for key, value in record.items():
-                            print(f"  {key}: {value} ({type(value).__name__})")
-                        
                         codici_iva_data.append(record)
-                        print(f"✅ Record {len(codici_iva_data)} aggiunto")
+                        
+                        # Log ogni 100 record
+                        if len(codici_iva_data) % 100 == 0:
+                            logging.info(f"Elaborati {len(codici_iva_data)} record...")
                             
                     except Exception as e:
                         error_records += 1
-                        print(f"❌ Errore riga {line_num}: {e}")
+                        logging.error(f"Errore elaborazione riga {line_num}: {e}")
                         continue
                 
                 break  # Se arriviamo qui, l'encoding ha funzionato
                 
         except UnicodeDecodeError:
-            print(f"⚠️  Encoding {encoding} fallito, provo il prossimo...")
+            logging.warning(f"Encoding {encoding} fallito, provo il prossimo...")
             continue
         except FileNotFoundError:
-            print(f"❌ File non trovato: {file_path}")
+            logging.error(f"File non trovato: {file_path}")
             return None
         except Exception as e:
-            print(f"❌ Errore lettura file con encoding {encoding}: {e}")
+            logging.error(f"Errore lettura file con encoding {encoding}: {e}")
             continue
     
-    print(f"\n📈 STATISTICHE FINALI:")
-    print(f"- Record totali letti: {total_records}")
-    print(f"- Record elaborati con successo: {len(codici_iva_data)}")
-    print(f"- Record con errori: {error_records}")
-    print("="*80)
+    if not codici_iva_data:
+        logging.error("Nessun dato estratto da tutti gli encoding tentati")
+        return None
     
-    return codici_iva_data
+    logging.info(f"Parsing completato:")
+    logging.info(f"- Record totali letti: {total_records}")
+    logging.info(f"- Record elaborati con successo: {len(codici_iva_data)}")
+    logging.info(f"- Record con errori: {error_records}")
+    
+    return pd.DataFrame(codici_iva_data)
+
+def create_summary_stats(df):
+    """
+    Crea statistiche di riepilogo
+    """
+    stats = {
+        'Totale Codici IVA': len(df),
+        'Codici Attivi': len(df[df['codice_iva'] != '']),
+        'Tipo Normale': len(df[df['tipo_calcolo'] == 'O']),
+        'Tipo Scorporo': len(df[df['tipo_calcolo'] == 'S']),
+        'Tipo Esente/Non imponibile': len(df[df['tipo_calcolo'] == 'E']),
+        'Tipo Solo Imposta': len(df[df['tipo_calcolo'] == 'A']),
+        'Con Indetraibilità': len(df[df['percentuale_indetraibilita'].notna() & (df['percentuale_indetraibilita'] > 0)]),
+        'Reverse Charge': df['autofattura_reverse_charge'].sum(),
+        'Plafond Acquisti': len(df[df['plafond_acquisti'] != '']),
+        'Plafond Vendite': len(df[df['plafond_vendite'] != '']),
+        'Operazioni Intracomunitarie': df['acquisti_intracomunitari'].sum(),
+        'Beni Ammortizzabili': df['beni_ammortizzabili'].sum(),
+        'Agevolazioni Subforniture': df['agevolazioni_subforniture'].sum(),
+        'Cessione Prodotti Editoriali': df['cessione_prodotti_editoriali'].sum()
+    }
+    
+    # Statistiche aliquote
+    aliquote_freq = df['aliquota_iva'].value_counts().head(10)
+    for i, (aliquota, count) in enumerate(aliquote_freq.items()):
+        if pd.notna(aliquota):
+            stats[f'Aliquota {aliquota}%'] = count
+    
+    return stats
 
 def main():
     """
-    Funzione principale - VERSIONE DEBUG
+    Funzione principale
     """
-    # Cerca il file CodicIva.txt (dati reali)
-    possible_paths = [
-        "dati/CodicIva.txt",
-        "../dati_cliente/CodicIva.txt", 
-        "../../dati_cliente/CodicIva.txt",
-        ".docs/dati_cliente/CodicIva.txt"
-    ]
+    # Percorso file di input
+    input_file = "dati/CODICIVA.TXT"
+    output_file = "codici_iva.xlsx"
     
-    input_file = None
-    for path in possible_paths:
-        if os.path.exists(path):
-            input_file = path
-            break
-    
-    if not input_file:
-        print("❌ File CodicIva.txt non trovato nei percorsi:")
-        for path in possible_paths:
-            print(f"  - {path}")
+    if not os.path.exists(input_file):
+        logging.error(f"File {input_file} non trovato")
         return
     
-    print(f"🎯 File trovato: {input_file}")
+    logging.info(f"Inizio elaborazione file: {input_file}")
     
-    # Parsing del file (solo primi 10 record per debug)
-    codici_data = parse_codiciva_file_debug(input_file, max_records=10)
+    # Parsing del file
+    df_codici_iva = parse_codiciva_file(input_file)
     
-    if not codici_data:
-        print("❌ Nessun dato estratto")
+    if df_codici_iva is None or df_codici_iva.empty:
+        logging.error("Nessun dato da elaborare")
         return
     
-    print(f"\n🎉 DEBUG COMPLETATO!")
-    print(f"Estratti {len(codici_data)} record di esempio")
+    # Creazione statistiche
+    stats = create_summary_stats(df_codici_iva)
+    
+    # Salvataggio su Excel
+    try:
+        with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
+            # Foglio principale con tutti i codici IVA
+            df_codici_iva.to_excel(writer, sheet_name='Codici_IVA', index=False)
+            
+            # Foglio statistiche
+            stats_df = pd.DataFrame(list(stats.items()), columns=['Descrizione', 'Valore'])
+            stats_df.to_excel(writer, sheet_name='Statistiche', index=False)
+            
+            # Fogli separati per tipo calcolo
+            for tipo, nome_foglio in [('O', 'Normale'), ('S', 'Scorporo'), ('E', 'Esente'), ('A', 'Solo_Imposta'), ('V', 'Ventilazione')]:
+                df_tipo = df_codici_iva[df_codici_iva['tipo_calcolo'] == tipo]
+                if len(df_tipo) > 0:
+                    df_tipo.to_excel(writer, sheet_name=f'Tipo_{nome_foglio}', index=False)
+            
+            # Codici con caratteristiche speciali
+            df_reverse = df_codici_iva[df_codici_iva['autofattura_reverse_charge'] == True]
+            if len(df_reverse) > 0:
+                df_reverse.to_excel(writer, sheet_name='Reverse_Charge', index=False)
+                
+            df_indetraibili = df_codici_iva[df_codici_iva['percentuale_indetraibilita'].notna() & (df_codici_iva['percentuale_indetraibilita'] > 0)]
+            if len(df_indetraibili) > 0:
+                df_indetraibili.to_excel(writer, sheet_name='Con_Indetraibilita', index=False)
+                
+            df_plafond = df_codici_iva[(df_codici_iva['plafond_acquisti'] != '') | (df_codici_iva['plafond_vendite'] != '')]
+            if len(df_plafond) > 0:
+                df_plafond.to_excel(writer, sheet_name='Con_Plafond', index=False)
+                
+            df_intra = df_codici_iva[df_codici_iva['acquisti_intracomunitari'] == True]
+            if len(df_intra) > 0:
+                df_intra.to_excel(writer, sheet_name='Intracomunitari', index=False)
+        
+        logging.info(f"File Excel creato: {output_file}")
+        
+        # Stampa statistiche finali
+        print("\n" + "="*80)
+        print("STATISTICHE CODICI IVA")
+        print("="*80)
+        for desc, valore in stats.items():
+            print(f"{desc:<35}: {valore:>10}")
+        print("="*80)
+        
+        # Mostra alcuni esempi di codici IVA
+        print("\nESEMPI DI CODICI IVA TROVATI:")
+        print("-"*80)
+        sample_codici = df_codici_iva.head(10)[['codice_iva', 'descrizione', 'tipo_calcolo_desc', 'aliquota_iva']]
+        for _, row in sample_codici.iterrows():
+            aliquota = f"{row['aliquota_iva']}%" if pd.notna(row['aliquota_iva']) else "N/A"
+            print(f"{row['codice_iva']:<6} | {row['descrizione']:<35} | {row['tipo_calcolo_desc']:<20} | {aliquota}")
+        
+        logging.info("Elaborazione completata con successo!")
+        
+    except Exception as e:
+        logging.error(f"Errore creazione file Excel: {e}")
 
 if __name__ == "__main__":
     main()

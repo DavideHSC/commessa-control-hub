@@ -1,7 +1,6 @@
 import os
-# import pandas as pd
+import pandas as pd
 from datetime import datetime
-from collections import Counter
 
 # LAYOUT CONTIGEN.TXT - Piano dei Conti Generale (388 bytes)
 CONTIGEN_LAYOUT = {
@@ -123,9 +122,9 @@ def format_codifica_gerarchica(codifica, livello):
 
 def process_piano_conti():
     """Elabora il file CONTIGEN.TXT"""
-    # Percorso corretto del file come da struttura del progetto
-    filepath = '../dati_cliente/ContiGen.txt'
-    filename = os.path.basename(filepath)
+    DATA_DIR = 'dati'
+    filename = 'CONTIGEN.TXT'
+    filepath = os.path.join(DATA_DIR, filename)
     
     # Prova diversi encoding per gestire file legacy
     encodings_to_try = ['utf-8-sig', 'latin1', 'cp1252', 'iso-8859-1']
@@ -139,7 +138,7 @@ def process_piano_conti():
         except UnicodeDecodeError:
             continue
         except FileNotFoundError:
-            print(f"✗ File {filename} non trovato nel percorso specificato: '{filepath}'")
+            print(f"✗ File {filename} non trovato nella cartella '{DATA_DIR}'")
             return []
         except Exception as e:
             print(f"✗ Errore nel caricamento di {filename}: {e}")
@@ -180,7 +179,6 @@ def process_piano_conti():
             conto['VALIDO_PROF_ORD_BOOL'] = conto['VALIDO_PROF_ORD'] == 'X'
             conto['VALIDO_PROF_SEMPL_BOOL'] = conto['VALIDO_PROF_SEMPL'] == 'X'
             
-            
             conti.append(conto)
             righe_elaborate += 1
             
@@ -197,9 +195,6 @@ def process_piano_conti():
 
 def export_piano_conti_to_excel(conti, filename="piano_dei_conti.xlsx"):
     """Esporta il piano dei conti in Excel con formattazione avanzata"""
-    print("\n[INFO] Esportazione in Excel disabilitata per questa esecuzione.")
-    return
-    
     if not conti:
         print("[AVVISO] Nessun dato da esportare")
         return
@@ -320,31 +315,6 @@ def print_summary_piano_conti(conti):
         for esempio in esempi:
             print(f"      • {esempio}")
 
-def find_and_print_duplicates(conti):
-    """Trova e stampa i codici duplicati e il loro conteggio."""
-    if not conti:
-        return
-        
-    codici = [conto.get('CODIFICA', '') for conto in conti]
-    counts = Counter(codici)
-    
-    duplicates = {codice: count for codice, count in counts.items() if count > 1}
-    
-    if not duplicates:
-        print("\n" + "="*70)
-        print("✅ ANALISI DUPLICATI: NESSUN CODICE DUPLICATO TROVATO NEL FILE.")
-        print("="*70)
-    else:
-        print("\n" + "="*70)
-        print(f"🚨 ANALISI DUPLICATI: {len(duplicates)} CODICI DUPLICATI TROVATI!")
-        print("="*70)
-        # Ordina i duplicati per conteggio, dal più alto al più basso
-        sorted_duplicates = sorted(duplicates.items(), key=lambda item: item[1], reverse=True)
-        for codice, count in sorted_duplicates:
-            print(f"   - Codice: '{codice}' | Conteggio: {count}")
-        print("-" * 70)
-        print(f"   TOTALE Record Duplicati (somma occorrenze > 1): {sum(duplicates.values()) - len(duplicates)}")
-
 # --- ESECUZIONE PRINCIPALE ---
 if __name__ == "__main__":
     print("🏦 PARSER PIANO DEI CONTI (CONTIGEN.TXT)")
@@ -353,9 +323,6 @@ if __name__ == "__main__":
     conti = process_piano_conti()
     
     if conti:
-        # Esegui l'analisi dei duplicati come primo passo dopo il processing
-        find_and_print_duplicates(conti)
-        
         print_summary_piano_conti(conti)
         print("\n" + "=" * 60)
         print("📊 Esportazione in Excel...")

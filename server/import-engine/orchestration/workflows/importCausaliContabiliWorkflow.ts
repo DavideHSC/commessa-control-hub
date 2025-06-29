@@ -10,7 +10,7 @@ interface ImportStats {
   totalRecords: number;
   successfulRecords: number;
   errorRecords: number;
-  errors: { row: number; message: string; data: any }[];
+  errors: { row: number; message: string; data: RawCausali }[];
 }
 
 /**
@@ -82,7 +82,7 @@ export async function runImportCausaliContabiliWorkflow(fileContent: string): Pr
       });
       stats.successfulRecords = result.count;
       console.log(`[Workflow Causali] Salvataggio completato con successo. Inseriti ${result.count} nuovi record.`);
-    } catch (e: any) {
+    } catch (e: unknown) {
         console.error("[Workflow Causali] Errore durante l'operazione di batch createMany:", e);
         // Se c'è un errore nel batch, tutti i record sono considerati falliti ai fini delle statistiche
         stats.errorRecords += recordsToCreate.length;

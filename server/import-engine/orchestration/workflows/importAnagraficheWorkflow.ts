@@ -7,7 +7,7 @@
  */
 
 import { parseFixedWidth } from '../../acquisition/parsers/typeSafeFixedWidthParser';
-import { validateAnagrafica, type ValidatedAnagrafica } from '../../acquisition/validators/anagraficaValidator';
+import { validateAnagrafica, type ValidatedAnagrafica, type RawAnagrafica } from '../../acquisition/validators/anagraficaValidator';
 import { transformAnagrafiche } from '../../transformation/transformers/anagraficaTransformer';
 import type { ImportStats } from '../../../lib/fixedWidthParser';
 import { PrismaClient } from '@prisma/client';
@@ -31,7 +31,7 @@ export interface AnagraficheImportResult {
   errors: Array<{
     row: number;
     error: string;
-    data: any;
+    data: unknown;
   }>;
 }
 
@@ -44,9 +44,9 @@ export async function executeAnagraficheImportWorkflow(
 ): Promise<AnagraficheImportResult> {
   
   console.log('🚀 Inizio workflow importazione anagrafiche');
-  console.log(`📄 Template: ${templateName}`);
   
-  const errors: Array<{ row: number; error: string; data: any }> = [];
+  
+  const errors: Array<{ row: number; error: string; data: unknown }> = [];
   let stats: ImportStats = {
     totalRecords: 0,
     successfulRecords: 0,
@@ -62,7 +62,7 @@ export async function executeAnagraficheImportWorkflow(
     // **FASE 1: ACQUISITION - Parsing Type-Safe**
     console.log('📖 FASE 1: Parsing file A_CLIFOR.TXT...');
     
-    const parseResult = await parseFixedWidth(fileContent, templateName);
+    const parseResult = await parseFixedWidth<RawAnagrafica>(fileContent, templateName);
     stats = parseResult.stats;
     
     console.log(`✅ Parsing completato:`);
@@ -155,9 +155,17 @@ export async function executeAnagraficheImportWorkflow(
       // Prima eliminiamo i dati esistenti per permettere re-import
       console.log('🗑️  Eliminazione dati esistenti...');
       
+      // L'ordine di eliminazione è FONDAMENTALE per rispettare i vincoli di Foreign Key.
+      // 1. Eliminiamo le tabelle che dipendono da Cliente e Fornitore.
+      const deletedCommesse = await tx.commessa.deleteMany({});
+      const deletedScritture = await tx.scritturaContabile.deleteMany({}); // Questo gestisce a cascata le righe di scrittura
+
+      // 2. Ora possiamo eliminare Clienti e Fornitori in sicurezza.
       const deletedClienti = await tx.cliente.deleteMany({});
       const deletedFornitori = await tx.fornitore.deleteMany({});
       
+      console.log(`   - Commesse eliminate: ${deletedCommesse.count}`);
+      console.log(`   - Scritture contabili eliminate: ${deletedScritture.count}`);
       console.log(`   - Clienti eliminati: ${deletedClienti.count}`);
       console.log(`   - Fornitori eliminati: ${deletedFornitori.count}`);
       

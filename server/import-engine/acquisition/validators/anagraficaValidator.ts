@@ -238,7 +238,7 @@ export type ValidatedAnagrafica = z.infer<typeof validatedAnagraficaSchema>;
 /**
  * Valida e pulisce i dati grezzi dall'anagrafica
  */
-export function validateAnagrafica(rawData: any): ValidatedAnagrafica {
+export function validateAnagrafica(rawData: RawAnagrafica): ValidatedAnagrafica {
   // Mappatura diretta senza double-parsing per evitare conflitti di naming
   const mapped = {
     // Dati azienda  

@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import moment from 'moment';
-import fs from 'fs/promises';
-import iconv from 'iconv-lite';
+import * as fs from 'fs/promises';
+import * as iconv from 'iconv-lite';
 
 const prisma = new PrismaClient();
 
@@ -12,8 +12,10 @@ export interface FieldDefinition {
   fieldName: string | null;
   start: number;
   length: number;
+  end: number; // Aggiunto il campo 'end'
   type?: 'string' | 'number' | 'date' | 'boolean';
   format?: 'percentage' | 'date:DDMMYYYY' | 'boolean';
+  isKey?: boolean;
 }
 
 /**
@@ -361,10 +363,11 @@ export async function parseFixedWidthRobust<T>(
       
       // Converti FieldDefinition da Prisma al formato FieldDefinition locale
       actualDefinitions = template.fieldDefinitions.map(field => ({
-        fieldName: field.fieldName ? camelToUpperCase(field.fieldName) : null,
+        fieldName: field.fieldName,
         start: field.start,
         length: field.length,
-        type: 'string' as const, // Default type
+        end: field.end, // Ensure 'end' is included
+        type: field.type as 'string' | 'number' | 'date' | 'boolean',
         format: field.format ? 
           (field.format as 'boolean' | 'percentage' | 'date:DDMMYYYY') : 
           undefined

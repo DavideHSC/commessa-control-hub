@@ -10,7 +10,7 @@ import type { ImportStats, ParseResult } from '../../../lib/fixedWidthParser';
 import { writeFile } from 'fs/promises';
 import path from 'path';
 
-export interface TypeSafeParseResult<T = Record<string, any>> {
+export interface TypeSafeParseResult<T = Record<string, unknown>> {
   data: T[];
   stats: ImportStats;
 }
@@ -19,7 +19,7 @@ export interface TypeSafeParseResult<T = Record<string, any>> {
  * Parser type-safe per file a larghezza fissa
  * Wrapper del parser legacy esistente
  */
-export async function parseFixedWidth<T = Record<string, any>>(
+export async function parseFixedWidth<T = Record<string, unknown>>(
   fileContent: string,
   templateName: string
 ): Promise<TypeSafeParseResult<T>> {

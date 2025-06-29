@@ -9,6 +9,7 @@ import { handleCausaliImport } from '../lib/importers/causaliImporter';
 import { handlePianoDeiContiImport } from '../lib/importers/pianoDeiContiImporter';
 import { handleAnagraficaCliForImport } from '../lib/importers/anagraficaCliForImporter';
 import { processCondizioniPagamento } from '../lib/importers/condizioniPagamentoImporter';
+import { executeAnagraficheImportWorkflow } from '../import-engine/orchestration/workflows/importAnagraficheWorkflow';
 
 const router = express.Router();
 
@@ -35,6 +36,30 @@ router.post('/:templateName', upload.single('file'), async (req: Request, res: R
     console.log(`[IMPORT] Ricevuto file: ${file.originalname}, dimensione: ${file.size} bytes`);
     
     try {
+        // === NUOVA LOGICA WORKFLOW PER ANAGRAFICA ===
+        if (templateName === 'anagrafica_clifor') {
+            console.log(`[IMPORT] Avvio nuovo workflow per anagrafica_clifor...`);
+            const result = await executeAnagraficheImportWorkflow(fileContent, templateName);
+            
+            if (result.success) {
+                return res.status(200).json({
+                    message: "Importazione anagrafiche completata con successo tramite workflow.",
+                    stats: result.stats,
+                    anagraficheStats: result.anagraficheStats,
+                    errors: result.errors
+                });
+            } else {
+                return res.status(500).json({
+                    message: "Errore durante l'importazione anagrafiche tramite workflow.",
+                    error: result.message,
+                    stats: result.stats,
+                    errors: result.errors
+                });
+            }
+        }
+        
+        // --- VECCHIA LOGICA (mantenuta per altri template) ---
+
         const importTemplate = await prisma.importTemplate.findUnique({
             where: { name: templateName },
             include: { fieldDefinitions: true },
@@ -58,14 +83,15 @@ router.post('/:templateName', upload.single('file'), async (req: Request, res: R
                 }
 
                 return {
-                    name: field.fieldName!,
+                    fieldName: field.fieldName!,
                     start: field.start,
                     length: field.length,
+                    end: field.end, // Assicurati che 'end' sia incluso
                     type: fieldType
                 };
             });
 
-        const parsedData = parseFixedWidth(fileContent, templateFields);
+        const parsedData = parseFixedWidth<ParsedRecord>(fileContent, templateFields);
         console.log(`[IMPORT] Parsing completato. Numero di record estratti: ${parsedData.length}`);
         
         if (templateName === 'piano_dei_conti') {
@@ -75,6 +101,7 @@ router.post('/:templateName', upload.single('file'), async (req: Request, res: R
         } else if (templateName === 'codici_iva') {
             await handleCodiciIvaImport(parsedData, res);
         } else if (templateName === 'anagrafica_clifor') {
+            // QUESTO BLOCCO NON VERRA' MAI ESEGUITO GRAZIE AL CONTROLLO PRECEDENTE
             await handleAnagraficaCliForImport(parsedData, res);
         } else if (templateName === 'condizioni_pagamento') {
             const stats: ImportStats = {

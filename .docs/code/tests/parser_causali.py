@@ -38,10 +38,10 @@ Struttura record:
 - CRLF: pos 172-173 (2 caratteri)
 """
 
-import pandas as pd
 import os
 from datetime import datetime
 import logging
+import json  # Aggiungo json per un output più leggibile
 
 # Configurazione logging
 logging.basicConfig(
@@ -161,13 +161,12 @@ def parse_boolean_flag(char):
     """Converte carattere in boolean (X = True, altro = False)"""
     return char.strip().upper() == 'X'
 
-def parse_causali_file(file_path):
+def parse_causali_file_for_debug(file_path, num_records=10):
     """
-    Parsing del file CAUSALI.TXT
+    Parsing del file CAUSALI.TXT per debug, stampando i primi N record.
     """
     causali_data = []
     total_records = 0
-    error_records = 0
     
     # Prova diversi encoding
     encodings = ['utf-8', 'latin1', 'cp1252']
@@ -178,6 +177,9 @@ def parse_causali_file(file_path):
                 logging.info(f"File aperto con encoding: {encoding}")
                 
                 for line_num, line in enumerate(file, 1):
+                    if line_num > num_records:
+                        break # Processa solo i primi num_records
+
                     total_records += 1
                     
                     try:
@@ -193,36 +195,27 @@ def parse_causali_file(file_path):
                             continue
                             
                         # Estrazione campi (posizioni 1-based convertite in 0-based)
-                        # Saltiamo FILLER (pos 1-3) e TABELLA_ITALSTUDIO (pos 4) come negli altri parser
                         record = {
                             'codice_causale': line[4:10].strip(),
                             'descrizione_causale': line[10:50].strip(),
                             'tipo_movimento': line[50:51].strip(),
-                            'tipo_movimento_desc': decode_tipo_movimento(line[50:51]),
                             'tipo_aggiornamento': line[51:52].strip(),
-                            'tipo_aggiornamento_desc': decode_tipo_aggiornamento(line[51:52]),
-                            'data_inizio_validita': parse_date(line[52:60]),
-                            'data_fine_validita': parse_date(line[60:68]),
+                            'data_inizio_validita': str(parse_date(line[52:60])), # Converte a stringa per JSON
+                            'data_fine_validita': str(parse_date(line[60:68])), # Converte a stringa per JSON
                             'tipo_registro_iva': line[68:69].strip(),
-                            'tipo_registro_iva_desc': decode_tipo_registro_iva(line[68:69]),
                             'segno_movimento_iva': line[69:70].strip(),
-                            'segno_movimento_iva_desc': decode_segno_movimento_iva(line[69:70]),
                             'conto_iva': line[70:80].strip(),
                             'generazione_autofattura': parse_boolean_flag(line[80:81]),
                             'tipo_autofattura_generata': line[81:82].strip(),
-                            'tipo_autofattura_desc': decode_tipo_autofattura(line[81:82]),
                             'conto_iva_vendite': line[82:92].strip(),
                             'fattura_importo_0': parse_boolean_flag(line[92:93]),
                             'fattura_valuta_estera': parse_boolean_flag(line[93:94]),
                             'non_considerare_liquidazione_iva': parse_boolean_flag(line[94:95]),
                             'iva_esigibilita_differita': line[95:96].strip(),
-                            'iva_esigibilita_differita_desc': decode_iva_esigibilita_differita(line[95:96]),
                             'fattura_emessa_reg_corrispettivi': parse_boolean_flag(line[96:97]),
                             'gestione_partite': line[97:98].strip(),
-                            'gestione_partite_desc': decode_gestione_partite(line[97:98]),
                             'gestione_intrastat': parse_boolean_flag(line[98:99]),
                             'gestione_ritenute_enasarco': line[99:100].strip(),
-                            'gestione_ritenute_enasarco_desc': decode_gestione_ritenute_enasarco(line[99:100]),
                             'versamento_ritenute': parse_boolean_flag(line[100:101]),
                             'note_movimento': line[101:161].strip(),
                             'descrizione_documento': line[161:166].strip(),
@@ -230,150 +223,52 @@ def parse_causali_file(file_path):
                             'scrittura_rettifica_assestamento': parse_boolean_flag(line[167:168]),
                             'non_stampare_reg_cronologico': parse_boolean_flag(line[168:169]),
                             'movimento_reg_iva_non_rilevante': parse_boolean_flag(line[169:170]),
-                            'tipo_movimento_semplificata': line[170:171].strip() if len(line) > 170 else '',
-                            'tipo_movimento_semplificata_desc': decode_tipo_movimento_semplificata(line[170:171]) if len(line) > 170 else 'Non disponibile'
+                            'tipo_movimento_semplificata': line[170:171].strip() if len(line) > 170 else ''
                         }
                         
                         causali_data.append(record)
                         
-                        # Log ogni 100 record
-                        if len(causali_data) % 100 == 0:
-                            logging.info(f"Elaborati {len(causali_data)} record...")
-                            
                     except Exception as e:
-                        error_records += 1
                         logging.error(f"Errore elaborazione riga {line_num}: {e}")
                         continue
                 
-                break  # Se arriviamo qui, l'encoding ha funzionato
+                return causali_data, total_records
                 
         except UnicodeDecodeError:
             logging.warning(f"Encoding {encoding} fallito, provo il prossimo...")
             continue
-        except FileNotFoundError:
-            logging.error(f"File non trovato: {file_path}")
-            return None
-        except Exception as e:
-            logging.error(f"Errore lettura file con encoding {encoding}: {e}")
-            continue
-    
-    if not causali_data:
-        logging.error("Nessun dato estratto da tutti gli encoding tentati")
-        return None
-    
-    logging.info(f"Parsing completato:")
-    logging.info(f"- Record totali letti: {total_records}")
-    logging.info(f"- Record elaborati con successo: {len(causali_data)}")
-    logging.info(f"- Record con errori: {error_records}")
-    
-    return pd.DataFrame(causali_data)
-
-def create_summary_stats(df):
-    """
-    Crea statistiche di riepilogo
-    """
-    stats = {
-        'Totale Causali': len(df),
-        'Causali con Codice': len(df[df['codice_causale'] != '']),
-        'Causali Contabili': len(df[df['tipo_movimento'] == 'C']),
-        'Causali Contabili/IVA': len(df[df['tipo_movimento'] == 'I']),
-        'Causali Acquisti': len(df[df['tipo_registro_iva'] == 'A']),
-        'Causali Vendite': len(df[df['tipo_registro_iva'] == 'V']),
-        'Causali Corrispettivi': len(df[df['tipo_registro_iva'] == 'C']),
-        'Con Autofattura': df['generazione_autofattura'].sum(),
-        'Con Gestione Partite': len(df[df['gestione_partite'].isin(['A', 'C', 'H'])]),
-        'Con Ritenute/Enasarco': len(df[df['gestione_ritenute_enasarco'].isin(['R', 'E', 'T'])]),
-        'Con Gestione Intrastat': df['gestione_intrastat'].sum(),
-        'IVA Esigibilità Differita': len(df[df['iva_esigibilita_differita'].isin(['E', 'I'])]),
-        'Fatture Importo Zero': df['fattura_importo_0'].sum(),
-        'Fatture Valuta Estera': df['fattura_valuta_estera'].sum()
-    }
-    
-    return stats
+            
+    raise Exception("Tutti gli encoding testati hanno fallito.")
 
 def main():
     """
-    Funzione principale
+    Funzione principale per eseguire il parsing di debug.
     """
-    # Percorso file di input
-    input_file = "dati/CAUSALI.TXT"  # File nella cartella dati
-    output_file = "causali_contabili.xlsx"
+    # Imposta il percorso del file di input qui
+    # Il percorso è relativo alla root del progetto
+    file_path = os.path.join(os.path.dirname(__file__), '..', 'dati_cliente', 'Causali.txt')
     
-    if not os.path.exists(input_file):
-        logging.error(f"File {input_file} non trovato nella directory corrente")
+    if not os.path.exists(file_path):
+        logging.error(f"File non trovato: {file_path}")
         return
-    
-    logging.info(f"Inizio elaborazione file: {input_file}")
-    
-    # Parsing del file
-    df_causali = parse_causali_file(input_file)
-    
-    if df_causali is None or df_causali.empty:
-        logging.error("Nessun dato da elaborare")
-        return
-    
-    # Creazione statistiche
-    stats = create_summary_stats(df_causali)
-    
-    # Salvataggio su Excel
-    try:
-        with pd.ExcelWriter(output_file, engine='openpyxl') as writer:
-            # Foglio principale con tutte le causali
-            df_causali.to_excel(writer, sheet_name='Causali_Contabili', index=False)
-            
-            # Foglio statistiche
-            stats_df = pd.DataFrame(list(stats.items()), columns=['Descrizione', 'Valore'])
-            stats_df.to_excel(writer, sheet_name='Statistiche', index=False)
-            
-            # Fogli separati per tipo
-            if len(df_causali[df_causali['tipo_movimento'] == 'C']) > 0:
-                df_contabili = df_causali[df_causali['tipo_movimento'] == 'C']
-                df_contabili.to_excel(writer, sheet_name='Causali_Solo_Contabili', index=False)
-                
-            if len(df_causali[df_causali['tipo_movimento'] == 'I']) > 0:
-                df_iva = df_causali[df_causali['tipo_movimento'] == 'I']
-                df_iva.to_excel(writer, sheet_name='Causali_Contabili_IVA', index=False)
-            
-            # Causali per registro IVA
-            for tipo_reg, nome_foglio in [('A', 'Acquisti'), ('V', 'Vendite'), ('C', 'Corrispettivi')]:
-                df_tipo = df_causali[df_causali['tipo_registro_iva'] == tipo_reg]
-                if len(df_tipo) > 0:
-                    df_tipo.to_excel(writer, sheet_name=f'Reg_IVA_{nome_foglio}', index=False)
-                    
-            # Causali con gestioni speciali
-            df_autofattura = df_causali[df_causali['generazione_autofattura'] == True]
-            if len(df_autofattura) > 0:
-                df_autofattura.to_excel(writer, sheet_name='Con_Autofattura', index=False)
-                
-            df_partite = df_causali[df_causali['gestione_partite'].isin(['A', 'C', 'H'])]
-            if len(df_partite) > 0:
-                df_partite.to_excel(writer, sheet_name='Con_Gestione_Partite', index=False)
-                
-            df_ritenute = df_causali[df_causali['gestione_ritenute_enasarco'].isin(['R', 'E', 'T'])]
-            if len(df_ritenute) > 0:
-                df_ritenute.to_excel(writer, sheet_name='Con_Ritenute_Enasarco', index=False)
-        
-        logging.info(f"File Excel creato: {output_file}")
-        
-        # Stampa statistiche finali
-        print("\n" + "="*80)
-        print("STATISTICHE CAUSALI CONTABILI")
-        print("="*80)
-        for desc, valore in stats.items():
-            print(f"{desc:<35}: {valore:>10}")
-        print("="*80)
-        
-        # Mostra alcuni esempi di causali
-        print("\nESEMPI DI CAUSALI TROVATE:")
-        print("-"*80)
-        sample_causali = df_causali.head(10)[['codice_causale', 'descrizione_causale', 'tipo_movimento_desc', 'tipo_registro_iva_desc']]
-        for _, row in sample_causali.iterrows():
-            print(f"{row['codice_causale']:<8} | {row['descrizione_causale']:<30} | {row['tipo_movimento_desc']:<15} | {row['tipo_registro_iva_desc']}")
-        
-        logging.info("Elaborazione completata con successo!")
-        
-    except Exception as e:
-        logging.error(f"Errore creazione file Excel: {e}")
 
-if __name__ == "__main__":
+    logging.info(f"Inizio parsing di: {file_path}")
+    
+    try:
+        # Esegui il parsing di debug
+        parsed_data, total_lines = parse_causali_file_for_debug(file_path, num_records=10)
+        
+        logging.info(f"Parsing completato. {len(parsed_data)}/{total_lines} record processati per il debug.")
+        
+        # Stampa i dati in formato JSON per una facile lettura
+        print("--- INIZIO OUTPUT DI DEBUG ---")
+        for i, record in enumerate(parsed_data):
+            print(f"--- Record {i+1} ---")
+            print(json.dumps(record, indent=2, ensure_ascii=False))
+        print("--- FINE OUTPUT DI DEBUG ---")
+
+    except Exception as e:
+        logging.error(f"Errore durante il parsing: {e}")
+
+if __name__ == '__main__':
     main()
