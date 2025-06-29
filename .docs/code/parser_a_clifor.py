@@ -1,5 +1,5 @@
 import os
-import json # Aggiunto per output di debug
+import pandas as pd
 from datetime import datetime
 
 # LAYOUT A_CLIFOR.TXT - Anagrafiche Clienti/Fornitori (338 bytes)
@@ -189,78 +189,245 @@ def determine_sottoconto_attivo(record):
     
     return sottoconto_cliente or sottoconto_fornitore or ""
 
-def process_anagrafiche_clifor_for_debug(file_path, num_records=10):
-    """Elabora il file A_CLIFOR.TXT per debug, stampando i primi N record."""
+def process_anagrafiche_clifor():
+    """Elabora il file A_CLIFOR.TXT"""
+    DATA_DIR = 'dati'
+    filename = 'A_CLIFOR.TXT'
+    filepath = os.path.join(DATA_DIR, filename)
     
     # Prova diversi encoding per gestire file legacy
     encodings_to_try = ['utf-8-sig', 'latin1', 'cp1252', 'iso-8859-1']
-    lines = []
     
     for encoding in encodings_to_try:
         try:
-            with open(file_path, 'r', encoding=encoding) as f:
+            with open(filepath, 'r', encoding=encoding) as f:
                 lines = f.readlines()
-                print(f"✓ Caricato {file_path}: {len(lines)} righe (encoding: {encoding})")
+                print(f"✓ Caricato {filename}: {len(lines)} righe (encoding: {encoding})")
                 break
         except UnicodeDecodeError:
             continue
         except FileNotFoundError:
-            print(f"✗ File {file_path} non trovato")
+            print(f"✗ File {filename} non trovato nella cartella '{DATA_DIR}'")
+            return []
+        except Exception as e:
+            print(f"✗ Errore nel caricamento di {filename}: {e}")
             return []
     else:
-        print(f"✗ Impossibile decodificare il file {file_path}")
+        print(f"✗ Impossibile decodificare il file {filename} con nessun encoding supportato")
         return []
 
     anagrafiche = []
+    righe_elaborate = 0
+    errori = 0
+    
+    print(f"\nElaborazione Anagrafiche Clienti/Fornitori...")
     
     for i, line in enumerate(lines):
-        if i >= num_records:
-            break
-            
         if len(line.strip()) == 0:
             continue
             
         try:
-            if len(line) < 338:
-                print(f"⚠ Riga {i+1} troppo corta: {len(line)} caratteri, attesi 338.")
+            if len(line) < 200:  # Controllo lunghezza minima
+                print(f"⚠ Riga {i+1} troppo corta: {len(line)} caratteri")
+                errori += 1
                 continue
                 
             # Parsa la riga
             anagrafica = parse_line_clifor(line, A_CLIFOR_LAYOUT)
             
-            # Flags boolean per facilità di analisi (emulando il parser TS)
-            anagrafica['GESTIONE_DATI_770'] = anagrafica.get('GESTIONE_DATI_770') == 'X'
-            anagrafica['SOGGETTO_A_RITENUTA'] = anagrafica.get('SOGGETTO_A_RITENUTA') == 'X'
-            anagrafica['CONTRIBUTO_PREVIDENZIALE'] = anagrafica.get('CONTRIBUTO_PREVIDENZIALE') == 'X'
-            anagrafica['ENASARCO'] = anagrafica.get('ENASARCO') == 'X'
-            anagrafica['SOGGETTO_INAIL'] = anagrafica.get('SOGGETTO_INAIL') == 'X'
+            # Arricchisce con descrizioni e calcoli
+            anagrafica['TIPO_CONTO_DESC'] = get_tipo_conto_descrizione(anagrafica['TIPO_CONTO'])
+            anagrafica['TIPO_SOGGETTO_DESC'] = get_tipo_soggetto_descrizione(anagrafica['TIPO_SOGGETTO'])
+            anagrafica['SESSO_DESC'] = get_sesso_descrizione(anagrafica['SESSO'])
+            anagrafica['QUADRO_770_DESC'] = get_quadro_770_descrizione(anagrafica['QUADRO_770'])
+            anagrafica['TIPO_RITENUTA_DESC'] = get_tipo_ritenuta_descrizione(anagrafica['TIPO_RITENUTA'])
+            anagrafica['CONTRIBUTO_335_DESC'] = get_contributo_335_descrizione(anagrafica['CONTRIBUTO_PREVID_335'])
             
-            # Rimuoviamo le chiavi con _DESC per un confronto 1:1 con l'output del parser TS
+            anagrafica['NOME_COMPLETO'] = format_nome_completo(anagrafica)
+            anagrafica['SOTTOCONTO_ATTIVO'] = determine_sottoconto_attivo(anagrafica)
+            
+            # Flags boolean per facilità di analisi
+            anagrafica['E_PERSONA_FISICA'] = anagrafica['TIPO_SOGGETTO'] == '0'
+            anagrafica['E_CLIENTE'] = anagrafica['TIPO_CONTO'] in ['C', 'E']
+            anagrafica['E_FORNITORE'] = anagrafica['TIPO_CONTO'] in ['F', 'E']
+            anagrafica['HA_PARTITA_IVA'] = bool(anagrafica['PARTITA_IVA'])
+            anagrafica['SOGGETTO_A_RITENUTA_BOOL'] = anagrafica['SOGGETTO_A_RITENUTA'] == 'X'
+            anagrafica['GESTIONE_770_BOOL'] = anagrafica['GESTIONE_DATI_770'] == 'X'
+            anagrafica['ENASARCO_BOOL'] = anagrafica['ENASARCO'] == 'X'
+            anagrafica['SOGGETTO_INAIL_BOOL'] = anagrafica['SOGGETTO_INAIL'] == 'X'
+            anagrafica['CONTRIBUTO_PREVID_BOOL'] = anagrafica['CONTRIBUTO_PREVIDENZIALE'] == 'X'
+            
             anagrafiche.append(anagrafica)
+            righe_elaborate += 1
             
         except Exception as e:
-            print(f"✗ Errore riga {i+1}: {e}")
+            print(f"✗ Errore nella riga {i+1}: {e}")
+            errori += 1
             continue
-            
+
+    print(f"✓ Elaborate {righe_elaborate} anagrafiche")
+    if errori > 0:
+        print(f"⚠ Errori riscontrati: {errori}")
+    
     return anagrafiche
 
-def main():
-    """Funzione principale per eseguire il debug del parser."""
-    file_path = os.path.join(os.path.dirname(__file__), '..', 'dati_cliente', 'A_CLIFOR.TXT')
-    
-    parsed_data = process_anagrafiche_clifor_for_debug(file_path, num_records=10)
-    
-    if parsed_data:
-        print("\n--- INIZIO OUTPUT DI DEBUG (Python) ---")
-        for i, record in enumerate(parsed_data):
-            # Converte le date in stringhe per la serializzazione JSON
-            for key, value in record.items():
-                if isinstance(value, datetime):
-                    record[key] = value.isoformat()
-            
-            print(f"--- Record Py {i+1} ---")
-            print(json.dumps(record, indent=2, ensure_ascii=False))
-        print("--- FINE OUTPUT DI DEBUG (Python) ---")
+def export_anagrafiche_to_excel(anagrafiche, filename="anagrafiche_clienti_fornitori.xlsx"):
+    """Esporta le anagrafiche in Excel con formattazione avanzata"""
+    if not anagrafiche:
+        print("[AVVISO] Nessun dato da esportare")
+        return
 
-if __name__ == '__main__':
-    main()
+    # Prepara i dati per Excel
+    excel_data = []
+    
+    for anagrafica in anagrafiche:
+        row = {
+            # Dati identificativi
+            'Codice Univoco': anagrafica.get('CODICE_UNIVOCO', ''),
+            'Codice Fiscale': anagrafica.get('CODICE_FISCALE_CLIFOR', ''),
+            'Partita IVA': anagrafica.get('PARTITA_IVA', ''),
+            'Codice Anagrafica': anagrafica.get('CODICE_ANAGRAFICA', ''),
+            
+            # Tipo e classificazione
+            'Tipo Conto': anagrafica.get('TIPO_CONTO', ''),
+            'Tipo Conto Descrizione': anagrafica.get('TIPO_CONTO_DESC', ''),
+            'Tipo Soggetto': anagrafica.get('TIPO_SOGGETTO', ''),
+            'Tipo Soggetto Descrizione': anagrafica.get('TIPO_SOGGETTO_DESC', ''),
+            
+            # Denominazione e nome
+            'Nome Completo': anagrafica.get('NOME_COMPLETO', ''),
+            'Denominazione': anagrafica.get('DENOMINAZIONE', ''),
+            'Cognome': anagrafica.get('COGNOME', ''),
+            'Nome': anagrafica.get('NOME', ''),
+            'Sesso': anagrafica.get('SESSO', ''),
+            'Sesso Descrizione': anagrafica.get('SESSO_DESC', ''),
+            
+            # Dati anagrafici
+            'Data Nascita': anagrafica.get('DATA_NASCITA', ''),
+            'Comune Nascita': anagrafica.get('COMUNE_NASCITA', ''),
+            'Comune Residenza': anagrafica.get('COMUNE_RESIDENZA', ''),
+            'CAP': anagrafica.get('CAP', ''),
+            'Indirizzo': anagrafica.get('INDIRIZZO', ''),
+            'Prefisso Telefono': anagrafica.get('PREFISSO_TELEFONO', ''),
+            'Numero Telefono': anagrafica.get('NUMERO_TELEFONO', ''),
+            'Codice ISO': anagrafica.get('CODICE_ISO', ''),
+            'ID Fiscale Estero': anagrafica.get('ID_FISCALE_ESTERO', ''),
+            
+            # Conti contabili
+            'Sottoconto Attivo': anagrafica.get('SOTTOCONTO_ATTIVO', ''),
+            'Sottoconto Cliente': anagrafica.get('SOTTOCONTO_CLIENTE', ''),
+            'Sottoconto Fornitore': anagrafica.get('SOTTOCONTO_FORNITORE', ''),
+            
+            # Dati pagamenti
+            'Codice Incasso/Pagamento': anagrafica.get('CODICE_INCASSO_PAGAMENTO', ''),
+            'Codice Incasso Cliente': anagrafica.get('CODICE_INCASSO_CLIENTE', ''),
+            'Codice Pagamento Fornitore': anagrafica.get('CODICE_PAGAMENTO_FORNITORE', ''),
+            'Codice Valuta': anagrafica.get('CODICE_VALUTA', ''),
+            
+            # Dati fiscali e ritenute
+            'Soggetto a Ritenuta': anagrafica.get('SOGGETTO_A_RITENUTA_BOOL', False),
+            'Gestione Dati 770': anagrafica.get('GESTIONE_770_BOOL', False),
+            'Quadro 770': anagrafica.get('QUADRO_770', ''),
+            'Quadro 770 Descrizione': anagrafica.get('QUADRO_770_DESC', ''),
+            'Codice Ritenuta': anagrafica.get('CODICE_RITENUTA', ''),
+            'Tipo Ritenuta': anagrafica.get('TIPO_RITENUTA', ''),
+            'Tipo Ritenuta Descrizione': anagrafica.get('TIPO_RITENUTA_DESC', ''),
+            'Contributo Previdenziale': anagrafica.get('CONTRIBUTO_PREVID_BOOL', False),
+            'Enasarco': anagrafica.get('ENASARCO_BOOL', False),
+            'Soggetto INAIL': anagrafica.get('SOGGETTO_INAIL_BOOL', False),
+            'Contributo L.335/95': anagrafica.get('CONTRIBUTO_PREVID_335', ''),
+            'Contributo L.335/95 Descrizione': anagrafica.get('CONTRIBUTO_335_DESC', ''),
+            'Aliquota': anagrafica.get('ALIQUOTA', ''),
+            'Percentuale Contributo Cassa': anagrafica.get('PERC_CONTRIBUTO_CASSA', ''),
+            'Attività Mensilizzazione': anagrafica.get('ATTIVITA_MENSILIZZAZIONE', ''),
+            
+            # Flag di classificazione
+            'È Persona Fisica': anagrafica.get('E_PERSONA_FISICA', False),
+            'È Cliente': anagrafica.get('E_CLIENTE', False),
+            'È Fornitore': anagrafica.get('E_FORNITORE', False),
+            'Ha Partita IVA': anagrafica.get('HA_PARTITA_IVA', False)
+        }
+        excel_data.append(row)
+
+    try:
+        df = pd.DataFrame(excel_data)
+        df.to_excel(filename, index=False, engine='openpyxl')
+        
+        print(f"\n✅ ESPORTAZIONE ANAGRAFICHE COMPLETATA!")
+        print(f"📁 File creato: {filename}")
+        print(f"📊 Anagrafiche esportate: {len(excel_data)}")
+        
+        # Statistiche dettagliate
+        clienti = len([a for a in anagrafiche if a.get('E_CLIENTE')])
+        fornitori = len([a for a in anagrafiche if a.get('E_FORNITORE')])
+        entrambi = len([a for a in anagrafiche if a.get('TIPO_CONTO') == 'E'])
+        persone_fisiche = len([a for a in anagrafiche if a.get('E_PERSONA_FISICA')])
+        societa = len([a for a in anagrafiche if not a.get('E_PERSONA_FISICA')])
+        con_partita_iva = len([a for a in anagrafiche if a.get('HA_PARTITA_IVA')])
+        soggetti_ritenuta = len([a for a in anagrafiche if a.get('SOGGETTO_A_RITENUTA_BOOL')])
+        
+        print(f"📈 Statistiche:")
+        print(f"   - Clienti: {clienti}")
+        print(f"   - Fornitori: {fornitori}")
+        print(f"   - Entrambi (C/F): {entrambi}")
+        print(f"   - Persone Fisiche: {persone_fisiche}")
+        print(f"   - Società/Enti: {societa}")
+        print(f"   - Con Partita IVA: {con_partita_iva}")
+        print(f"   - Soggetti a Ritenuta: {soggetti_ritenuta}")
+        
+    except PermissionError:
+        print(f"\n✗ ERRORE: Impossibile scrivere '{filename}'")
+        print("  Il file potrebbe essere aperto in Excel. Chiuderlo e riprovare.")
+    except Exception as e:
+        print(f"\n✗ ERRORE durante la creazione del file Excel: {e}")
+
+def print_summary_anagrafiche(anagrafiche):
+    """Stampa un riepilogo delle anagrafiche"""
+    if not anagrafiche:
+        print("\nNessuna anagrafica elaborata.")
+        return
+        
+    print(f"\n" + "="*70)
+    print(f"👥 RIEPILOGO ANAGRAFICHE CLIENTI/FORNITORI")
+    print(f"="*70)
+    print(f"📊 Totale anagrafiche: {len(anagrafiche)}")
+    
+    # Esempi per tipo
+    print(f"\n📌 ESEMPI PER CATEGORIA:")
+    
+    clienti_esempi = [a for a in anagrafiche if a.get('TIPO_CONTO') == 'C'][:3]
+    fornitori_esempi = [a for a in anagrafiche if a.get('TIPO_CONTO') == 'F'][:3]
+    persone_fisiche_esempi = [a for a in anagrafiche if a.get('E_PERSONA_FISICA')][:3]
+    
+    if clienti_esempi:
+        print(f"\n   👤 CLIENTI:")
+        for cliente in clienti_esempi:
+            print(f"      • {cliente.get('NOME_COMPLETO', 'N/A')} - {cliente.get('SOTTOCONTO_CLIENTE', 'N/A')}")
+    
+    if fornitori_esempi:
+        print(f"\n   🏢 FORNITORI:")
+        for fornitore in fornitori_esempi:
+            print(f"      • {fornitore.get('NOME_COMPLETO', 'N/A')} - {fornitore.get('SOTTOCONTO_FORNITORE', 'N/A')}")
+    
+    if persone_fisiche_esempi:
+        print(f"\n   👨‍👩‍👧‍👦 PERSONE FISICHE:")
+        for persona in persone_fisiche_esempi:
+            tipo_desc = persona.get('TIPO_CONTO_DESC', 'N/A')
+            print(f"      • {persona.get('NOME_COMPLETO', 'N/A')} ({tipo_desc})")
+
+# --- ESECUZIONE PRINCIPALE ---
+if __name__ == "__main__":
+    print("👥 PARSER ANAGRAFICHE CLIENTI/FORNITORI (A_CLIFOR.TXT)")
+    print("=" * 70)
+    
+    anagrafiche = process_anagrafiche_clifor()
+    
+    if anagrafiche:
+        print_summary_anagrafiche(anagrafiche)
+        print("\n" + "=" * 70)
+        print("📊 Esportazione in Excel...")
+        export_anagrafiche_to_excel(anagrafiche)
+        print("🎉 ELABORAZIONE COMPLETATA!")
+    else:
+        print("\n❌ Elaborazione terminata senza risultati.")
+        print("Verificare che il file A_CLIFOR.TXT sia presente nella cartella 'dati'")
