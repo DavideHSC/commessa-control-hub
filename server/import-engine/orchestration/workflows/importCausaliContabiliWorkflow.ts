@@ -56,42 +56,43 @@ export async function runImportCausaliContabiliWorkflow(fileContent: string): Pr
     } else {
       stats.errorRecords++;
       const flatError = validationResult.error.flatten();
-      const errorDetails = {
-        row: index + 1,
-        message: JSON.stringify(flatError),
-        data: rawRecord,
-      };
-      stats.errors.push(errorDetails);
-      console.warn(`[Workflow Causali] Errore di validazione alla riga ${errorDetails.row}:`, flatError);
+      console.warn(`[Workflow Causali] Errore di validazione alla riga ${index + 1}:`, flatError);
     }
   }
   console.log(`[Workflow Causali] Validazione completata. Record validi: ${validRecords.length}, Errori: ${stats.errorRecords}.`);
 
   // 4. Trasforma i record validi
   console.log('[Workflow Causali] Inizio trasformazione dei record validi...');
-  const recordsToCreate = validRecords.map(transformCausaleContabile);
-  console.log(`[Workflow Causali] Trasformati ${recordsToCreate.length} record, pronti per il salvataggio.`);
+  const recordsToUpsert = validRecords.map(transformCausaleContabile);
+  console.log(`[Workflow Causali] Trasformati ${recordsToUpsert.length} record, pronti per il salvataggio.`);
 
-  // 5. Salva nel database in modo transazionale
-  if (recordsToCreate.length > 0) {
-    console.log(`[Workflow Causali] Tentativo di salvataggio di ${recordsToCreate.length} record nel database...`);
-    try {
-      const result = await prisma.causaleContabile.createMany({
-        data: recordsToCreate,
-        skipDuplicates: true, // Salta i record con 'id' o 'codice' duplicato
-      });
-      stats.successfulRecords = result.count;
-      console.log(`[Workflow Causali] Salvataggio completato con successo. Inseriti ${result.count} nuovi record.`);
-    } catch (e: unknown) {
-        console.error("[Workflow Causali] Errore durante l'operazione di batch createMany:", e);
-        // Se c'è un errore nel batch, tutti i record sono considerati falliti ai fini delle statistiche
-        stats.errorRecords += recordsToCreate.length;
-        stats.errors.push({
-            row: -1, // Errore generico di batch
-            message: "Batch database operation failed: " + e.message,
-            data: "Multiple records"
+  // 5. Salva nel database con logica Upsert
+  let successfulUpserts = 0;
+
+  if (recordsToUpsert.length > 0) {
+    console.log(`[Workflow Causali] Tentativo di salvataggio (upsert) di ${recordsToUpsert.length} record nel database...`);
+    
+    for (const record of recordsToUpsert) {
+      try {
+        await prisma.causaleContabile.upsert({
+          where: { id: record.id },
+          update: record,
+          create: record,
         });
+        successfulUpserts++;
+      } catch (e: unknown) {
+        const error = e as Error;
+        console.error(`[Workflow Causali] Errore durante l'upsert del record con ID ${record.id}:`, error.message);
+        console.error(`[Workflow Causali] Dati del record fallito:`, JSON.stringify(record, null, 2));
+        stats.errorRecords++;
+        
+        // NOTA: Non aggiungiamo a stats.errors perché il tipo del 'record' trasformato
+        // non corrisponde più a 'RawCausali', causando conflitti di tipo.
+        // Il logging a console è sufficiente per il debug in questo caso.
+      }
     }
+    stats.successfulRecords = successfulUpserts;
+    console.log(`[Workflow Causali] Salvataggio completato. Record processati con successo: ${successfulUpserts}.`);
   }
 
   console.log('[Workflow Causali] Processo di importazione terminato.');

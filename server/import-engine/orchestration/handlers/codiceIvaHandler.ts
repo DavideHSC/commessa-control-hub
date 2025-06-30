@@ -1,54 +1,65 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-import { importCodiceIvaWorkflow } from '../workflows/importCodiceIvaWorkflow';
-
-const prisma = new PrismaClient();
-const TEMPLATE_NAME = 'codici_iva';
+import { runImportCodiciIvaWorkflow } from '../workflows/importCodiceIvaWorkflow';
 
 /**
  * HTTP handler for importing Codici IVA.
- * It validates the request, retrieves the import template, and triggers the workflow.
+ * Follows the same pattern as the working causali handler.
  */
 export async function handleCodiceIvaImport(req: Request, res: Response): Promise<void> {
-  if (!req.file) {
-    res.status(400).json({ message: 'Nessun file caricato.' });
-    return;
-  }
-
+  console.log('🚀 POST /api/v2/import/codici-iva - Inizio importazione codici IVA');
+  
   try {
-    // Prima cerchiamo il template
-    const template = await prisma.importTemplate.findFirst({
-      where: { name: TEMPLATE_NAME },
-    });
-
-    if (!template) {
-      res.status(404).json({ message: `Template '${TEMPLATE_NAME}' non trovato.` });
+    // Validazione file upload
+    if (!req.file) {
+      res.status(400).json({
+        success: false,
+        message: 'File non fornito. È richiesto un file CODICIVA.TXT.',
+        error: 'MISSING_FILE'
+      });
       return;
     }
 
-    // Poi recuperiamo i fields separatamente
-    const fields = await prisma.fieldDefinition.findMany({
-      where: { templateId: template.id },
-      orderBy: { start: 'asc' }
-    });
-
-    if (!fields || fields.length === 0) {
-      res.status(404).json({ message: `Definizioni dei campi per il template '${TEMPLATE_NAME}' non trovate.` });
-      return;
-    }
-
+    console.log(`📄 File: ${req.file.originalname} (${req.file.size} bytes)`);
+    
+    // Conversione buffer a string (stesso pattern delle causali)
     const fileContent = req.file.buffer.toString('utf-8');
+    
+    if (fileContent.trim().length === 0) {
+      res.status(400).json({
+        success: false,
+        message: 'File vuoto o non leggibile.',
+        error: 'EMPTY_FILE'
+      });
+      return;
+    }
 
-    // Trigger the workflow, passing only the necessary data
-    const stats = await importCodiceIvaWorkflow(fileContent, fields);
-
+    console.log(`📊 Dimensione contenuto: ${fileContent.length} caratteri`);
+    
+    // **ESECUZIONE WORKFLOW** - Passa il contenuto del file
+    const result = await runImportCodiciIvaWorkflow(fileContent);
+    
+    // **RESPONSE FINALE**
+    console.log('✅ Import codici IVA completato con successo');
+    
     res.status(200).json({
-      message: 'Importazione Codici IVA completata con successo.',
-      ...stats,
+      success: true,
+      message: 'Importazione codici IVA completata con successo',
+      fileName: req.file.originalname,
+      totalRecords: result.totalRecords,
+      createdCount: result.successfulRecords,
+      updatedCount: 0, // Per ora non distinguiamo tra create e update
+      errors: result.errors,
+      warnings: []
     });
+    
   } catch (error: unknown) {
-    console.error("Errore durante l'importazione dei Codici IVA:", error);
-    const errorMessage = error instanceof Error ? error.message : 'Errore sconosciuto';
-    res.status(500).json({ message: 'Errore interno del server durante l\'importazione.', error: errorMessage });
+    console.error('💥 Errore interno durante import codici IVA:', error);
+    
+    res.status(500).json({
+      success: false,
+      message: 'Errore interno del server durante l\'importazione',
+      error: 'INTERNAL_SERVER_ERROR',
+      details: error instanceof Error ? error.message : String(error)
+    });
   }
 } 

@@ -22,6 +22,11 @@ const toDate = (val: unknown) => {
   const month = parseInt(str.substring(2, 4), 10) - 1; // Mesi sono 0-indexed
   const year = parseInt(str.substring(4, 8), 10);
 
+  // Verifica che i componenti siano numeri validi
+  if (isNaN(day) || isNaN(month) || isNaN(year)) {
+    return null;
+  }
+
   // Verifica validità data (es. 31/02/2023 non è valido)
   const date = new Date(year, month, day);
   if (date.getFullYear() === year && date.getMonth() === month && date.getDate() === day) {

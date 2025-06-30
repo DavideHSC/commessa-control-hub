@@ -149,69 +149,103 @@ export async function executeAnagraficheImportWorkflow(
     console.log(`   - Società: ${transformResult.statistics.societa}`);
     
     // **FASE 4: PERSISTENCE - Transazione Atomica**
-    console.log('💾 FASE 4: Salvataggio atomico nel database...');
+    console.log('💾 FASE 4: Salvataggio con logica Upsert nel database...');
+
+    let clientiCreati = 0;
+    let clientiAggiornati = 0;
+    let fornitoriCreati = 0;
+    let fornitoriAggiornati = 0;
     
     await prisma.$transaction(async (tx) => {
-      // Prima eliminiamo i dati esistenti per permettere re-import
-      console.log('🗑️  Eliminazione dati esistenti...');
-      
-      // L'ordine di eliminazione è FONDAMENTALE per rispettare i vincoli di Foreign Key.
-      // Si parte dalle tabelle "figlio" per risalire ai "padri".
-      
-      // 1. Eliminare le tabelle che hanno dipendenze multiple (join tables)
-      await tx.allocazione.deleteMany({});
-      await tx.rigaIva.deleteMany({});
-      
-      // 2. Eliminare le tabelle che dipendono da Cliente/Fornitore ma sono "padri" di altre
-      await tx.scritturaContabile.deleteMany({}); // Questo elimina a cascata RigaScrittura
-      await tx.commessa.deleteMany({});
-
-      // 3. Ora possiamo eliminare Clienti e Fornitori in sicurezza.
-      await tx.cliente.deleteMany({});
-      await tx.fornitore.deleteMany({});
-      
-      console.log(`   - Dati precedenti eliminati con successo.`);
-      
-      // Salvataggio Clienti
+      // Salvataggio Clienti con logica Upsert
       if (transformResult.clienti.length > 0) {
-        console.log(`💾 Inserimento ${transformResult.clienti.length} clienti...`);
+        console.log(`💾 Inserimento/Aggiornamento di ${transformResult.clienti.length} clienti...`);
         
         for (const cliente of transformResult.clienti) {
+          if (!cliente.externalId) {
+            console.warn(`⚠️  Cliente skippato per mancanza di externalId:`, cliente.nome || cliente.denominazione);
+            continue; // Skippiamo i record senza un identificatore univoco affidabile
+          }
+
           try {
-            await tx.cliente.create({ data: cliente });
+            const result = await tx.cliente.upsert({
+              where: { externalId: cliente.externalId },
+              update: cliente,
+              create: cliente,
+            });
+            
+            // Questo è un workaround per capire se è stato creato o aggiornato,
+            // finché Prisma non fornirà un modo più diretto.
+            // Si basa sulla differenza tra createdAt e updatedAt. Se sono uguali (con una tolleranza), è un create.
+            if (Math.abs(result.createdAt.getTime() - result.updatedAt.getTime()) < 2000) {
+              clientiCreati++;
+            } else {
+              clientiAggiornati++;
+            }
+
           } catch (error) {
-            console.error(`❌ Errore inserimento cliente ${cliente.nome || cliente.denominazione}:`, error);
-            throw error;
+            console.error(`❌ Errore durante l'upsert del cliente ${cliente.nome || cliente.denominazione}:`, error);
+            throw error; // Interrompe la transazione in caso di errore
           }
         }
         
-        console.log(`✅ Clienti inseriti con successo`);
+        console.log(`✅ Clienti processati: ${clientiCreati} creati, ${clientiAggiornati} aggiornati.`);
       }
       
-      // Salvataggio Fornitori
+      // Salvataggio Fornitori con logica Upsert
       if (transformResult.fornitori.length > 0) {
-        console.log(`💾 Inserimento ${transformResult.fornitori.length} fornitori...`);
+        console.log(`💾 Inserimento/Aggiornamento di ${transformResult.fornitori.length} fornitori...`);
         
         for (const fornitore of transformResult.fornitori) {
+          if (!fornitore.externalId) {
+            console.warn(`⚠️  Fornitore skippato per mancanza di externalId:`, fornitore.nome || fornitore.denominazione);
+            continue; // Skippiamo i record senza un identificatore univoco affidabile
+          }
+
           try {
-            await tx.fornitore.create({ data: fornitore });
+            const result = await tx.fornitore.upsert({
+              where: { externalId: fornitore.externalId },
+              update: fornitore,
+              create: fornitore,
+            });
+
+            if (Math.abs(result.createdAt.getTime() - result.updatedAt.getTime()) < 2000) {
+              fornitoriCreati++;
+            } else {
+              fornitoriAggiornati++;
+            }
+
           } catch (error) {
-            console.error(`❌ Errore inserimento fornitore ${fornitore.nome || fornitore.denominazione}:`, error);
-            throw error;
+            console.error(`❌ Errore durante l'upsert del fornitore ${fornitore.nome || fornitore.denominazione}:`, error);
+            throw error; // Interrompe la transazione
           }
         }
         
-        console.log(`✅ Fornitori inseriti con successo`);
+        console.log(`✅ Fornitori processati: ${fornitoriCreati} creati, ${fornitoriAggiornati} aggiornati.`);
       }
+    }, 
+    {
+      maxWait: 15000, // Tempo massimo di attesa per ottenere una connessione dal pool
+      timeout: 30000, // Tempo massimo di esecuzione della transazione (aumentato a 30s)
     });
+
+    // Aggiorniamo le statistiche con i conteggi di create/update
+    // Nota: le statistiche originali parlavano di 'Created', ora sono più precise.
+    const anagraficheStatsUpdated = {
+        ...transformResult.statistics,
+        clientiCreated: clientiCreati,
+        fornitoriCreated: fornitoriCreati,
+        // Potremmo aggiungere clientiUpdated e fornitoriUpdated se necessario nel risultato.
+    };
     
     // **RISULTATO FINALE**
     const finalMessage = `✅ Import anagrafiche completato con successo!
 📊 STATISTICHE FINALI:
    • Record processati: ${transformResult.statistics.totalProcessed}
-   • Clienti creati: ${transformResult.statistics.clientiCreated}
-   • Fornitori creati: ${transformResult.statistics.fornitoriCreated}
-   • Record "Entrambi" (C+F): ${transformResult.statistics.entrambiCreated}
+   • Clienti creati: ${clientiCreati}
+   • Clienti aggiornati: ${clientiAggiornati}
+   • Fornitori creati: ${fornitoriCreati}
+   • Fornitori aggiornati: ${fornitoriAggiornati}
    
 📈 DETTAGLIO TIPOLOGIE:
    • Persone fisiche: ${transformResult.statistics.personeeFisiche}
@@ -226,9 +260,11 @@ export async function executeAnagraficheImportWorkflow(
       message: finalMessage,
       stats: {
         ...stats,
+        inserted: clientiCreati + fornitoriCreati,
+        updated: clientiAggiornati + fornitoriAggiornati,
         errorRecords: stats.errorRecords + validationErrors
       },
-      anagraficheStats: transformResult.statistics,
+      anagraficheStats: anagraficheStatsUpdated,
       errors
     };
     

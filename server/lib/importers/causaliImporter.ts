@@ -1,6 +1,9 @@
 import { Response } from 'express';
 import { PrismaClient, Prisma } from '@prisma/client';
 import * as decoders from '../businessDecoders';
+import { z } from 'zod';
+import { transformCausaleContabile } from '../../import-engine/transformation/transformers/causaleContabileTransformer';
+import { causaleContabileValidator } from '../../import-engine/acquisition/validators/causaleContabileValidator';
 
 const prisma = new PrismaClient();
 
@@ -77,12 +80,16 @@ export async function handleCausaliImport(parsedData: any[], res: Response) {
                     where: { id: causale.id }
                 });
 
+                const recordToUpsert = {
+                    ...causale,
+                    dataInizio: causale.dataInizio && !isNaN(new Date(causale.dataInizio).getTime()) ? new Date(causale.dataInizio) : null,
+                    dataFine: causale.dataFine && !isNaN(new Date(causale.dataFine).getTime()) ? new Date(causale.dataFine) : null,
+                };
+
                 await prisma.causaleContabile.upsert({
-                    where: { id: causale.id },
-                    create: causale,
-                    update: {
-                        ...causale
-                    }
+                    where: { id: recordToUpsert.id },
+                    update: recordToUpsert,
+                    create: recordToUpsert,
                 });
 
                 if (existingRecord) {
@@ -126,4 +133,18 @@ export async function handleCausaliImport(parsedData: any[], res: Response) {
             details: error instanceof Error ? error.message : String(error)
         });
     }
+}
+
+// Definiamo un tipo per il risultato, se necessario
+interface ImportResult {
+  inserted: number;
+  updated: number;
+  errors: number;
+}
+
+export async function processCausali(causali: any[]): Promise<ImportResult> {
+  let insertedCount = 0;
+  let updatedCount = 0; // Anche se upsert non lo distingue, lo teniamo per la struttura
+  let errorCount = 0;
+  // ... existing code ...
 } 

@@ -19,11 +19,11 @@ import {
 } from "@/components/ui/alert-dialog"
 
 const ANAGRAFICA_TEMPLATES = [
-    { value: 'causali', label: 'Anagrafica Causali Contabili' },
-    { value: 'codici_iva', label: 'Anagrafica Codici IVA' },
-    { value: 'condizioni_pagamento', label: 'Anagrafica Condizioni di Pagamento' },
-    { value: 'anagrafica_clifor', label: 'Anagrafica Clienti/Fornitori' },
-    { value: 'piano_dei_conti', label: 'Anagrafica Piano dei Conti' },
+    { value: 'causali-contabili', label: 'Anagrafica Causali Contabili' },
+    { value: 'codici-iva', label: 'Anagrafica Codici IVA' },
+    { value: 'condizioni-pagamento', label: 'Anagrafica Condizioni di Pagamento' },
+    { value: 'clienti-fornitori', label: 'Anagrafica Clienti/Fornitori' },
+    { value: 'piano-dei-conti', label: 'Anagrafica Piano dei Conti' },
 ];
 
 const ImportPage: React.FC = () => {
@@ -31,6 +31,7 @@ const ImportPage: React.FC = () => {
     const [anagraficaFiles, setAnagraficaFiles] = useState<FileList | null>(null);
     const [selectedAnagraficaTemplate, setSelectedAnagraficaTemplate] = useState<string>('');
     const [isAnagraficaProcessing, setIsAnagraficaProcessing] = useState(false);
+    const [isPrimaNotaProcessing, setIsPrimaNotaProcessing] = useState(false);
 
     // State per l'importazione delle scritture
     const [scrittureFiles, setScrittureFiles] = useState<FileList | null>(null);
@@ -65,24 +66,40 @@ const ImportPage: React.FC = () => {
     };
 
     const handleAnagraficaImport = async () => {
-        if (!anagraficaFiles || anagraficaFiles.length === 0 || !selectedAnagraficaTemplate) return;
-
+        if (!anagraficaFiles || anagraficaFiles.length === 0 || !selectedAnagraficaTemplate) {
+            toast({ title: 'Dati mancanti', description: 'Seleziona un tipo di anagrafica e un file.' });
+            return;
+        }
         setIsAnagraficaProcessing(true);
+
+        // Costruisci l'URL corretto basandoti sul template selezionato
+        const endpoint = `/api/v2/import/${selectedAnagraficaTemplate}`;
+        
         const formData = new FormData();
         formData.append('file', anagraficaFiles[0]);
 
         try {
-            const response = await fetch(`/api/import/anagrafiche/${selectedAnagraficaTemplate}`, {
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 body: formData,
             });
+
             const result = await response.json();
-            if (!response.ok) throw new Error(result.error || 'Errore durante l\'importazione.');
-            
             const templateLabel = ANAGRAFICA_TEMPLATES.find(t => t.value === selectedAnagraficaTemplate)?.label || selectedAnagraficaTemplate;
-            toast({ title: 'Successo!', description: `Importazione anagrafica '${templateLabel}' completata.` });
+
+            if (response.ok) {
+                toast({ 
+                    title: 'Successo!', 
+                    description: `Importazione '${templateLabel}' completata: ${result.createdCount} creati, ${result.updatedCount} aggiornati.` 
+                });
+                console.log('Risultato importazione:', result);
+            } else {
+                toast({ variant: 'destructive', title: 'Errore Importazione', description: result.message || `Errore durante l'importazione di '${templateLabel}'. Dettagli in console.` });
+                console.error(`Dettaglio errore importazione '${templateLabel}':`, result);
+            }
         } catch (error) {
-            toast({ variant: 'destructive', title: 'Errore', description: (error as Error).message });
+            toast({ variant: 'destructive', title: 'Errore di Rete', description: 'Impossibile comunicare con il server. Controlla la console.' });
+            console.error("Errore di rete o di parsing:", error);
         } finally {
             setIsAnagraficaProcessing(false);
             setAnagraficaFiles(null);

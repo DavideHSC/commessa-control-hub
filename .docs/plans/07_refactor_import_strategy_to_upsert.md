@@ -48,13 +48,13 @@ L'intervento si concentrerà sulla revisione di tutti i workflow di importazione
 
 #### **FASE 2: Revisione e Allineamento degli Altri Workflow di Anagrafiche**
 
-*   **STATO:** 🟧 **DA ANALIZZARE**
+*   **STATO:** 🟡 **IN CORSO (2/4 completati)**
 *   **Obiettivo:** Assicurarsi che nessun altro workflow di importazione di anagrafiche utilizzi una strategia distruttiva e che gestiscano correttamente le logiche di business specifiche (es. validità temporale).
 *   **Workflow da Ispezionare:**
-    *   `importCausaliContabiliWorkflow.ts`
-    *   `importCodiciIvaWorkflow.ts`
-    *   `importCondizioniPagamentoWorkflow.ts`
-    *   `importPianoDeiContiWorkflow.ts`
+    *   ✅ `importCausaliContabiliWorkflow.ts` - **COMPLETATO**
+    *   ✅ `importCodiciIvaWorkflow.ts` - **COMPLETATO**
+    *   🟧 `importCondizioniPagamentoWorkflow.ts` - **DA ANALIZZARE**
+    *   🟧 `importPianoDeiContiWorkflow.ts` - **DA ANALIZZARE**
 *   **Azione 2.1 (Analisi):**
     *   Per ciascun workflow, verificare:
         1.  Se esegue operazioni di `deleteMany` all'inizio del processo.
@@ -68,7 +68,87 @@ L'intervento si concentrerà sulla revisione di tutti i workflow di importazione
 
 ---
 
-### **4. Considerazioni sull'Interfaccia Utente**
+### **4. Stato di Avanzamento e Insight**
+
+#### **Workflow `importAnagraficheWorkflow` (`A_CLIFOR.TXT`)**
+*   **STATO:** ✅ **COMPLETATA**
+*   **INSIGHTS / PROBLEMI INCONTRATI:**
+    *   L'analisi dello `schema.prisma` ha rivelato che `piva` e `codiceFiscale` non avevano un vincolo di unicità. Si è scelto di usare `externalId` come chiave per l'operazione `upsert`, non richiedendo modifiche allo schema.
+    *   Durante i test è emerso un errore di `Transaction Timeout` (`P2028`) a causa dell'elevato numero di operazioni di scrittura. Il problema è stato risolto aumentando il parametro `timeout` nella chiamata `prisma.$transaction`.
+    *   Le statistiche di output sono state migliorate per distinguere i record **creati** da quelli **aggiornati**.
+
+#### **Workflow `importCausaliContabiliWorkflow` (`CAUSALI.TXT`)**
+*   **STATO:** ✅ **COMPLETATA**
+*   **INSIGHTS / PROBLEMI INCONTRATI:**
+    *   L'analisi iniziale ha mostrato che il workflow non era distruttivo, ma usava `createMany` con `skipDuplicates`, impedendo l'aggiornamento dei record esistenti. La logica è stata sostituita con un ciclo di `upsert`.
+    *   Durante i test è emerso un errore di parsing delle date (`Expected ISO-8601 DateTime`). La causa principale era duplice:
+        1.  Un bug nella funzione di conversione delle date nel file `causaleContabileValidator.ts`.
+        2.  L'interfaccia utente stava chiamando una rotta API deprecata che usava un vecchio script di importazione non allineato alla nuova architettura.
+    *   **Soluzione Adottata:** Il bug nel validatore è stato corretto. Si è preso atto che il test deve essere eseguito sulla rotta corretta (`/api/v2/...`) che invoca il nuovo workflow, rendendo obsoleto l'intervento sui vecchi script.
+
+#### **Workflow `importCodiciIvaWorkflow` (`CODICIVA.TXT`)**
+*   **STATO:** ✅ **COMPLETATA**
+*   **INSIGHTS / PROBLEMI INCONTRATI:**
+    *   **Problema Architetturale Maggiore:** Il workflow esistente aveva un'architettura completamente diversa e incompatibile rispetto ai workflow funzionanti (anagrafiche e causali). Questo ha causato un lungo processo di debug e refactoring.
+    *   **Problemi Specifici Incontrati e Soluzioni:**
+        1.  **Errore di Conversione Dati nel Transformer:** Il `codiceIvaTransformer.ts` non convertiva i campi numerici da stringa a numero, causando `Expected Float or Null, provided String`. **Soluzione:** Implementata logica di conversione per tutti i campi numerici e booleani.
+        2.  **Interfaccia Utente su Rotta Deprecata:** Durante i test, l'interfaccia chiamava la vecchia rotta API (`/api/import/anagrafiche/codici_iva`) invece della nuova (`/api/v2/import/codici-iva`). **Soluzione:** Aggiornato il frontend per usare la rotta V2 corretta.
+        3.  **Handler Incompatibile:** Il `codiceIvaHandler.ts` seguiva un pattern completamente diverso dai handler funzionanti, passando parametri errati al workflow. **Soluzione:** Riscritto il handler per seguire esattamente il pattern del `anagraficaHandler.ts` che funziona.
+        4.  **Workflow con Architettura Errata:** Il workflow originale si aspettava un `filePath` invece del `fileContent`, aveva interfacce complesse e non seguiva il pattern consolidato. **Soluzione:** Riscritto completamente il workflow per seguire il pattern semplice e funzionante del `importCausaliContabiliWorkflow.ts`.
+        5.  **Errore di Nomenclatura Template:** Il workflow cercava il template `'codici-iva'` (con trattino) ma nel database era salvato come `'codici_iva'` (con underscore), causando 0 record processati. **Soluzione:** Corretto il nome del template nel workflow.
+    *   **Pattern di Refactoring Adottato:** Invece di cercare di riparare l'architettura esistente, si è scelto di riscrivere completamente il workflow seguendo pedissequamente il pattern consolidato e funzionante delle causali contabili.
+    *   **Lezioni Apprese per il Futuro:**
+        *   **Principio di Coerenza:** Prima di modificare un workflow che non funziona, analizzare sempre un workflow simile che funziona e seguire esattamente lo stesso pattern.
+        *   **Verifica Nomenclatura:** Sempre verificare che i nomi dei template nel codice corrispondano esattamente a quelli nel database.
+        *   **Test su Rotta Corretta:** Assicurarsi che l'interfaccia utente stia chiamando la rotta API corretta (V2) e non quella deprecata.
+        *   **Architettura Semplice:** Preferire sempre l'architettura più semplice e consolidata: `fileContent` → `parseFixedWidth` → `validator` → `transformer` → `upsert`.
+
+---
+
+### **5. Guida al Troubleshooting per Problemi Simili**
+
+#### **Checklist per Debug di Workflow di Importazione Non Funzionanti:**
+
+1.  **Verifica Rotta API:**
+    *   L'interfaccia utente sta chiamando `/api/v2/import/[entity]` o la vecchia rotta deprecata?
+    *   Controllare in `src/pages/Import.tsx` l'URL della chiamata `fetch`.
+
+2.  **Verifica Nome Template:**
+    *   Il nome del template nel workflow corrisponde esattamente a quello nel database?
+    *   Controllare in `prisma/seed.ts` il campo `name` del template.
+    *   Verificare che non ci siano discrepanze tra trattini (`-`) e underscore (`_`).
+
+3.  **Verifica Pattern del Handler:**
+    *   Il handler segue lo stesso pattern dei handler funzionanti?
+    *   Confrontare con `anagraficaHandler.ts` o `causaleContabileHandler.ts`.
+    *   Il handler passa `fileContent` al workflow, non `filePath` o altri parametri complessi?
+
+4.  **Verifica Pattern del Workflow:**
+    *   Il workflow segue il pattern semplice: `fileContent` → `parseFixedWidth` → `validator` → `transformer` → `upsert`?
+    *   Confrontare con `importCausaliContabiliWorkflow.ts` che è il pattern di riferimento.
+
+5.  **Verifica Transformer:**
+    *   Il transformer converte correttamente i tipi di dati (stringhe → numeri, stringhe → booleani)?
+    *   Controllare che non ci siano errori di tipo `Expected Float or Null, provided String`.
+
+6.  **Verifica Validator:**
+    *   Il validator gestisce correttamente le conversioni di data e i campi booleani?
+    *   Controllare le funzioni di preprocessing (`toDate`, `toBoolean`, etc.).
+
+#### **Pattern di Refactoring Raccomandato:**
+
+Quando un workflow non funziona, **NON** tentare di ripararlo pezzo per pezzo. Invece:
+
+1.  Identificare un workflow simile che funziona (es. `importCausaliContabiliWorkflow.ts`).
+2.  Copiare l'intera struttura del workflow funzionante.
+3.  Adattare solo i nomi delle entità, dei campi e dei template.
+4.  Mantenere identica l'architettura, la gestione degli errori e il flusso di dati.
+
+Questo approccio è molto più veloce e affidabile del debug incrementale.
+
+---
+
+### **6. Considerazioni sull'Interfaccia Utente**
 
 *   **Impatto:** Inizialmente nullo. Queste modifiche sono a livello di backend.
 *   **Opportunità Futura:** L'interfaccia di importazione potrebbe essere migliorata per dare all'utente un feedback più chiaro su quanti record sono stati creati (`created`) e quanti aggiornati (`updated`), invece di un generico "record importati". Questo, tuttavia, è un miglioramento successivo e non bloccante. 

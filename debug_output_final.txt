@@ -1,0 +1,92 @@
+🔬 DEBUG TYPESCRIPT - SCRIPT SCRITTURE
+============================================================
+✅ Template trovato con 28 field definitions
+📋 File definitions trovate: [ 'PNTESTA.TXT', 'PNRIGCON.TXT', 'PNRIGIVA.TXT', 'MOVANAC.TXT' ]
+
+🔍 PNTESTA - PARSING TYPESCRIPT:
+📏 Lunghezza riga test: 386
+📝 Field definitions (8):
+  externalId: start=21, length=12, type=string
+  causaleId: start=40, length=6, type=string
+  dataRegistrazione: start=86, length=8, type=date:YYYYMMDD
+  clienteFornitoreCodiceFiscale: start=100, length=16, type=string
+  dataDocumento: start=129, length=8, type=date:YYYYMMDD
+  numeroDocumento: start=137, length=12, type=string
+  totaleDocumento: start=173, length=12, type=number
+  noteMovimento: start=193, length=60, type=string
+[Parser] Parsing completato. 1 record estratti dal file.
+
+📊 RISULTATO PARSING:
+Record 1:
+  externalId                = '234567890123'
+  causaleId                 = 'A2025C'
+  dataRegistrazione         = '202502AA'
+  clienteFornitoreCodiceFiscale = '3456789ABCDEF123'
+  dataDocumento             = 'A_TEST'
+  numeroDocumento           = '241220241234'
+  totaleDocumento           = '241220241000'
+  noteMovimento             = '024122024123456789012345678901234567890123456789012345678901'
+
+🔍 PNRIGCON - PARSING TYPESCRIPT:
+📏 Lunghezza riga test: 410
+📝 Field definitions (9):
+  externalId: start=4, length=12, type=string
+  progressivoRigo: start=16, length=3, type=number
+  tipoConto: start=19, length=1, type=string
+  clienteFornitoreCodiceFiscale: start=20, length=16, type=string
+  conto: start=49, length=10, type=string
+  importoDare: start=59, length=12, type=number
+  importoAvere: start=71, length=12, type=number
+  note: start=83, length=60, type=string
+  movimentiAnalitici: start=248, length=1, type=string
+[Parser] Parsing completato. 1 record estratti dal file.
+
+📊 RISULTATO PARSING:
+Record 1:
+  externalId                = '123456789012'
+  progressivoRigo           = '1'
+  tipoConto                 = 'C'
+  clienteFornitoreCodiceFiscale = '123456789ABCDEF'
+  conto                     = '34567890'
+  importoDare               = '123456789001'
+  importoAvere              = '200000123456'
+  note                      = '789012345678901234567890123456789012345678900000000000000000'
+  movimentiAnalitici        = '0'
+
+🔍 PNRIGIVA - PARSING TYPESCRIPT:
+📏 Lunghezza riga test: 201
+📝 Field definitions (7):
+  externalId: start=4, length=12, type=string
+  codiceIva: start=16, length=4, type=string
+  contropartita: start=20, length=10, type=string
+  imponibile: start=30, length=12, type=number
+  imposta: start=42, length=12, type=number
+  importoLordo: start=90, length=12, type=number
+  note: start=102, length=60, type=string
+[Parser] Parsing completato. 1 record estratti dal file.
+
+📊 RISULTATO PARSING:
+Record 1:
+  externalId                = '123456789012'
+  codiceIva                 = 'IV01'
+  contropartita             = 'CONTROP123'
+  imponibile                = '1234567890'
+  imposta                   = '1'
+  importoLordo              = '1'
+  note                      = '1 12345678901 NOTE RIGA IVA 12345678901234567890123456789012'
+
+🔍 MOVANAC - PARSING TYPESCRIPT:
+📏 Lunghezza riga test: 34
+📝 Field definitions (4):
+  externalId: start=4, length=12, type=string
+  progressivoRigoContabile: start=16, length=3, type=number
+  centroDiCosto: start=19, length=4, type=string
+  parametro: start=23, length=12, type=number
+[Parser] Parsing completato. 1 record estratti dal file.
+
+📊 RISULTATO PARSING:
+Record 1:
+  externalId                = '123456789012'
+  progressivoRigoContabile  = '1'
+  centroDiCosto             = 'CC01'
+  parametro                 = '123456789012'

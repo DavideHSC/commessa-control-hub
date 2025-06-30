@@ -1,101 +1,104 @@
-import { PrismaClient, FieldDefinition as PrismaFieldDefinition } from '@prisma/client';
-import { parseFixedWidth, FieldDefinition as ParserFieldDefinition } from '../../../lib/fixedWidthParser';
-import { rawCodiceIvaSchema, RawCodiceIva } from '../../acquisition/validators/codiceIvaValidator';
+import { PrismaClient } from '@prisma/client';
+import { parseFixedWidth } from '../../acquisition/parsers/typeSafeFixedWidthParser';
+import {
+  rawCodiceIvaSchema,
+  type RawCodiceIva,
+} from '../../acquisition/validators/codiceIvaValidator';
 import { transformCodiciIva } from '../../transformation/transformers/codiceIvaTransformer';
-// import { addToDLQ } from '../../persistence/dlq/dlqService'; // Placeholder for DLQ service
-// import { runInTransaction } from '../../persistence/transactions/transactionService'; // Placeholder for transaction service
 
 const prisma = new PrismaClient();
 
-export interface ImportStats {
+interface ImportStats {
   totalRecords: number;
-  inserted: number;
-  updated: number;
-
-  errors: number;
+  successfulRecords: number;
+  errorRecords: number;
+  errors: { row: number; message: string; data: RawCodiceIva }[];
 }
 
 /**
- * Orchestrates the import process for Codici IVA.
- * This includes parsing, validation, transformation, and persistence.
- *
- * @param fileContent - The string content of the `CODICIVA.TXT` file.
- * @param fields - The array of field definitions for this template.
- * @returns An object containing statistics about the import process.
+ * Orchestra l'intero processo di importazione per i codici IVA.
+ * Segue lo stesso pattern del workflow delle causali che funziona.
+ * @param fileContent Il contenuto del file da importare.
+ * @returns Statistiche sull'esito dell'importazione.
  */
-export async function importCodiceIvaWorkflow(
-  fileContent: string,
-  fields: PrismaFieldDefinition[]
-): Promise<ImportStats> {
-    // Type assertion to bridge the gap between Prisma's FieldDefinition and the parser's expected type.
-    const parserFields: ParserFieldDefinition[] = fields.map(f => ({
-        ...f,
-        format: f.format as ParserFieldDefinition['format'], 
-    }));
-
-  // 1. Parsing
-  const rawRecords = parseFixedWidth<RawCodiceIva>(fileContent, parserFields);
-  
-  const insertedCount = 0;
-  const updatedCount = 0;
-  const errorLogs: Array<{ lineNumber: number; rawData: RawCodiceIva; errors: z.ZodError<RawCodiceIva>; }> = []; // Placeholder for DLQ
-
-  // 2. Validation & Coercion
-  const validationPromises = rawRecords.map(async (rawRecord, index) => {
-    const validationResult = rawCodiceIvaSchema.safeParse(rawRecord);
-
-    if (!validationResult.success) {
-      errorLogs.push({
-        lineNumber: index + 1,
-        rawData: rawRecord,
-        errors: validationResult.error.flatten(),
-      });
-      return null;
-    }
-    return validationResult.data;
-  });
-
-  const validatedRecords = (await Promise.all(validationPromises)).filter(
-    (r): r is NonNullable<RawCodiceIva> => r !== null
-  );
-  
-  console.log(`[Workflow] Number of validated records: ${validatedRecords.length}`);
-
-  // 3. Transformation
-  const transformedData = transformCodiciIva(validatedRecords);
-
-  console.log(`[Workflow] Number of transformed records: ${transformedData.length}`);
-
-  // 4. Persistence
-  // This should be wrapped in a robust transaction manager
-  try {
-    // This is a simplified version of the final transaction logic.
-    // A real implementation would use `runInTransaction`.
-    await prisma.$transaction(async (tx) => {
-        for (const recordData of transformedData) {
-            const result = await tx.codiceIva.upsert({
-                where: { externalId: recordData.externalId! },
-                update: recordData,
-                create: recordData,
-            });
-            // This is a simplified way to count. A better way is to check creation/update time
-            // but for now this is just a placeholder. The previous implementation was flawed.
-            // A more correct way would involve checking if the record existed right before the upsert.
-            // For now, we will just count them as updated as upsert does not return this info.
-            updatedCount++; 
-        }
-    });
-  } catch(e: unknown) {
-      // TODO: proper error handling
-      console.error(e);
-      throw new Error("Failed to persist data during transaction.");
-  }
-
-
-  return {
-    totalRecords: rawRecords.length,
-    inserted: insertedCount, // Placeholder
-    updated: updatedCount, // Placeholder
-    errors: errorLogs.length,
+export async function runImportCodiciIvaWorkflow(fileContent: string): Promise<ImportStats> {
+  const stats: ImportStats = {
+    totalRecords: 0,
+    successfulRecords: 0,
+    errorRecords: 0,
+    errors: [],
   };
+
+  try {
+    // 1. Parsa il file usando il template 'codici_iva' (nome corretto nel database)
+    const parseResult = await parseFixedWidth<RawCodiceIva>(fileContent, 'codici_iva');
+    const rawRecords = parseResult.data;
+    stats.totalRecords = rawRecords.length;
+    console.log(`[Workflow Codici IVA] Parsati ${stats.totalRecords} record grezzi dal file.`);
+
+    const validRecords: RawCodiceIva[] = [];
+
+    // 2. Valida ogni record
+    console.log('[Workflow Codici IVA] Inizio validazione e coercizione dei tipi...');
+    for (const [index, rawRecord] of rawRecords.entries()) {
+      const validationResult = rawCodiceIvaSchema.safeParse(rawRecord);
+      if (validationResult.success) {
+        validRecords.push(validationResult.data);
+      } else {
+        stats.errorRecords++;
+        const flatError = validationResult.error.flatten();
+        console.warn(`[Workflow Codici IVA] Errore di validazione alla riga ${index + 1}:`, flatError);
+        stats.errors.push({
+          row: index + 1,
+          message: JSON.stringify(flatError),
+          data: rawRecord
+        });
+      }
+    }
+    console.log(`[Workflow Codici IVA] Validazione completata. Record validi: ${validRecords.length}, Errori: ${stats.errorRecords}.`);
+
+    // 3. Trasforma i record validi
+    console.log('[Workflow Codici IVA] Inizio trasformazione dei record validi...');
+    const recordsToUpsert = transformCodiciIva(validRecords);
+    console.log(`[Workflow Codici IVA] Trasformati ${recordsToUpsert.length} record, pronti per il salvataggio.`);
+
+    // 4. Salva nel database con logica Upsert
+    let successfulUpserts = 0;
+
+    if (recordsToUpsert.length > 0) {
+      console.log(`[Workflow Codici IVA] Tentativo di salvataggio (upsert) di ${recordsToUpsert.length} record nel database...`);
+      
+      for (const record of recordsToUpsert) {
+        try {
+          await prisma.codiceIva.upsert({
+            where: { externalId: record.externalId as string },
+            update: record,
+            create: record,
+          });
+          successfulUpserts++;
+        } catch (e: unknown) {
+          const error = e as Error;
+          console.error(`[Workflow Codici IVA] Errore durante l'upsert del record con ID ${record.externalId}:`, error.message);
+          console.error(`[Workflow Codici IVA] Dati del record fallito:`, JSON.stringify(record, null, 2));
+          stats.errorRecords++;
+        }
+      }
+      stats.successfulRecords = successfulUpserts;
+      console.log(`[Workflow Codici IVA] Salvataggio completato. Record processati con successo: ${successfulUpserts}.`);
+    }
+
+    console.log('[Workflow Codici IVA] Processo di importazione terminato.');
+    return stats;
+
+  } catch (error) {
+    console.error('[Workflow Codici IVA] Errore fatale durante l\'importazione:', error);
+    stats.errors.push({
+      row: 0,
+      message: error instanceof Error ? error.message : String(error),
+      data: {} as RawCodiceIva
+    });
+    return stats;
+  } finally {
+    await prisma.$disconnect();
+  }
 } 

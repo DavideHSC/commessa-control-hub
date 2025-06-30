@@ -4,6 +4,23 @@ import * as decoders from '../decoders/codiceIvaDecoders';
 import moment from 'moment';
 
 /**
+ * Helper function to parse a numeric string from the fixed-width file.
+ * It handles cases with implied decimal places.
+ * @param value The string value from the parser.
+ * @param decimalPlaces The number of decimal places to assume.
+ * @returns A number or null if the input is empty/invalid.
+ */
+function parseNumeric(value: string, decimalPlaces = 0): number | null {
+    const cleanVal = value.trim();
+    if (cleanVal === '') return null;
+    
+    const num = parseFloat(cleanVal.replace(',', '.'));
+    if (isNaN(num)) return null;
+    
+    return decimalPlaces > 0 ? num / Math.pow(10, decimalPlaces) : num;
+}
+
+/**
  * Transforms validated raw data for Codici IVA into the format required for Prisma upsert operations.
  * It applies business logic, decodes fields into human-readable descriptions, and maps them to the database schema.
  *
@@ -21,8 +38,8 @@ export function transformCodiciIva(
         externalId:                     externalId,
         codice:                         record.codice,
         descrizione:                    record.descrizione,
-        aliquota:                       record.aliquota,
-        indetraibilita:                 record.indetraibilita,
+        aliquota:                       parseNumeric(record.aliquota, 2),
+        indetraibilita:                 parseNumeric(record.indetraibilita),
         note:                           record.note,
         validitaInizio:                 record.validitaInizio ? moment(record.validitaInizio, "DDMMYYYY").toDate() : null,
         validitaFine:                   record.validitaFine ? moment(record.validitaFine, "DDMMYYYY").toDate() : null,
@@ -41,16 +58,16 @@ export function transformCodiciIva(
         autofatturaReverseCharge:       record.autofatturaReverseCharge === 'X',
         operazioneEsenteOccasionale:    record.operazioneEsenteOccasionale === 'X',
         cesArt38QuaterStornoIva:        record.cesArt38QuaterStornoIva === 'X',
-        beniAmmortizzabili:             record.beniAmmortizzabili,
+        beniAmmortizzabili:             record.beniAmmortizzabili === 'X',
         provvigioniDm34099:             record.provvigioniDm34099 === 'X',
         analiticoBeniAmmortizzabili:    record.analiticoBeniAmmortizzabili === 'X',
         acquistiIntracomunitari:        record.acquistiIntracomunitari === 'X',
         cessioneProdottiEditoriali:     record.cessioneProdottiEditoriali === 'X',
 
         // Other numeric fields
-        aliquotaDiversa:                record.aliquotaDiversa,
-        percDetrarreExport:             record.percDetrarreExport ? parseFloat(record.percDetrarreExport.replace(',', '.')) : null,
-        percentualeCompensazione:       record.percentualeCompensazione,
+        aliquotaDiversa:                parseNumeric(record.aliquotaDiversa, 2),
+        percDetrarreExport:             parseNumeric(record.percDetrarreExport, 2),
+        percentualeCompensazione:       parseNumeric(record.percentualeCompensazione, 2),
         
         // Other string fields with their decoded descriptions
         imposteIntrattenimenti:         record.imposteIntrattenimenti,
