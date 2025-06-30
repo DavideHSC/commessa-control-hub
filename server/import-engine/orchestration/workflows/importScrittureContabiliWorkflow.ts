@@ -356,22 +356,8 @@ export class ImportScrittureContabiliWorkflow {
     // Usa una transazione per garantire atomicità completa (timeout esteso)
     await this.prisma.$transaction(async (tx) => {
       
-      // 🧹 PULIZIA TABELLE (rispetta ordine foreign keys)
-      this.telemetryService.logInfo(jobId, '🧹 Pulizia tabelle in ordine FK...');
-      
-      // Prima: tabelle dipendenti
-      await tx.allocazione.deleteMany({});
-      await tx.rigaIva.deleteMany({});
-      await tx.rigaScrittura.deleteMany({});
-      await tx.scritturaContabile.deleteMany({});
-      
-      // Poi: staging (se esistono)
-      await tx.importAllocazione.deleteMany({});
-      await tx.importScritturaRigaIva.deleteMany({});
-      await tx.importScritturaRigaContabile.deleteMany({});
-      await tx.importScritturaTestata.deleteMany({});
-      
-      this.telemetryService.logInfo(jobId, '✅ Tutte le tabelle pulite');
+      // NOTA: Logica deleteMany rimossa per prevenire perdita dati
+      // Le operazioni di creazione saranno convertite in upsert nella fase successiva
       
       // Assicurati che il cliente di sistema esista
       await tx.cliente.upsert({
@@ -439,33 +425,58 @@ export class ImportScrittureContabiliWorkflow {
         });
       }
 
-      // 2. CREA SCRITTURE CONTABILI (testate)
-      this.telemetryService.logInfo(jobId, `📝 Creazione ${transformResult.scritture.length} scritture contabili...`);
+      // 2. UPSERT SCRITTURE CONTABILI (testate)
+      this.telemetryService.logInfo(jobId, `📝 Upsert ${transformResult.scritture.length} scritture contabili...`);
+      
       for (const scrittura of transformResult.scritture) {
-        await tx.scritturaContabile.create({ data: scrittura });
+        await tx.scritturaContabile.upsert({
+          where: { externalId: scrittura.externalId! },
+          update: scrittura,
+          create: scrittura,
+        });
       }
       
-      // 3. CREA RIGHE SCRITTURA (righe contabili)
-      this.telemetryService.logInfo(jobId, `💰 Creazione ${transformResult.righeScrittura.length} righe contabili...`);
+      this.telemetryService.logInfo(jobId, `✅ ${transformResult.scritture.length} scritture processate con upsert`);
+      
+      // 3. UPSERT RIGHE SCRITTURA (righe contabili)
+      this.telemetryService.logInfo(jobId, `💰 Upsert ${transformResult.righeScrittura.length} righe contabili...`);
       for (const riga of transformResult.righeScrittura) {
-        await tx.rigaScrittura.create({ data: riga });
+        await tx.rigaScrittura.upsert({
+          where: { id: riga.id! },
+          update: riga,
+          create: riga,
+        });
       }
       
-      // 4. CREA RIGHE IVA
-      this.telemetryService.logInfo(jobId, `🧾 Creazione ${transformResult.righeIva.length} righe IVA...`);
+      this.telemetryService.logInfo(jobId, `✅ ${transformResult.righeScrittura.length} righe contabili processate con upsert`);
+      
+      // 4. UPSERT RIGHE IVA
+      this.telemetryService.logInfo(jobId, `🧾 Upsert ${transformResult.righeIva.length} righe IVA...`);
       for (const rigaIva of transformResult.righeIva) {
-        await tx.rigaIva.create({ data: rigaIva });
+        await tx.rigaIva.upsert({
+          where: { id: rigaIva.id! },
+          update: rigaIva,
+          create: rigaIva,
+        });
       }
       
-      // 5. CREA ALLOCAZIONI
-      this.telemetryService.logInfo(jobId, `🎯 Creazione ${transformResult.allocazioni.length} allocazioni...`);
+      this.telemetryService.logInfo(jobId, `✅ ${transformResult.righeIva.length} righe IVA processate con upsert`);
+      
+      // 5. UPSERT ALLOCAZIONI
+      this.telemetryService.logInfo(jobId, `🎯 Upsert ${transformResult.allocazioni.length} allocazioni...`);
       for (const allocazione of transformResult.allocazioni) {
-        await tx.allocazione.create({ data: allocazione });
+        await tx.allocazione.upsert({
+          where: { id: allocazione.id! },
+          update: allocazione,
+          create: allocazione,
+        });
       }
+      
+      this.telemetryService.logInfo(jobId, `✅ ${transformResult.allocazioni.length} allocazioni processate con upsert`);
       
       this.telemetryService.logInfo(jobId, '✅ PERSISTENZA COMPLETA: Tutte le entità salvate con successo!');
     }, {
-      timeout: 60000, // 60 secondi timeout
+      timeout: 300000, // 5 minuti timeout per dataset grandi
     });
   }
 

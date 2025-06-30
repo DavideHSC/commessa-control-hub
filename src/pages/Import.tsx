@@ -133,10 +133,10 @@ const ImportPage: React.FC = () => {
         }
         
         try {
-            const response = await fetch('/api/import/scritture', {
-                method: 'POST',
-                body: formData,
-            });
+                            const response = await fetch('/api/v2/import/scritture-contabili', {
+                    method: 'POST',
+                    body: formData,
+                });
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || 'Errore durante l\'importazione.');
             toast({ title: 'Successo!', description: 'Importazione scritture completata.' });
