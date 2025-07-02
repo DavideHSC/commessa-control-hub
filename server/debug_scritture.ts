@@ -59,7 +59,7 @@ async function debugScritture() {
       const pntestaDefinitions = definitionsByFile['PNTESTA.TXT'];
       console.log(`📝 Field definitions (${pntestaDefinitions.length}):`);
       pntestaDefinitions.forEach(def => {
-        console.log(`  ${def.name}: start=${def.start}, length=${def.length}, type=${def.type}`);
+        console.log(`  ${def.fieldName}: start=${def.start}, length=${def.length}, type=${def.type}`);
       });
       
       try {
@@ -84,7 +84,7 @@ async function debugScritture() {
       const pnrigconDefinitions = definitionsByFile['PNRIGCON.TXT'];
       console.log(`📝 Field definitions (${pnrigconDefinitions.length}):`);
       pnrigconDefinitions.forEach(def => {
-        console.log(`  ${def.name}: start=${def.start}, length=${def.length}, type=${def.type}`);
+        console.log(`  ${def.fieldName}: start=${def.start}, length=${def.length}, type=${def.type}`);
       });
       
       try {
@@ -109,7 +109,7 @@ async function debugScritture() {
       const pnrigivaDefinitions = definitionsByFile['PNRIGIVA.TXT'];
       console.log(`📝 Field definitions (${pnrigivaDefinitions.length}):`);
       pnrigivaDefinitions.forEach(def => {
-        console.log(`  ${def.name}: start=${def.start}, length=${def.length}, type=${def.type}`);
+        console.log(`  ${def.fieldName}: start=${def.start}, length=${def.length}, type=${def.type}`);
       });
       
       try {
@@ -134,7 +134,7 @@ async function debugScritture() {
       const movanacDefinitions = definitionsByFile['MOVANAC.TXT'];
       console.log(`📝 Field definitions (${movanacDefinitions.length}):`);
       movanacDefinitions.forEach(def => {
-        console.log(`  ${def.name}: start=${def.start}, length=${def.length}, type=${def.type}`);
+        console.log(`  ${def.fieldName}: start=${def.start}, length=${def.length}, type=${def.type}`);
       });
       
       try {

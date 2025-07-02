@@ -24,7 +24,7 @@ import { useMutation } from "@tanstack/react-query";
 const ImpostazioniPage = () => {
   const { toast } = useToast();
 
-  const mutation = useMutation({
+  const resetMutation = useMutation({
     mutationFn: api.resetDatabase,
     onSuccess: () => {
       toast({
@@ -41,8 +41,29 @@ const ImpostazioniPage = () => {
     },
   });
 
+  const backupMutation = useMutation({
+    mutationFn: api.backupDatabase,
+    onSuccess: () => {
+      toast({
+        title: "Successo",
+        description: "Il backup del database è stato creato con successo.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Errore",
+        description: `Impossibile creare il backup del database: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleResetDatabase = () => {
-    mutation.mutate();
+    resetMutation.mutate();
+  };
+
+  const handleBackupDatabase = () => {
+    backupMutation.mutate();
   };
 
   return (
@@ -57,33 +78,60 @@ const ImpostazioniPage = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" disabled={mutation.isPending}>
-                {mutation.isPending ? "Azzeramento e ripopolamento in corso..." : "Azzera e Ripopola Database"}
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Sei assolutamente sicuro?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Questa azione azzererà tutti i dati inseriti (commesse, 
-                  registrazioni, anagrafiche) ma ripopolerà automaticamente 
-                  il database con i dati di base necessari per l'utilizzo 
-                  dell'applicazione. I template di importazione verranno preservati.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Annulla</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleResetDatabase}
-                  className="bg-destructive hover:bg-destructive/90"
-                >
-                  Sì, azzera e ripopola il database
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <div className="flex flex-col space-y-4">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" disabled={resetMutation.isPending}>
+                  {resetMutation.isPending ? "Azzeramento e ripopolamento in corso..." : "Azzera e Ripopola Database"}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Sei assolutamente sicuro?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Questa azione azzererà tutti i dati inseriti (commesse,
+                    registrazioni, anagrafiche) ma ripopolerà automaticamente
+                    il database con i dati di base necessari per l'utilizzo
+                    dell'applicazione. I template di importazione verranno preservati.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annulla</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleResetDatabase}
+                    className="bg-destructive hover:bg-destructive/90"
+                  >
+                    Sì, azzera e ripopola il database
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" disabled={backupMutation.isPending}>
+                  {backupMutation.isPending ? "Creazione backup in corso..." : "Crea Backup Database"}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Conferma creazione backup</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Questa azione creerà un backup completo del database corrente.
+                    Il file di backup verrà salvato nella directory 'backups' del server.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annulla</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleBackupDatabase}
+                  >
+                    Sì, crea backup
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </CardContent>
       </Card>
     </div>

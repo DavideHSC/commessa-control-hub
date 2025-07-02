@@ -60,11 +60,12 @@ router.get('/', async (req, res) => {
 // POST - Crea una nuova condizione di pagamento
 router.post('/', async (req, res) => {
   try {
-    const { id, descrizione, externalId } = req.body;
+    const { id, codice, descrizione, externalId } = req.body;
     
     const condizionePagamento = await prisma.condizionePagamento.create({
       data: {
         id,
+        codice,
         descrizione,
         externalId: externalId || null,
       }

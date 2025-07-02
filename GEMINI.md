@@ -25,4 +25,4 @@ Quando richiesto di analizzare o lavorare su specifici aspetti del progetto, far
 ## 2. Metodologia di Debug e Risoluzione Problemi
 
 *   I test tu li scrivi, io li eseguo, copio i log e li scrivo nel file `console-logs.md` nel percorso @.docs/messages/console-logs.md, dopodichè ti informo di poterlo leggere.
-*   Durante le tue modifiche, l'IDE potrebbe lamentare dei problemi che tu non riesci a leggere. Io li copierò e li incollerò nel file `problems.md` nel percorso @.docs/messages/problems.md, e io ti dirò che ci sono problemi segnalati dall'IDE e tu andrai a leggerli dal file. Queste operazioni non le farò mai autonomamente poiché implicano il mio intervento, quindi le farò solo su mie istruzioni.
+*   Durante le mie modifiche, l'IDE potrebbe lamentare dei problemi. Dopo aver apportato le modifiche, ti chiederò di aggiornare il file `problems.md` con i nuovi problemi (o la loro assenza), dopodiché lo leggerò per analizzare la situazione. Queste operazioni non le farò mai autonomamente poiché implicano il mio intervento, quindi le farò solo su mie istruzioni.

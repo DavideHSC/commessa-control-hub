@@ -53,34 +53,25 @@ export async function runImportCondizioniPagamentoWorkflow(
         // Trasformazione
         const transformedRecord = condizioniPagamentoTransformer(validatedRecord);
         
+        // Controlla se il record esiste già per un conteggio accurato
+        const existingRecord = await prisma.condizionePagamento.findUnique({
+          where: { externalId: transformedRecord.externalId },
+          select: { id: true } // Seleziona solo l'ID per efficienza
+        });
+
         // Esegui upsert atomico
         await prisma.condizionePagamento.upsert({
           where: { externalId: transformedRecord.externalId },
-          update: {
-            codice: transformedRecord.codice,
-            descrizione: transformedRecord.descrizione,
-            numeroRate: transformedRecord.numeroRate,
-            contoIncassoPagamento: transformedRecord.contoIncassoPagamento,
-            inizioScadenza: transformedRecord.inizioScadenza,
-            suddivisione: transformedRecord.suddivisione,
-            calcolaGiorniCommerciali: transformedRecord.calcolaGiorniCommerciali,
-          },
-          create: {
-            externalId: transformedRecord.externalId,
-            codice: transformedRecord.codice,
-            descrizione: transformedRecord.descrizione,
-            numeroRate: transformedRecord.numeroRate,
-            contoIncassoPagamento: transformedRecord.contoIncassoPagamento,
-            inizioScadenza: transformedRecord.inizioScadenza,
-            suddivisione: transformedRecord.suddivisione,
-            calcolaGiorniCommerciali: transformedRecord.calcolaGiorniCommerciali,
-          },
+          update: transformedRecord,
+          create: transformedRecord,
         });
 
-        // NOTA: Il conteggio esatto created/updated è complesso con upsert.
-        // Per ora, contiamo semplicemente i record processati con successo.
-        // Se in futuro servirà il dettaglio, si potrà implementare una logica più avanzata.
-        stats.updatedRecords++; // Conteggio generico di record processati
+        // Aggiorna le statistiche in base all'esistenza del record
+        if (existingRecord) {
+          stats.updatedRecords++;
+        } else {
+          stats.createdRecords++;
+        }
 
       } catch (error) {
         const errorMsg = `Record ${i + 1}: ${error instanceof Error ? error.message : String(error)}`;

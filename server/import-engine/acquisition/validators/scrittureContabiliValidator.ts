@@ -176,7 +176,7 @@ export const rawMovAnacSchema = z.object({
 
 export const validatedMovAnacSchema = z.object({
   externalId: z.string().trim().min(1, 'External ID richiesto'),
-  progressivoRigoContabile: z.string().nullable().transform((val) => val ?? '0'),
+  progressivoRigoContabile: z.string().nullable().transform((val) => val ? parseInt(val, 10) : 0),
   centroDiCosto: z.string().trim().optional(),
   parametro: currencyTransform,
 });

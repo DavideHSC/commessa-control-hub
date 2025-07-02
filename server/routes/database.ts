@@ -1,5 +1,11 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
+import { exec } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import util from 'util';
+
+const execAsync = util.promisify(exec);
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -97,6 +103,49 @@ router.delete('/condizioni-pagamento', async (req, res) => {
   } catch (error) {
     console.error("Errore durante lo svuotamento della tabella Condizioni di Pagamento:", error);
     res.status(500).json({ error: 'Errore interno del server durante la pulizia delle condizioni di pagamento.' });
+  }
+});
+
+router.post('/backup', async (req, res) => {
+  const backupDir = path.join(__dirname, '..', '..', 'backups');
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const backupFileName = `backup-${timestamp}.dump`;
+  const backupFilePath = path.join(backupDir, backupFileName);
+
+  try {
+    // Assicurati che la directory di backup esista
+    if (!fs.existsSync(backupDir)) {
+      fs.mkdirSync(backupDir, { recursive: true });
+    }
+
+    // Leggi la stringa di connessione dal .env
+    const databaseUrl = process.env.DATABASE_URL;
+    if (!databaseUrl) {
+      throw new Error('DATABASE_URL non è definita nel file .env');
+    }
+
+    // Comando pg_dump
+    const command = `pg_dump "${databaseUrl}" -F c -b -v -f "${backupFilePath}"`;
+
+    console.log(`Esecuzione del backup: ${command}`);
+    const { stdout, stderr } = await execAsync(command);
+    
+    console.log('Output del backup:', stdout);
+    if (stderr) {
+      console.error('Errore durante il backup:', stderr);
+    }
+
+    res.status(200).json({ 
+      message: 'Backup del database creato con successo.',
+      filePath: backupFilePath 
+    });
+
+  } catch (error) {
+    console.error("Errore durante la creazione del backup del database:", error);
+    res.status(500).json({ 
+      error: 'Errore interno del server durante la creazione del backup.',
+      details: error instanceof Error ? error.message : String(error)
+    });
   }
 });
 

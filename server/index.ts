@@ -75,7 +75,7 @@ app.get('/test-import-scritture', async (req: Request, res: Response) => {
   console.log(`
 --- Starting ImportScrittureContabiliWorkflow Test ---`);
   const dlqService = new DLQService(prisma);
-  const telemetryService = new TelemetryService(prisma);
+  const telemetryService = new TelemetryService();
   const workflow = new ImportScrittureContabiliWorkflow(prisma, dlqService, telemetryService);
 
   const dataPath = 'G:/HSC/Reale/commessa-control-hub/.docs/dati_cliente/prima_nota/';

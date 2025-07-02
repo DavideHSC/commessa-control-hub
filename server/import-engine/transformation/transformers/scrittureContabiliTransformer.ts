@@ -486,7 +486,7 @@ function creaRigheIva(
       const rigaIvaId = `riga_iva_${key}_${idx}`;
       
       // Trova la riga contabile corrispondente (se esiste)
-      const rigaContabileKey = `${scritturaId}:${riga.riga - 1}`; // riga.riga è 1-based
+      const rigaContabileKey = `${scritturaId}:${Number(riga.riga) - 1}`; // riga.riga è 1-based
       const rigaContabileId = correlazioni.righeByKey.get(rigaContabileKey);
       
       righeIva.push({
@@ -561,11 +561,21 @@ function calcolaStatisticheComplete(
   erroriIntegrita: string[]
 ): TransformationStats {
   
+  let righeContabiliProcessate = 0;
+  let righeIvaProcessate = 0;
+  let allocazioniProcessate = 0;
+
+  for (const s of Object.values(scrittureMap)) {
+    righeContabiliProcessate += s.righeContabili.length;
+    righeIvaProcessate += s.righeIva.length;
+    allocazioniProcessate += s.allocazioni.length;
+  }
+
   const stats = {
     scrittureProcessate: Object.keys(scrittureMap).length,
-    righeContabiliProcessate: Object.values(scrittureMap).reduce((acc, s) => acc + s.righeContabili.length, 0),
-    righeIvaProcessate: Object.values(scrittureMap).reduce((acc, s) => acc + s.righeIva.length, 0),
-    allocazioniProcessate: Object.values(scrittureMap).reduce((acc, s) => acc + s.allocazioni.length, 0),
+    righeContabiliProcessate,
+    righeIvaProcessate,
+    allocazioniProcessate,
     entitaCreate: {
       scritture: entitaPrisma.scritture.length,
       righeScrittura: entitaPrisma.righeScrittura.length,
