@@ -75,7 +75,7 @@ router.post('/causali-contabili', upload.single('file'), handleCausaleContabileI
  * POST /api/v2/import/anagrafiche
  * Importazione Anagrafiche Clienti/Fornitori (A_CLIFOR.TXT)
  */
-router.post('/anagrafiche', upload.single('file'), handleAnagraficaImport);
+router.post('/clienti-fornitori', upload.single('file'), handleAnagraficaImport);
 
 /**
  * GET /api/v2/import/anagrafiche/template-info
@@ -313,7 +313,7 @@ router.post('/cleanup', async (req, res) => {
 /**
  * Error handler middleware
  */
-router.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+router.use((error: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('💥 Errore API v2:', error);
   
   if (error instanceof multer.MulterError) {

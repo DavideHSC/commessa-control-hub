@@ -51,6 +51,8 @@ export async function executeAnagraficheImportWorkflow(
     totalRecords: 0,
     successfulRecords: 0,
     errorRecords: 0,
+    createdRecords: 0,
+    updatedRecords: 0,
     inserted: 0,
     updated: 0,
     skipped: 0,
@@ -230,6 +232,9 @@ export async function executeAnagraficheImportWorkflow(
     });
 
     // Aggiorniamo le statistiche con i conteggi di create/update
+    stats.createdRecords = clientiCreati + fornitoriCreati;
+    stats.updatedRecords = clientiAggiornati + fornitoriAggiornati;
+
     // Nota: le statistiche originali parlavano di 'Created', ora sono più precise.
     const anagraficheStatsUpdated = {
         ...transformResult.statistics,
@@ -258,12 +263,7 @@ export async function executeAnagraficheImportWorkflow(
     return {
       success: true,
       message: finalMessage,
-      stats: {
-        ...stats,
-        inserted: clientiCreati + fornitoriCreati,
-        updated: clientiAggiornati + fornitoriAggiornati,
-        errorRecords: stats.errorRecords + validationErrors
-      },
+      stats,
       anagraficheStats: anagraficheStatsUpdated,
       errors
     };

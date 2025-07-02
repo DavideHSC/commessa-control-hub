@@ -37,8 +37,10 @@ export interface ImportStats {
   inserted: number;
   updated: number;
   skipped: number;
-  warnings: string[];
-  errors: string[];
+  createdRecords?: number;
+  updatedRecords?: number;
+  warnings: { row: number; message: string; data: unknown }[];
+  errors: { row: number; message: string; data: unknown }[];
 }
 
 /**
@@ -146,7 +148,11 @@ async function processWithErrorHandling<T>(
       // Validazione lunghezza record
       if (!validateRecordLength(line, templateName, i + 1)) {
         const warning = `Riga ${i + 1}: lunghezza record non valida`;
-        stats.warnings.push(warning);
+        stats.warnings.push({
+          row: i + 1,
+          message: warning,
+          data: line
+        });
         continue;
       }
       
@@ -162,9 +168,13 @@ async function processWithErrorHandling<T>(
       
     } catch (error: unknown) {
       stats.errorRecords++;
-      const errorMsg = `Errore riga ${i + 1}: ${(error as Error).message}`;
-      stats.errors.push(errorMsg);
-      console.error(`[Parser] ${errorMsg}`);
+      const errorMessage = (error as Error).message || 'Errore di parsing sconosciuto';
+      stats.errors.push({
+        row: i + 1,
+        message: errorMessage,
+        data: line
+      });
+      console.warn(`Riga ${i + 1}: Errore - ${errorMessage}`);
       
       // Continua processing invece di fermarsi (graceful)
       continue;
@@ -252,7 +262,7 @@ export async function parseFixedWidthRobust<T>(
     updated: 0,
     skipped: 0,
     warnings: [],
-    errors: [],
+    errors: []
   };
 
   try {
@@ -336,7 +346,7 @@ export async function parseFixedWidthRobust<T>(
       updated: 0,
       skipped: 0,
       warnings: [],
-      errors: [(error as Error).message]
+      errors: [{ row: 0, message: (error as Error).message, data: null }]
     };
     
     return { data: [], stats };

@@ -373,45 +373,51 @@ export class ImportScrittureContabiliWorkflow {
       // 1. CREA ENTITÀ DIPENDENTI (in ordine di dipendenza)
       this.telemetryService.logInfo(jobId, `🏢 Creazione ${transformResult.fornitori.length} fornitori...`);
       for (const fornitore of transformResult.fornitori) {
-        await tx.fornitore.upsert({
-          where: { id: fornitore.id },
-          update: {},
-          create: fornitore,
-        });
+        if (fornitore.externalId) {
+            await tx.fornitore.upsert({
+                where: { externalId: fornitore.externalId },
+                update: fornitore,
+                create: fornitore,
+            });
+        }
       }
 
       this.telemetryService.logInfo(jobId, `📋 Creazione ${transformResult.causali.length} causali...`);
       for (const causale of transformResult.causali) {
-        await tx.causaleContabile.upsert({
-          where: { id: causale.id },
-          update: {},
-          create: causale,
-        });
+        if (causale.externalId) {
+            await tx.causaleContabile.upsert({
+                where: { externalId: causale.externalId },
+                update: causale,
+                create: causale,
+            });
+        }
       }
       
       this.telemetryService.logInfo(jobId, `🏦 Creazione ${transformResult.conti.length} conti...`);
       for (const conto of transformResult.conti) {
         await tx.conto.upsert({
           where: { id: conto.id },
-          update: {},
+          update: conto,
           create: conto,
         });
       }
       
       this.telemetryService.logInfo(jobId, `📊 Creazione ${transformResult.codiciIva.length} codici IVA...`);
       for (const codiceIva of transformResult.codiciIva) {
-        await tx.codiceIva.upsert({
-          where: { id: codiceIva.id },
-          update: {},
-          create: codiceIva,
-        });
+        if (codiceIva.externalId) {
+            await tx.codiceIva.upsert({
+                where: { externalId: codiceIva.externalId },
+                update: codiceIva,
+                create: codiceIva,
+            });
+        }
       }
       
       this.telemetryService.logInfo(jobId, `🏭 Creazione ${transformResult.commesse.length} commesse...`);
       for (const commessa of transformResult.commesse) {
         await tx.commessa.upsert({
           where: { id: commessa.id },
-          update: {},
+          update: commessa,
           create: commessa,
         });
       }
@@ -420,7 +426,7 @@ export class ImportScrittureContabiliWorkflow {
       for (const voce of transformResult.vociAnalitiche) {
         await tx.voceAnalitica.upsert({
           where: { id: voce.id },
-          update: {},
+          update: voce,
           create: voce,
         });
       }

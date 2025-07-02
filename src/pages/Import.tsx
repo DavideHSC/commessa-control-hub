@@ -19,11 +19,11 @@ import {
 } from "@/components/ui/alert-dialog"
 
 const ANAGRAFICA_TEMPLATES = [
-    { value: 'causali-contabili', label: 'Anagrafica Causali Contabili' },
+    { value: 'piano-dei-conti', label: 'Anagrafica Piano dei Conti' },
     { value: 'codici-iva', label: 'Anagrafica Codici IVA' },
+    { value: 'causali-contabili', label: 'Anagrafica Causali Contabili' },
     { value: 'condizioni-pagamento', label: 'Anagrafica Condizioni di Pagamento' },
     { value: 'clienti-fornitori', label: 'Anagrafica Clienti/Fornitori' },
-    { value: 'piano-dei-conti', label: 'Anagrafica Piano dei Conti' },
 ];
 
 const ImportPage: React.FC = () => {

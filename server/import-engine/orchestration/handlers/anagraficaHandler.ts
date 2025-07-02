@@ -70,32 +70,22 @@ export async function handleAnagraficaImport(req: Request, res: Response): Promi
     if (result.success) {
       console.log('✅ Import anagrafiche completato con successo');
       
+      // La UI si aspetta un formato semplice con createdRecords e updatedRecords
       res.status(200).json({
         success: true,
         message: 'Importazione anagrafiche completata con successo',
-        data: {
+        createdRecords: result.stats.createdRecords,
+        updatedRecords: result.stats.updatedRecords,
+        // Dati diagnostici estesi per il logging, non usati direttamente dalla UI base
+        details: {
           parsing: {
             totalRecords: result.stats.totalRecords,
             successfulRecords: result.stats.successfulRecords,
-            errorRecords: result.stats.errorRecords,
-            warnings: result.stats.warnings?.length || 0,
-            errors: result.stats.errors?.length || 0
+            errorRecords: result.stats.errorRecords
           },
-          transformation: {
-            totalProcessed: result.anagraficheStats.totalProcessed,
-            clientiCreated: result.anagraficheStats.clientiCreated,
-            fornitoriCreated: result.anagraficheStats.fornitoriCreated,
-            entrambiCreated: result.anagraficheStats.entrambiCreated
-          },
-          demographics: {
-            personeeFisiche: result.anagraficheStats.personeeFisiche,
-            societa: result.anagraficheStats.societa,
-            conPartitaIva: result.anagraficheStats.conPartitaIva,
-            soggettiARitenuta: result.anagraficheStats.soggettiARitenuta
-          },
+          transformation: result.anagraficheStats,
           validationErrors: result.errors
-        },
-        stats: result.anagraficheStats
+        }
       });
     } else {
       console.error('❌ Import anagrafiche fallito:', result.message);
@@ -109,8 +99,8 @@ export async function handleAnagraficaImport(req: Request, res: Response): Promi
             totalRecords: result.stats.totalRecords,
             successfulRecords: result.stats.successfulRecords,
             errorRecords: result.stats.errorRecords,
-            warnings: result.stats.warnings?.length || 0,
-            errors: result.stats.errors?.length || 0
+            warnings: result.stats.warnings.length,
+            errors: result.stats.errors.length
           },
           validationErrors: result.errors
         }
