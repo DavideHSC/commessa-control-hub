@@ -104,6 +104,7 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
             setRegistrazione({
               ...regDaModificare,
               data: new Date(regDaModificare.data).toISOString().split('T')[0],
+              causaleId: regDaModificare.causaleId || '',
             });
             const causale = causaliData.find(c => c.id === regDaModificare.causaleId);
             setCausaleSelezionata(causale || null);
@@ -306,10 +307,9 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
   };
   
   const handleCausaleChange = (causaleId: string) => {
-    const selected = causali.find(c => c.id === causaleId) || null;
-    setCausaleSelezionata(selected);
-    setRegistrazione(prev => ({ ...prev, causaleId: causaleId, descrizione: selected?.nome || '' }));
-    setDatiPrimari({ totaleDocumento: 0, aliquotaIva: 22 });
+    const selected = causali.find(c => c.id === causaleId);
+    setCausaleSelezionata(selected || null);
+    setRegistrazione(prev => ({ ...prev, causaleId: causaleId || '' }));
   };
 
   const handleDatiPrimariChange = (id: string, value: string | number) => {
@@ -408,7 +408,11 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
       <CardContent className="space-y-4">
         <div>
           <Label htmlFor="causale">Causale Contabile</Label>
-          <Select onValueChange={handleCausaleChange} value={causaleSelezionata?.id || ''} disabled={isEditMode}>
+          <Select
+            value={registrazione.causaleId}
+            onValueChange={handleCausaleChange}
+            disabled={isSaving}
+          >
             <SelectTrigger id="causale">
               <SelectValue placeholder="Seleziona una causale..." />
             </SelectTrigger>

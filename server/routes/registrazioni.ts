@@ -79,7 +79,8 @@ router.get('/', async (req, res) => {
         take,
         include: { 
           righe: { include: { conto: true, allocazioni: true } },
-          fornitore: true
+          fornitore: true,
+          causale: true
         },
       }),
       prisma.scritturaContabile.count({ where }),
@@ -105,7 +106,10 @@ router.get('/:id', async (req, res) => {
     try {
         const scrittura = await prisma.scritturaContabile.findUnique({
             where: { id: req.params.id },
-            include: { righe: { include: { conto: true, allocazioni: true } } },
+            include: { 
+              righe: { include: { conto: true, allocazioni: true } },
+              causale: true 
+            },
         });
         if (!scrittura) return res.status(404).json({ error: 'Scrittura non trovata' });
         res.json(scrittura);
@@ -145,29 +149,84 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const { righe, ...data } = req.body as ScritturaContabile;
+
     try {
-        // Transazione per aggiornare: cancella le vecchie righe e crea le nuove
         const updatedScrittura = await prisma.$transaction(async (tx) => {
-            await tx.rigaScrittura.deleteMany({ where: { scritturaContabileId: id }});
+            // 1. Recupera lo stato attuale della scrittura e delle sue righe
+            const scritturaCorrente = await tx.scritturaContabile.findUnique({
+                where: { id },
+                include: { righe: true },
+            });
+
+            if (!scritturaCorrente) {
+                throw new Error('Scrittura non trovata.');
+            }
+
+            const righeCorrentiIds = scritturaCorrente.righe.map(r => r.id);
+            const righeInArrivoIds = righe.map(r => r.id);
+
+            // 2. Identifica le righe da creare, aggiornare ed eliminare
+            const righeDaEliminareIds = righeCorrentiIds.filter(rid => !righeInArrivoIds.includes(rid));
+            const righeDaAggiornare = righe.filter(r => righeCorrentiIds.includes(r.id));
+            const righeDaCreare = righe.filter(r => !righeCorrentiIds.includes(r.id));
+
+            // 3. Esegui le operazioni in modo sicuro
+            if (righeDaEliminareIds.length > 0) {
+                // Prima cancella le allocazioni associate per evitare violazioni di vincoli
+                await tx.allocazione.deleteMany({
+                    where: { rigaScritturaId: { in: righeDaEliminareIds } },
+                });
+                await tx.rigaScrittura.deleteMany({
+                    where: { id: { in: righeDaEliminareIds } },
+                });
+            }
+
+            for (const riga of righeDaAggiornare) {
+                // Esegui l'upsert anche per le allocazioni
+                await tx.rigaScrittura.update({
+                    where: { id: riga.id },
+                    data: {
+                        descrizione: riga.descrizione,
+                        dare: riga.dare,
+                        avere: riga.avere,
+                        contoId: riga.contoId,
+                        allocazioni: {
+                            deleteMany: {}, // Cancella le vecchie allocazioni per questa riga
+                            create: riga.allocazioni.map(a => ({
+                                commessaId: a.commessaId,
+                                voceAnaliticaId: a.voceAnaliticaId,
+                                importo: a.importo,
+                                descrizione: a.descrizione,
+                            })),
+                        },
+                    },
+                });
+            }
             
+            // 4. Aggiorna la testata della scrittura e crea le nuove righe
             return tx.scritturaContabile.update({
                 where: { id },
                 data: {
                     ...data,
                     data: new Date(data.data),
                     righe: {
-                        create: righe.map(riga => ({
+                        create: righeDaCreare.map(riga => ({
                             descrizione: riga.descrizione,
                             dare: riga.dare,
                             avere: riga.avere,
                             contoId: riga.contoId,
                             allocazioni: {
-                                create: riga.allocazioni || [],
-                            }
-                        }))
-                    }
+                                create: riga.allocazioni.map(a => ({
+                                    commessaId: a.commessaId,
+                                    voceAnaliticaId: a.voceAnaliticaId,
+                                    importo: a.importo,
+                                    descrizione: a.descrizione,
+                                })),
+                            },
+                        })),
+                    },
                 },
-                 include: { righe: { include: { allocazioni: true }}}
+                include: { righe: { include: { allocazioni: true } } },
             });
         });
         res.json(updatedScrittura);

@@ -99,7 +99,7 @@ export const ScrittureTable: React.FC = () => {
   };
 
   const handleEdit = (registrazione: ScritturaContabile) => {
-    navigate(`/app/prima-nota/registrazioni/${registrazione.id}/modifica`);
+    navigate(`/prima-nota/modifica/${registrazione.id}`);
   };
 
   const calculateTotal = (righe: RigaScrittura[] = []) => {
