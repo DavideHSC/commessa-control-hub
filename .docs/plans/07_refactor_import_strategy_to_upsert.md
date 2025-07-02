@@ -104,7 +104,7 @@ L'intervento si concentrerà sulla revisione di tutti i workflow di importazione
 
 ##### **PARZIALMENTE CONFORMI (2/5):**
 
-**4. Workflow `importCondizioniPagamentoWorkflow` (`CONDIZIONIPAGAMENTO.TXT`)**
+**4. Workflow `importCondizioniPagamentoWorkflow`**
 *   **STATO:** **[PARZIALE]** FUNZIONA MA DA MIGLIORARE
 *   **ANALISI COMPLETATA:** NON è distruttivo, usa logica upsert `where: { id }`
 *   **PROBLEMI IDENTIFICATI:**
@@ -113,7 +113,7 @@ L'intervento si concentrerà sulla revisione di tutti i workflow di importazione
     *   Non allineato architetturalmente con pattern consolidato
 *   **IMPATTO:** Workflow funzionante ma non conforme al pattern architetturale moderno
 
-**5. Workflow `importPianoDeiContiWorkflow` (`PIANODEICONTO.TXT`)**
+**5. Workflow `importPianoDeiContiWorkflow`**
 *   **STATO:** **[PARZIALE]** FUNZIONA MA DA MIGLIORARE
 *   **ANALISI COMPLETATA:** NON è distruttivo, usa logica upsert `where: { id }`
 *   **PROBLEMI IDENTIFICATI:**
@@ -235,41 +235,49 @@ Questo approccio è molto più veloce e affidabile del debug incrementale.
 
 ---
 
----
+#### **FASE 4: MODERNIZZAZIONE ARCHITETTURALE (Lavori Rimanenti)**
 
-#### **FASE 4: MODERNIZZAZIONE ARCHITETTURALE**
-
-**Obiettivo:** Allineare i workflow parzialmente conformi al pattern architetturale consolidato per consistenza e manutenibilità.
+**Obiettivo:** Allineare i 2 workflow rimanenti al pattern architetturale "moderno" (Handler gestisce file, Workflow gestisce logica pura) per garantire coerenza, testabilità e manutenibilità.
 
 ##### **FASE 4.1: Modernizzazione `importCondizioniPagamentoWorkflow`**
 
-**File Coinvolti:**
-- `server/import-engine/orchestration/workflows/importCondizioniPagamentoWorkflow.ts`
-- `server/import-engine/orchestration/handlers/condizioniPagamentoHandler.ts`
+*   **STATO:** 🟥 **DA ESEGUIRE**
+*   **File Coinvolti:**
+    *   `server/import-engine/orchestration/handlers/condizioniPagamentoHandler.ts`
+    *   `server/import-engine/orchestration/workflows/importCondizioniPagamentoWorkflow.ts`
 
-**Azioni:**
-1. **Modificare Handler:** Cambiare `condizioniPagamentoHandler.ts` per leggere il file e passare `fileContent` invece di `filePath`
-2. **Modificare Workflow:** Sostituire `parseFixedWidthRobust(filePath, ...)` con `parseFixedWidth(fileContent, templateName)`
-3. **Allineare Architettura:** Seguire esattamente il pattern di `importCausaliContabiliWorkflow.ts`
+*   **Azioni Dettagliate:**
+    1.  **Refactoring del Handler (`condizioniPagamentoHandler.ts`):**
+        *   Modificare la funzione per seguire il pattern moderno: deve accettare `(req: Request, res: Response)`.
+        *   Aggiungere la logica per validare `req.file` e estrarre il contenuto del file come stringa (`fileContent`) da `req.file.buffer`.
+        *   Modificare la chiamata al workflow, passando `fileContent` come argomento invece del `filePath`.
+    2.  **Refactoring del Workflow (`importCondizioniPagamentoWorkflow.ts`):**
+        *   Modificare la firma della funzione per accettare `fileContent: string`.
+        *   Rimuovere la chiamata a `parseFixedWidthRobust`, che legge dal disco.
+        *   Sostituirla con la chiamata a `parseFixedWidth`, che opera sulla stringa `fileContent` e sul nome del template.
+        *   Assicurarsi che il workflow non abbia più dipendenze dirette dal modulo `fs` o da logiche di lettura file.
+    3.  **Verifica e Test:**
+        *   Testare l'importazione delle condizioni di pagamento dall'interfaccia utente per confermare che tutto funzioni come prima.
 
 ##### **FASE 4.2: Modernizzazione `importPianoDeiContiWorkflow`**
 
-**File Coinvolti:**
-- `server/import-engine/orchestration/workflows/importPianoDeiContiWorkflow.ts`
-- `server/import-engine/orchestration/handlers/pianoDeiContiHandler.ts`
+*   **STATO:** 🟥 **DA ESEGUIRE**
+*   **File Coinvolti:**
+    *   `server/import-engine/orchestration/handlers/pianoDeiContiHandler.ts`
+    *   `server/import-engine/orchestration/workflows/importPianoDeiContiWorkflow.ts`
 
-**Azioni:**
-1. **Modificare Handler:** Cambiare `pianoDeiContiHandler.ts` per leggere il file e passare `fileContent` invece di `filePath`
-2. **Modificare Workflow:** Sostituire `parseFixedWidthRobust(filePath, ...)` con `parseFixedWidth(fileContent, templateName)`
-3. **Allineare Architettura:** Seguire esattamente il pattern di `importCausaliContabiliWorkflow.ts`
+*   **Azioni Dettagliate:**
+    1.  **Refactoring del Handler (`pianoDeiContiHandler.ts`):**
+        *   Seguire lo stesso identico pattern di refactoring dell'handler delle condizioni di pagamento: estrarre `fileContent` e passarlo al workflow.
+    2.  **Refactoring del Workflow (`importPianoDeiContiWorkflow.ts`):**
+        *   Seguire lo stesso identico pattern di refactoring del workflow delle condizioni di pagamento: accettare `fileContent` e usare `parseFixedWidth`.
+    3.  **Verifica e Test:**
+        *   Testare l'importazione del piano dei conti dall'interfaccia utente per confermare che tutto funzioni come prima.
 
 **Criteri di Successo per Fase 4:**
-- Tutti i workflow seguono il pattern: `fileContent` → `parseFixedWidth` → `validator` → `transformer` → `upsert`
-- Nessun workflow usa più `parseFixedWidthRobust` o accesso diretto ai file
-- Tutti gli handler seguono il pattern consolidato degli handler funzionanti
-- Architettura uniforme su tutti i workflow di importazione
-
-**Tempistiche:** Media priorità - dopo completamento Fase 3
+- **6/6 workflow** di importazione seguono il pattern: `Handler (file) -> Workflow (string)`.
+- Nessun workflow accede più direttamente al file system.
+- L'architettura di importazione è **100% uniforme e standardizzata**.
 
 ---
 
