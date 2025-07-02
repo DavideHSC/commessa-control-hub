@@ -90,4 +90,14 @@ router.delete('/codici-iva', async (req, res) => {
   }
 });
 
+router.delete('/condizioni-pagamento', async (req, res) => {
+  try {
+    await prisma.condizionePagamento.deleteMany({});
+    res.status(200).json({ message: 'Tabella Condizioni di Pagamento svuotata con successo.' });
+  } catch (error) {
+    console.error("Errore durante lo svuotamento della tabella Condizioni di Pagamento:", error);
+    res.status(500).json({ error: 'Errore interno del server durante la pulizia delle condizioni di pagamento.' });
+  }
+});
+
 export default router; 

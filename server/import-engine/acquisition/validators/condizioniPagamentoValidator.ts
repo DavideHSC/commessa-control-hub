@@ -1,14 +1,7 @@
 import { z } from 'zod';
 
 /**
- * Schema Zod per la validazione e coercizione dei dati grezzi
- * provenienti dal file a larghezza fissa per le Condizioni di Pagamento.
- *
- * Questo schema si occupa di:
- * 1. Definire i tipi di dati attesi per ogni campo.
- * 2. Eseguire la coercizione dei tipi (es. da stringa a numero).
- * 3. Trasformare valori specifici (es. 'X' in `true`).
- * 4. Gestire campi opzionali o nullabili.
+ * @deprecated Utilizzare `validatedCondizionePagamentoSchema` per la validazione record per record.
  */
 export const rawCondizionePagamentoSchema = z.object({
   /**
@@ -48,19 +41,34 @@ export const rawCondizionePagamentoSchema = z.object({
    * Flag che indica se i giorni di scadenza sono da calcolarsi commercialmente.
    * Il valore 'X' viene trasformato in `true`, altrimenti `false`.
    */
-  calcolaGiorniCommerciali: z.boolean().optional(),
+  calcolaGiorniCommerciali: z.preprocess((val) => val === 'X', z.boolean()),
 
   /**
    * Flag che indica se nel calcolo delle scadenze si devono considerare
    * i periodi di chiusura aziendale.
    * Il valore 'X' viene trasformato in `true`, altrimenti `false`.
    */
-  consideraPeriodiChiusura: z.boolean().optional(),
+  consideraPeriodiChiusura: z.preprocess((val) => val === 'X', z.boolean()),
 });
 
 /**
- * Tipo TypeScript inferito dallo schema Zod.
- * Rappresenta l'oggetto dati dopo la validazione e la coercizione,
- * pronto per essere passato al livello di trasformazione.
+ * Schema Zod per la validazione e coercizione di una singola Condizione di Pagamento grezza.
  */
-export type RawCondizionePagamento = z.infer<typeof rawCondizionePagamentoSchema>; 
+export const validatedCondizionePagamentoSchema = z.object({
+  codice: z.string().optional(),
+  descrizione: z.string().optional(),
+  giorni: z.number().int().optional(),
+  percentualeSconto: z.number().optional(),
+  tipoScadenza: z.string().optional(),
+  primaNota: z.boolean().optional(),
+});
+
+/**
+ * @deprecated Utilizzare `ValidatedCondizionePagamento`.
+ */
+export type RawCondizionePagamento = z.infer<typeof rawCondizionePagamentoSchema>;
+
+/**
+ * Tipo TypeScript che rappresenta una condizione di pagamento dopo la validazione.
+ */
+export type ValidatedCondizionePagamento = z.infer<typeof validatedCondizionePagamentoSchema>; 

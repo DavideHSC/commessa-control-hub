@@ -1,74 +1,123 @@
-import { PrismaClient, type Prisma, type FieldDefinition, type ImportTemplate } from '@prisma/client';
-import { parseFixedWidthRobust } from '../../../lib/fixedWidthParser';
-import { rawCondizionePagamentoSchema } from '../../acquisition/validators/condizioniPagamentoValidator';
-import { transformCondizioniPagamento } from '../../transformation/transformers/condizioniPagamentoTransformer';
-import { z } from 'zod';
+import { PrismaClient } from '@prisma/client';
+import { parseFixedWidth } from '../../acquisition/parsers/typeSafeFixedWidthParser';
+import { validatedCondizionePagamentoSchema } from '../../acquisition/validators/condizioniPagamentoValidator';
+import { condizioniPagamentoTransformer } from '../../transformation/transformers/condizioniPagamentoTransformer';
+import type { RawCondizioniPagamento } from '../../core/types/generated';
 
 const prisma = new PrismaClient();
 
-/**
- * Orchestra l'intero processo di importazione per le Condizioni di Pagamento.
- *
- * @param filePath Il percorso del file da importare.
- * @param template Il template di importazione che definisce la struttura del file.
- * @returns Un oggetto con le statistiche dell'importazione.
- */
+export interface ImportCondizioniPagamentoResult {
+  totalRecords: number;
+  createdRecords: number;
+  updatedRecords: number;
+  errors: string[];
+}
+
 export async function runImportCondizioniPagamentoWorkflow(
-  filePath: string,
-  template: ImportTemplate & { fieldDefinitions: FieldDefinition[] }
-) {
-  console.log(
-    `[Workflow] Avvio importazione Condizioni di Pagamento da: ${filePath}`
-  );
+  fileContent: string
+): Promise<ImportCondizioniPagamentoResult> {
+  console.log('Iniziando workflow moderno per Condizioni di Pagamento...');
 
-  // 1. Parsing
-  const { data: records, stats: parseStats } = await parseFixedWidthRobust(
-    filePath,
-    template.fieldDefinitions,
-    template.name ?? 'condizioni_pagamento'
-  );
-  console.log(`[Workflow] Parsing completato. Record letti: ${parseStats.totalRecords}`);
-
-  // 2. Validazione
-  const validationResult = z.array(rawCondizionePagamentoSchema).safeParse(records);
-  if (!validationResult.success) {
-    console.error('[Workflow] Errore di validazione Zod:', validationResult.error.errors);
-    throw new Error('Validazione dei dati fallita.');
-  }
-  const validatedData = validationResult.data;
-  console.log(`[Workflow] Validazione completata. Record validi: ${validatedData.length}`);
-
-  // 3. Trasformazione
-  const recordsToUpsert = transformCondizioniPagamento(validatedData);
-  console.log(`[Workflow] Trasformazione completata. Record da salvare: ${recordsToUpsert.length}`);
-
-  // 4. Persistenza
   try {
-    console.log(
-      `[Workflow] Inizio transazione per salvare ${recordsToUpsert.length} record...`
-    );
-    await prisma.$transaction(async (tx) => {
-      for (const data of recordsToUpsert) {
-        await tx.condizionePagamento.upsert({
-          where: { id: data.id },
-          update: data,
-          create: data,
-        });
-      }
-    });
-    console.log('[Workflow] Transazione completata con successo.');
-  } catch (error) {
-    console.error('[Workflow] Errore durante la transazione Prisma:', error);
-    throw new Error('Salvataggio nel database fallito.');
-  }
+    // 1. Parsing dei dati grezzi
+    const templateName = 'condizioni_pagamento';
+    const parseResult = await parseFixedWidth<RawCondizioniPagamento>(fileContent, templateName);
+    const rawRecords = parseResult.data;
+    console.log(`Parsati ${rawRecords.length} record grezzi`);
 
-  return {
-    success: true,
-    message: 'Importazione Condizioni di Pagamento completata con successo.',
-    stats: {
-      totalRecords: parseStats.totalRecords,
-      validRecords: validatedData.length,
-      errors: parseStats.totalRecords - validatedData.length,
-    },
-  };
+    if (rawRecords.length === 0) {
+      return {
+        totalRecords: 0,
+        createdRecords: 0,
+        updatedRecords: 0,
+        errors: ['Nessun record trovato nel file'],
+      };
+    }
+
+    // 2. Inizializzazione statistiche
+    const stats = {
+      totalRecords: rawRecords.length,
+      createdRecords: 0,
+      updatedRecords: 0,
+      errors: [] as string[],
+    };
+
+    // 3. Elaborazione record per record
+    for (let i = 0; i < rawRecords.length; i++) {
+      const rawRecord = rawRecords[i];
+      
+      try {
+        // Validazione
+        const validatedRecord = validatedCondizionePagamentoSchema.parse(rawRecord);
+        
+        // Trasformazione
+        const transformedRecord = condizioniPagamentoTransformer(validatedRecord);
+        
+        // Prepara dati per upsert (solo campi definiti)
+        const createData = {
+          externalId: transformedRecord.externalId,
+          codice: transformedRecord.codice,
+          descrizione: transformedRecord.descrizione,
+          ...(transformedRecord.numeroRate !== null && transformedRecord.numeroRate !== undefined && { numeroRate: transformedRecord.numeroRate }),
+          ...(transformedRecord.contoIncassoPagamento && { contoIncassoPagamento: transformedRecord.contoIncassoPagamento }),
+          ...(transformedRecord.inizioScadenza && { inizioScadenza: transformedRecord.inizioScadenza }),
+          ...(transformedRecord.suddivisione && { suddivisione: transformedRecord.suddivisione }),
+          ...(transformedRecord.calcolaGiorniCommerciali !== null && transformedRecord.calcolaGiorniCommerciali !== undefined && { calcolaGiorniCommerciali: transformedRecord.calcolaGiorniCommerciali }),
+        };
+
+        const updateData = {
+          codice: transformedRecord.codice,
+          descrizione: transformedRecord.descrizione,
+          ...(transformedRecord.numeroRate !== null && transformedRecord.numeroRate !== undefined && { numeroRate: transformedRecord.numeroRate }),
+          ...(transformedRecord.contoIncassoPagamento && { contoIncassoPagamento: transformedRecord.contoIncassoPagamento }),
+          ...(transformedRecord.inizioScadenza && { inizioScadenza: transformedRecord.inizioScadenza }),
+          ...(transformedRecord.suddivisione && { suddivisione: transformedRecord.suddivisione }),
+          ...(transformedRecord.calcolaGiorniCommerciali !== null && transformedRecord.calcolaGiorniCommerciali !== undefined && { calcolaGiorniCommerciali: transformedRecord.calcolaGiorniCommerciali }),
+        };
+
+        // Prima verifica se esiste già
+        const existingRecord = await prisma.condizionePagamento.findUnique({
+          where: { externalId: transformedRecord.externalId }
+        });
+
+        let wasCreated = false;
+        
+        if (existingRecord) {
+          // Record esiste - UPDATE
+          await prisma.condizionePagamento.update({
+            where: { externalId: transformedRecord.externalId },
+            data: updateData,
+          });
+          wasCreated = false;
+        } else {
+          // Record non esiste - CREATE
+          await prisma.condizionePagamento.create({
+            data: createData,
+          });
+          wasCreated = true;
+        }
+
+        // Aggiorna statistiche corrette
+        if (wasCreated) {
+          stats.createdRecords++;
+        } else {
+          stats.updatedRecords++;
+        }
+
+      } catch (error) {
+        const errorMsg = `Record ${i + 1}: ${error instanceof Error ? error.message : String(error)}`;
+        console.error(errorMsg);
+        stats.errors.push(errorMsg);
+      }
+    }
+
+    console.log(`Workflow completato: ${stats.createdRecords} creati, ${stats.updatedRecords} aggiornati, ${stats.errors.length} errori`);
+    return stats;
+
+  } catch (error) {
+    console.error('Errore critico nel workflow:', error);
+    throw error;
+  } finally {
+    await prisma.$disconnect();
+  }
 } 

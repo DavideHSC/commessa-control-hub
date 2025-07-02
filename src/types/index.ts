@@ -130,6 +130,7 @@ export interface Conto {
   richiedeVoceAnalitica: boolean;
   voceAnaliticaId: string | null;
   voceAnalitica?: VoceAnalitica;
+  voceAnaliticaSuggeritaId?: string | null;
 
   // === ESTENSIONI FASE 1 - PARSER PYTHON (parser_contigen.py) ===
   tabellaItalstudio?: string | null;
@@ -288,6 +289,10 @@ export interface CausaleContabile {
   // Contabilità Semplificata
   tipoMovimentoSemplificata?: string | null;
   tipoMovimentoSemplificataDesc?: string | null;
+
+  // Campi per la generazione automatica delle scritture
+  datiPrimari?: CampoDatiPrimari[];
+  templateScrittura?: VoceTemplateScrittura[];
 }
 
 /**
@@ -334,6 +339,7 @@ export interface ScritturaContabile {
   id: string; // UUID per la registrazione
   data: string; // Usiamo l'oggetto Date per maneggiarlo più facilmente, lo convertiremo in stringa solo per le API
   causaleId: string; // ID della causale usata (obbligatorio se si usa un automatismo)
+  causale?: CausaleContabile; // Causale collegata (quando inclusa dal backend)
   descrizione: string;
   righe: RigaScrittura[];
   fornitore?: Fornitore | null;

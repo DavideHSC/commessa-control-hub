@@ -44,7 +44,11 @@ export const getClienti = (params?: Record<string, any>) => fetchPaginatedData<C
 export const getFornitori = (params?: Record<string, any>) => fetchPaginatedData<Fornitore>('fornitori', params);
 export const getPianoDeiConti = (params?: Record<string, any>) => fetchPaginatedData<Conto>('conti', params);
 export const getVociAnalitiche = (params?: Record<string, any>) => fetchPaginatedData<VoceAnalitica>('voci-analitiche', params);
-export const getCausaliContabili = (params?: Record<string, any>) => fetchPaginatedData<CausaleContabile>('causali', params);
+export const getCausaliContabili = (params?: Record<string, any>) => {
+  // Se non sono specificati parametri, recupera tutti i record.
+  const queryParams = params || { all: 'true' };
+  return fetchPaginatedData<CausaleContabile>('causali', queryParams);
+};
 export const getCodiciIva = (params?: Record<string, any>) => fetchPaginatedData<CodiceIva>('codici-iva', params);
 export const getCondizioniPagamento = (params?: Record<string, any>) => fetchPaginatedData<CondizionePagamento>('condizioni-pagamento', params);
 export const getImportTemplates = (params?: Record<string, any>) => fetchPaginatedData<ImportTemplate>('/api/import-templates', params);

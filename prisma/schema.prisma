@@ -129,7 +129,7 @@ model Fornitore {
 }
 
 model VoceAnalitica {
-  id          String        @id
+  id          String        @id @default(cuid())
   nome        String        @unique
   descrizione String?
   externalId  String?       @unique
@@ -139,7 +139,7 @@ model VoceAnalitica {
 }
 
 model Conto {
-  id                         String          @id
+  id                         String          @id @default(cuid())
   codice                     String?         @unique
   nome                       String
   tipo                       TipoConto
@@ -208,7 +208,7 @@ model Conto {
 }
 
 model Commessa {
-  id          String        @id
+  id          String        @id @default(cuid())
   nome        String        @unique
   clienteId   String
   descrizione String?
@@ -362,14 +362,14 @@ model CodiceIva {
 }
 
 model CondizionePagamento {
-  id                    String  @id
-  externalId            String? @unique
-  descrizione           String
-  codice                String? @unique
-  contoIncassoPagamento String?
-  inizioScadenza        String?
-  numeroRate            Int?
-  suddivisione          String?
+  id                        String   @id @default(cuid())
+  externalId                String?  @unique
+  descrizione               String
+  codice                    String   @unique
+  contoIncassoPagamento     String?
+  inizioScadenza            String?
+  numeroRate                Int?
+  suddivisione              String?
   
   // === ESTENSIONI FASE 1 - PARSER PYTHON ===
   calcolaGiorniCommerciali     Boolean?
@@ -389,64 +389,64 @@ model RigaIva {
 }
 
 model CausaleContabile {
-  id                String               @id
-  codice            String?              @unique
-  descrizione       String
-  externalId        String?              @unique
-  nome              String?
-  dataFine          DateTime?
-  dataInizio        DateTime?
-  noteMovimento     String?
-  tipoAggiornamento String?
-  tipoMovimento     String?
-  tipoRegistroIva   String?
-  scritture         ScritturaContabile[]
+  id                               String                  @id @default(cuid())
+  codice                           String?                 @unique
+  descrizione                      String
+  externalId                       String?                 @unique
+  nome                             String?
+  dataFine                           DateTime?
+  dataInizio                         DateTime?
+  noteMovimento                      String?
+  tipoAggiornamento                  String?
+  tipoMovimento                      String?
+  tipoRegistroIva                     String?
+  scritture                           ScritturaContabile[]
   
   // === ESTENSIONI FASE 1 - PARSER PYTHON ===
   // Descrizioni Decodificate
-  tipoMovimentoDesc            String?
-  tipoAggiornamentoDesc        String?
-  tipoRegistroIvaDesc          String?
+  tipoMovimentoDesc                     String?
+  tipoAggiornamentoDesc                 String?
+  tipoRegistroIvaDesc                   String?
   
   // Gestione IVA
-  segnoMovimentoIva            String?
-  segnoMovimentoIvaDesc        String?
-  contoIva                     String?
-  contoIvaVendite              String?
+  segnoMovimentoIva                       String?
+  segnoMovimentoIvaDesc                 String?
+  contoIva                                String?
+  contoIvaVendite                         String?
   
   // Autofatture
-  generazioneAutofattura       Boolean?
-  tipoAutofatturaGenerata      String?
-  tipoAutofatturaDesc          String?
+  generazioneAutofattura                  Boolean?
+  tipoAutofatturaGenerata                 String?
+  tipoAutofatturaDesc                     String?
   
   // Gestione Fatture
-  fatturaImporto0              Boolean?
-  fatturaValutaEstera          Boolean?
-  nonConsiderareLiquidazioneIva Boolean?
-  fatturaEmessaRegCorrispettivi Boolean?
+  fatturaImporto0                           Boolean?
+  fatturaValutaEstera                       Boolean?
+  nonConsiderareLiquidazioneIva              Boolean?
+  fatturaEmessaRegCorrispettivi             Boolean?
   
   // IVA Esigibilità
-  ivaEsigibilitaDifferita      String?
-  ivaEsigibilitaDifferitaDesc  String?
+  ivaEsigibilitaDifferita                    String?
+  ivaEsigibilitaDifferitaDesc                String?
   
   // Gestioni Speciali
-  gestionePartite              String?
-  gestionePartiteDesc          String?
-  gestioneIntrastat            Boolean?
-  gestioneRitenuteEnasarco     String?
-  gestioneRitenuteEnasarcoDesc String?
-  versamentoRitenute           Boolean?
+  gestionePartite                             String?
+  gestionePartiteDesc                         String?
+  gestioneIntrastat                           Boolean?
+  gestioneRitenuteEnasarco                    String?
+  gestioneRitenuteEnasarcoDesc                String?
+  versamentoRitenute                          Boolean?
   
   // Documenti e Registrazioni
-  descrizioneDocumento         String?
-  identificativoEsteroClifor   Boolean?
-  scritturaRettificaAssestamento Boolean?
-  nonStampareRegCronologico    Boolean?
-  movimentoRegIvaNonRilevante  Boolean?
+  descrizioneDocumento                          String?
+  identificativoEsteroClifor                  Boolean?
+  scritturaRettificaAssestamento               Boolean?
+  nonStampareRegCronologico                    Boolean?
+  movimentoRegIvaNonRilevante                  Boolean?
   
   // Contabilità Semplificata
-  tipoMovimentoSemplificata    String?
-  tipoMovimentoSemplificataDesc String?
+  tipoMovimentoSemplificata                    String?
+  tipoMovimentoSemplificataDesc                String?
 }
 
 model CampoDatiPrimari {

@@ -107,7 +107,27 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
               causaleId: regDaModificare.causaleId || '',
             });
             const causale = causaliData.find(c => c.id === regDaModificare.causaleId);
-            setCausaleSelezionata(causale || null);
+            
+            // Verifica se la causale esiste nella lista
+            if (!causale && regDaModificare.causaleId) {
+              console.warn(`⚠️ PROBLEMA: Causale con ID "${regDaModificare.causaleId}" non trovata nella lista delle causali disponibili.`);
+              console.warn('📋 Causali disponibili:', causaliData.map(c => c.id).slice(0, 10), '...');
+              // Proviamo a cercare per nome se il backend ha restituito l'oggetto causale completo
+              if (regDaModificare.causale) {
+                console.log('🔍 Causale dal backend:', regDaModificare.causale);
+                const causaleByName = causaliData.find(c => c.nome === regDaModificare.causale.nome);
+                if (causaleByName) {
+                  console.log('✅ Trovata causale per nome:', causaleByName);
+                  setCausaleSelezionata(causaleByName);
+                  // Aggiorna anche la registrazione con l'ID corretto
+                  setRegistrazione(prev => ({ ...prev, causaleId: causaleByName.id }));
+                } else {
+                  toast.error(`Causale "${regDaModificare.causale.nome}" non trovata nel sistema.`);
+                }
+              }
+            } else {
+              setCausaleSelezionata(causale || null);
+            }
 
             if (regDaModificare.datiAggiuntivi) {
               setDatiPrimari({
@@ -166,12 +186,19 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
   }, [datiPrimari, registrazione.righe, allocazioniTemporanee]);
 
   const addRigaContabile = () => {
+    const newRigaId = `riga-${Date.now()}`;
     setRegistrazione(prev => ({
       ...prev,
       righe: [...prev.righe, {
-        id: `riga-${Date.now()}`,
+        id: newRigaId,
         contoId: '', descrizione: '', dare: 0, avere: 0, allocazioni: [],
       }]
+    }));
+    // Inizializza subito i display values per la nuova riga
+    setDisplayValues(prev => ({
+      ...prev,
+      [`${newRigaId}-dare`]: '0,00',
+      [`${newRigaId}-avere`]: '0,00'
     }));
   };
 
@@ -391,6 +418,11 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
     setDisplayValues(prev => ({ ...prev, [key]: value }));
   };
 
+  // Funzione di sicurezza per ottenere sempre un valore stringa dai displayValues
+  const getDisplayValue = (key: string): string => {
+    return displayValues[key] || '';
+  };
+
   const handleDisplayValueBlur = (key: string, type: 'totale' | 'riga' | 'allocazione', rigaId?: string, field?: 'dare' | 'avere', allocIndex?: number) => {
     const numericValue = parseFormattedNumber(displayValues[key]);
     if (type === 'totale') {
@@ -422,7 +454,7 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
           </Select>
         </div>
 
-        {causaleSelezionata?.datiPrimari.map(dp => {
+        {causaleSelezionata?.datiPrimari?.map(dp => {
           const campoId = dp.id;
           
           if (dp.riferimentoConto === 'Fornitore') {
@@ -465,7 +497,7 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
               <Input
                 id={dp.id}
                 type="text"
-                value={displayValues[campoId] || ''}
+                                    value={getDisplayValue(campoId)}
                 onChange={(e) => handleDisplayValueChange(campoId, e.target.value)}
                 onBlur={() => handleDisplayValueBlur(campoId, 'totale')}
                 className="text-right"
@@ -526,7 +558,7 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
                   <Input
                     type="text"
                     className="text-right"
-                    value={displayValues[`alloc-${index}`] || ''}
+                    value={getDisplayValue(`alloc-${index}`)}
                     onChange={(e) => handleDisplayValueChange(`alloc-${index}`, e.target.value)}
                     onBlur={() => handleDisplayValueBlur(`alloc-${index}`, 'allocazione', undefined, undefined, index)}
                   />
@@ -615,7 +647,7 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
                       </div>
                       <div className="col-span-3">
                         <Input
-                          value={riga.descrizione}
+                          value={riga.descrizione || ''}
                           onChange={(e) => updateRigaContabile(riga.id, 'descrizione', e.target.value)}
                         />
                       </div>
@@ -623,7 +655,7 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
                         <Input
                           type="text"
                           className="text-right"
-                          value={displayValues[`${riga.id}-dare`]}
+                          value={getDisplayValue(`${riga.id}-dare`)}
                           onChange={(e) => handleDisplayValueChange(`${riga.id}-dare`, e.target.value)}
                           onBlur={() => handleDisplayValueBlur(`${riga.id}-dare`, 'riga', riga.id, 'dare')}
                           disabled={!isDareEnabled(riga.contoId)}
@@ -633,7 +665,7 @@ const NuovaRegistrazionePrimaNota: React.FC = () => {
                         <Input
                           type="text"
                           className="text-right"
-                          value={displayValues[`${riga.id}-avere`]}
+                          value={getDisplayValue(`${riga.id}-avere`)}
                           onChange={(e) => handleDisplayValueChange(`${riga.id}-avere`, e.target.value)}
                           onBlur={() => handleDisplayValueBlur(`${riga.id}-avere`, 'riga', riga.id, 'avere')}
                           disabled={!isAvereEnabled(riga.contoId)}

@@ -20,10 +20,12 @@ import {
 export function transformCausaleContabile(
   record: ValidatedCausaleContabile
 ): Prisma.CausaleContabileCreateInput {
+  const trimmedCode = record.codiceCausale.trim();
+
   return {
     // Campi diretti o già trasformati dallo schema Zod
-    id: record.codiceCausale.trim(), // Usiamo il codice come ID
-    codice: record.codiceCausale.trim(),
+    externalId: trimmedCode,
+    codice: trimmedCode,
     descrizione: record.descrizione,
     dataInizio: record.dataInizio,
     dataFine: record.dataFine,

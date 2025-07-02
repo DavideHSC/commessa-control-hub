@@ -12,8 +12,16 @@ router.get('/', async (req, res) => {
         limit = '25', 
         search = '',
         sortBy = 'descrizione',
-        sortOrder = 'asc'
+        sortOrder = 'asc',
+        all = 'false'
     } = req.query;
+
+    if (all === 'true') {
+        const causali = await prisma.causaleContabile.findMany({
+            orderBy: { [(sortBy as string) || 'descrizione']: (sortOrder as 'asc' | 'desc') || 'asc' }
+        });
+        return res.json({ data: causali, pagination: { total: causali.length } });
+    }
 
     const pageNumber = parseInt(page as string, 10);
     const pageSize = parseInt(limit as string, 10);

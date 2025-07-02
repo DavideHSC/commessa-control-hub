@@ -6,11 +6,14 @@ export async function handlePianoDeiContiImportV2(req: Request, res: Response) {
     return res.status(400).json({ message: 'Nessun file caricato.' });
   }
 
-  const filePath = req.file.path;
-  console.log(`[API V2] Ricevuto file per importazione Piano dei Conti: ${filePath}`);
+  // Modern Pattern: Il file viene gestito in memoria.
+  // Passiamo l'intero contenuto (buffer) come stringa al workflow.
+  // L'encoding verrà gestito a valle se necessario.
+  const fileContent = req.file.buffer.toString('latin1'); // latin1 è un encoding sicuro per i file legacy
+  console.log(`[API V2] Ricevuto file per importazione Piano dei Conti: ${req.file.originalname}, size: ${req.file.size} bytes`);
 
   try {
-    const result = await importPianoDeiContiWorkflow(filePath);
+    const result = await importPianoDeiContiWorkflow(fileContent);
     console.log('[API V2] Workflow completato. Invio risposta...');
     
     res.status(200).json({

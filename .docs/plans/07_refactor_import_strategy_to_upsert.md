@@ -281,7 +281,7 @@ Questo approccio è molto più veloce e affidabile del debug incrementale.
 1. **Test di Regressione Completo:**
    - Test di importazione di tutti i tipi di anagrafica
    - Verifica che le importazioni multiple non cancellino dati esistenti
-   - Test delle statistiche create/updated per tutti i workflow
+   - Test delle statistiche created/updated per tutti i workflow
 
 2. **Audit Finale Logica Distruttiva:**
    - Scan completo del codice per operazioni `deleteMany` sui dati di business

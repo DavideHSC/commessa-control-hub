@@ -90,7 +90,7 @@ const ImportPage: React.FC = () => {
             if (response.ok) {
                 toast({ 
                     title: 'Successo!', 
-                    description: `Importazione '${templateLabel}' completata: ${result.createdCount} creati, ${result.updatedCount} aggiornati.` 
+                    description: `Importazione '${templateLabel}' completata: ${result.createdRecords} creati, ${result.updatedRecords} aggiornati.` 
                 });
                 console.log('Risultato importazione:', result);
             } else {

@@ -74,15 +74,22 @@ export async function runImportCausaliContabiliWorkflow(fileContent: string): Pr
     
     for (const record of recordsToUpsert) {
       try {
+        // L'externalId è il codice della causale, che è l'identificatore di business univoco.
+        if (!record.externalId) {
+          console.warn(`[Workflow Causali] Record scartato perché privo di externalId:`, record);
+          stats.errorRecords++;
+          continue;
+        }
+
         await prisma.causaleContabile.upsert({
-          where: { id: record.id },
+          where: { externalId: record.externalId },
           update: record,
           create: record,
         });
         successfulUpserts++;
       } catch (e: unknown) {
         const error = e as Error;
-        console.error(`[Workflow Causali] Errore durante l'upsert del record con ID ${record.id}:`, error.message);
+        console.error(`[Workflow Causali] Errore durante l'upsert del record con externalId ${record.externalId}:`, error.message);
         console.error(`[Workflow Causali] Dati del record fallito:`, JSON.stringify(record, null, 2));
         stats.errorRecords++;
         

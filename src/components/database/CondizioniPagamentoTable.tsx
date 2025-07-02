@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from "sonner";
+import { useQueryClient } from '@tanstack/react-query';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +26,7 @@ import {
 import * as z from 'zod';
 import { Form } from "@/components/ui/form";
 import { createCondizionePagamento, updateCondizionePagamento, deleteCondizionePagamento, CondizionePagamento } from '@/api/condizioniPagamento';
+import { clearCondizioniPagamento } from '@/api/database';
 import { condizioneSchema } from '@/schemas/database';
 import { useCrudTable } from '@/hooks/useCrudTable';
 import { useAdvancedTable } from '@/hooks/useAdvancedTable';
@@ -54,6 +57,9 @@ const emptyCondizione: CondizioneFormValues = {
 };
 
 export const CondizioniPagamentoTable = () => {
+  const [isClearing, setIsClearing] = useState(false);
+  const queryClient = useQueryClient();
+
   const {
     data,
     totalCount,
@@ -95,6 +101,19 @@ export const CondizioniPagamentoTable = () => {
     getId: (condizione) => condizione.id,
   });
 
+  const handleClearTable = async () => {
+    setIsClearing(true);
+    try {
+      await clearCondizioniPagamento();
+      refreshData();
+      queryClient.invalidateQueries({ queryKey: ['databaseStats'] });
+    } catch (error) {
+      // Error is already handled in clearCondizioniPagamento function
+    } finally {
+      setIsClearing(false);
+    }
+  };
+
   const columns: ColumnDef<CondizionePagamento>[] = [
     {
       accessorKey: "id",
@@ -130,7 +149,39 @@ export const CondizioniPagamentoTable = () => {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Condizioni di Pagamento</CardTitle>
-          <Button onClick={() => handleOpenDialog()}>Aggiungi Condizione</Button>
+          <div className="flex gap-2">
+            <Button onClick={() => handleOpenDialog()}>Aggiungi Condizione</Button>
+            <AlertDialog open={isClearing} onOpenChange={setIsClearing}>
+              <Button
+                variant="destructive"
+                onClick={() => setIsClearing(true)}
+                disabled={isClearing}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                {isClearing ? 'Svuotamento...' : 'Svuota Condizioni Pagamento'}
+              </Button>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Sei assolutamente sicuro?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Questa azione è irreversibile e cancellerà TUTTE le condizioni di pagamento.
+                    Sarà necessario re-importare il file anagrafico per ripristinarle.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel onClick={() => setIsClearing(false)}>
+                    Annulla
+                  </AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleClearTable}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Sì, svuota tutto
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </CardHeader>
         <CardContent>
           <AdvancedDataTable

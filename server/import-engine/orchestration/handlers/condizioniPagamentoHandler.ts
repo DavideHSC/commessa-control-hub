@@ -1,47 +1,35 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { runImportCondizioniPagamentoWorkflow } from '../workflows/importCondizioniPagamentoWorkflow';
-
-const prisma = new PrismaClient();
 
 /**
  * Gestisce la richiesta HTTP per l'importazione delle Condizioni di Pagamento
- * utilizzando il nuovo motore v2.
+ * utilizzando il nuovo motore v2 (ARCHITETTURA MODERNA).
  *
  * @param req L'oggetto richiesta di Express.
  * @param res L'oggetto risposta di Express.
  */
 export async function handleCondizioniPagamentoImportV2(req: Request, res: Response) {
-  if (!req.file) {
-    return res.status(400).json({ message: 'Nessun file caricato.' });
-  }
-
-  const filePath = req.file.path;
-  console.log(`[API V2] Ricevuto file per importazione Condizioni di Pagamento: ${filePath}`);
-
   try {
-    // 1. Recupera il template specifico dal database
-    const template = await prisma.importTemplate.findUniqueOrThrow({
-      where: { name: 'condizioni_pagamento' },
-      include: { fieldDefinitions: true },
-    });
-    console.log(`[API V2] Template 'condizioni_pagamento' caricato.`);
+    if (!req.file) {
+      res.status(400).json({ error: 'Nessun file ricevuto' });
+      return;
+    }
 
-    // 2. Esegue il workflow di importazione
-    const result = await runImportCondizioniPagamentoWorkflow(filePath, template);
-    console.log('[API V2] Workflow completato. Invio risposta...');
-    
-    // 3. Invia la risposta di successo
-    res.status(200).json({
-      message: 'Importazione Condizioni di Pagamento con nuovo motore completata!',
-      result: result,
-    });
-  } catch (error: unknown) {
-    console.error('[API V2] Errore critico durante il workflow:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Errore sconosciuto';
+    console.log('Ricevuto file per importazione Condizioni di Pagamento:', req.file.originalname);
+
+    // Leggi il contenuto del file
+    const fileContent = req.file.buffer.toString('latin1');
+
+    // Esegui il workflow di importazione
+    const result = await runImportCondizioniPagamentoWorkflow(fileContent);
+
+    console.log('Importazione Condizioni di Pagamento completata:', result);
+    res.json(result);
+  } catch (error) {
+    console.error('Errore durante importazione Condizioni di Pagamento:', error);
     res.status(500).json({ 
-      message: 'Errore interno del server durante l\'importazione.',
-      error: errorMessage,
+      error: 'Errore durante l\'importazione', 
+      details: error instanceof Error ? error.message : String(error) 
     });
   }
 } 
