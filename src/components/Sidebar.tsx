@@ -72,7 +72,7 @@ export function Sidebar() {
           </div>
           <div>
             <h2 className="font-semibold text-slate-900 text-lg">CommessaHub</h2>
-            <p className="text-xs text-slate-500">Gestione Contabilità</p>
+            <p className="text-xs text-slate-500">Gestione Commesse</p>
           </div>
         </div>
       </SidebarHeader>

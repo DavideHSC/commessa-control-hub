@@ -4,8 +4,11 @@ import * as decoders from '../businessDecoders';
 
 const prisma = new PrismaClient();
 
+// Tipi specifici per migliorare la leggibilità e la sicurezza
+type Livello = '1' | '2' | '3';
+
 // Helper functions per Piano dei Conti (replica logica Python)
-function formatCodificaGerarchica(codifica: string, livello?: string): string {
+function formatCodificaGerarchica(codifica: string, livello?: string | null): string {
     if (!codifica) return "";
     
     const cleanCode = codifica.trim();
@@ -18,7 +21,7 @@ function formatCodificaGerarchica(codifica: string, livello?: string): string {
     }
 }
 
-function determinaTipoConto(tipoChar?: string, codice?: string): TipoConto {
+function determinaTipoConto(tipoChar?: string | null, codice?: string | null): TipoConto {
     const tipo = tipoChar?.trim().toUpperCase();
     
     switch (tipo) {
@@ -36,84 +39,95 @@ function determinaTipoConto(tipoChar?: string, codice?: string): TipoConto {
     }
 }
 
-interface ParsedRecord {
-    [key: string]: any;
+// Interfaccia per i dati grezzi dal parser
+interface RawRecord {
+    [key: string]: string | number | boolean | null | undefined;
 }
 
-export async function handlePianoDeiContiImport(parsedData: ParsedRecord[], res: Response) {
+// Funzione helper per normalizzare i campi in stringhe sicure
+function normalizeField(value: RawRecord[string]): string | null {
+    if (value === null || typeof value === 'undefined') {
+        return null;
+    }
+    return String(value).trim();
+}
+
+export async function handlePianoDeiContiImport(parsedData: RawRecord[], res: Response) {
     let processedCount = 0;
     const batchSize = 100;
 
     console.log(`[IMPORT Piano dei Conti] Inizio elaborazione di ${parsedData.length} record.`);
 
     const validRecords = parsedData.map(record => {
-        const codice = record.codice?.trim();
+        const codice = normalizeField(record.codice);
         if (!codice) return null;
 
-        // Applica le decodifiche semantiche come nel parser Python
-        const livelloDesc = decoders.decodeLivello(record.livello);
-        const tipoDesc = decoders.decodeTipoConto(record.tipoChar);
-        const gruppoDesc = decoders.decodeGruppo(record.gruppo);
-        const controlloSegnoDesc = decoders.decodeControlloSegno(record.controlloSegno);
+        const livello = normalizeField(record.livello);
+        const tipoChar = normalizeField(record.tipoChar);
         
-        // Formatta codifica gerarchica come nel parser Python
-        const codificaFormattata = formatCodificaGerarchica(codice, record.livello);
+        // Applica le decodifiche semantiche, fornendo un default per evitare null
+        const livelloDesc = decoders.decodeLivello(livello ?? '');
+        const tipoDesc = decoders.decodeTipoConto(tipoChar ?? '');
+        const gruppoDesc = decoders.decodeGruppo(normalizeField(record.gruppo) ?? '');
+        const controlloSegnoDesc = decoders.decodeControlloSegno(normalizeField(record.controlloSegno) ?? '');
         
-        // Determina il tipo enum basato sul tipo carattere e sul codice (logica Python)
-        const tipo = determinaTipoConto(record.tipoChar, codice);
+        // Formatta codifica gerarchica
+        const codificaFormattata = formatCodificaGerarchica(codice, livello ?? '');
+        
+        // Determina il tipo enum
+        const tipo = determinaTipoConto(tipoChar ?? '', codice);
 
         return {
             id: codice,
             externalId: codice,
             codice: codice,
-            nome: record.descrizione?.trim() || 'Conto senza nome',
+            nome: normalizeField(record.descrizione) || 'Conto senza nome',
             tipo,
             
-            // === Tutti i nuovi campi dalla Fase 1 ===
             // Gerarchia e Classificazione
-            livello: record.livello?.trim() || null,
+            livello: livello,
             livelloDesc,
-            sigla: record.sigla?.trim() || null,
-            gruppo: record.gruppo?.trim() || null,
+            sigla: normalizeField(record.sigla),
+            gruppo: normalizeField(record.gruppo),
             gruppoDesc,
-            controlloSegno: record.controlloSegno?.trim() || null,
+            controlloSegno: normalizeField(record.controlloSegno),
             controlloSegnoDesc,
             codificaFormattata,
             
-            // Validità per Tipo Contabilità (flags booleani come Python)
+            // Validità
             validoImpresaOrdinaria: record.validoImpresaOrd === 'X',
             validoImpresaSemplificata: record.validoImpresaSempl === 'X',
             validoProfessionistaOrdinario: record.validoProfOrd === 'X',
             validoProfessionistaSemplificato: record.validoProfSempl === 'X',
             
             // Classi Fiscali
-            classeIrpefIres: record.classeIrpefIres?.trim() || null,
-            classeIrap: record.classeIrap?.trim() || null,
-            classeProfessionista: record.classeProfessionista?.trim() || null,
-            classeIrapProfessionista: record.classeIrapProf?.trim() || null,
-            classeIva: record.classeIva?.trim() || null,
+            classeIrpefIres: normalizeField(record.classeIrpefIres),
+            classeIrap: normalizeField(record.classeIrap),
+            classeProfessionista: normalizeField(record.classeProfessionista),
+            classeIrapProfessionista: normalizeField(record.classeIrapProf),
+            classeIva: normalizeField(record.classeIva),
             
             // Conti Collegati
-            contoCostiRicavi: record.contoCostiRicavi?.trim() || null,
-            contoDareCee: record.contoDare?.trim() || null,
-            contoAvereCee: record.contoAvere?.trim() || null,
+            contoCostiRicavi: normalizeField(record.contoCostiRicavi),
+            contoDareCee: normalizeField(record.contoDare),
+            contoAvereCee: normalizeField(record.contoAvere),
             
             // Gestione Speciale
-            naturaConto: record.naturaConto?.trim() || null,
-            gestioneBeniAmmortizzabili: record.gestioneBeniAmm?.trim() || null,
-            percDeduzioneManutenzione: record.percDedManut ? parseFloat(record.percDedManut) : null,
-            dettaglioClienteFornitore: record.dettaglioCliFor?.trim() || null,
+            naturaConto: normalizeField(record.naturaConto),
+            gestioneBeniAmmortizzabili: normalizeField(record.gestioneBeniAmm),
+            percDeduzioneManutenzione: record.percDedManut ? parseFloat(String(record.percDedManut)) : null,
+            dettaglioClienteFornitore: normalizeField(record.dettaglioCliFor),
             
             // Descrizioni Bilancio
-            descrizioneBilancioDare: record.descBilancioDare?.trim() || null,
-            descrizioneBilancioAvere: record.descBilancioAvere?.trim() || null,
+            descrizioneBilancioDare: normalizeField(record.descBilancioDare),
+            descrizioneBilancioAvere: normalizeField(record.descBilancioAvere),
             
             // Dati Extracontabili
-            classeDatiExtracontabili: record.classeDatiExtra?.trim() || null,
+            classeDatiExtracontabili: normalizeField(record.classeDatiExtra),
             
             // Registri Professionisti
-            colonnaRegistroCronologico: record.colRegCronologico?.trim() || null,
-            colonnaRegistroIncassiPagamenti: record.colRegIncassiPag?.trim() || null,
+            colonnaRegistroCronologico: normalizeField(record.colRegCronologico),
+            colonnaRegistroIncassiPagamenti: normalizeField(record.colRegIncassiPag),
         };
     }).filter((record): record is NonNullable<typeof record> => record !== null);
 
@@ -124,8 +138,42 @@ export async function handlePianoDeiContiImport(parsedData: ParsedRecord[], res:
         
         await prisma.$transaction(async (tx) => {
             for (const record of batch) {
-                const dataToUpsert = {
-                    ...record,
+                // 1. Clean data object: only include fields present in the Prisma model
+                const cleanData = {
+                    codice: record.codice,
+                    nome: record.nome,
+                    tipo: record.tipo,
+                    externalId: record.externalId,
+                    livello: record.livello,
+                    livelloDesc: record.livelloDesc,
+                    sigla: record.sigla,
+                    gruppo: record.gruppo,
+                    gruppoDesc: record.gruppoDesc,
+                    controlloSegno: record.controlloSegno,
+                    controlloSegnoDesc: record.controlloSegnoDesc,
+                    codificaFormattata: record.codificaFormattata,
+                    validoImpresaOrdinaria: record.validoImpresaOrdinaria,
+                    validoImpresaSemplificata: record.validoImpresaSemplificata,
+                    validoProfessionistaOrdinario: record.validoProfessionistaOrdinario,
+                    validoProfessionistaSemplificato: record.validoProfessionistaSemplificato,
+                    classeIrpefIres: record.classeIrpefIres,
+                    classeIrap: record.classeIrap,
+                    classeProfessionista: record.classeProfessionista,
+                    classeIrapProfessionista: record.classeIrapProfessionista,
+                    classeIva: record.classeIva,
+                    contoCostiRicavi: record.contoCostiRicavi,
+                    contoDareCee: record.contoDareCee,
+                    contoAvereCee: record.contoAvereCee,
+                    naturaConto: record.naturaConto,
+                    gestioneBeniAmmortizzabili: record.gestioneBeniAmmortizzabili,
+                    percDeduzioneManutenzione: record.percDeduzioneManutenzione,
+                    dettaglioClienteFornitore: record.dettaglioClienteFornitore,
+                    descrizioneBilancioDare: record.descrizioneBilancioDare,
+                    descrizioneBilancioAvere: record.descrizioneBilancioAvere,
+                    classeDatiExtracontabili: record.classeDatiExtracontabili,
+                    colonnaRegistroCronologico: record.colonnaRegistroCronologico,
+                    colonnaRegistroIncassiPagamenti: record.colonnaRegistroIncassiPagamenti,
+                    // Default values for fields not in the source file
                     richiedeVoceAnalitica: false,
                     vociAnaliticheAbilitateIds: [],
                     contropartiteSuggeriteIds: []
@@ -134,46 +182,19 @@ export async function handlePianoDeiContiImport(parsedData: ParsedRecord[], res:
                 try {
                     await tx.conto.upsert({
                         where: { id: record.id },
-                        update: {
-                            codice: dataToUpsert.codice,
-                            nome: dataToUpsert.nome,
-                            tipo: dataToUpsert.tipo,
-                            // Aggiorna solo i campi che esistono nel modello Conto
-                            livello: dataToUpsert.livello,
-                            livelloDesc: dataToUpsert.livelloDesc,
-                            sigla: dataToUpsert.sigla,
-                            gruppo: dataToUpsert.gruppo,
-                            gruppoDesc: dataToUpsert.gruppoDesc,
-                            controlloSegno: dataToUpsert.controlloSegno,
-                            controlloSegnoDesc: dataToUpsert.controlloSegnoDesc,
-                            codificaFormattata: dataToUpsert.codificaFormattata,
-                            validoImpresaOrdinaria: dataToUpsert.validoImpresaOrdinaria,
-                            validoImpresaSemplificata: dataToUpsert.validoImpresaSemplificata,
-                            validoProfessionistaOrdinario: dataToUpsert.validoProfessionistaOrdinario,
-                            validoProfessionistaSemplificato: dataToUpsert.validoProfessionistaSemplificato,
-                            classeIrpefIres: dataToUpsert.classeIrpefIres,
-                            classeIrap: dataToUpsert.classeIrap,
-                            classeProfessionista: dataToUpsert.classeProfessionista,
-                            classeIrapProfessionista: dataToUpsert.classeIrapProfessionista,
-                            classeIva: dataToUpsert.classeIva,
-                            contoCostiRicavi: dataToUpsert.contoCostiRicavi,
-                            contoDareCee: dataToUpsert.contoDareCee,
-                            contoAvereCee: dataToUpsert.contoAvereCee,
-                            naturaConto: dataToUpsert.naturaConto,
-                            gestioneBeniAmmortizzabili: dataToUpsert.gestioneBeniAmmortizzabili,
-                            percDeduzioneManutenzione: dataToUpsert.percDeduzioneManutenzione,
-                            dettaglioClienteFornitore: dataToUpsert.dettaglioClienteFornitore,
-                            descrizioneBilancioDare: dataToUpsert.descrizioneBilancioDare,
-                            descrizioneBilancioAvere: dataToUpsert.descrizioneBilancioAvere,
-                            classeDatiExtracontabili: dataToUpsert.classeDatiExtracontabili,
-                            colonnaRegistroCronologico: dataToUpsert.colonnaRegistroCronologico,
-                            colonnaRegistroIncassiPagamenti: dataToUpsert.colonnaRegistroIncassiPagamenti,
+                        update: cleanData,
+                        create: {
+                            id: record.id, // ID is required on create
+                            ...cleanData
                         },
-                        create: dataToUpsert,
                     });
                     processedCount++;
                 } catch (error) {
-                    console.error(`Errore durante l'upsert del conto ${record.codice}:`, error);
+                    // 2. Add detailed logging for failed upserts
+                    console.error(`[IMPORT Piano dei Conti] Fallito upsert per il conto ${record.codice}.`, {
+                        error,
+                        recordData: record
+                    });
                 }
             }
         });

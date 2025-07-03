@@ -5,6 +5,7 @@ import {
   ValidatedPnRigIva,
   ValidatedMovAnac,
 } from '../../acquisition/validators/scrittureContabiliValidator';
+import { PrismaClient } from '@prisma/client';
 
 // =============================================================================
 // PARSER 6: SCRITTURE CONTABILI - TRANSFORMER COMPLETO
@@ -95,12 +96,12 @@ interface EntitaNecessarie {
 // FUNZIONE PRINCIPALE COMPLETA
 // -----------------------------------------------------------------------------
 
-export function transformScrittureContabili(
+export async function transformScrittureContabili(
   testate: ValidatedPnTesta[],
   righeContabili: ValidatedPnRigCon[],
   righeIva: ValidatedPnRigIva[],
   allocazioni: ValidatedMovAnac[]
-): ScrittureContabiliTransformResult {
+): Promise<ScrittureContabiliTransformResult> {
   
   console.log('🔧 Transformer COMPLETO: Creazione di TUTTE le entità...');
   
@@ -114,7 +115,7 @@ export function transformScrittureContabili(
   const entitaNecessarie = identificaEntitaDipendenti(scrittureOrganizzate);
   
   // FASE 4: Crea tutte le entità con correlazioni
-  const entitaPrisma = creaTutteLeEntita(scrittureOrganizzate, entitaNecessarie);
+  const entitaPrisma = await creaTutteLeEntita(scrittureOrganizzate, entitaNecessarie);
   
   // FASE 5: Statistiche finali
   const stats = calcolaStatisticheComplete(scrittureOrganizzate, entitaPrisma, erroriIntegrita);
@@ -248,63 +249,65 @@ function validaIntegritaReferenziale(
 function identificaEntitaDipendenti(
   scrittureMap: Record<string, ScritturaOrganizzata>
 ) {
-  const entitaSet = {
-    fornitori: new Set<string>(),
-    causali: new Set<string>(),
-    conti: new Set<string>(),
-    codiciIva: new Set<string>(),
-    commesse: new Set<string>(),
-    vociAnalitiche: new Set<string>(),
+  const entitaNecessarie: EntitaNecessarie = {
+    fornitori: new Set(),
+    causali: new Set(),
+    conti: new Set(),
+    codiciIva: new Set(),
+    commesse: new Set(),
+    vociAnalitiche: new Set(),
   };
-  
-  Object.values(scrittureMap).forEach(scrittura => {
-    // Dalle testate
+
+  for (const scrittura of Object.values(scrittureMap)) {
+    // 1. Fornitori (dalla testata)
+    if (scrittura.testata.fornitoreId) {
+      entitaNecessarie.fornitori.add(String(scrittura.testata.fornitoreId));
+    }
+
+    // 2. Causali (dalla testata)
     if (scrittura.testata.causaleId) {
-      entitaSet.causali.add(scrittura.testata.causaleId);
+      entitaNecessarie.causali.add(String(scrittura.testata.causaleId));
     }
-    if (scrittura.testata.clienteFornitoreCodiceFiscale) {
-      entitaSet.fornitori.add(scrittura.testata.clienteFornitoreCodiceFiscale);
-    }
-    
-    // Dalle righe contabili
+
+    // 3. Conti (dalle righe contabili)
     scrittura.righeContabili.forEach(riga => {
-      if (riga.conto) {
-        entitaSet.conti.add(riga.conto);
-      }
+      if (riga.conto) entitaNecessarie.conti.add(String(riga.conto));
     });
-    
-    // Dalle righe IVA
+
+    // 4. Codici IVA (dalle righe IVA)
     scrittura.righeIva.forEach(riga => {
-      if (riga.codiceIva) {
-        entitaSet.codiciIva.add(riga.codiceIva);
-      }
+      if (riga.codiceIva) entitaNecessarie.codiciIva.add(String(riga.codiceIva));
     });
-    
-    // Dalle allocazioni
+
+    // 5. Commesse e Voci Analitiche (dalle allocazioni)
+    //    Questa sezione è stata intenzionalmente disabilitata come da Piano-08
+    //    per passare a un'allocazione 100% manuale.
+    /*
     scrittura.allocazioni.forEach(alloc => {
-      if (alloc.centroDiCosto) {
-        entitaSet.commesse.add(alloc.centroDiCosto);
-      }
-      // Aggiungi voce analitica di default se non specificata
-      entitaSet.vociAnalitiche.add(DEFAULT_VOCE_ANALITICA_ID);
+      if (alloc.commessa) entitaNecessarie.commesse.add(String(alloc.commessa));
+      if (alloc.voceAnalitica) entitaNecessarie.vociAnalitiche.add(String(alloc.voceAnalitica));
     });
-  });
+    */
+  }
   
-  return entitaSet;
+  // Aggiungi sempre la voce analitica di default se non già presente
+  entitaNecessarie.vociAnalitiche.add(DEFAULT_VOCE_ANALITICA_ID);
+
+  return entitaNecessarie;
 }
 
 // -----------------------------------------------------------------------------
 // FASE 4: CREAZIONE TUTTE LE ENTITÀ
 // -----------------------------------------------------------------------------
 
-function creaTutteLeEntita(
+async function creaTutteLeEntita(
   scrittureMap: Record<string, ScritturaOrganizzata>,
   entitaNecessarie: EntitaNecessarie
 ) {
   console.log('🔧 Creando tutte le entità Prisma...');
   
-  // 1. Crea entità dipendenti
-  const entitaDipendenti = creaEntitaDipendenti(entitaNecessarie);
+  // 1. Crea entità dipendenti (ora asincrono)
+  const entitaDipendenti = await creaEntitaDipendenti(entitaNecessarie);
   
   // 2. Crea correlazioni per le foreign keys
   const correlazioni: EntitaCorrelazioni = {
@@ -338,52 +341,92 @@ function creaTutteLeEntita(
 // CREAZIONE ENTITÀ DIPENDENTI
 // -----------------------------------------------------------------------------
 
-function creaEntitaDipendenti(entitaSet: EntitaNecessarie) {
-  // Fornitori
-  const fornitori: Prisma.FornitoreCreateInput[] = Array.from(entitaSet.fornitori).map(id => ({
-    id: id as string,
-    externalId: id as string,
+async function creaEntitaDipendenti(entitaSet: EntitaNecessarie) {
+  const prisma = new PrismaClient();
+
+  // --- CONTI ---
+  const contiIds = Array.from(entitaSet.conti);
+  const contiEsistenti = await prisma.conto.findMany({
+    where: { id: { in: contiIds } },
+    select: { id: true }
+  });
+  const contiEsistentiIds = new Set(contiEsistenti.map(c => c.id));
+  const contiDaCreareIds = contiIds.filter(id => !contiEsistentiIds.has(id));
+  
+  const conti: Prisma.ContoCreateInput[] = contiDaCreareIds.map(id => ({
+    id: id,
+    codice: id,
+    nome: `Conto importato - ${id}`,
+    tipo: 'Patrimoniale', // Default, potrebbe essere migliorato
+  }));
+
+  // --- FORNITORI ---
+  const fornitoriIds = Array.from(entitaSet.fornitori);
+  const fornitoriEsistenti = await prisma.fornitore.findMany({
+    where: { id: { in: fornitoriIds } },
+    select: { id: true }
+  });
+  const fornitoriEsistentiIds = new Set(fornitoriEsistenti.map(f => f.id));
+  const fornitoriDaCreareIds = fornitoriIds.filter(id => !fornitoriEsistentiIds.has(id));
+
+  const fornitori: Prisma.FornitoreCreateInput[] = fornitoriDaCreareIds.map(id => ({
+    id: id,
+    externalId: id,
     nome: `Fornitore importato - ${id}`,
   }));
-  
-  // Causali
-  const causali: Prisma.CausaleContabileCreateInput[] = Array.from(entitaSet.causali).map(id => ({
-    id: id as string,
-    externalId: id as string,
+
+  // --- CAUSALI ---
+  const causaliIds = Array.from(entitaSet.causali);
+  const causaliEsistenti = await prisma.causaleContabile.findMany({
+    where: { id: { in: causaliIds } },
+    select: { id: true }
+  });
+  const causaliEsistentiIds = new Set(causaliEsistenti.map(c => c.id));
+  const causaliDaCreareIds = causaliIds.filter(id => !causaliEsistentiIds.has(id));
+
+  const causali: Prisma.CausaleContabileCreateInput[] = causaliDaCreareIds.map(id => ({
+    id: id,
+    externalId: id,
     descrizione: `Causale importata - ${id}`,
+    nome: `Causale ${id}`
   }));
   
-  // Conti
-  const conti: Prisma.ContoCreateInput[] = Array.from(entitaSet.conti).map(id => ({
-    id: id as string,
-    codice: id as string,
-    nome: `Conto importato - ${id}`,
-    tipo: 'Patrimoniale',
+  // --- CODICI IVA ---
+  const codiciIvaIds = Array.from(entitaSet.codiciIva);
+  const codiciIvaEsistenti = await prisma.codiceIva.findMany({
+      where: { id: { in: codiciIvaIds } },
+      select: { id: true }
+  });
+  const codiciIvaEsistentiIds = new Set(codiciIvaEsistenti.map(c => c.id));
+  const codiciIvaDaCreareIds = codiciIvaIds.filter(id => !codiciIvaEsistentiIds.has(id));
+
+  const codiciIva: Prisma.CodiceIvaCreateInput[] = codiciIvaDaCreareIds.map(id => ({
+      id: id,
+      externalId: id,
+      descrizione: `Codice IVA importato - ${id}`,
+      aliquota: 22.0, // Default
   }));
+
+  // --- COMMESSE ---
+  const commesseIds = Array.from(entitaSet.commesse);
+  // Logica di creazione selettiva qui se necessario
+  const commesse: Prisma.CommessaCreateInput[] = []; // Disabilitato come da Piano-08
   
-  // Codici IVA
-  const codiciIva: Prisma.CodiceIvaCreateInput[] = Array.from(entitaSet.codiciIva).map(id => ({
-    id: id as string,
-    externalId: id as string,
-    descrizione: `Codice IVA importato - ${id}`,
-    aliquota: 22.0, // Default
+  // --- VOCI ANALITICHE ---
+  const vociAnaliticheIds = Array.from(entitaSet.vociAnalitiche);
+  const vociAnaliticheEsistenti = await prisma.voceAnalitica.findMany({
+      where: { id: { in: vociAnaliticheIds } },
+      select: { id: true }
+  });
+  const vociAnaliticheEsistentiIds = new Set(vociAnaliticheEsistenti.map(v => v.id));
+  const vociAnaliticheDaCreareIds = vociAnaliticheIds.filter(id => !vociAnaliticheEsistentiIds.has(id));
+
+  const vociAnalitiche: Prisma.VoceAnaliticaCreateInput[] = vociAnaliticheDaCreareIds.map(id => ({
+      id: id,
+      nome: id === DEFAULT_VOCE_ANALITICA_ID ? 'Voce Analitica Default' : `Voce Analitica - ${id}`,
+      descrizione: `Voce analitica importata - ${id}`,
   }));
-  
-  // Commesse
-  const commesse: Prisma.CommessaCreateInput[] = Array.from(entitaSet.commesse).map(id => ({
-    id: id as string,
-    nome: `Commessa importata - ${id}`,
-    descrizione: `Commessa importata dal sistema legacy - ${id}`,
-    cliente: { connect: { id: SYSTEM_CUSTOMER_ID } },
-  }));
-  
-  // Voci Analitiche
-  const vociAnalitiche: Prisma.VoceAnaliticaCreateInput[] = Array.from(entitaSet.vociAnalitiche).map(id => ({
-    id: id as string,
-    nome: id === DEFAULT_VOCE_ANALITICA_ID ? 'Voce Analitica Default' : `Voce Analitica - ${id}`,
-    descrizione: `Voce analitica importata - ${id}`,
-  }));
-  
+
   return {
     fornitori,
     causali,
@@ -510,32 +553,46 @@ function creaAllocazioni(
   correlazioni: EntitaCorrelazioni
 ): Prisma.AllocazioneCreateInput[] {
   
+  // Disabilitato intenzionalmente come da Piano-08
+  return [];
+
+  /* Logica originale disabilitata
   const allocazioni: Prisma.AllocazioneCreateInput[] = [];
   
-  Object.entries(scrittureMap).forEach(([key, scrittura]) => {
-    const scritturaId = correlazioni.scrittureByExternalId.get(key)!;
-    
-    scrittura.allocazioni.forEach((alloc, idx) => {
-      const allocazioneId = `alloc_${key}_${idx}`;
+  for (const scrittura of Object.values(scrittureMap)) {
+    const scritturaId = correlazioni.scrittureByExternalId.get(scrittura.testata.externalId);
+    if (!scritturaId) continue;
+
+    for (const alloc of scrittura.allocazioni) {
+      const rigaKey = `${scritturaId}:${alloc.rigaContabileProgressivo}`;
+      const rigaScritturaId = correlazioni.righeByKey.get(rigaKey);
       
-      // Trova la riga contabile corrispondente
-      const rigaContabileKey = `${scritturaId}:${alloc.progressivoRigoContabile - 1}`; // progressivoRigoContabile è 1-based
-      const rigaContabileId = correlazioni.righeByKey.get(rigaContabileKey);
-      
-      if (rigaContabileId) {
-        allocazioni.push({
-          id: allocazioneId,
-          importo: alloc.parametro || 0,
-          descrizione: `Allocazione ${idx + 1} - Commessa ${alloc.centroDiCosto}`,
-          rigaScrittura: { connect: { id: rigaContabileId } },
-          commessa: { connect: { id: alloc.centroDiCosto } },
-          voceAnalitica: { connect: { id: DEFAULT_VOCE_ANALITICA_ID } },
-        });
+      if (!rigaScritturaId) {
+        console.warn(`WARN: Allocazione per ${scrittura.testata.externalId} non ha trovato la riga corrispondente (progressivo: ${alloc.rigaContabileProgressivo}). Skippata.`);
+        continue;
       }
-    });
-  });
+      
+      allocazioni.push({
+        id: `alloc_${rigaScritturaId}_${alloc.commessaId}_${alloc.voceAnaliticaId}`,
+        importo: alloc.importo,
+        descrizione: alloc.descrizione,
+        rigaScrittura: { connect: { id: rigaScritturaId } },
+        commessa: {
+          connect: { 
+            id: `commessa_import_${alloc.commessaId.replace(/\s+/g, '_')}`
+          } 
+        },
+        voceAnalitica: {
+          connect: {
+            id: `voce_analitica_import_${alloc.voceAnaliticaId.replace(/\s+/g, '_')}`
+          }
+        },
+      });
+    }
+  }
   
   return allocazioni;
+  */
 }
 
 // -----------------------------------------------------------------------------

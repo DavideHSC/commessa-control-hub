@@ -1,8 +1,17 @@
 import { Router, Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, RigaScrittura, ScritturaContabile, Conto, Allocazione, Commessa } from '@prisma/client';
 
 const router = Router();
 const prisma = new PrismaClient();
+
+// Definiamo un tipo esplicito per il risultato della query per aiutare TypeScript
+type RigaRiconciliazione = RigaScrittura & {
+  scritturaContabile: ScritturaContabile;
+  conto: Conto;
+  allocazioni: (Allocazione & {
+    commessa: Commessa;
+  })[];
+};
 
 /*
  * GET /api/reconciliation/staging-rows
@@ -11,93 +20,70 @@ const prisma = new PrismaClient();
  */
 router.get('/staging-rows', async (req: Request, res: Response) => {
   try {
-    console.log('[Recon] Richiesta ricevuta per /staging-rows');
-    // 1. Recupera tutte le informazioni necessarie con query separate
-    const righeContabili = await prisma.importScritturaRigaContabile.findMany({
+    console.log('[Recon V2] Richiesta ricevuta per scritture contabili da allocare');
+
+    const scritture = await prisma.scritturaContabile.findMany({
       where: {
-        OR: [
-          { codiceConto: { startsWith: '6' } }, // Costi
-          { codiceConto: { startsWith: '7' } }, // Ricavi
-        ],
-      },
-    });
-    console.log(`[Recon] Trovate ${righeContabili.length} righe contabili di costo/ricavo.`);
-    if (righeContabili.length === 0) {
-        console.log('[Recon] Nessuna riga contabile corrisponde ai filtri (conti che iniziano con 6 o 7). Restituisco array vuoto.');
-        return res.json([]);
-    }
-
-    const testateMap = new Map();
-    const testate = await prisma.importScritturaTestata.findMany();
-    testate.forEach(t => testateMap.set(t.codiceUnivocoScaricamento, t));
-    console.log(`[Recon] Trovate e mappate ${testate.length} testate.`);
-
-    const allocazioni = await prisma.importAllocazione.findMany({
-        include: { commessa: true }
-    });
-    console.log(`[Recon] Trovate ${allocazioni.length} allocazioni totali.`);
-    
-    // Raggruppa le allocazioni per riga contabile
-    const allocazioniMap = new Map<string, any[]>();
-    allocazioni.forEach(a => {
-        if (!allocazioniMap.has(a.importScritturaRigaContabileId)) {
-            allocazioniMap.set(a.importScritturaRigaContabileId, []);
-        }
-        allocazioniMap.get(a.importScritturaRigaContabileId)?.push(a);
-    });
-
-    // 2. Assembla e mappa i risultati
-    let righeSenzaTestata = 0;
-    const results = righeContabili
-      .map((row) => {
-        const testata = testateMap.get(row.codiceUnivocoScaricamento);
-        const rowAllocations = allocazioniMap.get(row.id) || [];
-        
-        if (!testata) {
-            righeSenzaTestata++;
-            return null;
-        }
-
-        let status: 'Allocata' | 'Da Allocare' | 'Allocazione Parziale' = 'Da Allocare';
-        const totaleAllocato = rowAllocations.reduce((acc, alloc) => acc + alloc.importo, 0);
-        
-        const importoDare = row.importoDare ?? 0;
-        const importoAvere = row.importoAvere ?? 0;
-        const importoRiga = importoDare > 0 ? importoDare : importoAvere;
-
-        if (rowAllocations.length > 0) {
-          if (Math.abs(totaleAllocato - importoRiga) < 0.01) {
-            status = 'Allocata';
-          } else if (totaleAllocato > 0) {
-            status = 'Allocazione Parziale';
+        righe: {
+          some: {
+            conto: {
+              codice: {
+                startsWith: '6' 
+              }
+            }
           }
         }
+      },
+      include: {
+        righe: {
+          include: {
+            conto: true,
+            allocazioni: {
+              include: {
+                commessa: true
+              }
+            }
+          }
+        }
+      }
+    });
 
-        return {
-          id: row.id,
-          dataRegistrazione: testata.dataRegistrazione,
-          descrizione: row.descrizioneConto,
-          importo: importoRiga,
-          totaleAllocato,
-          status,
-          allocazioni: rowAllocations.map((a) => ({
-            id: a.id,
-            commessaNome: a.commessa.nome,
-            commessaDescrizione: a.commessa.descrizione,
-            importo: a.importo,
-          })),
-        };
-      })
-      .filter(r => r !== null); // Rimuovi le righe senza testata
-    
-    console.log(`[Recon] Righe elaborate: ${righeContabili.length}. Righe scartate per mancanza di testata: ${righeSenzaTestata}.`);
-    console.log(`[Recon] Assemblaggio completato. Numero finale di risultati: ${results.length}.`);
+    console.log(`[Recon V2] Trovate ${scritture.length} scritture con righe di costo.`);
 
-    const sortedResults = results.sort((a, b) => new Date(a!.dataRegistrazione!).getTime() - new Date(b!.dataRegistrazione!).getTime());
+    if (scritture.length === 0) {
+      return res.json([]);
+    }
 
-    res.json(sortedResults);
+    const results = scritture.map(scrittura => {
+      const righeCostoRicavo = scrittura.righe.filter(
+        r => r.conto.codice?.startsWith('6') || r.conto.codice?.startsWith('7')
+      );
+
+      const importoTotale = righeCostoRicavo.reduce((acc, r) => acc + (r.dare > 0 ? r.dare : r.avere), 0);
+      
+      const totaleAllocato = righeCostoRicavo.flatMap(r => r.allocazioni).reduce((acc, a) => acc + a.importo, 0);
+
+      let status: 'Allocata' | 'Da Allocare' | 'Allocazione Parziale' = 'Da Allocare';
+      if (totaleAllocato > 0) {
+        if (Math.abs(totaleAllocato - importoTotale) < 0.01) {
+          status = 'Allocata';
+        } else {
+          status = 'Allocazione Parziale';
+        }
+      }
+
+      return {
+        ...scrittura,
+        importo: importoTotale,
+        totaleAllocato,
+        status,
+      };
+    });
+
+    res.json(results);
+
   } catch (error) {
-    console.error("Errore nel recupero delle righe di staging:", error);
+    console.error("Errore nel recupero delle scritture da riconciliare:", error);
     res.status(500).json({ error: "Errore interno del server" });
   }
 });
@@ -113,68 +99,82 @@ router.post('/allocations/:rowId', async (req: Request, res: Response) => {
     const newAllocations: { commessaId: string, importo: number }[] = req.body;
 
     try {
-        // Validation
         if (!rowId || !Array.isArray(newAllocations)) {
             return res.status(400).json({ error: "ID riga e un array di allocazioni sono richiesti." });
         }
 
-        const row = await prisma.importScritturaRigaContabile.findUnique({ where: { id: rowId } });
-        if (!row) {
-            return res.status(404).json({ error: "Riga contabile non trovata." });
-        }
-
-        const importoRiga = (row.importoDare ?? 0) > 0 ? (row.importoDare ?? 0) : (row.importoAvere ?? 0);
-        const totaleNuoveAllocazioni = newAllocations.reduce((acc, a) => acc + a.importo, 0);
-
-        if (Math.abs(totaleNuoveAllocazioni - importoRiga) > 0.01) {
-             // Non bloccante, ma potrebbe essere un avviso per il futuro
-            console.warn(`Attenzione: il totale allocato (${totaleNuoveAllocazioni}) non corrisponde all'importo della riga (${importoRiga}) per la riga ${rowId}`);
-        }
-
-        // Transaction: delete old and create new
         const result = await prisma.$transaction(async (tx) => {
-            // 1. Delete existing allocations for this row
-            await tx.importAllocazione.deleteMany({
-                where: { importScritturaRigaContabileId: rowId },
+            const riga = await tx.rigaScrittura.findUnique({
+                where: { id: rowId },
+                include: { conto: true }
             });
 
-            // 2. Create new allocations
-            if (newAllocations.length > 0) {
-                await tx.importAllocazione.createMany({
-                    data: newAllocations.map(alloc => ({
-                        importo: alloc.importo,
-                        commessaId: alloc.commessaId,
-                        importScritturaRigaContabileId: rowId,
-                        suggerimentoAutomatico: false, // Queste sono manuali
-                    })),
-                });
+            if (!riga) {
+                // Throwing an error within a transaction automatically triggers a rollback.
+                throw new Error("Riga contabile non trovata.");
             }
             
-            // 3. Return the new state by fetching and assembling data manually
-            const updatedRow = await tx.importScritturaRigaContabile.findUnique({
-                where: { id: rowId },
-            });
-            const updatedAllocations = await tx.importAllocazione.findMany({
-                where: { importScritturaRigaContabileId: rowId },
-                include: { commessa: true }
+            // Critical check: An allocation requires an analytical item (VoceAnalitica).
+            // We infer this from the Conto associated with the RigaScrittura.
+            const voceAnaliticaId = riga.conto.voceAnaliticaId;
+            if (!voceAnaliticaId && newAllocations.length > 0 && newAllocations.some(a => a.importo > 0)) {
+                // If the account isn't set up for analytical accounting, we cannot proceed.
+                throw new Error(`Il conto ${riga.conto.codice} - ${riga.conto.nome} non ha una voce analitica associata. Impossibile salvare le allocazioni.`);
+            }
+
+            // 1. Delete existing allocations for this row
+            await tx.allocazione.deleteMany({
+                where: { rigaScritturaId: rowId },
             });
 
+            // 2. Create new allocations if they are provided and have an amount > 0
+            if (newAllocations.length > 0 && voceAnaliticaId) {
+                const validAllocations = newAllocations.filter(a => a.commessaId && a.importo > 0);
+                if (validAllocations.length > 0) {
+                    await tx.allocazione.createMany({
+                        data: validAllocations.map(alloc => ({
+                            importo: alloc.importo,
+                            commessaId: alloc.commessaId,
+                            rigaScritturaId: rowId,
+                            voceAnaliticaId: voceAnaliticaId, // Use the inferred ID
+                        })),
+                    });
+                }
+            }
+            
+            // 3. Return the new state by fetching the updated row with its new allocations
+            const updatedRiga = await tx.rigaScrittura.findUnique({
+                where: { id: rowId },
+                include: { 
+                    allocazioni: {
+                        include: {
+                            commessa: true
+                        }
+                    } 
+                }
+            });
+
+            // Format the response to match what the frontend expects
             return {
-                ...updatedRow,
-                allocazioni: updatedAllocations.map(a => ({
+                ...updatedRiga,
+                allocazioni: updatedRiga?.allocazioni.map(a => ({
                     id: a.id,
                     commessaId: a.commessaId,
                     commessaNome: a.commessa.nome,
                     importo: a.importo
-                }))
+                })) || []
             };
         });
 
         res.status(200).json(result);
 
-    } catch (error) {
+    } catch (error: unknown) {
         console.error(`Errore durante l'aggiornamento delle allocazioni per la riga ${rowId}:`, error);
-        res.status(500).json({ error: "Errore interno del server" });
+        if (error instanceof Error) {
+            res.status(500).json({ error: error.message });
+        } else {
+            res.status(500).json({ error: "Errore interno del server" });
+        }
     }
 });
 

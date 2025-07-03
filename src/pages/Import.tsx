@@ -17,6 +17,9 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Table, TableBody, TableCell, TableCaption, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import axios from 'axios';
 
 const ANAGRAFICA_TEMPLATES = [
     { value: 'piano-dei-conti', label: 'Anagrafica Piano dei Conti' },
@@ -25,6 +28,25 @@ const ANAGRAFICA_TEMPLATES = [
     { value: 'condizioni-pagamento', label: 'Anagrafica Condizioni di Pagamento' },
     { value: 'clienti-fornitori', label: 'Anagrafica Clienti/Fornitori' },
 ];
+
+type ImportResult = {
+  success: boolean;
+  jobId: string;
+  stats: {
+    filesProcessed: number;
+    scrittureImportate: number;
+    righeContabiliOrganizzate: number;
+    righeIvaOrganizzate: number;
+    allocazioniOrganizzate: number;
+    erroriValidazione: number;
+    contiCreati: { id: string, nome: string }[];
+    fornitoriCreati: { id: string, nome: string }[];
+    causaliCreate: { id: string, nome: string }[];
+    codiciIvaCreati: { id: string, nome: string }[];
+    vociAnaliticheCreate: { id: string, nome: string }[];
+  };
+  message: string;
+} | null;
 
 const ImportPage: React.FC = () => {
     // State per l'importazione delle anagrafiche
@@ -39,6 +61,8 @@ const ImportPage: React.FC = () => {
     const [isDemoSeeding, setIsDemoSeeding] = useState(false);
     
     const { toast } = useToast();
+
+    const [importReport, setImportReport] = useState<ImportResult>(null);
 
     const handleSeedDemoData = async () => {
         setIsDemoSeeding(true);
@@ -109,47 +133,83 @@ const ImportPage: React.FC = () => {
     };
 
     const handleScrittureImport = async () => {
-        if (!scrittureFiles || scrittureFiles.length === 0) return;
-        
-        setIsScrittureProcessing(true);
-        const formData = new FormData();
+        if (!scrittureFiles || scrittureFiles.length === 0) {
+            toast({
+                title: 'Errore',
+                description: 'Per favore, seleziona i file delle scritture da importare.',
+                variant: 'destructive',
+            });
+            return;
+        }
 
+        setIsScrittureProcessing(true);
+        setImportReport(null); // Reset report before new import
+        const formData = new FormData();
+        
         // Mappa i nomi dei file ai fieldname attesi dal backend
         const fileMap: { [key: string]: string } = {
             'PNTESTA.TXT': 'pntesta',
             'PNRIGCON.TXT': 'pnrigcon',
-            'MOVANAC.TXT': 'movanac',
             'PNRIGIVA.TXT': 'pnrigiva',
+            'MOVANAC.TXT': 'movanac',
         };
-
+        
+        let foundRequired = false;
         for (let i = 0; i < scrittureFiles.length; i++) {
             const file = scrittureFiles[i];
             const fieldName = fileMap[file.name.toUpperCase()];
             if (fieldName) {
                 formData.append(fieldName, file);
+                if (fieldName === 'pntesta' || fieldName === 'pnrigcon') {
+                    foundRequired = true;
+                }
             } else {
                 console.warn(`File non riconosciuto '${file.name}', verrà ignorato.`);
             }
         }
         
-        try {
-                            const response = await fetch('/api/v2/import/scritture-contabili', {
-                method: 'POST',
-                body: formData,
+        if (!foundRequired) {
+            toast({
+                title: 'Errore',
+                description: 'Sono richiesti almeno i file PNTESTA.TXT e PNRIGCON.TXT.',
+                variant: 'destructive',
             });
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.error || 'Errore durante l\'importazione.');
-            toast({ title: 'Successo!', description: 'Importazione scritture completata.' });
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Errore', description: (error as Error).message });
-        } finally {
             setIsScrittureProcessing(false);
+            return;
+        }
+
+        try {
+            const response = await axios.post<NonNullable<ImportResult>>('/api/v2/import/scritture-contabili', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            toast({
+                title: 'Successo',
+                description: response.data.message,
+            });
+
+            // Set the report data from the API response
+            setImportReport(response.data);
+            
+            // Clear file input
             setScrittureFiles(null);
             const fileInput = document.getElementById('scritture-file-upload') as HTMLInputElement;
             if(fileInput) fileInput.value = "";
+
+        } catch (error) {
+            const errorMsg = axios.isAxiosError(error) && error.response ? error.response.data.message : 'Si è verificato un errore durante l\'importazione.';
+            toast({
+                title: 'Errore di Importazione',
+                description: errorMsg,
+                variant: 'destructive',
+            });
+            setImportReport(null);
+        } finally {
+            setIsScrittureProcessing(false);
         }
     };
-
 
     return (
         <div className="space-y-8">
@@ -269,6 +329,116 @@ const ImportPage: React.FC = () => {
                     </Button>
                 </CardContent>
             </Card>
+
+            {/* Sezione Report di Importazione */}
+            {importReport && (
+                <Card className="mt-6">
+                    <CardHeader>
+                        <CardTitle>Report dell'Ultima Importazione</CardTitle>
+                        <CardDescription className={importReport.success ? 'text-green-600' : 'text-red-600'}>
+                            {importReport.success 
+                                ? `✅ ${importReport.message}` 
+                                : `❌ ${importReport.message}`
+                            }
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Accordion type="multiple" className="w-full">
+                            <AccordionItem value="stats">
+                                <AccordionTrigger>Statistiche Dettagliate</AccordionTrigger>
+                                <AccordionContent>
+                                    <ul className="list-disc pl-5 space-y-1 text-sm">
+                                        <li>File Processati: <strong>{importReport.stats.filesProcessed}</strong></li>
+                                        <li>Scritture Importate: <strong>{importReport.stats.scrittureImportate}</strong></li>
+                                        <li>Righe Contabili Elaborate: <strong>{importReport.stats.righeContabiliOrganizzate}</strong></li>
+                                        <li>Righe IVA Elaborate: <strong>{importReport.stats.righeIvaOrganizzate}</strong></li>
+                                        <li>Allocazioni Elaborate: <strong>{importReport.stats.allocazioniOrganizzate}</strong></li>
+                                        <li className={importReport.stats.erroriValidazione > 0 ? 'text-red-500' : ''}>
+                                            Errori di Validazione: <strong>{importReport.stats.erroriValidazione}</strong>
+                                        </li>
+                                    </ul>
+                                </AccordionContent>
+                            </AccordionItem>
+
+                            {importReport.stats.contiCreati?.length > 0 && (
+                                <AccordionItem value="conti">
+                                    <AccordionTrigger>Conti Segnaposto Creati ({importReport.stats.contiCreati.length})</AccordionTrigger>
+                                    <AccordionContent>
+                                        <Table>
+                                            <TableCaption>Conti creati automaticamente perché non trovati nell'anagrafica.</TableCaption>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead className="w-[150px]">ID/Codice</TableHead>
+                                                    <TableHead>Nome</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {importReport.stats.contiCreati.map(item => (
+                                                    <TableRow key={`conto-${item.id}`}>
+                                                        <TableCell className="font-mono text-xs">{item.id}</TableCell>
+                                                        <TableCell>{item.nome}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            )}
+                            
+                            {importReport.stats.fornitoriCreati?.length > 0 && (
+                                <AccordionItem value="fornitori">
+                                    <AccordionTrigger>Fornitori Segnaposto Creati ({importReport.stats.fornitoriCreati.length})</AccordionTrigger>
+                                    <AccordionContent>
+                                        <Table>
+                                            <TableCaption>Fornitori creati automaticamente perché non trovati nell'anagrafica.</TableCaption>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead className="w-[150px]">ID/Codice</TableHead>
+                                                    <TableHead>Nome</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {importReport.stats.fornitoriCreati.map(item => (
+                                                    <TableRow key={`fornitore-${item.id}`}>
+                                                        <TableCell className="font-mono text-xs">{item.id}</TableCell>
+                                                        <TableCell>{item.nome}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            )}
+
+                            {importReport.stats.causaliCreate?.length > 0 && (
+                                <AccordionItem value="causali">
+                                    <AccordionTrigger>Causali Contabili Create ({importReport.stats.causaliCreate.length})</AccordionTrigger>
+                                    <AccordionContent>
+                                        <Table>
+                                            <TableCaption>Causali create automaticamente perché non trovate nell'anagrafica.</TableCaption>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead className="w-[150px]">ID/Codice</TableHead>
+                                                    <TableHead>Descrizione</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {importReport.stats.causaliCreate.map(item => (
+                                                    <TableRow key={`causale-${item.id}`}>
+                                                        <TableCell className="font-mono text-xs">{item.id}</TableCell>
+                                                        <TableCell>{item.nome}</TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            )}
+
+                        </Accordion>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
 };

@@ -60,8 +60,11 @@ export interface ImportScrittureContabiliResult {
     righeIvaOrganizzate: number;
     allocazioniOrganizzate: number;
     erroriValidazione: number;
-    fornitoriCreati: number;
-    causaliCreate: number;
+    contiCreati: { id: string, nome: string }[];
+    fornitoriCreati: { id:string, nome: string }[];
+    causaliCreate: { id: string, nome: string }[];
+    codiciIvaCreati: { id: string, nome: string }[];
+    vociAnaliticheCreate: { id: string, nome: string }[];
   };
   message: string;
 }
@@ -148,7 +151,7 @@ export class ImportScrittureContabiliWorkflow {
       console.log('\n🔄 FASE 3: TRASFORMAZIONE BUSINESS LOGIC');
       console.log('─'.repeat(50));
       this.telemetryService.logInfo(job.id, 'Iniziando trasformazione business logic...');
-      const transformResult = transformScrittureContabili(
+      const transformResult = await transformScrittureContabili(
         validatedData.testate,
         validatedData.righeContabili,
         validatedData.righeIva,
@@ -182,8 +185,11 @@ export class ImportScrittureContabiliWorkflow {
           righeIvaOrganizzate: transformResult.stats.entitaCreate.righeIva,
           allocazioniOrganizzate: transformResult.stats.entitaCreate.allocazioni,
           erroriValidazione: errorCount,
-          fornitoriCreati: transformResult.stats.entitaCreate.fornitori,
-          causaliCreate: transformResult.stats.entitaCreate.causali,
+          contiCreati: transformResult.conti.map(c => ({ id: c.codice!, nome: c.nome! })),
+          fornitoriCreati: transformResult.fornitori.map(f => ({ id: f.externalId!, nome: f.nome! })),
+          causaliCreate: transformResult.causali.map(c => ({ id: c.externalId!, nome: c.descrizione! })),
+          codiciIvaCreati: transformResult.codiciIva.map(c => ({ id: c.externalId!, nome: c.descrizione! })),
+          vociAnaliticheCreate: transformResult.vociAnalitiche.map(v => ({ id: v.id!, nome: v.nome! })),
         },
         message: `Import completato con successo. ${transformResult.stats.entitaCreate.scritture} scritture importate.`,
       };
@@ -195,8 +201,9 @@ export class ImportScrittureContabiliWorkflow {
       console.log(`📊 Performance: ${recordsPerSecond} record/secondo`);
       console.log(`\n📈 STATISTICHE FINALI:`);
       console.log(`   🎯 Scritture contabili create:  ${result.stats.scrittureImportate.toString().padStart(4)}`);
-      console.log(`   🏢 Fornitori creati:            ${result.stats.fornitoriCreati.toString().padStart(4)}`);
-      console.log(`   📋 Causali contabili create:    ${result.stats.causaliCreate.toString().padStart(4)}`);
+      console.log(`   🏢 Fornitori creati:            ${result.stats.fornitoriCreati.length.toString().padStart(4)}`);
+      console.log(`   📋 Causali contabili create:    ${result.stats.causaliCreate.length.toString().padStart(4)}`);
+      console.log(`   🏦 Conti creati:                ${result.stats.contiCreati.length.toString().padStart(4)}`);
       console.log(`   💰 Righe contabili elaborate:   ${result.stats.righeContabiliOrganizzate.toString().padStart(4)}`);
       console.log(`   🏭 Allocazioni elaborate:       ${result.stats.allocazioniOrganizzate.toString().padStart(4)}`);
       console.log(`   ❌ Record con errori (DLQ):     ${result.stats.erroriValidazione.toString().padStart(4)}`);
@@ -229,8 +236,11 @@ export class ImportScrittureContabiliWorkflow {
           righeIvaOrganizzate: 0,
           allocazioniOrganizzate: 0,
           erroriValidazione: 0,
-          fornitoriCreati: 0,
-          causaliCreate: 0,
+          contiCreati: [],
+          fornitoriCreati: [],
+          causaliCreate: [],
+          codiciIvaCreati: [],
+          vociAnaliticheCreate: [],
         },
         message: `Errore durante l'import: ${error instanceof Error ? error.message : 'Errore sconosciuto'}`,
       };
