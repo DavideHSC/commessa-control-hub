@@ -16,7 +16,31 @@ import moment from 'moment';
 
 // -----------------------------------------------------------------------------
 // UTILITY DI VALIDAZIONE CONDIVISE
-// -----------------------------------------------------------------------------
+// // NUOVO: Per file con decimali espliciti (prima nota)
+const currencyTransformPrimaNota = z
+  .string()
+  .nullable()
+  .transform((val) => {
+    if (!val || val.trim() === '') return 0;
+    const cleaned = val.trim().replace(',', '.');
+    const parsed = parseFloat(cleaned);
+    return isNaN(parsed) ? 0 : parsed;
+  });
+
+// ESISTENTE: Per file con decimali impliciti (mantenuto per altri file)
+const currencyTransformGenerico = z
+  .string()
+  .nullable()
+  .transform((val) => {
+    if (!val || val.trim() === '') return 0;
+    const cleaned = val.trim().replace(',', '.');
+    if (!cleaned.includes('.')) {
+      const parsed = parseInt(cleaned, 10);
+      return isNaN(parsed) ? 0 : parsed / 100;
+    }
+    const parsed = parseFloat(cleaned);
+    return isNaN(parsed) ? 0 : parsed;
+  });
 
 const dateTransform = z
   .string()
@@ -25,21 +49,6 @@ const dateTransform = z
     if (!val || val.trim() === '00000000' || val.trim() === '') return null;
     const parsedDate = moment(val, 'DDMMYYYY', true);
     return parsedDate.isValid() ? parsedDate.toDate() : null;
-  });
-
-const currencyTransform = z
-  .string()
-  .nullable()
-  .transform((val) => {
-    if (!val || val.trim() === '') return 0;
-    const cleaned = val.trim().replace(',', '.');
-    // Handle implicit decimals (e.g., "12345" -> 123.45)
-    if (!cleaned.includes('.')) {
-      const parsed = parseInt(cleaned, 10);
-      return isNaN(parsed) ? 0 : parsed / 100;
-    }
-    const parsed = parseFloat(cleaned);
-    return isNaN(parsed) ? 0 : parsed;
   });
 
 const flagTransform = z
@@ -89,16 +98,16 @@ export const validatedPnTestaSchema = z.object({
   clienteFornitoreCodiceFiscale: z.string().trim().optional(),
   dataDocumento: dateTransform,
   numeroDocumento: z.string().trim().optional(),
-  totaleDocumento: currencyTransform,
+  totaleDocumento: currencyTransformPrimaNota,
   noteMovimento: z.string().trim().optional(),
   dataRegistroIva: dateTransform,
   dataCompetenzaLiquidIva: dateTransform,
   dataCompetenzaContabile: dateTransform,
   dataPlafond: dateTransform,
   annoProRata: z.string().nullable(),
-  ritenute: currencyTransform,
-  enasarco: currencyTransform,
-  totaleInValuta: currencyTransform,
+  ritenute: currencyTransformPrimaNota,
+  enasarco: currencyTransformPrimaNota,
+  totaleInValuta: currencyTransformPrimaNota,
   versamentoData: dateTransform,
   documentoDataPartita: dateTransform,
   documentoOperazione: dateTransform,
@@ -131,8 +140,8 @@ export const validatedPnRigConSchema = z.object({
   tipoConto: z.string().trim().optional(),
   clienteFornitoreCodiceFiscale: z.string().trim().optional(),
   conto: z.string().trim().optional(),
-  importoDare: currencyTransform,
-  importoAvere: currencyTransform,
+  importoDare: currencyTransformPrimaNota,
+  importoAvere: currencyTransformPrimaNota,
   note: z.string().trim().optional(),
   insDatiMovimentiAnalitici: flagTransform,
 });
@@ -157,9 +166,9 @@ export const validatedPnRigIvaSchema = z.object({
   riga: z.string().trim(),
   codiceIva: z.string().trim().optional(),
   contropartita: z.string().trim().optional(),
-  imponibile: currencyTransform,
-  imposta: currencyTransform,
-  importoLordo: currencyTransform,
+  imponibile: currencyTransformPrimaNota,
+  imposta: currencyTransformPrimaNota,
+  importoLordo: currencyTransformPrimaNota,
   note: z.string().trim().optional(),
 });
 
@@ -178,7 +187,7 @@ export const validatedMovAnacSchema = z.object({
   externalId: z.string().trim().min(1, 'External ID richiesto'),
   progressivoRigoContabile: z.string().nullable().transform((val) => val ? parseInt(val, 10) : 0),
   centroDiCosto: z.string().trim().optional(),
-  parametro: currencyTransform,
+  parametro: currencyTransformPrimaNota,
 });
 
 // -----------------------------------------------------------------------------
@@ -217,4 +226,4 @@ export interface ScrittureMultiFileMap {
   righeContabili: Map<string, ValidatedPnRigCon[]>;
   righeIva: Map<string, ValidatedPnRigIva[]>;
   allocazioni: Map<string, ValidatedMovAnac[]>;
-} 
+}
