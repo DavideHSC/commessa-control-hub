@@ -450,82 +450,82 @@ const readPrimaNotaFile = (fileName: string) => {
 // ====================================================================
 
 const pntestaSchema: FieldDefinition[] = [
-    { fieldName: 'codiceFiscaleAzienda', start: 4, length: 16, type: 'string' },
-    { fieldName: 'codiceUnivocoScaricamento', start: 21, length: 12, type: 'string' },
-    { fieldName: 'codiceCausale', start: 40, length: 6, type: 'string' },
-    { fieldName: 'descrizioneCausale', start: 46, length: 40, type: 'string' },
-    { fieldName: 'dataRegistrazione', start: 86, length: 8, type: 'date' },
-    { fieldName: 'tipoRegistroIva', start: 96, length: 1, type: 'string' },
-    { fieldName: 'codiceFiscaleClienteFornitore', start: 100, length: 16, type: 'string' },
-    { fieldName: 'siglaClienteFornitore', start: 117, length: 12, type: 'string' },
-    { fieldName: 'dataDocumento', start: 129, length: 8, type: 'date' },
-    { fieldName: 'numeroDocumento', start: 137, length: 12, type: 'string' },
-    { fieldName: 'totaleDocumento', start: 173, length: 12, type: 'number' },
-    { fieldName: 'noteMovimento', start: 193, length: 60, type: 'string' },
+    { fieldName: 'codiceFiscaleAzienda', start: 4, length: 16, end: 19, type: 'string' },
+    { fieldName: 'codiceUnivocoScaricamento', start: 21, length: 12, end: 32, type: 'string' },
+    { fieldName: 'codiceCausale', start: 40, length: 6, end: 45, type: 'string' },
+    { fieldName: 'descrizioneCausale', start: 46, length: 40, end: 85, type: 'string' },
+    { fieldName: 'dataRegistrazione', start: 86, length: 8, end: 93, type: 'date' },
+    { fieldName: 'tipoRegistroIva', start: 96, length: 1, end: 96, type: 'string' },
+    { fieldName: 'codiceFiscaleClienteFornitore', start: 100, length: 16, end: 115, type: 'string' },
+    { fieldName: 'siglaClienteFornitore', start: 117, length: 12, end: 128, type: 'string' },
+    { fieldName: 'dataDocumento', start: 129, length: 8, end: 136, type: 'date' },
+    { fieldName: 'numeroDocumento', start: 137, length: 12, end: 148, type: 'string' },
+    { fieldName: 'totaleDocumento', start: 173, length: 12, end: 184, type: 'number' },
+    { fieldName: 'noteMovimento', start: 193, length: 60, end: 252, type: 'string' },
 ];
 
 const pnrigconSchema: FieldDefinition[] = [
-    { fieldName: 'codiceUnivocoScaricamento', start: 4, length: 12, type: 'string' },
-    { fieldName: 'progressivoNumeroRigo', start: 16, length: 3, type: 'number' },
-    { fieldName: 'tipoConto', start: 19, length: 1, type: 'string' },
-    { fieldName: 'codiceFiscaleClienteFornitore', start: 20, length: 16, type: 'string' },
-    { fieldName: 'siglaClienteFornitore', start: 37, length: 12, type: 'string' },
-    { fieldName: 'conto', start: 49, length: 10, type: 'string' },
-    { fieldName: 'importoDare', start: 59, length: 12, type: 'number' },
-    { fieldName: 'importoAvere', start: 71, length: 12, type: 'number' },
-    { fieldName: 'note', start: 83, length: 60, type: 'string' },
-    { fieldName: 'flagMovimentiAnalitici', start: 248, length: 1, type: 'number' },
+    { fieldName: 'codiceUnivocoScaricamento', start: 4, length: 12, end: 15, type: 'string' },
+    { fieldName: 'progressivoNumeroRigo', start: 16, length: 3, end: 18, type: 'number' },
+    { fieldName: 'tipoConto', start: 19, length: 1, end: 19, type: 'string' },
+    { fieldName: 'codiceFiscaleClienteFornitore', start: 20, length: 16, end: 35, type: 'string' },
+    { fieldName: 'siglaClienteFornitore', start: 37, length: 12, end: 48, type: 'string' },
+    { fieldName: 'conto', start: 49, length: 10, end: 58, type: 'string' },
+    { fieldName: 'importoDare', start: 59, length: 12, end: 70, type: 'number' },
+    { fieldName: 'importoAvere', start: 71, length: 12, end: 82, type: 'number' },
+    { fieldName: 'note', start: 83, length: 60, end: 142, type: 'string' },
+    { fieldName: 'flagMovimentiAnalitici', start: 248, length: 1, end: 248, type: 'number' },
 ];
 
 const pnrigivaSchema: FieldDefinition[] = [
-    { fieldName: 'codiceUnivocoScaricamento', start: 4, length: 12, type: 'string' },
-    { fieldName: 'codiceIva', start: 16, length: 4, type: 'string' },
-    { fieldName: 'contropartita', start: 20, length: 10, type: 'string' },
-    { fieldName: 'imponibile', start: 30, length: 12, type: 'number' },
-    { fieldName: 'imposta', start: 42, length: 12, type: 'number' },
-    { fieldName: 'importoLordo', start: 90, length: 12, type: 'number' },
-    { fieldName: 'siglaContropartita', start: 162, length: 12, type: 'string' },
+    { fieldName: 'codiceUnivocoScaricamento', start: 4, length: 12, end: 15, type: 'string' },
+    { fieldName: 'codiceIva', start: 16, length: 4, end: 19, type: 'string' },
+    { fieldName: 'contropartita', start: 20, length: 10, end: 29, type: 'string' },
+    { fieldName: 'imponibile', start: 30, length: 12, end: 41, type: 'number' },
+    { fieldName: 'imposta', start: 42, length: 12, end: 53, type: 'number' },
+    { fieldName: 'importoLordo', start: 90, length: 12, end: 101, type: 'number' },
+    { fieldName: 'siglaContropartita', start: 162, length: 12, end: 173, type: 'string' },
 ];
 
 const movanacSchema: FieldDefinition[] = [
-    { fieldName: 'codiceUnivocoScaricamento', start: 4, length: 12, type: 'string' },
-    { fieldName: 'progressivoRigaContabile', start: 16, length: 3, type: 'number' },
-    { fieldName: 'centroDiCosto', start: 19, length: 4, type: 'string' },
-    { fieldName: 'importo', start: 23, length: 12, type: 'number' },
+    { fieldName: 'codiceUnivocoScaricamento', start: 4, length: 12, end: 15, type: 'string' },
+    { fieldName: 'progressivoRigaContabile', start: 16, length: 3, end: 18, type: 'number' },
+    { fieldName: 'centroDiCosto', start: 19, length: 4, end: 22, type: 'string' },
+    { fieldName: 'importo', start: 23, length: 12, end: 34, type: 'number' },
 ];
 
 const clienteFornitoreSchema: FieldDefinition[] = [
-    { fieldName: 'codiceUnivocoScaricamento', start: 21, length: 12, type: 'string' },
-    { fieldName: 'codiceFiscale', start: 33, length: 16, type: 'string' },
-    { fieldName: 'tipo', start: 50, length: 1, type: 'string' },
-    { fieldName: 'externalId', start: 71, length: 12, type: 'string' },
-    { fieldName: 'partitaIva', start: 83, length: 11, type: 'string' },
-    { fieldName: 'ragioneSociale', start: 95, length: 60, type: 'string' },
-    { fieldName: 'cognome', start: 155, length: 20, type: 'string' },
-    { fieldName: 'nome', start: 175, length: 20, type: 'string' },
+    { fieldName: 'codiceUnivocoScaricamento', start: 21, length: 12, end: 32, type: 'string' },
+    { fieldName: 'codiceFiscale', start: 33, length: 16, end: 48, type: 'string' },
+    { fieldName: 'tipo', start: 50, length: 1, end: 50, type: 'string' },
+    { fieldName: 'externalId', start: 71, length: 12, end: 82, type: 'string' },
+    { fieldName: 'partitaIva', start: 83, length: 11, end: 93, type: 'string' },
+    { fieldName: 'ragioneSociale', start: 95, length: 60, end: 154, type: 'string' },
+    { fieldName: 'cognome', start: 155, length: 20, end: 174, type: 'string' },
+    { fieldName: 'nome', start: 175, length: 20, end: 194, type: 'string' },
 ];
 
 const contiGenSchema: FieldDefinition[] = [
-    { fieldName: 'codice', start: 0, length: 10, type: 'string' },
-    { fieldName: 'descrizione', start: 10, length: 40, type: 'string' },
-    { fieldName: 'tipo', start: 50, length: 1, type: 'string' }, // C, R, P, F, L
+    { fieldName: 'codice', start: 0, length: 10, end: 9, type: 'string' },
+    { fieldName: 'descrizione', start: 10, length: 40, end: 49, type: 'string' },
+    { fieldName: 'tipo', start: 50, length: 1, end: 50, type: 'string' }, // C, R, P, F, L
 ];
 
 const causaliSchema: FieldDefinition[] = [
-    { fieldName: 'externalId', start: 4, length: 6, type: 'string' },
-    { fieldName: 'descrizione', start: 10, length: 40, type: 'string' },
+    { fieldName: 'externalId', start: 4, length: 6, end: 9, type: 'string' },
+    { fieldName: 'descrizione', start: 10, length: 40, end: 49, type: 'string' },
 ];
 
 const codiciIvaSchema: FieldDefinition[] = [
-    { fieldName: 'externalId', start: 3, length: 5, type: 'string' },
-    { fieldName: 'descrizione', start: 8, length: 40, type: 'string' },
-    { fieldName: 'aliquota', start: 48, length: 2, type: 'string' },
+    { fieldName: 'externalId', start: 3, length: 5, end: 7, type: 'string' },
+    { fieldName: 'descrizione', start: 8, length: 40, end: 47, type: 'string' },
+    { fieldName: 'aliquota', start: 48, length: 2, end: 49, type: 'string' },
 ];
 
 const codPagamSchema: FieldDefinition[] = [
-    { fieldName: 'externalId', start: 4, length: 8, type: 'string' },
-    { fieldName: 'descrizione', start: 12, length: 40, type: 'string' },
-    { fieldName: 'codice', start: 0, length: 4, type: 'string' },
+    { fieldName: 'externalId', start: 4, length: 8, end: 11, type: 'string' },
+    { fieldName: 'descrizione', start: 12, length: 40, end: 51, type: 'string' },
+    { fieldName: 'codice', start: 0, length: 4, end: 3, type: 'string' },
 ];
 
 // ---- NUOVE INTERFACCE E SCHEMI PER PRIMA NOTA ----
