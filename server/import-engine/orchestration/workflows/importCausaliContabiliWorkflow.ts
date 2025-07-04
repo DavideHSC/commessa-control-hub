@@ -81,10 +81,11 @@ export async function runImportCausaliContabiliWorkflow(fileContent: string): Pr
           continue;
         }
 
+        const { id, ...createData } = record as any;
         await prisma.causaleContabile.upsert({
           where: { externalId: record.externalId },
           update: record,
-          create: record,
+          create: createData,
         });
         successfulUpserts++;
       } catch (e: unknown) {

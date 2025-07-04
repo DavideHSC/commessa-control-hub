@@ -464,7 +464,9 @@ function creaScrittureContabili(
       data: dataValida,
       descrizione: descrizioneValida,
       causale: scrittura.testata.causaleId ? { connect: { id: scrittura.testata.causaleId } } : undefined,
-      fornitore: scrittura.testata.clienteFornitoreCodiceFiscale ? { connect: { id: scrittura.testata.clienteFornitoreCodiceFiscale } } : undefined,
+      // TEMPORANEAMENTE DISABILITATO: problema foreign key con fornitori
+      // TODO: implementare logica di ricerca intelligente per anagrafiche  
+      // fornitore: scrittura.testata.clienteFornitoreCodiceFiscale ? { connect: { id: scrittura.testata.clienteFornitoreCodiceFiscale } } : undefined,
       dataDocumento: scrittura.testata.dataDocumento,
       numeroDocumento: scrittura.testata.numeroDocumento,
     });

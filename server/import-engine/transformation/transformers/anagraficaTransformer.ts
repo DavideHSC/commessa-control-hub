@@ -108,6 +108,15 @@ export interface AnagraficaTransformResult {
  * Trasforma un singolo record validato in dati arricchiti
  */
 export function transformSingleAnagrafica(validated: ValidatedAnagrafica): TransformedAnagrafica {
+  // DEBUG: Log per capire cosa arriva dal parser
+  console.log('🔍 DEBUG Parsed data:', {
+    codiceUnivoco: validated.codiceUnivoco,
+    codiceFiscale: validated.codiceFiscaleClifor,
+    codiceAnagrafica: validated.codiceAnagrafica,
+    denominazione: validated.denominazione,
+    tipoConto: validated.tipoConto
+  });
+  
   // Decodifiche principali
   const tipoConto = decodeTipoConto(validated.tipoConto);
   const tipoSoggetto = decodeTipoSoggetto(validated.tipoSoggetto);
@@ -216,7 +225,7 @@ export function transformSingleAnagrafica(validated: ValidatedAnagrafica): Trans
 function createClienteInput(transformed: TransformedAnagrafica): Prisma.ClienteCreateInput {
   return {
     // Campi precedentemente non standard che ora esistono nel modello Prisma
-    externalId: transformed.codiceUnivoco,
+    externalId: transformed.codiceUnivoco || transformed.codiceFiscale || transformed.codiceAnagrafica,
     codiceFiscale: transformed.codiceFiscale,
     piva: transformed.partitaIva || null,
     codiceAnagrafica: transformed.codiceAnagrafica,
@@ -276,7 +285,7 @@ function createClienteInput(transformed: TransformedAnagrafica): Prisma.ClienteC
 function createFornitoreInput(transformed: TransformedAnagrafica): Prisma.FornitoreCreateInput {
   return {
     // Campi precedentemente non standard che ora esistono nel modello Prisma
-    externalId: transformed.codiceUnivoco,
+    externalId: transformed.codiceUnivoco || transformed.codiceFiscale || transformed.codiceAnagrafica,
     codiceFiscale: transformed.codiceFiscale,
     piva: transformed.partitaIva || null,
     codiceAnagrafica: transformed.codiceAnagrafica,
@@ -397,6 +406,11 @@ export function transformAnagrafiche(validatedRecords: ValidatedAnagrafica[]): A
         fornitori.push(createFornitoreInput(transformed));
         entrambiCreated++;
         clientiCreated++;
+        fornitoriCreated++;
+        break;
+        
+      case '': // Tipo conto vuoto - creiamo come fornitore di default
+        fornitori.push(createFornitoreInput(transformed));
         fornitoriCreated++;
         break;
         

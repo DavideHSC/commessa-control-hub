@@ -71,7 +71,9 @@ export const validatedAnagraficaSchema = z.object({
   codiceUnivoco: z.string().trim().default(''),
   codiceFiscaleClifor: z.string().trim().default(''),
   subcodeClifor: z.string().trim().default(''),
-  tipoConto: z.string().trim().length(1).default(''),
+  tipoConto: z.string().trim().refine(val => val === '' || val.length === 1, {
+    message: "tipoConto deve essere vuoto o esattamente 1 carattere"
+  }).default(''),
   sottocontoCliente: z.string().trim().default(''),
   sottocontoFornitore: z.string().trim().default(''),
   codiceAnagrafica: z.string().trim().default(''),
