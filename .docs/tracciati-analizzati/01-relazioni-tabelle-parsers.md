@@ -1,62 +1,49 @@
-**Per A_CLIFOR.TXT, ci sono campi chiave specifici progettati per relazionarsi con i movimenti contabili.**
+**Il ruolo centrale del Piano dei Conti (`CONTIGEN.TXT`)**
 
-I movimenti contabili (descritti in `PNTESTA.TXT` e `PNRIGCON.TXT`) e l'anagrafica clienti/fornitori (`A_CLIFOR.TXT`) sono le due facce della stessa medaglia in un sistema contabile: l'anagrafica è il "chi", mentre il movimento è il "cosa" e il "quando". Devono essere collegati.
+In un sistema contabile strutturato, il **Piano dei Conti (`CONTIGEN.TXT`)** è l'elemento architetturale portante. Non è semplicemente una delle tabelle, ma la spina dorsale che collega ogni operazione. Ogni anagrafica e ogni movimento contabile ha senso solo in relazione a un conto specifico.
 
-Ecco i campi che stabiliscono questa relazione:
+**La relazione fondamentale è sempre `Anagrafica -> Conto <- Movimento`.**
 
-### I Campi Chiave di Correlazione
+Ecco come i file interagiscono secondo questo principio:
 
-Esistono due meccanismi principali per collegare un movimento contabile a un'anagrafica, e i tracciati li supportano entrambi, specificando anche una gerarchia di priorità.
+1.  **`CONTIGEN.TXT` (Piano dei Conti):**
+    *   **Scopo:** Definire **tutti** i conti e sottoconti disponibili nel sistema.
+    *   **Campo Chiave:** `CODIFICA SOTTO CONTO` (pos. 1). Questa è la chiave primaria che identifica univocamente un record nel piano dei conti.
 
-#### Meccanismo 1: Collegamento tramite Codice Fiscale (Metodo Primario)
+2.  **`A_CLIFOR.TXT` (Anagrafica Clienti/Fornitori):**
+    *   **Scopo:** Arricchire e specializzare i conti di tipo "Cliente" e "Fornitore" con informazioni anagrafiche dettagliate (ragione sociale, partita IVA, indirizzo, ecc.).
+    *   **Campo Chiave di Relazione:** `SOTTOCONTO CLIENTE` (pos. 51) o `SOTTOCONTO FORNITORE` (pos. 61). Il valore in questo campo **corrisponde esattamente** al `CODIFICA SOTTO CONTO` presente in `CONTIGEN.TXT`.
 
-Questo è il metodo più robusto e affidabile, perché basato su un identificativo univoco a livello nazionale.
+3.  **`PNTESTA.TXT` / `PNRIGCON.TXT` (Movimenti Contabili):**
+    *   **Scopo:** Registrare le operazioni contabili (fatture, pagamenti, ecc.).
+    *   **Campo Chiave di Relazione:** `SOTTOCONTO` (es. `SOTTOCONTO DARE` e `SOTTOCONTO AVERE` in `PNRIGCON.TXT`). Anche in questo caso, il valore **corrisponde esattamente** al `CODIFICA SOTTO CONTO` del piano dei conti.
 
-| File Anagrafica (Master) | Campo Chiave in `A_CLIFOR.TXT` | File Movimenti (Transaction) | Campo Chiave in `PNTESTA.TXT` e `PNRIGCON.TXT` |
-| :--- | :--- | :--- | :--- |
-| `A_CLIFOR.TXT` | `CODICE FISCALE CLIENTE/FORNITORE` (pos. 33) | `PNTESTA.TXT` | `CLIENTE/FORNITORE CODICE FISCALE` (pos. 100) |
-| `A_CLIFOR.TXT` | `SUBCODICE CLIENTE/FORNITORE` (pos. 49) | `PNTESTA.TXT` | `CLIENTE/FORNITORE SUBCODICE FISCALE` (pos. 116) |
-| `A_CLIFOR.TXT` | `CODICE FISCALE CLIENTE/FORNITORE` (pos. 33) | `PNRIGCON.TXT` | `CLIENTE/FORNITORE CODICE FISCALE` (pos. 20) |
-| `A_CLIFOR.TXT` | `SUBCODICE CLIENTE/FORNITORE` (pos. 49) | `PNRIGCON.TXT` | `CLIENTE/FORNITORE SUBCODICE FISCALE` (pos. 36) |
+### Il Meccanismo di Collegamento Corretto
 
-#### Meccanismo 2: Collegamento tramite Sigla/Codice Interno (Metodo Secondario)
+Il collegamento non avviene tramite codici fiscali o sigle, ma direttamente tramite il **codice del sottoconto**.
 
-Questo metodo usa un codice mnemonico o una sigla definita dall'utente. È utile quando un codice fiscale non è disponibile (es. soggetti esteri) o per semplicità d'uso.
+| File Sorgente (Arricchimento) | Campo Chiave in `A_CLIFOR.TXT` | Tabella Centrale (Master) | Campo Chiave in `CONTIGEN.TXT` | File Transazione | Campo Chiave nei Movimenti |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `A_CLIFOR.TXT` | `SOTTOCONTO FORNITORE` | `CONTIGEN.TXT` | `CODIFICA SOTTO CONTO` | `PNRIGCON.TXT` | `SOTTOCONTO DARE/AVERE` |
+| `A_CLIFOR.TXT` | `SOTTOCONTO CLIENTE` | `CONTIGEN.TXT` | `CODIFICA SOTTO CONTO` | `PNRIGCON.TXT` | `SOTTOCONTO DARE/AVERE` |
 
-| File Anagrafica (Master) | Campo Chiave in `A_CLIFOR.TXT` | File Movimenti (Transaction) | Campo Chiave in `PNTESTA.TXT` e `PNRIGCON.TXT` |
-| :--- | :--- | :--- | :--- |
-| `A_CLIFOR.TXT` | `CODICE ANAGRAFICA` (pos. 71) | `PNTESTA.TXT` | `CLIENTE/FORNITORE SIGLA` (pos. 117) |
-| `A_CLIFOR.TXT` | `CODICE ANAGRAFICA` (pos. 71) | `PNRIGCON.TXT` | `CLIENTE/FORNITORE SIGLA` (pos. 37) |
+### Ruolo degli Identificatori Secondari (Sigla, Codice Fiscale)
 
-### Gerarchia e Precedenza
+La `CODICE ANAGRAFICA` (sigla) e il `CODICE FISCALE` sono **attributi** dell'anagrafica, non la chiave della relazione contabile. Servono a:
+*   Fornire un identificatore alternativo e più leggibile per l'utente.
+*   Potenzialmente, fungere da meccanismo di "ricerca" per risalire al conto corretto in interfacce utente o report.
 
-Come si capisce quale metodo usare? I tracciati dei movimenti contabili lo specificano chiaramente. Ad esempio, nella descrizione del file `PNTESTA.TXT` si legge:
+Tuttavia, la coerenza strutturale del database è garantita **esclusivamente** dalla relazione basata sul codice del sottoconto.
 
-> L'identificazione del cliente/fornitore puo' essere effettuata o per codice fiscale (con eventuale subcodice) o per sigla. **La preminenza viene comunque data al codice fiscale.**
+### Flusso Logico Corretto
 
-Questo significa che un software di importazione deve:
-1.  **Prima cercare** di collegare il movimento usando il **Codice Fiscale**.
-2.  **Se il Codice Fiscale non viene trovato** o non è presente nel file di movimento, deve **usare la Sigla** come meccanismo di fallback per trovare l'anagrafica corretta.
+1.  **Importazione Piano dei Conti:** Il file `CONTIGEN.TXT` viene importato per primo, popolando la tabella `Conto`. Questa tabella conterrà tutti i conti, inclusi quelli generici per Clienti e Fornitori (es. `2010000070`).
+2.  **Importazione Anagrafiche:** Durante l'importazione di `A_CLIFOR.TXT`, il sistema deve:
+    *   Leggere il `SOTTOCONTO FORNITORE` (es. `2010000070`).
+    *   Cercare questo codice nella tabella `Conto`.
+    *   **Aggiornare** il record del conto esistente con le informazioni anagrafiche, come la `RAGIONE SOCIALE` ("PULIRAPID DI VENANZIO...").
+    *   In parallelo, può salvare i dati anagrafici completi nella tabella `Fornitore`, mantenendo il riferimento al codice conto.
+3.  **Importazione Movimenti:** Quando si importa una riga da `PNRIGCON.TXT` che usa il sottoconto `2010000070`, il sistema si collega direttamente al record corrispondente nella tabella `Conto`, che ora contiene la descrizione corretta e tutti i dati associati.
 
-### Esempio Pratico del Flusso di Dati
-
-Immagina questo scenario:
-
-1.  **Creazione Anagrafica:**
-    *   Viene creato un record nel file `A_CLIFOR.TXT` per il fornitore "Rossi Elettricità S.R.L.".
-    *   In questo record, il `CODICE FISCALE CLIENTE/FORNITORE` sarà `12345678901` e il `CODICE ANAGRAFICA` (la sigla) sarà `ROSSIELET`.
-
-2.  **Registrazione Fattura:**
-    *   Si deve registrare una fattura di acquisto da questo fornitore.
-    *   Viene creato un record in `PNTESTA.TXT`. All'interno di questa riga, nei campi dedicati, si inserirà:
-        *   `CLIENTE/FORNITORE CODICE FISCALE`: `12345678901`
-        *   `CLIENTE/FORNITORE SIGLA`: `ROSSIELET`
-    *   Vengono create le righe contabili corrispondenti in `PNRIGCON.TXT`. Una di queste righe (quella per il debito verso il fornitore) avrà `TIPO CONTO` = 'F' e, di nuovo, i campi `CLIENTE/FORNITORE CODICE FISCALE` e `SIGLA` valorizzati.
-
-3.  **Collegamento dei Dati:**
-    *   Quando il software di contabilità importa questi file, legge il record di `PNTESTA.TXT`.
-    *   Vede il Codice Fiscale `12345678901` e lo usa per cercare la corrispondenza nel file/tabella delle anagrafiche (`A_CLIFOR.TXT`).
-    *   Trovata l'anagrafica, il sistema può accedere a tutti gli altri dati (come il sottoconto fornitore `SOTTOCONTO FORNITORE`, le condizioni di pagamento `CODICE INC./PAG. FORNITORE`, se è soggetto a ritenuta, etc.) e usarli per completare correttamente la registrazione contabile senza doverli specificare ogni volta.
-
-In sintesi, la relazione è fondamentale e ben definita, garantendo l'integrità e la coerenza dei dati tra le anagrafiche e i movimenti.
+In sintesi, la precedente analisi che metteva la `sigla` come metodo primario era errata. **Il perno di tutto è il codice del conto.**
 

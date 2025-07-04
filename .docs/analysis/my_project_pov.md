@@ -1,4 +1,4 @@
-allora, dobbiamo rivedere un po di logica di quest'applizacione, questa è la mia visione, il tuo compito sarà quello di verificare se corrisponde alla logica implementata:
+allora, dobbiamo rivedere un po di logica di quest'applicazione, questa è la mia visione, il tuo compito sarà quello di verificare se corrisponde alla logica implementata:
 1. il primo caposaldo di quest'applicazione sono le commesse, queste verranno immesse da un utente (attualmente precarichiamo 3 commesse per velocità)
 2. l'altro caposaldo è l'importazione dati ( i nostri parser) che provengono da altro software di contabilità, e questi sono i dati su cui lavorerà la nostra applicazione (quiindi non sono dati che l'utente elabora direttamente attraverso la nostra applicazione)
 3. i dati di "anagrafica" che raccogliamo, in qualche modo, serviranno da "completamento" informativo per i dati dei "movimenti contabili" (dati fondamentali per le commesse) che verranno importati di volta in volta
