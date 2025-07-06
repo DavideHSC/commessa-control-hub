@@ -32,6 +32,7 @@ router.get('/', async (req: Request, res: Response): Promise<void> => {
         { externalId: { contains: search as string, mode: 'insensitive' } },
         { piva: { contains: search as string, mode: 'insensitive' } },
         { codiceFiscale: { contains: search as string, mode: 'insensitive' } },
+        { sottocontoCliente: { contains: search as string, mode: 'insensitive' } },
       ],
     } : {};
 

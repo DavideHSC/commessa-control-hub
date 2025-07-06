@@ -44,3 +44,4 @@ FUNZIONALITÀ PRINCIPALI OLTRE AL SALVATAGGIO:
 
   Ora per risolvere il problema specifico del foreign key, posso semplicemente disabilitare temporaneamente il collegamento ai fornitori per far funzionare l'import,
   mantenendo tutte le altre funzionalità?
+  
