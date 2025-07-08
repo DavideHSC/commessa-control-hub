@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import multer from 'multer';
 import { parseFixedWidth, FieldDefinition } from '../lib/fixedWidthParser';
-import { processScrittureInBatches } from '../lib/importUtils.js';
+import { IAllocazione, IRigaContabile, IRigaIva, ITestata, processScrittureInBatches } from '../lib/importUtils.js';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -33,7 +33,7 @@ router.post('/', upload.array('files', 10), async (req: Request, res: Response) 
                     acc[field.fileIdentifier] = [];
                 }
                 acc[field.fileIdentifier].push({
-                    name: field.fieldName || '',
+                    fieldName: field.fieldName || '',
                     start: field.start,
                     length: field.length,
                     type: (field.format || 'string') as 'string' | 'number' | 'date',
@@ -65,17 +65,17 @@ router.post('/', upload.array('files', 10), async (req: Request, res: Response) 
         }
 
         // 4. Esegui il parsing per ogni file
-        const testate = parseFixedWidth<any>(filesByDefinition['PNTESTA.TXT'].file.buffer.toString('utf-8'), filesByDefinition['PNTESTA.TXT'].definitions);
-        const righeContabili = parseFixedWidth<any>(filesByDefinition['PNRIGCON.TXT'].file.buffer.toString('utf-8'), filesByDefinition['PNRIGCON.TXT'].definitions);
+        const testate = parseFixedWidth<ITestata>(filesByDefinition['PNTESTA.TXT'].file.buffer.toString('utf-8'), filesByDefinition['PNTESTA.TXT'].definitions);
+        const righeContabili = parseFixedWidth<IRigaContabile>(filesByDefinition['PNRIGCON.TXT'].file.buffer.toString('utf-8'), filesByDefinition['PNRIGCON.TXT'].definitions);
         
-        let righeIva: any[] = [];
+        let righeIva: IRigaIva[] = [];
         if (filesByDefinition['PNRIGIVA.TXT']) {
-            righeIva = parseFixedWidth<any>(filesByDefinition['PNRIGIVA.TXT'].file.buffer.toString('utf-8'), filesByDefinition['PNRIGIVA.TXT'].definitions);
+            righeIva = parseFixedWidth<IRigaIva>(filesByDefinition['PNRIGIVA.TXT'].file.buffer.toString('utf-8'), filesByDefinition['PNRIGIVA.TXT'].definitions);
         }
 
-        let allocazioni: any[] = [];
+        let allocazioni: IAllocazione[] = [];
         if (filesByDefinition['MOVANAC.TXT']) {
-            allocazioni = parseFixedWidth<any>(filesByDefinition['MOVANAC.TXT'].file.buffer.toString('utf-8'), filesByDefinition['MOVANAC.TXT'].definitions);
+            allocazioni = parseFixedWidth<IAllocazione>(filesByDefinition['MOVANAC.TXT'].file.buffer.toString('utf-8'), filesByDefinition['MOVANAC.TXT'].definitions);
         }
 
         // 5. Salva i dati in una transazione
@@ -86,7 +86,7 @@ router.post('/', upload.array('files', 10), async (req: Request, res: Response) 
             summary
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("Errore durante l'importazione delle scritture:", error);
         res.status(500).json({ error: "Errore interno del server durante l'importazione." });
     }

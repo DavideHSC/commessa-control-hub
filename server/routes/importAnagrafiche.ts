@@ -6,8 +6,7 @@ import * as decoders from '../lib/businessDecoders';
 import moment from 'moment';
 import { handleCodiciIvaImport } from '../lib/importers/codiciIvaImporter';
 import { handleCausaliImport } from '../lib/importers/causaliImporter';
-import { handlePianoDeiContiImport } from '../lib/importers/pianoDeiContiImporter';
-import { handleAnagraficaCliForImport } from '../lib/importers/anagraficaCliForImporter';
+import { AnagraficaCliForRecord, handleAnagraficaCliForImport } from '../lib/importers/anagraficaCliForImporter';
 import { processCondizioniPagamento } from '../lib/importers/condizioniPagamentoImporter';
 import { executeAnagraficheImportWorkflow } from '../import-engine/orchestration/workflows/importAnagraficheWorkflow';
 
@@ -94,15 +93,13 @@ router.post('/:templateName', upload.single('file'), async (req: Request, res: R
         const parsedData = parseFixedWidth<ParsedRecord>(fileContent, templateFields);
         console.log(`[IMPORT] Parsing completato. Numero di record estratti: ${parsedData.length}`);
         
-        if (templateName === 'piano_dei_conti') {
-            await handlePianoDeiContiImport(parsedData, res);
-        } else if (templateName === 'causali') {
+        if (templateName === 'causali') {
             await handleCausaliImport(parsedData, res);
         } else if (templateName === 'codici_iva') {
             await handleCodiciIvaImport(parsedData, res);
         } else if (templateName === 'anagrafica_clifor') {
             // QUESTO BLOCCO NON VERRA' MAI ESEGUITO GRAZIE AL CONTROLLO PRECEDENTE
-            await handleAnagraficaCliForImport(parsedData, res);
+            await handleAnagraficaCliForImport(parsedData as AnagraficaCliForRecord[], res);
         } else if (templateName === 'condizioni_pagamento') {
             const stats: ImportStats = {
                 totalRecords: parsedData.length,

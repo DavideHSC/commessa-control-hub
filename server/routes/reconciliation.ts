@@ -27,8 +27,8 @@ router.get('/staging-rows', async (req: Request, res: Response) => {
         righe: {
           some: {
             conto: {
-              codice: {
-                startsWith: '6' 
+              tipo: {
+                in: ['Costo', 'Ricavo']
               }
             }
           }
@@ -38,6 +38,8 @@ router.get('/staging-rows', async (req: Request, res: Response) => {
         righe: {
           include: {
             conto: true,
+            cliente: true,
+            fornitore: true,
             allocazioni: {
               include: {
                 commessa: true
@@ -48,7 +50,7 @@ router.get('/staging-rows', async (req: Request, res: Response) => {
       }
     });
 
-    console.log(`[Recon V2] Trovate ${scritture.length} scritture con righe di costo.`);
+    console.log(`[Recon V2] Trovate ${scritture.length} scritture con righe di costo/ricavo.`);
 
     if (scritture.length === 0) {
       return res.json([]);
@@ -56,7 +58,7 @@ router.get('/staging-rows', async (req: Request, res: Response) => {
 
     const results = scritture.map(scrittura => {
       const righeCostoRicavo = scrittura.righe.filter(
-        r => r.conto.codice?.startsWith('6') || r.conto.codice?.startsWith('7')
+        r => r.conto?.tipo === 'Costo' || r.conto?.tipo === 'Ricavo'
       );
 
       const importoTotale = righeCostoRicavo.reduce((acc, r) => acc + (r.dare > 0 ? r.dare : r.avere), 0);
@@ -72,8 +74,26 @@ router.get('/staging-rows', async (req: Request, res: Response) => {
         }
       }
 
+      // Trasforma le righe per il frontend
+      const righeTrasformate = scrittura.righe.map(riga => {
+        let soggetto: { codice: string | null; nome: string; tipoSoggetto: 'Conto' | 'Fornitore' | 'Cliente' } | null = null;
+        if (riga.conto) {
+          soggetto = { codice: riga.conto.codice, nome: riga.conto.nome, tipoSoggetto: 'Conto' };
+        } else if (riga.fornitore) {
+          soggetto = { codice: riga.fornitore.sottocontoFornitore, nome: riga.fornitore.nome, tipoSoggetto: 'Fornitore' };
+        } else if (riga.cliente) {
+          soggetto = { codice: riga.cliente.sottocontoCliente, nome: riga.cliente.nome, tipoSoggetto: 'Cliente' };
+        }
+
+        return {
+          ...riga,
+          soggetto: soggetto,
+        };
+      });
+
       return {
         ...scrittura,
+        righe: righeTrasformate, // Usa le righe trasformate
         importo: importoTotale,
         totaleAllocato,
         status,
@@ -116,6 +136,9 @@ router.post('/allocations/:rowId', async (req: Request, res: Response) => {
             
             // Critical check: An allocation requires an analytical item (VoceAnalitica).
             // We infer this from the Conto associated with the RigaScrittura.
+            if (!riga.conto) {
+                throw new Error(`La riga ${riga.id} non è collegata a un Conto di mastro e non può essere allocata.`);
+            }
             const voceAnaliticaId = riga.conto.voceAnaliticaId;
             if (!voceAnaliticaId && newAllocations.length > 0 && newAllocations.some(a => a.importo > 0)) {
                 // If the account isn't set up for analytical accounting, we cannot proceed.

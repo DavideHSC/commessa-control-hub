@@ -1,18 +1,18 @@
 import express from 'express';
-import { PrismaClient, Prisma } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 const router = express.Router();
 
-// GET all voci analitiche
+// GET all voci analitiche with pagination, search, and sort
 router.get('/', async (req, res) => {
   try {
     const { 
-        page = '1', 
-        limit = '25', 
-        search = '',
-        sortBy = 'nome',
-        sortOrder = 'asc'
+      page = '1', 
+      limit = '25', 
+      search = '',
+      sortBy = 'nome',
+      sortOrder = 'asc'
     } = req.query;
 
     const pageNumber = parseInt(page as string, 10);
@@ -21,38 +21,37 @@ router.get('/', async (req, res) => {
     const take = pageSize;
 
     const where: Prisma.VoceAnaliticaWhereInput = search ? {
-        OR: [
-            { id: { contains: search as string, mode: 'insensitive' } },
-            { nome: { contains: search as string, mode: 'insensitive' } },
-            { descrizione: { contains: search as string, mode: 'insensitive' } },
-        ],
+      OR: [
+        { nome: { contains: search as string, mode: 'insensitive' } },
+        { descrizione: { contains: search as string, mode: 'insensitive' } },
+      ],
     } : {};
 
     const orderBy: Prisma.VoceAnaliticaOrderByWithRelationInput = {
         [(sortBy as string) || 'nome']: (sortOrder as 'asc' | 'desc') || 'asc'
     };
 
-    const [vociAnalitiche, totalCount] = await prisma.$transaction([
-        prisma.voceAnalitica.findMany({
-            where,
-            orderBy,
-            skip,
-            take,
-        }),
-        prisma.voceAnalitica.count({ where }),
+    const [voci, totalCount] = await prisma.$transaction([
+      prisma.voceAnalitica.findMany({
+        where,
+        orderBy,
+        skip,
+        take,
+      }),
+      prisma.voceAnalitica.count({ where }),
     ]);
 
     res.json({
-        data: vociAnalitiche,
-        pagination: {
-            page: pageNumber,
-            limit: pageSize,
-            total: totalCount,
-            totalPages: Math.ceil(totalCount / pageSize),
-        }
+      data: voci,
+      pagination: {
+        page: pageNumber,
+        limit: pageSize,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / pageSize),
+      }
     });
-
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Errore nel recupero delle voci analitiche.' });
   }
 });

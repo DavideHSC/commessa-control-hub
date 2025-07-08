@@ -67,11 +67,11 @@ router.get('/', async (req, res) => {
       const budgetTotale = c.budget.reduce((acc, b) => acc + b.importo, 0);
       
       const costi = scritture.flatMap(s => s.righe)
-        .filter(r => r.conto.tipo === 'Costo' && r.allocazioni.some(a => a.commessaId === c.id))
+        .filter(r => r.conto && r.conto.tipo === 'Costo' && r.allocazioni.some(a => a.commessaId === c.id))
         .reduce((acc, r) => acc + r.dare, 0);
 
       const ricavi = scritture.flatMap(s => s.righe)
-        .filter(r => r.conto.tipo === 'Ricavo' && r.allocazioni.some(a => a.commessaId === c.id))
+        .filter(r => r.conto && r.conto.tipo === 'Ricavo' && r.allocazioni.some(a => a.commessaId === c.id))
         .reduce((acc, r) => acc + r.avere, 0);
 
       const margine = ricavi > 0 ? ((ricavi - costi) / ricavi) * 100 : 0;

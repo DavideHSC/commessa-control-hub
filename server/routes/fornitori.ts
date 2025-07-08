@@ -32,6 +32,7 @@ router.get('/', async (req: express.Request, res: express.Response): Promise<voi
         { externalId: { contains: search as string, mode: 'insensitive' } },
         { piva: { contains: search as string, mode: 'insensitive' } },
         { codiceFiscale: { contains: search as string, mode: 'insensitive' } },
+        { sottocontoFornitore: { contains: search as string, mode: 'insensitive' } },
       ],
     } : {};
 

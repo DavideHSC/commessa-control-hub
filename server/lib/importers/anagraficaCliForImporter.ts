@@ -2,60 +2,106 @@ import { Response } from 'express';
 import { PrismaClient, Prisma } from '@prisma/client';
 import { parseFixedWidth, FieldDefinition } from '../fixedWidthParser';
 import * as decoders from '../businessDecoders';
+import { parseDecimalString, parseBooleanFlag, convertDateString } from '../importUtils';
 
 const prisma = new PrismaClient();
 
 const anagraficaCliForFields: FieldDefinition[] = [
-    { name: 'filler', start: 1, length: 3, type: 'string' },
-    { name: 'codiceFiscaleAzienda', start: 4, length: 16, type: 'string' },
-    { name: 'subcodiceAzienda', start: 20, length: 1, type: 'string' },
-    { name: 'codiceUnivocoScaricamento', start: 21, length: 12, type: 'string' },
-    { name: 'codiceFiscale', start: 33, length: 16, type: 'string' },
-    { name: 'subcodiceCliFor', start: 49, length: 1, type: 'string' },
-    { name: 'tipoConto', start: 50, length: 1, type: 'string' },
-    { name: 'sottocontoCliente', start: 51, length: 10, type: 'string' },
-    { name: 'sottocontoFornitore', start: 61, length: 10, type: 'string' },
-    { name: 'externalId', start: 71, length: 12, type: 'string' },
-    { name: 'piva', start: 83, length: 11, type: 'string' },
-    { name: 'tipoSoggetto', start: 94, length: 1, type: 'string' },
-    { name: 'ragioneSociale', start: 95, length: 60, type: 'string' },
-    { name: 'cognome', start: 155, length: 20, type: 'string' },
-    { name: 'nome', start: 175, length: 20, type: 'string' },
-    { name: 'sesso', start: 195, length: 1, type: 'string' },
-    { name: 'dataNascita', start: 196, length: 8, type: 'string' },
-    { name: 'comuneNascita', start: 204, length: 4, type: 'string' },
-    { name: 'comuneResidenza', start: 208, length: 4, type: 'string' },
-    { name: 'cap', start: 212, length: 5, type: 'string' },
-    { name: 'indirizzo', start: 217, length: 30, type: 'string' },
-    { name: 'prefissoTelefono', start: 247, length: 4, type: 'string' },
-    { name: 'numeroTelefono', start: 251, length: 11, type: 'string' },
-    { name: 'identificativoFiscaleEstero', start: 262, length: 20, type: 'string' },
-    { name: 'codiceIso', start: 282, length: 2, type: 'string' },
-    { name: 'codicePagamento', start: 284, length: 8, type: 'string' },
-    { name: 'codicePagamentoCliente', start: 292, length: 8, type: 'string' },
-    { name: 'codicePagamentoFornitore', start: 300, length: 8, type: 'string' },
-    { name: 'codiceValuta', start: 308, length: 4, type: 'string' },
-    { name: 'gestione770', start: 312, length: 1, type: 'string' },
-    { name: 'soggettoRitenuta', start: 313, length: 1, type: 'string' },
-    { name: 'quadro770', start: 314, length: 1, type: 'string' },
-    { name: 'contributoPrevidenziale', start: 315, length: 1, type: 'string' },
-    { name: 'codiceRitenuta', start: 316, length: 5, type: 'string' },
-    { name: 'enasarco', start: 321, length: 1, type: 'string' },
-    { name: 'tipoRitenuta', start: 322, length: 1, type: 'string' },
-    { name: 'soggettoInail', start: 323, length: 1, type: 'string' },
-    { name: 'contributoPrevidenzialeL335', start: 324, length: 1, type: 'string' },
-    { name: 'aliquota', start: 325, length: 6, type: 'string' },
-    { name: 'percContributoCassaPrev', start: 331, length: 6, type: 'string' },
-    { name: 'attivitaMensilizzazione', start: 337, length: 2, type: 'string' },
+    { fieldName: 'filler', start: 1, length: 3, type: 'string' },
+    { fieldName: 'codiceFiscaleAzienda', start: 4, length: 16, type: 'string' },
+    { fieldName: 'subcodiceAzienda', start: 20, length: 1, type: 'string' },
+    { fieldName: 'codiceUnivocoScaricamento', start: 21, length: 12, type: 'string' },
+    { fieldName: 'codiceFiscale', start: 33, length: 16, type: 'string' },
+    { fieldName: 'subcodiceCliFor', start: 49, length: 1, type: 'string' },
+    { fieldName: 'tipoConto', start: 50, length: 1, type: 'string' },
+    { fieldName: 'sottocontoCliente', start: 51, length: 10, type: 'string' },
+    { fieldName: 'sottocontoFornitore', start: 61, length: 10, type: 'string' },
+    { fieldName: 'externalId', start: 71, length: 12, type: 'string' },
+    { fieldName: 'piva', start: 83, length: 11, type: 'string' },
+    { fieldName: 'tipoSoggetto', start: 94, length: 1, type: 'string' },
+    { fieldName: 'ragioneSociale', start: 95, length: 60, type: 'string' },
+    { fieldName: 'cognome', start: 155, length: 20, type: 'string' },
+    { fieldName: 'nome', start: 175, length: 20, type: 'string' },
+    { fieldName: 'sesso', start: 195, length: 1, type: 'string' },
+    { fieldName: 'dataNascita', start: 196, length: 8, type: 'string' },
+    { fieldName: 'comuneNascita', start: 204, length: 4, type: 'string' },
+    { fieldName: 'comuneResidenza', start: 208, length: 4, type: 'string' },
+    { fieldName: 'cap', start: 212, length: 5, type: 'string' },
+    { fieldName: 'indirizzo', start: 217, length: 30, type: 'string' },
+    { fieldName: 'prefissoTelefono', start: 247, length: 4, type: 'string' },
+    { fieldName: 'numeroTelefono', start: 251, length: 11, type: 'string' },
+    { fieldName: 'identificativoFiscaleEstero', start: 262, length: 20, type: 'string' },
+    { fieldName: 'codiceIso', start: 282, length: 2, type: 'string' },
+    { fieldName: 'codicePagamento', start: 284, length: 8, type: 'string' },
+    { fieldName: 'codicePagamentoCliente', start: 292, length: 8, type: 'string' },
+    { fieldName: 'codicePagamentoFornitore', start: 300, length: 8, type: 'string' },
+    { fieldName: 'codiceValuta', start: 308, length: 4, type: 'string' },
+    { fieldName: 'gestione770', start: 312, length: 1, type: 'string' },
+    { fieldName: 'soggettoRitenuta', start: 313, length: 1, type: 'string' },
+    { fieldName: 'quadro770', start: 314, length: 1, type: 'string' },
+    { fieldName: 'contributoPrevidenziale', start: 315, length: 1, type: 'string' },
+    { fieldName: 'codiceRitenuta', start: 316, length: 5, type: 'string' },
+    { fieldName: 'enasarco', start: 321, length: 1, type: 'string' },
+    { fieldName: 'tipoRitenuta', start: 322, length: 1, type: 'string' },
+    { fieldName: 'soggettoInail', start: 323, length: 1, type: 'string' },
+    { fieldName: 'contributoPrevidenzialeL335', start: 324, length: 1, type: 'string' },
+    { fieldName: 'aliquota', start: 325, length: 6, type: 'string' },
+    { fieldName: 'percContributoCassaPrev', start: 331, length: 6, type: 'string' },
+    { fieldName: 'attivitaMensilizzazione', start: 337, length: 2, type: 'string' },
 ];
 
-export async function handleAnagraficaCliForImport(parsedData: any[], res: Response) {
+export interface AnagraficaCliForRecord {
+    [key: string]: string | number | Date | null | undefined;
+    filler: string;
+    codiceFiscaleAzienda: string;
+    subcodiceAzienda: string;
+    codiceUnivocoScaricamento: string;
+    codiceFiscale: string;
+    subcodiceCliFor: string;
+    tipoConto: string;
+    sottocontoCliente: string;
+    sottocontoFornitore: string;
+    externalId: string;
+    piva: string;
+    tipoSoggetto: string;
+    ragioneSociale: string;
+    cognome: string;
+    nome: string;
+    sesso: string;
+    dataNascita: string;
+    comuneNascita: string;
+    comuneResidenza: string;
+    cap: string;
+    indirizzo: string;
+    prefissoTelefono: string;
+    numeroTelefono: string;
+    identificativoFiscaleEstero: string;
+    codiceIso: string;
+    codicePagamento: string;
+    codicePagamentoCliente: string;
+    codicePagamentoFornitore: string;
+    codiceValuta: string;
+    gestione770: string;
+    soggettoRitenuta: string;
+    quadro770: string;
+    contributoPrevidenziale: string;
+    codiceRitenuta: string;
+    enasarco: string;
+    tipoRitenuta: string;
+    soggettoInail: string;
+    contributoPrevidenzialeL335: string;
+    aliquota: string;
+    percContributoCassaPrev: string;
+    attivitaMensilizzazione: string;
+}
+
+export async function handleAnagraficaCliForImport(parsedData: AnagraficaCliForRecord[], res: Response) {
     let processedCount = 0;
     const batchSize = 100;
 
     try {
         const validRecords = parsedData.map(record => {
-            const externalId = record.codiceAnagrafica?.trim();
+            const externalId = typeof record.externalId === 'string' ? record.externalId.trim() : null;
             if (!externalId) return null;
 
             const data = {

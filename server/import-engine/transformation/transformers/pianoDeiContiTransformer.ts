@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client';
-import { ValidatedPianoDeiConti } from '../../acquisition/validators/pianoDeiContiValidator';
+import { ValidatedPianoDeiConti, ValidatedPianoDeiContiAziendale } from '../../acquisition/validators/pianoDeiContiValidator';
 import * as decoders from '../decoders/contoDecoders';
 
 /**
@@ -25,9 +25,48 @@ export function transformPianoDeiConti(
     id: validatedRecord.codice,
     externalId: validatedRecord.codice,
     tipo: tipoConto,
-    livelloDesc: decoders.decodeLivello(validatedRecord.livello),
-    gruppoDesc: decoders.decodeGruppo(validatedRecord.gruppo),
-    controlloSegnoDesc: decoders.decodeControlloSegno(validatedRecord.controlloSegno),
+    codiceFiscaleAzienda: '', // Per CONTIGEN, questo è sempre una stringa vuota (generico)
+    livelloDesc: decoders.decodeLivello(validatedRecord.livello ?? ''),
+    gruppoDesc: decoders.decodeGruppo(validatedRecord.gruppo ?? ''),
+    controlloSegnoDesc: decoders.decodeControlloSegno(validatedRecord.controlloSegno ?? ''),
+    codificaFormattata: decoders.formatCodificaGerarchica(validatedRecord.codice, validatedRecord.livello),
+    richiedeVoceAnalitica: false,
+    vociAnaliticheAbilitateIds: [],
+    contropartiteSuggeriteIds: [],
+  };
+
+  return dataToUpsert;
+}
+
+/**
+ * Trasforma un record validato del Piano dei Conti AZIENDALE in un oggetto
+ * `Prisma.ContoCreateInput` pronto per l'inserimento nel database.
+ * Questa funzione gestisce la logica specifica per i conti aziendali,
+ * in particolare l'uso del `codiceFiscaleAzienda`.
+ *
+ * @param validatedRecord Il record validato da Zod (versione aziendale).
+ * @returns Un oggetto `Prisma.ContoCreateInput`.
+ */
+export function transformPianoDeiContiAziendale(
+  validatedRecord: ValidatedPianoDeiContiAziendale
+): Prisma.ContoCreateInput {
+  
+  const tipoConto = decoders.determineTipoConto(validatedRecord.tipo, validatedRecord.codice);
+
+  // Estrai 'descrizione' e mantieni il resto dei campi in 'remaningRecord'
+  const { descrizione, ...remaningRecord } = validatedRecord;
+
+  const dataToUpsert: Prisma.ContoCreateInput = {
+    ...remaningRecord,
+    nome: descrizione, // Mappa 'descrizione' a 'nome'
+    id: `${validatedRecord.codiceFiscaleAzienda}_${validatedRecord.codice}`,
+    externalId: validatedRecord.codice,
+    tipo: tipoConto,
+    // Qui usiamo il codice fiscale dal record, non una stringa vuota
+    codiceFiscaleAzienda: validatedRecord.codiceFiscaleAzienda, 
+    livelloDesc: decoders.decodeLivello(validatedRecord.livello ?? ''),
+    gruppoDesc: decoders.decodeGruppo(validatedRecord.gruppo ?? ''),
+    controlloSegnoDesc: decoders.decodeControlloSegno(validatedRecord.controlloSegno ?? ''),
     codificaFormattata: decoders.formatCodificaGerarchica(validatedRecord.codice, validatedRecord.livello),
     richiedeVoceAnalitica: false,
     vociAnaliticheAbilitateIds: [],

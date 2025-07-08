@@ -31,6 +31,20 @@ async function main() {
     { id: 'spese_generali', nome: 'Spese generali' },
     { id: 'selezione_valorizzazione_rifiuti', nome: 'Selezione e Valorizzazione Rifiuti Differenziati' },
     { id: 'gestione_frazione_organica', nome: 'Gestione frazione organica' },
+    { id: 'materiale_consumo', nome: 'Materiale di Consumo' },
+    { id: 'carburanti_lubrificanti', nome: 'Carburanti e Lubrificanti' },
+    { id: 'utenze', nome: 'Utenze' },
+    { id: 'lavorazioni_esterne', nome: 'Lavorazioni Esterne' },
+    { id: 'pulizie_cantiere', nome: 'Pulizie di Cantiere' },
+    { id: 'oneri_spese_accessorie', nome: 'Oneri e Spese Accessorie' },
+    { id: 'smaltimento_rifiuti', nome: 'Smaltimento Rifiuti Speciali' },
+    { id: 'manutenzione_mezzi', nome: 'Manutenzione Mezzi' },
+    { id: 'consulenze_tecniche_legali', nome: 'Consulenze Tecniche/Legali' },
+    { id: 'servizi_generici_cantiere', nome: 'Servizi Generici di Cantiere' },
+    { id: 'canoni_leasing', nome: 'Canoni Leasing Mezzi/Attrezz.' },
+    { id: 'manodopera_diretta', nome: 'Manodopera Diretta' },
+    { id: 'oneri_manodopera', nome: 'Oneri su Manodopera' },
+    { id: 'da_classificare', nome: 'Costi/Ricavi da Classificare' },
   ];
   
   for (const voce of vociAnaliticheData) {
@@ -371,6 +385,7 @@ async function main() {
     fieldName: string;
     start: number;
     length: number;
+    end: number;
     format?: string;
   };
   
@@ -459,18 +474,18 @@ async function main() {
         create: [
           // Layout basato su .docs/code/parser_a_clifor.py - CORRETTO CON START A BASE 1
           // Python slice line[py_start:py_end] -> { start: py_start + 1, length: py_end - py_start }
-          { fieldName: 'codiceFiscaleAzienda', start: 4, length: 16, end: 19 },      // (3, 19)
-          { fieldName: 'subcodiceAzienda', start: 20, length: 1, end: 20 },         // (19, 20)
-          { fieldName: 'codiceUnivoco', start: 21, length: 12, end: 32 },          // (20, 32)
-          { fieldName: 'codiceFiscaleClifor', start: 33, length: 16, end: 48 },   // (32, 48)
-          { fieldName: 'subcodiceClifor', start: 49, length: 1, end: 49 },         // (48, 49)
-          { fieldName: 'tipoConto', start: 50, length: 1, end: 50 },              // (49, 50)
-          { fieldName: 'sottocontoCliente', start: 51, length: 10, end: 60 },      // (50, 60)
-          { fieldName: 'sottocontoFornitore', start: 61, length: 10, end: 70 },    // (60, 70)
-          { fieldName: 'codiceAnagrafica', start: 71, length: 12, end: 82 },       // (70, 82)
-          { fieldName: 'partitaIva', start: 83, length: 11, end: 93 },             // (82, 93)
-          { fieldName: 'tipoSoggetto', start: 94, length: 1, end: 94 },           // (93, 94)
-          { fieldName: 'denominazione', start: 95, length: 60, end: 154 },          // (94, 154)
+          { fieldName: 'CODICE_FISCALE_AZIENDA', start: 4, length: 16, end: 19 },      // (3, 19)
+          { fieldName: 'SUBCODICE_AZIENDA', start: 20, length: 1, end: 20 },         // (19, 20)
+          { fieldName: 'CODICE_UNIVOCO', start: 21, length: 12, end: 32 },          // (20, 32)
+          { fieldName: 'CODICE_FISCALE_CLIFOR', start: 33, length: 16, end: 48 },   // (32, 48)
+          { fieldName: 'SUBCODICE_CLIFOR', start: 49, length: 1, end: 49 },         // (48, 49)
+          { fieldName: 'TIPO_CONTO', start: 50, length: 1, end: 50 },              // (49, 50)
+          { fieldName: 'SOTTOCONTO_CLIENTE', start: 51, length: 10, end: 60 },      // (50, 60)
+          { fieldName: 'SOTTOCONTO_FORNITORE', start: 61, length: 10, end: 70 },    // (60, 70)
+          { fieldName: 'CODICE_ANAGRAFICA', start: 71, length: 12, end: 82 },       // (70, 82)
+          { fieldName: 'PARTITA_IVA', start: 83, length: 11, end: 93 },             // (82, 93)
+          { fieldName: 'TIPO_SOGGETTO', start: 94, length: 1, end: 94 },           // (93, 94)
+          { fieldName: 'DENOMINAZIONE', start: 95, length: 60, end: 154 },          // (94, 154)
           { fieldName: 'cognome', start: 155, length: 20, end: 174 },               // (154, 174)
           { fieldName: 'nome', start: 175, length: 20, end: 194 },                  // (174, 194)
           { fieldName: 'sesso', start: 195, length: 1, end: 195 },                 // (194, 195)

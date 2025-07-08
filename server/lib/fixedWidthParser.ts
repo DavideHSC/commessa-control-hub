@@ -12,7 +12,7 @@ export interface FieldDefinition {
   fieldName: string | null;
   start: number;
   length: number;
-  end: number; // Aggiunto il campo 'end'
+  end?: number;
   type?: 'string' | 'number' | 'date' | 'boolean';
   format?: 'percentage' | 'date:DDMMYYYY' | 'boolean';
   isKey?: boolean;

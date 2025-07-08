@@ -46,11 +46,11 @@ async function generateTypes() {
     console.log(`✨ Generazione interfaccia: ${interfaceName}`);
 
     content += `export interface ${interfaceName} {\n`;
+    const addedFields = new Set<string>(); // Usa un Set per tracciare i campi aggiunti
     for (const field of template.fieldDefinitions) {
-      // Per ora, tutti i campi sono stringhe perché letti da un file di testo.
-      // La validazione e coercizione avverrà in un secondo momento.
-      if (field.fieldName) {
+      if (field.fieldName && !addedFields.has(field.fieldName)) {
         content += `  ${field.fieldName}: string;\n`;
+        addedFields.add(field.fieldName);
       }
     }
     content += `}\n\n`;

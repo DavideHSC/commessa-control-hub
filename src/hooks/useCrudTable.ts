@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, FieldValues, DeepPartial, DefaultValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
@@ -11,16 +11,16 @@ interface ApiFunctions<T, TForm> {
   delete: (id: string) => Promise<void>;
 }
 
-interface UseCrudTableOptions<T, TForm> {
+interface UseCrudTableOptions<T, TForm extends FieldValues> {
   schema: z.Schema<TForm>;
   api: ApiFunctions<T, TForm>;
   onDataChange: () => void;
   resourceName: string;
-  defaultValues: TForm;
+  defaultValues: DefaultValues<TForm>;
   getId: (item: T) => string;
 }
 
-export const useCrudTable = <T, TForm extends Record<string, any>>({
+export const useCrudTable = <T, TForm extends FieldValues>({
   schema,
   api,
   onDataChange,
@@ -40,7 +40,7 @@ export const useCrudTable = <T, TForm extends Record<string, any>>({
   const handleOpenDialog = (item: T | null = null) => {
     setEditingItem(item);
     if (item) {
-      form.reset(item as any); // Reset con i valori dell'item da modificare
+      form.reset(item as DefaultValues<TForm>); // Reset con i valori dell'item da modificare
     } else {
       form.reset(defaultValues); // Reset con valori di default per la creazione
     }

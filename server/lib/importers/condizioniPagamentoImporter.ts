@@ -25,13 +25,17 @@ export async function processCondizioniPagamento(
   
   for (let i = 0; i < parsedData.length; i += BATCH_SIZE) {
     const batch = parsedData.slice(i, i + BATCH_SIZE);
-    const upsertPromises = batch.map(async (record) => {
+    const upsertPromises = batch.map(async (record, index) => {
 
       // L'ID univoco per l'upsert è 'codicePagamento' che corrisponde al codice del pagamento
       const externalId = record.codicePagamento; 
       if (!externalId) {
         stats.skipped++;
-        stats.warnings.push(`Record saltato: codicePagamento mancante. Dati: ${JSON.stringify(record)}`);
+        stats.warnings.push({
+          row: i + index, // Calcola il numero di riga globale
+          message: 'Record saltato: codicePagamento mancante.',
+          data: record
+        });
         return;
       }
       

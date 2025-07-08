@@ -69,7 +69,12 @@ export async function importPianoDeiContiWorkflow(fileContent: string): Promise<
           throw new Error('Il codice del conto è obbligatorio per l\'operazione di upsert.');
         }
         await prisma.conto.upsert({
-          where: { codice: record.codice },
+          where: { 
+            codice_codiceFiscaleAzienda: {
+              codice: record.codice,
+              codiceFiscaleAzienda: '', // Per CONTIGEN, la personalizzazione è a livello globale (stringa vuota)
+            }
+          },
           update: record,
           create: record,
         });

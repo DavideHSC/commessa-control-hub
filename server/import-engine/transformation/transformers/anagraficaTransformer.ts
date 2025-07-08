@@ -402,7 +402,7 @@ export function transformAnagrafiche(validatedRecords: ValidatedAnagrafica[]): A
         
       default:
         // Tipo conto non riconosciuto - skipp record
-        console.warn(`Tipo conto non riconosciuto: ${transformed.tipoConto} per codice ${transformed.codiceUnivoco}`);
+        console.warn(`Tipo conto non riconosciuto: "${transformed.tipoConto}" (length: ${transformed.tipoConto.length}) per codice ${transformed.codiceUnivoco}`);
         break;
     }
   }

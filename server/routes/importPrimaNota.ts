@@ -1,61 +1,61 @@
 import { Router, Request, Response } from 'express';
 import multer from 'multer';
 import { FieldDefinition, parseFixedWidth } from '../lib/fixedWidthParser';
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient, Prisma, Commessa } from '@prisma/client';
 
 const prisma = new PrismaClient();
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Schema per PNTESTA.TXT - Corretto con start = PRG - 1
-const pntestaSchema: FieldDefinition[] = [
-    { name: 'codiceUnivocoScaricamento', start: 20, length: 12, type: 'string' },
-    { name: 'codiceCausale', start: 39, length: 6, type: 'string' },
-    { name: 'descrizioneCausale', start: 45, length: 40, type: 'string' },
-    { name: 'dataRegistrazione', start: 85, length: 8, type: 'date' },
-    { name: 'tipoRegistroIva', start: 95, length: 1, type: 'string' },
-    { name: 'clienteFornitoreCodiceFiscale', start: 99, length: 16, type: 'string' },
-    { name: 'clienteFornitoreSigla', start: 116, length: 12, type: 'string' },
-    { name: 'documentoData', start: 128, length: 8, type: 'date' },
-    { name: 'documentoNumero', start: 136, length: 12, type: 'string' },
-    { name: 'protocolloNumero', start: 157, length: 6, type: 'string' }, // Trattato come stringa per sicurezza
-    { name: 'totaleDocumento', start: 172, length: 12, type: 'number' },
-    { name: 'noteMovimento', start: 192, length: 60, type: 'string' },
+const testataFields: FieldDefinition[] = [
+    { fieldName: 'codiceUnivocoScaricamento', start: 20, length: 12, type: 'string' },
+    { fieldName: 'codiceCausale', start: 39, length: 6, type: 'string' },
+    { fieldName: 'descrizioneCausale', start: 45, length: 40, type: 'string' },
+    { fieldName: 'dataRegistrazione', start: 85, length: 8, type: 'date' },
+    { fieldName: 'tipoRegistroIva', start: 95, length: 1, type: 'string' },
+    { fieldName: 'clienteFornitoreCodiceFiscale', start: 99, length: 16, type: 'string' },
+    { fieldName: 'clienteFornitoreSigla', start: 116, length: 12, type: 'string' },
+    { fieldName: 'documentoData', start: 128, length: 8, type: 'date' },
+    { fieldName: 'documentoNumero', start: 136, length: 12, type: 'string' },
+    { fieldName: 'protocolloNumero', start: 157, length: 6, type: 'string' }, // Trattato come stringa per sicurezza
+    { fieldName: 'totaleDocumento', start: 172, length: 12, type: 'number' },
+    { fieldName: 'noteMovimento', start: 192, length: 60, type: 'string' },
 ];
 
 // Schema per PNRIGCON.TXT - Corretto con start = PRG - 1
-const pnrigconSchema: FieldDefinition[] = [
-    { name: 'codiceUnivocoScaricamento', start: 3, length: 12, type: 'string' },
-    { name: 'progressivoRiga', start: 15, length: 3, type: 'number' },
-    { name: 'tipoConto', start: 18, length: 1, type: 'string' },
-    { name: 'codiceFiscale', start: 19, length: 16, type: 'string' },
-    { name: 'subcodiceFiscale', start: 35, length: 1, type: 'string' },
-    { name: 'siglaClienteFornitore', start: 36, length: 12, type: 'string' },
-    { name: 'conto', start: 48, length: 10, type: 'string' },
-    { name: 'importoDare', start: 58, length: 12, type: 'number' },
-    { name: 'importoAvere', start: 70, length: 12, type: 'number' },
-    { name: 'note', start: 82, length: 60, type: 'string' },
-    { name: 'insDatiMovimentiAnalitici', start: 247, length: 1, type: 'string' }, // PRG 248 -> start 247
+const rigaContabileFields: FieldDefinition[] = [
+    { fieldName: 'codiceUnivocoScaricamento', start: 3, length: 12, type: 'string' },
+    { fieldName: 'progressivoRiga', start: 15, length: 3, type: 'number' },
+    { fieldName: 'tipoConto', start: 18, length: 1, type: 'string' },
+    { fieldName: 'codiceFiscale', start: 19, length: 16, type: 'string' },
+    { fieldName: 'subcodiceFiscale', start: 35, length: 1, type: 'string' },
+    { fieldName: 'siglaClienteFornitore', start: 36, length: 12, type: 'string' },
+    { fieldName: 'conto', start: 48, length: 10, type: 'string' },
+    { fieldName: 'importoDare', start: 58, length: 12, type: 'number' },
+    { fieldName: 'importoAvere', start: 70, length: 12, type: 'number' },
+    { fieldName: 'note', start: 82, length: 60, type: 'string' },
+    { fieldName: 'insDatiMovimentiAnalitici', start: 247, length: 1, type: 'string' }, // PRG 248 -> start 247
 ];
 
 // Schema per PNRIGIVA.TXT - Corretto con start = PRG - 1
-const pnrigivaSchema: FieldDefinition[] = [
-    { name: 'codiceUnivocoScaricamento', start: 3, length: 12, type: 'string' },
-    { name: 'codiceIva', start: 15, length: 4, type: 'string' },
-    { name: 'contropartita', start: 19, length: 10, type: 'string' },
-    { name: 'imponibile', start: 29, length: 12, type: 'number' },
-    { name: 'imposta', start: 41, length: 12, type: 'number' },
-    { name: 'importoLordo', start: 89, length: 12, type: 'number' },
-    { name: 'note', start: 101, length: 60, type: 'string' },
-    { name: 'siglaContropartita', start: 161, length: 12, type: 'string' },
+const rigaIvaFields: FieldDefinition[] = [
+    { fieldName: 'codiceUnivocoScaricamento', start: 3, length: 12, type: 'string' },
+    { fieldName: 'codiceIva', start: 15, length: 4, type: 'string' },
+    { fieldName: 'contropartita', start: 19, length: 10, type: 'string' },
+    { fieldName: 'imponibile', start: 29, length: 12, type: 'number' },
+    { fieldName: 'imposta', start: 41, length: 12, type: 'number' },
+    { fieldName: 'importoLordo', start: 89, length: 12, type: 'number' },
+    { fieldName: 'note', start: 101, length: 60, type: 'string' },
+    { fieldName: 'siglaContropartita', start: 161, length: 12, type: 'string' },
 ];
 
 // Schema per MOVANAC.TXT - Corretto con start = PRG - 1
-const movanacSchema: FieldDefinition[] = [
-    { name: 'codiceUnivocoScaricamento', start: 3, length: 12, type: 'string' },
-    { name: 'progressivoRigaContabile', start: 15, length: 3, type: 'number' },
-    { name: 'centroDiCosto', start: 18, length: 4, type: 'string' },
-    { name: 'parametro', start: 22, length: 12, type: 'number' }, // Importo o quantità
+const rigaAnaliticaFields: FieldDefinition[] = [
+    { fieldName: 'codiceUnivocoScaricamento', start: 3, length: 12, type: 'string' },
+    { fieldName: 'progressivoRigaContabile', start: 15, length: 3, type: 'number' },
+    { fieldName: 'centroDiCosto', start: 18, length: 4, type: 'string' },
+    { fieldName: 'parametro', start: 22, length: 12, type: 'number' }, // Importo o quantità
 ];
 
 // --- Definizioni dei tipi per i dati parsati ---
@@ -146,10 +146,10 @@ router.post('/', upload.fields([
 
     try {
         // 1. Parsing di tutti i file con la codifica corretta
-        const testate = parseFixedWidth<Pntesta>(files.pntesta[0].buffer.toString('latin1'), pntestaSchema);
-        const righeContabili = parseFixedWidth<Pnrigcon>(files.pnrigcon[0].buffer.toString('latin1'), pnrigconSchema);
-        const movimentiAnalitici = parseFixedWidth<Movanac>(files.movanac[0].buffer.toString('latin1'), movanacSchema);
-        const righeIva = files.pnrigiva ? parseFixedWidth<Pnrigiva>(files.pnrigiva[0].buffer.toString('latin1'), pnrigivaSchema) : [];
+        const testate = parseFixedWidth<Pntesta>(files.pntesta[0].buffer.toString('latin1'), testataFields);
+        const righeContabili = parseFixedWidth<Pnrigcon>(files.pnrigcon[0].buffer.toString('latin1'), rigaContabileFields);
+        const movimentiAnalitici = parseFixedWidth<Movanac>(files.movanac[0].buffer.toString('latin1'), rigaAnaliticaFields);
+        const righeIva = files.pnrigiva ? parseFixedWidth<Pnrigiva>(files.pnrigiva[0].buffer.toString('latin1'), rigaIvaFields) : [];
         
         console.log(`[Import] Parsati ${testate.length} testate, ${righeContabili.length} righe contabili, ${movimentiAnalitici.length} movimenti analitici, ${righeIva.length} righe IVA.`);
 
@@ -206,7 +206,7 @@ router.post('/', upload.fields([
         const erroriDiImportazione: { id: string, errore: string }[] = [];
         
         // Cache per le commesse per evitare query ripetute nel loop
-        const commesseCache = new Map<string, any>();
+        const commesseCache = new Map<string, Commessa>();
         const tutteLeCommesse = await prisma.commessa.findMany();
         tutteLeCommesse.forEach(c => c.externalId && commesseCache.set(c.externalId, c));
 

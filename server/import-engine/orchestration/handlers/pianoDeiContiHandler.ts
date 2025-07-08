@@ -1,5 +1,33 @@
 import { Request, Response } from 'express';
 import { importPianoDeiContiWorkflow } from '../workflows/importPianoDeiContiWorkflow';
+import { importPianoDeiContiAziendaleWorkflow } from '../workflows/importPianoDeiContiAziendaleWorkflow';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+/**
+ * Determina se il file è un piano dei conti standard o aziendale.
+ * Ispeziona la prima riga del file per la presenza di un codice fiscale
+ * nella posizione attesa per i file CONTIAZI.
+ * 
+ * @param fileContent - Il contenuto del file come stringa.
+ * @returns 'aziendale' o 'standard'.
+ */
+function determineFileType(fileContent: string): 'aziendale' | 'standard' {
+  const firstLine = fileContent.split('\\n')[0];
+  if (!firstLine) return 'standard'; // Se vuoto, default a standard
+
+  // Tracciato CONTIAZI: Codice Fiscale da posizione 4 a 19.
+  // Se questo campo non è vuoto, è quasi certamente un file aziendale.
+  if (firstLine.length >= 19 && firstLine.substring(3, 19).trim() !== '') {
+    console.log('[Handler] Rilevato file di tipo: Aziendale');
+    return 'aziendale';
+  }
+  
+  console.log('[Handler] Rilevato file di tipo: Standard');
+  return 'standard';
+}
+
 
 export async function handlePianoDeiContiImportV2(req: Request, res: Response) {
   if (!req.file) {
@@ -13,11 +41,19 @@ export async function handlePianoDeiContiImportV2(req: Request, res: Response) {
   console.log(`[API V2] Ricevuto file per importazione Piano dei Conti: ${req.file.originalname}, size: ${req.file.size} bytes`);
 
   try {
-    const result = await importPianoDeiContiWorkflow(fileContent);
+    const fileType = determineFileType(fileContent);
+    let result;
+
+    if (fileType === 'aziendale') {
+      result = await importPianoDeiContiAziendaleWorkflow(fileContent);
+    } else {
+      result = await importPianoDeiContiWorkflow(fileContent);
+    }
+
     console.log('[API V2] Workflow completato. Invio risposta...');
     
     res.status(200).json({
-      message: 'Importazione con nuovo motore completata!',
+      message: `Importazione con nuovo motore (tipo: ${fileType}) completata!`,
       ...result,
     });
   } catch (error: unknown) {

@@ -1,7 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -16,32 +14,31 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import * as z from 'zod';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { createVoceAnalitica, updateVoceAnalitica, deleteVoceAnalitica } from '@/api/vociAnalitiche';
-import { VoceAnalitica } from '@/types';
+import { VoceAnalitica as VoceAnaliticaType } from '@/types';
 import { voceSchema } from '@/schemas/database';
 import { useCrudTable } from '@/hooks/useCrudTable';
 import { useAdvancedTable } from '@/hooks/useAdvancedTable';
 import { AdvancedDataTable } from '../ui/advanced-data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from '../ui/data-table-column-header';
+import { Edit, Trash2 } from 'lucide-react';
+import { VoceAnaliticaForm } from './VoceAnaliticaForm';
+import { 
+    createVoceAnalitica, 
+    updateVoceAnalitica, 
+    deleteVoceAnalitica 
+} from '@/api/vociAnalitiche';
 
 type VoceAnaliticaFormValues = z.infer<typeof voceSchema>;
 
 export const VociAnaliticheTable = () => {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
   const {
     data,
     totalCount,
@@ -55,7 +52,7 @@ export const VociAnaliticheTable = () => {
     onSearchChange,
     onSortingChange,
     fetchData: refreshData,
-  } = useAdvancedTable<VoceAnalitica>({
+  } = useAdvancedTable<VoceAnaliticaType>({
     endpoint: '/api/voci-analitiche',
     initialSorting: [{ id: 'nome', desc: false }]
   });
@@ -63,58 +60,78 @@ export const VociAnaliticheTable = () => {
   const {
     isDialogOpen,
     setIsDialogOpen,
-    editingItem: editingVoce,
-    deletingItem: deletingVoce,
+    editingItem,
+    deletingItem,
     setDeletingItem,
     form,
     handleOpenDialog,
-    onSubmit,
+    onSubmit: onCrudSubmit,
     handleDelete,
-  } = useCrudTable<VoceAnalitica, VoceAnaliticaFormValues>({
+  } = useCrudTable<VoceAnaliticaType, VoceAnaliticaFormValues>({
     schema: voceSchema,
     api: {
-      create: (values) => createVoceAnalitica(values as VoceAnalitica),
-      update: updateVoceAnalitica,
-      delete: deleteVoceAnalitica,
+        create: createVoceAnalitica,
+        update: updateVoceAnalitica,
+        delete: deleteVoceAnalitica,
     },
     onDataChange: () => refreshData(),
-    resourceName: "Voce analitica",
-    defaultValues: { id: "", nome: "", descrizione: "", externalId: "" },
-    getId: (voce) => voce.id,
+    resourceName: "Voce Analitica",
+    defaultValues: {
+      id: "",
+      nome: "",
+      descrizione: "",
+      externalId: "",
+    },
+    getId: (item) => item.id,
   });
 
-  const columns: ColumnDef<VoceAnalitica>[] = [
-    {
-      accessorKey: "id",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
-      cell: ({ row }) => <Badge variant="outline">{row.getValue("id")}</Badge>
-    },
-    {
-      accessorKey: "nome",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />,
-    },
-    {
-      accessorKey: "descrizione",
-      header: ({ column }) => <DataTableColumnHeader column={column} title="Descrizione" />,
-      cell: ({ row }) => row.getValue("descrizione") || 'N/A'
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => (
-          <div className="text-right">
-              <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(row.original)}><Edit className="h-4 w-4" /></Button>
-              <Button variant="ghost" size="icon" className="text-red-500 hover:text-red-600" onClick={() => setDeletingItem(row.original)}><Trash2 className="h-4 w-4" /></Button>
-          </div>
-      )
-    }
-  ];
+  const onSubmit = async (values: VoceAnaliticaFormValues) => {
+    setIsSubmitting(true);
+    await onCrudSubmit(values);
+    setIsSubmitting(false);
+  };
 
+  const columns: ColumnDef<VoceAnaliticaType>[] = [
+    {
+        accessorKey: "nome",
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />,
+        enableHiding: false,
+    },
+    {
+        accessorKey: "descrizione", 
+        header: ({ column }) => <DataTableColumnHeader column={column} title="Descrizione" />,
+    },
+    {
+        id: "actions",
+        cell: ({ row }) => {
+            const item = row.original;
+            return (
+                <div className="text-right">
+                    <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(item)}>
+                        <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-red-500 hover:text-red-600" 
+                        onClick={() => setDeletingItem(item)}
+                    >
+                        <Trash2 className="h-4 w-4" />
+                    </Button>
+                </div>
+            )
+        }
+    }
+  ] as ColumnDef<VoceAnaliticaType>[];
+  
   return (
     <>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Voci Analitiche</CardTitle>
-          <Button onClick={() => handleOpenDialog()}>Aggiungi Voce</Button>
+          <Button onClick={() => handleOpenDialog()}>
+            Aggiungi Voce Analitica
+          </Button>
         </CardHeader>
         <CardContent>
           <AdvancedDataTable
@@ -123,86 +140,52 @@ export const VociAnaliticheTable = () => {
             totalCount={totalCount}
             page={page}
             pageSize={pageSize}
+            searchValue={search}
+            sorting={sorting}
+            loading={loading}
             onPageChange={onPageChange}
             onPageSizeChange={onPageSizeChange}
-            searchValue={search}
             onSearchChange={onSearchChange}
-            sorting={sorting}
             onSortingChange={onSortingChange}
-            loading={loading}
-            emptyMessage="Nessuna voce analitica trovata."
           />
         </CardContent>
       </Card>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent>
-              <DialogHeader>
-                  <DialogTitle>{editingVoce ? 'Modifica Voce Analitica' : 'Nuova Voce Analitica'}</DialogTitle>
-              </DialogHeader>
-              <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      <FormField
-                          control={form.control}
-                          name="id"
-                          render={({ field }) => (
-                              <FormItem>
-                                  <FormLabel>ID</FormLabel>
-                                  <FormControl>
-                                      <Input placeholder="ID Voce (es. COSTI_SOFTWARE)" {...field} disabled={!!editingVoce} />
-                                  </FormControl>
-                                  <FormMessage />
-                              </FormItem>
-                          )}
-                      />
-                      <FormField
-                          control={form.control}
-                          name="nome"
-                          render={({ field }) => (
-                              <FormItem>
-                                  <FormLabel>Nome</FormLabel>
-                                  <FormControl>
-                                      <Input placeholder="Nome descrittivo" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                              </FormItem>
-                          )}
-                      />
-                      <FormField
-                          control={form.control}
-                          name="descrizione"
-                          render={({ field }) => (
-                              <FormItem>
-                                  <FormLabel>Descrizione (opzionale)</FormLabel>
-                                  <FormControl>
-                                      <Input placeholder="Descrizione dettagliata" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                              </FormItem>
-                          )}
-                      />
-                      <DialogFooter>
-                          <Button type="submit">Salva</Button>
-                      </DialogFooter>
-                  </form>
-              </Form>
-          </DialogContent>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingItem ? 'Modifica Voce Analitica' : 'Crea Nuova Voce Analitica'}
+            </DialogTitle>
+            <DialogDescription>
+              {editingItem ? 'Modifica i dettagli di questa voce analitica.' : 'Aggiungi una nuova voce per la contabilità analitica.'}
+            </DialogDescription>
+          </DialogHeader>
+          <VoceAnaliticaForm 
+            onSubmit={onSubmit}
+            initialData={editingItem || undefined}
+            onCancel={() => setIsDialogOpen(false)}
+            isSubmitting={isSubmitting}
+          />
+        </DialogContent>
       </Dialog>
-      
-      <AlertDialog open={!!deletingVoce} onOpenChange={() => setDeletingItem(null)}>
+
+      <AlertDialog open={!!deletingItem} onOpenChange={(open) => !open && setDeletingItem(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Sei sicuro?</AlertDialogTitle>
+            <AlertDialogTitle>Sei assolutamente sicuro?</AlertDialogTitle>
             <AlertDialogDescription>
-              Vuoi davvero eliminare la voce "{deletingVoce?.nome}"? L'operazione fallirà se la voce è già stata utilizzata.
+              Questa azione non può essere annullata. Questo eliminerà permanentemente la voce analitica.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annulla</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">Elimina</AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-500 hover:bg-red-600">
+              Elimina
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </>
   );
-}; 
+};

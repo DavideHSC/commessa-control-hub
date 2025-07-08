@@ -117,9 +117,12 @@ export const ScrittureTable: React.FC = () => {
       header: ({ column }) => <DataTableColumnHeader column={column} title="Descrizione" />,
     },
     {
-      accessorKey: "causaleId",
+      accessorKey: "causale",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Causale" />,
-      cell: ({ row }) => <Badge variant="outline">{row.getValue("causaleId")}</Badge>
+      cell: ({ row }) => {
+        const causale = row.original.causale;
+        return <Badge variant="outline">{causale ? causale.nome : 'N/A'}</Badge>;
+      }
     },
     {
         accessorKey: 'fornitore.nome',

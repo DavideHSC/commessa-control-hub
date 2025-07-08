@@ -1,4 +1,4 @@
-// prisma/seed.ts (versione finale e robusta)
+// prisma/seed.ts (versione finale e robusta - CORRETTA)
 import { PrismaClient, TipoConto, TipoCampo, SezioneScrittura, FormulaImporto } from '@prisma/client';
 const prisma = new PrismaClient();
 const SYSTEM_CUSTOMER_ID = 'system_customer_01';
@@ -47,117 +47,117 @@ async function main() {
     console.log('Seeding Template di Importazione...');
     await prisma.importTemplate.create({
         data: {
-            nome: 'causali',
+            name: 'causali',
             modelName: 'CausaleContabile',
-            fields: { create: [
-                    { nomeCampo: 'externalId', start: 4, length: 6, type: 'string' }, // [5-10] Codice causale
-                    { nomeCampo: 'nome', start: 10, length: 40, type: 'string' }, // [11-50] Descrizione
-                    { nomeCampo: 'tipoMovimento', start: 50, length: 1, type: 'string' }, // [51-51] C=Contabile, I=Contabile/Iva
-                    { nomeCampo: 'tipoAggiornamento', start: 51, length: 1, type: 'string' }, // [52-52] I/P/F
-                    { nomeCampo: 'dataInizio', start: 52, length: 8, type: 'date' }, // [53-60] GGMMAAAA
-                    { nomeCampo: 'dataFine', start: 60, length: 8, type: 'date' }, // [61-68] GGMMAAAA
-                    { nomeCampo: 'tipoRegistroIva', start: 68, length: 1, type: 'string' }, // [69-69] A/C/V
-                    { nomeCampo: 'noteMovimento', start: 101, length: 60, type: 'string' } // [102-161]
+            fieldDefinitions: { create: [
+                    { fieldName: 'externalId', start: 4, end: 9, length: 6 },
+                    { fieldName: 'nome', start: 10, end: 49, length: 40 },
+                    { fieldName: 'tipoMovimento', start: 50, end: 50, length: 1 },
+                    { fieldName: 'tipoAggiornamento', start: 51, end: 51, length: 1 },
+                    { fieldName: 'dataInizio', start: 52, end: 59, length: 8 },
+                    { fieldName: 'dataFine', start: 60, end: 67, length: 8 },
+                    { fieldName: 'tipoRegistroIva', start: 68, end: 68, length: 1 },
+                    { fieldName: 'noteMovimento', start: 101, end: 160, length: 60 }
                 ] },
         }
     });
     await prisma.importTemplate.create({
         data: {
-            nome: 'condizioni_pagamento',
+            name: 'condizioni_pagamento',
             modelName: 'CondizionePagamento',
-            fields: { create: [
-                    { nomeCampo: 'externalId', start: 4, length: 8, type: 'string' }, // [5-12] Codice pagamento
-                    { nomeCampo: 'descrizione', start: 12, length: 40, type: 'string' }, // [13-52] Descrizione
-                    { nomeCampo: 'contoIncassoPagamento', start: 52, length: 10, type: 'string' }, // [53-62]
-                    { nomeCampo: 'suddivisione', start: 64, length: 1, type: 'string' }, // [65-65] D/T
-                    { nomeCampo: 'inizioScadenza', start: 65, length: 1, type: 'string' }, // [66-66] D/F/R/P/N
-                    { nomeCampo: 'numeroRate', start: 66, length: 2, type: 'number' } // [67-68]
+            fieldDefinitions: { create: [
+                    { fieldName: 'externalId', start: 4, end: 11, length: 8 },
+                    { fieldName: 'descrizione', start: 12, end: 51, length: 40 },
+                    { fieldName: 'contoIncassoPagamento', start: 52, end: 61, length: 10 },
+                    { fieldName: 'suddivisione', start: 64, end: 64, length: 1 },
+                    { fieldName: 'inizioScadenza', start: 65, end: 65, length: 1 },
+                    { fieldName: 'numeroRate', start: 66, end: 67, length: 2 }
                 ] },
         }
     });
     await prisma.importTemplate.create({
         data: {
-            nome: 'codici_iva',
+            name: 'codici_iva',
             modelName: 'CodiceIva',
-            fields: { create: [
-                    { nomeCampo: 'externalId', start: 4, length: 4, type: 'string' }, // [5-8] Codice IVA
-                    { nomeCampo: 'descrizione', start: 8, length: 40, type: 'string' }, // [9-48] Descrizione
-                    { nomeCampo: 'tipoCalcolo', start: 48, length: 1, type: 'string' }, // [49-49] N/O/A/I/S/T/E/V
-                    { nomeCampo: 'aliquota', start: 49, length: 6, type: 'number' }, // [50-55] 999.99
-                    { nomeCampo: 'indetraibilita', start: 55, length: 3, type: 'number' }, // [56-58] Percentuale
-                    { nomeCampo: 'note', start: 58, length: 40, type: 'string' }, // [59-98]
-                    { nomeCampo: 'dataInizio', start: 98, length: 8, type: 'date' }, // [99-106] GGMMAAAA
-                    { nomeCampo: 'dataFine', start: 106, length: 8, type: 'date' } // [107-114] GGMMAAAA
+            fieldDefinitions: { create: [
+                    { fieldName: 'externalId', start: 4, end: 7, length: 4 },
+                    { fieldName: 'descrizione', start: 8, end: 47, length: 40 },
+                    { fieldName: 'tipoCalcolo', start: 48, end: 48, length: 1 },
+                    { fieldName: 'aliquota', start: 49, end: 54, length: 6 },
+                    { fieldName: 'indetraibilita', start: 55, end: 57, length: 3 },
+                    { fieldName: 'note', start: 58, end: 97, length: 40 },
+                    { fieldName: 'dataInizio', start: 98, end: 105, length: 8 },
+                    { fieldName: 'dataFine', start: 106, end: 113, length: 8 }
                 ] },
         }
     });
     await prisma.importTemplate.create({
         data: {
-            nome: 'anagrafica_clifor',
+            name: 'anagrafica_clifor',
             modelName: null,
-            fields: { create: [
-                    { nomeCampo: 'externalId', start: 20, length: 12, type: 'string' }, // Posizione 21-32 del tracciato
-                    { nomeCampo: 'codiceFiscale', start: 32, length: 16, type: 'string' }, // Posizione 33-48 del tracciato
-                    { nomeCampo: 'tipo', start: 49, length: 1, type: 'string' }, // Posizione 50-50 del tracciato (C/F/E)
-                    { nomeCampo: 'piva', start: 82, length: 11, type: 'string' }, // Posizione 83-93 del tracciato
-                    { nomeCampo: 'nome', start: 94, length: 60, type: 'string' } // Posizione 95-154 del tracciato
+            fieldDefinitions: { create: [
+                    { fieldName: 'externalId', start: 20, end: 31, length: 12 },
+                    { fieldName: 'codiceFiscale', start: 32, end: 47, length: 16 },
+                    { fieldName: 'tipo', start: 49, end: 49, length: 1 },
+                    { fieldName: 'piva', start: 82, end: 92, length: 11 },
+                    { fieldName: 'nome', start: 94, end: 153, length: 60 }
                 ] },
         }
     });
     await prisma.importTemplate.create({
         data: {
-            nome: 'piano_dei_conti',
+            name: 'piano_dei_conti',
             modelName: 'Conto',
-            fields: { create: [
-                    { nomeCampo: 'livello', start: 4, length: 1, type: 'string' }, // [5-5] 1=Mastro, 2=Conto, 3=Sottoconto
-                    { nomeCampo: 'codice', start: 5, length: 10, type: 'string' }, // [6-15] MMCCSSSSSS
-                    { nomeCampo: 'nome', start: 15, length: 60, type: 'string' }, // [16-75] Descrizione
-                    { nomeCampo: 'tipo', start: 75, length: 1, type: 'string' }, // [76-76] P/E/O/C/F
-                    { nomeCampo: 'sigla', start: 76, length: 12, type: 'string' }, // [77-88]
-                    { nomeCampo: 'controlloSegno', start: 88, length: 1, type: 'string' }, // [89-89] A=Avere, D=Dare
-                    { nomeCampo: 'gruppo', start: 256, length: 1, type: 'string' } // [257-257] A/C/N/P/R/V/Z
+            fieldDefinitions: { create: [
+                    { fieldName: 'livello', start: 4, end: 4, length: 1 },
+                    { fieldName: 'codice', start: 5, end: 14, length: 10 },
+                    { fieldName: 'nome', start: 15, end: 74, length: 60 },
+                    { fieldName: 'tipo', start: 75, end: 75, length: 1 },
+                    { fieldName: 'sigla', start: 76, end: 87, length: 12 },
+                    { fieldName: 'controlloSegno', start: 88, end: 88, length: 1 },
+                    { fieldName: 'gruppo', start: 256, end: 256, length: 1 }
                 ] },
         }
     });
     const scrittureContabiliFields = [
         // === PNTESTA.TXT (445 bytes) ===
-        { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'externalId', start: 20, length: 12, type: 'string' }, // [21-32]
-        { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'causaleId', start: 39, length: 6, type: 'string' }, // [40-45]
-        { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'dataRegistrazione', start: 85, length: 8, type: 'date' }, // [86-93] GGMMAAAA
-        { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'clienteFornitoreCodiceFiscale', start: 99, length: 16, type: 'string' }, // [100-115]
-        { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'dataDocumento', start: 128, length: 8, type: 'date' }, // [129-136] GGMMAAAA
-        { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'numeroDocumento', start: 136, length: 12, type: 'string' }, // [137-148]
-        { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'totaleDocumento', start: 172, length: 12, type: 'number' }, // [173-184]
-        { fileIdentifier: 'PNTESTA.TXT', nomeCampo: 'noteMovimento', start: 192, length: 60, type: 'string' }, // [193-252]
+        { fileIdentifier: 'PNTESTA.TXT', fieldName: 'externalId', start: 20, end: 31, length: 12 },
+        { fileIdentifier: 'PNTESTA.TXT', fieldName: 'causaleId', start: 39, end: 44, length: 6 },
+        { fileIdentifier: 'PNTESTA.TXT', fieldName: 'dataRegistrazione', start: 85, end: 92, length: 8 },
+        { fileIdentifier: 'PNTESTA.TXT', fieldName: 'clienteFornitoreCodiceFiscale', start: 99, end: 114, length: 16 },
+        { fileIdentifier: 'PNTESTA.TXT', fieldName: 'dataDocumento', start: 128, end: 135, length: 8 },
+        { fileIdentifier: 'PNTESTA.TXT', fieldName: 'numeroDocumento', start: 136, end: 147, length: 12 },
+        { fileIdentifier: 'PNTESTA.TXT', fieldName: 'totaleDocumento', start: 172, end: 183, length: 12 },
+        { fileIdentifier: 'PNTESTA.TXT', fieldName: 'noteMovimento', start: 192, end: 251, length: 60 },
         // === PNRIGCON.TXT (312 bytes) ===
-        { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'externalId', start: 3, length: 12, type: 'string' }, // [4-15]
-        { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'progressivoRigo', start: 15, length: 3, type: 'number' }, // [16-18]
-        { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'tipoConto', start: 18, length: 1, type: 'string' }, // [19-19] C/F/spazio
-        { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'clienteFornitoreCodiceFiscale', start: 19, length: 16, type: 'string' }, // [20-35]
-        { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'conto', start: 48, length: 10, type: 'string' }, // [49-58]
-        { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'importoDare', start: 58, length: 12, type: 'number' }, // [59-70]
-        { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'importoAvere', start: 70, length: 12, type: 'number' }, // [71-82]
-        { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'note', start: 82, length: 60, type: 'string' }, // [83-142]
-        { fileIdentifier: 'PNRIGCON.TXT', nomeCampo: 'movimentiAnalitici', start: 247, length: 1, type: 'string' }, // [248-248] 0/1
+        { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'externalId', start: 3, end: 14, length: 12 },
+        { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'progressivoRigo', start: 15, end: 17, length: 3 },
+        { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'tipoConto', start: 18, end: 18, length: 1 },
+        { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'clienteFornitoreCodiceFiscale', start: 19, end: 34, length: 16 },
+        { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'conto', start: 48, end: 57, length: 10 },
+        { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'importoDare', start: 58, end: 69, length: 12 },
+        { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'importoAvere', start: 70, end: 81, length: 12 },
+        { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'note', start: 82, end: 141, length: 60 },
+        { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'movimentiAnalitici', start: 247, end: 247, length: 1 },
         // === PNRIGIVA.TXT (173 bytes) ===
-        { fileIdentifier: 'PNRIGIVA.TXT', nomeCampo: 'externalId', start: 3, length: 12, type: 'string' }, // [4-15]
-        { fileIdentifier: 'PNRIGIVA.TXT', nomeCampo: 'codiceIva', start: 15, length: 4, type: 'string' }, // [16-19]
-        { fileIdentifier: 'PNRIGIVA.TXT', nomeCampo: 'contropartita', start: 19, length: 10, type: 'string' }, // [20-29]
-        { fileIdentifier: 'PNRIGIVA.TXT', nomeCampo: 'imponibile', start: 29, length: 12, type: 'number' }, // [30-41]
-        { fileIdentifier: 'PNRIGIVA.TXT', nomeCampo: 'imposta', start: 41, length: 12, type: 'number' }, // [42-53]
-        { fileIdentifier: 'PNRIGIVA.TXT', nomeCampo: 'importoLordo', start: 89, length: 12, type: 'number' }, // [90-101]
-        { fileIdentifier: 'PNRIGIVA.TXT', nomeCampo: 'note', start: 101, length: 60, type: 'string' }, // [102-161]
+        { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'externalId', start: 3, end: 14, length: 12 },
+        { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'codiceIva', start: 15, end: 18, length: 4 },
+        { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'contropartita', start: 19, end: 28, length: 10 },
+        { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'imponibile', start: 29, end: 40, length: 12 },
+        { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'imposta', start: 41, end: 52, length: 12 },
+        { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'importoLordo', start: 89, end: 100, length: 12 },
+        { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'note', start: 101, end: 160, length: 60 },
         // === MOVANAC.TXT (34 bytes) ===
-        { fileIdentifier: 'MOVANAC.TXT', nomeCampo: 'externalId', start: 3, length: 12, type: 'string' }, // [4-15]
-        { fileIdentifier: 'MOVANAC.TXT', nomeCampo: 'progressivoRigoContabile', start: 15, length: 3, type: 'number' }, // [16-18]
-        { fileIdentifier: 'MOVANAC.TXT', nomeCampo: 'centroDiCosto', start: 18, length: 4, type: 'string' }, // [19-22]
-        { fileIdentifier: 'MOVANAC.TXT', nomeCampo: 'parametro', start: 22, length: 12, type: 'number' } // [23-34]
+        { fileIdentifier: 'MOVANAC.TXT', fieldName: 'externalId', start: 3, end: 14, length: 12 },
+        { fileIdentifier: 'MOVANAC.TXT', fieldName: 'progressivoRigoContabile', start: 15, end: 17, length: 3 },
+        { fileIdentifier: 'MOVANAC.TXT', fieldName: 'centroDiCosto', start: 18, end: 21, length: 4 },
+        { fileIdentifier: 'MOVANAC.TXT', fieldName: 'parametro', start: 22, end: 33, length: 12 }
     ];
     await prisma.importTemplate.create({
         data: {
-            nome: 'scritture_contabili',
+            name: 'scritture_contabili',
             modelName: null,
-            fields: { create: scrittureContabiliFields },
+            fieldDefinitions: { create: scrittureContabiliFields },
         },
     });
     // --- ANAGRAFICHE DI BASE ---
@@ -218,46 +218,66 @@ async function main() {
     }
     // --- CAUSALI CONTABILI ---
     console.log('Seeding Causali Contabili...');
-    const causaliContabili = [
+    // Prima crea le causali base
+    const causaliBase = [
         {
             id: 'FATT_ACQ',
             nome: 'Fattura Acquisto',
-            descrizione: 'Registrazione fattura di acquisto',
-            datiPrimari: [{ fieldId: 'fornitoreId', label: 'Fornitore', tipo: TipoCampo.select, riferimentoConto: TipoConto.Fornitore }, { fieldId: 'totaleDocumento', label: 'Totale Fattura', tipo: TipoCampo.number }],
-            templateScrittura: [
-                { sezione: SezioneScrittura.Dare, contoId: '60100001', formulaImporto: FormulaImporto.imponibile },
-                { sezione: SezioneScrittura.Dare, contoId: '45.01.001', formulaImporto: FormulaImporto.iva },
-                { sezione: SezioneScrittura.Avere, contoId: null, contoRiferimentoDatiPrimari: 'fornitoreId', formulaImporto: FormulaImporto.totale }
-            ],
+            descrizione: 'Registrazione fattura di acquisto da fornitore',
         },
         {
-            id: 'FATT_VEN',
+            id: 'FATT_VEND',
             nome: 'Fattura Vendita',
-            descrizione: 'Registrazione fattura di vendita',
-            datiPrimari: [{ fieldId: 'clienteId', label: 'Cliente', tipo: TipoCampo.select, riferimentoConto: TipoConto.Cliente }, { fieldId: 'totaleDocumento', label: 'Totale Fattura', tipo: TipoCampo.number }],
-            templateScrittura: [
-                { sezione: SezioneScrittura.Dare, contoId: null, contoRiferimentoDatiPrimari: 'clienteId', formulaImporto: FormulaImporto.totale },
-                { sezione: SezioneScrittura.Avere, contoId: '45.02.001', formulaImporto: FormulaImporto.iva },
-                { sezione: SezioneScrittura.Avere, contoId: '5510001122', formulaImporto: FormulaImporto.imponibile }
-            ],
+            descrizione: 'Registrazione fattura di vendita a cliente',
         },
-        { id: 'MANUALE', nome: 'Manuale', descrizione: 'Registrazione manuale' },
     ];
-    for (const causale of causaliContabili) {
-        const { datiPrimari, templateScrittura, ...causaleData } = causale;
+    for (const causaleData of causaliBase) {
         await prisma.causaleContabile.upsert({
             where: { id: causaleData.id },
-            update: {
-                ...causaleData,
-                datiPrimari: datiPrimari ? { deleteMany: {}, create: datiPrimari } : undefined,
-                templateScrittura: templateScrittura ? { deleteMany: {}, create: templateScrittura } : undefined,
-            },
-            create: {
-                ...causaleData,
-                datiPrimari: datiPrimari ? { create: datiPrimari } : undefined,
-                templateScrittura: templateScrittura ? { create: templateScrittura } : undefined,
-            },
+            update: causaleData,
+            create: causaleData,
         });
+    }
+    // Poi aggiungi i dati primari separatamente
+    const datiPrimariFattAcq = [
+        { fieldId: 'fornitoreId', label: 'Fornitore', tipo: TipoCampo.select, riferimentoConto: 'Fornitore', causaleContabileId: 'FATT_ACQ' },
+        { fieldId: 'totaleDocumento', label: 'Totale Documento', tipo: TipoCampo.number, causaleContabileId: 'FATT_ACQ' },
+        { fieldId: 'aliquotaIva', label: 'Aliquota IVA', tipo: TipoCampo.number, causaleContabileId: 'FATT_ACQ' },
+    ];
+    const datiPrimariFattVend = [
+        { fieldId: 'clienteId', label: 'Cliente', tipo: TipoCampo.select, riferimentoConto: 'Cliente', causaleContabileId: 'FATT_VEND' },
+        { fieldId: 'totaleDocumento', label: 'Totale Documento', tipo: TipoCampo.number, causaleContabileId: 'FATT_VEND' },
+        { fieldId: 'aliquotaIva', label: 'Aliquota IVA', tipo: TipoCampo.number, causaleContabileId: 'FATT_VEND' },
+    ];
+    // Cancella dati primari esistenti e crea i nuovi
+    await prisma.campoDatiPrimari.deleteMany({ where: { causaleContabileId: 'FATT_ACQ' } });
+    await prisma.campoDatiPrimari.deleteMany({ where: { causaleContabileId: 'FATT_VEND' } });
+    for (const campo of datiPrimariFattAcq) {
+        await prisma.campoDatiPrimari.create({ data: campo });
+    }
+    for (const campo of datiPrimariFattVend) {
+        await prisma.campoDatiPrimari.create({ data: campo });
+    }
+    // Template scrittura per FATT_ACQ
+    const templateFattAcq = [
+        { sezione: SezioneScrittura.Dare, contoId: '60100002', formulaImporto: FormulaImporto.imponibile, causaleContabileId: 'FATT_ACQ' },
+        { sezione: SezioneScrittura.Dare, contoId: '45.01.001', formulaImporto: FormulaImporto.iva, causaleContabileId: 'FATT_ACQ' },
+        { sezione: SezioneScrittura.Avere, contoId: 'fornitoreId', formulaImporto: FormulaImporto.totale, causaleContabileId: 'FATT_ACQ' },
+    ];
+    // Template scrittura per FATT_VEND
+    const templateFattVend = [
+        { sezione: SezioneScrittura.Dare, contoId: 'clienteId', formulaImporto: FormulaImporto.totale, causaleContabileId: 'FATT_VEND' },
+        { sezione: SezioneScrittura.Avere, contoId: '5510001122', formulaImporto: FormulaImporto.imponibile, causaleContabileId: 'FATT_VEND' },
+        { sezione: SezioneScrittura.Avere, contoId: '45.02.001', formulaImporto: FormulaImporto.iva, causaleContabileId: 'FATT_VEND' },
+    ];
+    // Cancella template esistenti e crea i nuovi
+    await prisma.voceTemplateScrittura.deleteMany({ where: { causaleContabileId: 'FATT_ACQ' } });
+    await prisma.voceTemplateScrittura.deleteMany({ where: { causaleContabileId: 'FATT_VEND' } });
+    for (const voce of templateFattAcq) {
+        await prisma.voceTemplateScrittura.create({ data: voce });
+    }
+    for (const voce of templateFattVend) {
+        await prisma.voceTemplateScrittura.create({ data: voce });
     }
     // --- COMMESSE E BUDGET ---
     console.log('Seeding Commesse e Budget...');

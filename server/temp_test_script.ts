@@ -8,7 +8,7 @@ import * as path from 'path';
 async function runTest() {
   const prisma = new PrismaClient();
   const dlqService = new DLQService(prisma);
-  const telemetryService = new TelemetryService(prisma);
+  const telemetryService = new TelemetryService();
 
   const workflow = new ImportScrittureContabiliWorkflow(prisma, dlqService, telemetryService);
 

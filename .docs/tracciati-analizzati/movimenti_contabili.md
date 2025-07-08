@@ -142,7 +142,7 @@ Di seguito, la struttura completa di ogni file, con tutti i campi, come se fosse
 ---
 ### 2. Cosa Rappresentano i File?
 
-Sì, la tua intuizione è corretta. Questi file rappresentano, in modo strutturato e relazionale, tutti i dati necessari per importare **registrazioni di prima nota contabile complesse**.
+Questi file rappresentano, in modo strutturato e relazionale, tutti i dati necessari per importare **registrazioni di prima nota contabile complesse**.
 
 *   **PNTESTA.TXT**: È la "Testata" della registrazione. Contiene i dati comuni a tutto il movimento, come la data, la causale, i dati del documento (fattura), il cliente/fornitore principale e i totali. Ogni record in questo file rappresenta una singola operazione contabile (es. una fattura di acquisto).
 *   **PNRIGCON.TXT**: Sono le "Righe Contabili" del movimento. Descrive la scrittura in partita doppia (Dare/Avere). Ogni registrazione in `PNTESTA` avrà una o più righe corrispondenti in questo file, la cui somma Dare/Avere deve quadrare.
@@ -186,11 +186,6 @@ La struttura gerarchica e le chiavi di relazione permettono al software di impor
 
 ### 6. Dati da importare
 Cconcateniamo i dati dai quattro tracciati che abbiamo analizzato in precedenza: `MOVANAC.TXT`, `PNRIGIVA.TXT`, `PNRIGCON.TXT` e `PNTESTA.TXT`.
-
-l'approccio sarà il seguente:
-1.  **Scrivere il codice TypeScript come richiesto.** Questo codice conterrà la logica per interpretare ogni riga di testo in base ai tracciati record, estrarre i dati e assemblarli in oggetti strutturati che rappresentano i movimenti contabili completi.
-2.  **Eseguire la logica di parsing utilizzando Python.** Poiché il mio ambiente esegue codice Python, implementerò la stessa logica di parsing in Python per processare i tuoi dati e restituire il risultato strutturato in formato JSON.
-3.  **Presentare i risultati.** Ti fornirò prima il codice TypeScript come riferimento, seguito dal codice Python eseguibile e infine l'output JSON che rappresenta i movimenti contabili completi e relazionati.
 
 #### 1. Codice TypeScript per il Parsing
 
@@ -329,8 +324,4 @@ function parseDatiContabili(
   return Array.from(movimenti.values());
 }
 ```
-
-#### 2. Esecuzione del Parsing con Python
-
-Ora eseguo la logica descritta sopra utilizzando Python per fornirti l'output effettivo basato sui tuoi dati. Ho suddiviso il tuo input nei quattro blocchi di dati corrispondenti ai file.
 

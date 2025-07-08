@@ -4,69 +4,128 @@ import * as decoders from '../businessDecoders';
 import { z } from 'zod';
 import { transformCausaleContabile } from '../../import-engine/transformation/transformers/causaleContabileTransformer';
 import { causaleContabileValidator } from '../../import-engine/acquisition/validators/causaleContabileValidator';
+import { parseDecimalString, parseBooleanFlag, convertDateString } from '../importUtils';
+import { ImportStats } from '../fixedWidthParser';
 
 const prisma = new PrismaClient();
+
+interface RawCausaleData {
+    codiceCausale?: string;
+    descrizione?: string;
+    tipoMovimento?: string;
+    tipoAggiornamento?: string;
+    dataInizio?: string;
+    dataFine?: string;
+    tipoRegistroIva?: string;
+    segnoMovimentoIva?: string;
+    contoIva?: string;
+    contoIvaVendite?: string;
+    generazioneAutofattura?: string;
+    tipoAutofatturaGenerata?: string;
+    fatturaImporto0?: string;
+    fatturaValutaEstera?: string;
+    nonConsiderareLiquidazioneIva?: string;
+    fatturaEmessaRegCorrispettivi?: string;
+    ivaEsigibilitaDifferita?: string;
+    gestionePartite?: string;
+    gestioneIntrastat?: string;
+    gestioneRitenuteEnasarco?: string;
+    versamentoRitenute?: string;
+    noteMovimento?: string;
+    descrizioneDocumento?: string;
+    identificativoEsteroClifor?: string;
+    scritturaRettificaAssestamento?: string;
+    nonStampareRegCronologico?: string;
+    movimentoRegIvaNonRilevante?: string;
+    tipoMovimentoSemplificata?: string;
+}
+
+// Funzione Helper per la trasformazione, ispirata da CAUSALI.md
+function transformRawCausale(record: RawCausaleData) {
+    const externalId = record.codiceCausale?.trim();
+    if (!externalId) {
+        return null;
+    }
+
+    const cleanedRecord = {
+        codiceCausale: record.codiceCausale,
+        tipoMovimento: record.tipoMovimento,
+        tipoAggiornamento: record.tipoAggiornamento,
+        tipoRegistroIva: record.tipoRegistroIva,
+        segnoMovimentoIva: record.segnoMovimentoIva,
+        tipoAutofatturaGenerata: record.tipoAutofatturaGenerata,
+        ivaEsigibilitaDifferita: record.ivaEsigibilitaDifferita,
+        gestionePartite: record.gestionePartite,
+        gestioneRitenuteEnasarco: record.gestioneRitenuteEnasarco,
+        tipoMovimentoSemplificata: record.tipoMovimentoSemplificata,
+        generazioneAutofattura: record.generazioneAutofattura,
+        fatturaImporto0: record.fatturaImporto0,
+        fatturaValutaEstera: record.fatturaValutaEstera,
+        nonConsiderareLiquidazioneIva: record.nonConsiderareLiquidazioneIva,
+        fatturaEmessaRegCorrispettivi: record.fatturaEmessaRegCorrispettivi,
+        gestioneIntrastat: record.gestioneIntrastat,
+        versamentoRitenute: record.versamentoRitenute,
+        identificativoEsteroClifor: record.identificativoEsteroClifor,
+        scritturaRettificaAssestamento: record.scritturaRettificaAssestamento,
+        nonStampareRegCronologico: record.nonStampareRegCronologico,
+        movimentoRegIvaNonRilevante: record.movimentoRegIvaNonRilevante,
+    };
+
+    return {
+        id: externalId,
+        codice: externalId,
+        externalId: externalId,
+        descrizione: record.descrizione?.trim() || 'Descrizione mancante',
+        tipoMovimento: record.tipoMovimento?.trim() || null,
+        tipoMovimentoDesc: decoders.decodeTipoMovimento(cleanedRecord.tipoMovimento || ''),
+        tipoAggiornamento: record.tipoAggiornamento?.trim() || null,
+        tipoAggiornamentoDesc: decoders.decodeTipoAggiornamento(cleanedRecord.tipoAggiornamento || ''),
+        dataInizio: record.dataInizio,
+        dataFine: record.dataFine,
+        tipoRegistroIva: record.tipoRegistroIva?.trim() || null,
+        tipoRegistroIvaDesc: decoders.decodeTipoRegistroIva(cleanedRecord.tipoRegistroIva || ''),
+        segnoMovimentoIva: record.segnoMovimentoIva?.trim() || null,
+        segnoMovimentoIvaDesc: decoders.decodeSegnoMovimentoIva(cleanedRecord.segnoMovimentoIva || ''),
+        contoIva: record.contoIva?.trim() || null,
+        contoIvaVendite: record.contoIvaVendite?.trim() || null,
+        generazioneAutofattura: decoders.decodeBooleanFlag(cleanedRecord.generazioneAutofattura),
+        tipoAutofatturaGenerata: record.tipoAutofatturaGenerata?.trim() || null,
+        tipoAutofatturaDesc: decoders.decodeTipoAutofattura(cleanedRecord.tipoAutofatturaGenerata || ''),
+        fatturaImporto0: decoders.decodeBooleanFlag(cleanedRecord.fatturaImporto0),
+        fatturaValutaEstera: decoders.decodeBooleanFlag(cleanedRecord.fatturaValutaEstera),
+        nonConsiderareLiquidazioneIva: decoders.decodeBooleanFlag(cleanedRecord.nonConsiderareLiquidazioneIva),
+        fatturaEmessaRegCorrispettivi: decoders.decodeBooleanFlag(cleanedRecord.fatturaEmessaRegCorrispettivi),
+        ivaEsigibilitaDifferita: record.ivaEsigibilitaDifferita?.trim() || null,
+        ivaEsigibilitaDifferitaDesc: decoders.decodeIvaEsigibilita(cleanedRecord.ivaEsigibilitaDifferita || ''),
+        gestionePartite: record.gestionePartite?.trim() || null,
+        gestionePartiteDesc: decoders.decodeGestionePartite(cleanedRecord.gestionePartite || ''),
+        gestioneIntrastat: decoders.decodeBooleanFlag(cleanedRecord.gestioneIntrastat),
+        gestioneRitenuteEnasarco: record.gestioneRitenuteEnasarco?.trim() || null,
+        gestioneRitenuteEnasarcoDesc: decoders.decodeGestioneRitenuteEnasarco(cleanedRecord.gestioneRitenuteEnasarco || ''),
+        versamentoRitenute: decoders.decodeBooleanFlag(cleanedRecord.versamentoRitenute),
+        noteMovimento: record.noteMovimento?.trim() || null,
+        descrizioneDocumento: record.descrizioneDocumento?.trim() || null,
+        identificativoEsteroClifor: decoders.decodeBooleanFlag(cleanedRecord.identificativoEsteroClifor),
+        scritturaRettificaAssestamento: decoders.decodeBooleanFlag(cleanedRecord.scritturaRettificaAssestamento),
+        nonStampareRegCronologico: decoders.decodeBooleanFlag(cleanedRecord.nonStampareRegCronologico),
+        movimentoRegIvaNonRilevante: decoders.decodeBooleanFlag(cleanedRecord.movimentoRegIvaNonRilevante),
+        tipoMovimentoSemplificata: record.tipoMovimentoSemplificata?.trim() || null,
+        tipoMovimentoSemplificataDesc: decoders.decodeTipoMovimentoSemplificata(cleanedRecord.tipoMovimentoSemplificata || '')
+    };
+}
 
 /**
  * === CAUSALI CONTABILI - IMPORT SPECIALIZZATO ===
  * Basato su parser_causali.py con integrazione completa di tutti i 28 campi
  * e decodifiche semantiche dal businessDecoders.ts
  */
-export async function handleCausaliImport(parsedData: any[], res: Response) {
+export async function handleCausaliImport(parsedData: RawCausaleData[], res: Response) {
     console.log(`[CAUSALI] Iniziata elaborazione di ${parsedData.length} record`);
     
     try {
-        const validRecords = parsedData.map(record => {
-            const externalId = record.codiceCausale?.trim();
-            if (!externalId) {
-                return null;
-            }
-
-            // Parsing con decodifiche semantiche complete
-            const causaleData = {
-                id: externalId,
-                codice: externalId,
-                externalId: externalId,
-                descrizione: record.descrizione?.trim() || 'Descrizione mancante',
-                tipoMovimento: record.tipoMovimento?.trim() || null,
-                tipoMovimentoDesc: decoders.decodeTipoMovimento(record.tipoMovimento),
-                tipoAggiornamento: record.tipoAggiornamento?.trim() || null,
-                tipoAggiornamentoDesc: decoders.decodeTipoAggiornamento(record.tipoAggiornamento),
-                dataInizio: record.dataInizio,
-                dataFine: record.dataFine,
-                tipoRegistroIva: record.tipoRegistroIva?.trim() || null,
-                tipoRegistroIvaDesc: decoders.decodeTipoRegistroIva(record.tipoRegistroIva),
-                segnoMovimentoIva: record.segnoMovimentoIva?.trim() || null,
-                segnoMovimentoIvaDesc: decoders.decodeSegnoMovimentoIva(record.segnoMovimentoIva),
-                contoIva: record.contoIva?.trim() || null,
-                contoIvaVendite: record.contoIvaVendite?.trim() || null,
-                generazioneAutofattura: decoders.decodeBooleanFlag(record.generazioneAutofattura),
-                tipoAutofatturaGenerata: record.tipoAutofatturaGenerata?.trim() || null,
-                tipoAutofatturaDesc: decoders.decodeTipoAutofattura(record.tipoAutofatturaGenerata),
-                fatturaImporto0: decoders.decodeBooleanFlag(record.fatturaImporto0),
-                fatturaValutaEstera: decoders.decodeBooleanFlag(record.fatturaValutaEstera),
-                nonConsiderareLiquidazioneIva: decoders.decodeBooleanFlag(record.nonConsiderareLiquidazioneIva),
-                fatturaEmessaRegCorrispettivi: decoders.decodeBooleanFlag(record.fatturaEmessaRegCorrispettivi),
-                ivaEsigibilitaDifferita: record.ivaEsigibilitaDifferita?.trim() || null,
-                ivaEsigibilitaDifferitaDesc: decoders.decodeIvaEsigibilita(record.ivaEsigibilitaDifferita),
-                gestionePartite: record.gestionePartite?.trim() || null,
-                gestionePartiteDesc: decoders.decodeGestionePartite(record.gestionePartite),
-                gestioneIntrastat: decoders.decodeBooleanFlag(record.gestioneIntrastat),
-                gestioneRitenuteEnasarco: record.gestioneRitenuteEnasarco?.trim() || null,
-                gestioneRitenuteEnasarcoDesc: decoders.decodeGestioneRitenuteEnasarco(record.gestioneRitenuteEnasarco),
-                versamentoRitenute: decoders.decodeBooleanFlag(record.versamentoRitenute),
-                noteMovimento: record.noteMovimento?.trim() || null,
-                descrizioneDocumento: record.descrizioneDocumento?.trim() || null,
-                identificativoEsteroClifor: decoders.decodeBooleanFlag(record.identificativoEsteroClifor),
-                scritturaRettificaAssestamento: decoders.decodeBooleanFlag(record.scritturaRettificaAssestamento),
-                nonStampareRegCronologico: decoders.decodeBooleanFlag(record.nonStampareRegCronologico),
-                movimentoRegIvaNonRilevante: decoders.decodeBooleanFlag(record.movimentoRegIvaNonRilevante),
-                tipoMovimentoSemplificata: record.tipoMovimentoSemplificata?.trim() || null,
-                tipoMovimentoSemplificataDesc: decoders.decodeTipoMovimentoSemplificata(record.tipoMovimentoSemplificata)
-            };
-
-            return causaleData;
-        }).filter(record => record !== null);
+        const validRecords = parsedData
+            .map(transformRawCausale)
+            .filter((record): record is NonNullable<ReturnType<typeof transformRawCausale>> => record !== null);
 
         console.log(`[IMPORT Causali] Trovati ${validRecords.length} record validi da processare.`);
 
@@ -80,16 +139,21 @@ export async function handleCausaliImport(parsedData: any[], res: Response) {
                     where: { id: causale.id }
                 });
 
-                const recordToUpsert = {
+                const dataInizioDate = causale.dataInizio ? convertDateString(causale.dataInizio) : null;
+                const dataFineDate = causale.dataFine ? convertDateString(causale.dataFine) : null;
+
+                const createPayload = {
                     ...causale,
-                    dataInizio: causale.dataInizio && !isNaN(new Date(causale.dataInizio).getTime()) ? new Date(causale.dataInizio) : null,
-                    dataFine: causale.dataFine && !isNaN(new Date(causale.dataFine).getTime()) ? new Date(causale.dataFine) : null,
+                    dataInizio: dataInizioDate && !isNaN(dataInizioDate.getTime()) ? dataInizioDate : null,
+                    dataFine: dataFineDate && !isNaN(dataFineDate.getTime()) ? dataFineDate : null,
                 };
 
+                const { id, ...updateData } = createPayload;
+
                 await prisma.causaleContabile.upsert({
-                    where: { id: recordToUpsert.id },
-                    update: recordToUpsert,
-                    create: recordToUpsert,
+                    where: { id: causale.id },
+                    update: updateData,
+                    create: createPayload,
                 });
 
                 if (existingRecord) {
@@ -135,16 +199,23 @@ export async function handleCausaliImport(parsedData: any[], res: Response) {
     }
 }
 
-// Definiamo un tipo per il risultato, se necessario
-interface ImportResult {
-  inserted: number;
-  updated: number;
-  errors: number;
-}
+export async function processCausali(causali: RawCausaleData[]): Promise<ImportStats> {
+  const stats: ImportStats = {
+    totalRecords: causali.length,
+    inserted: 0,
+    updated: 0,
+    skipped: 0,
+    errorRecords: 0,
+    errors: [],
+    warnings: [],
+    successfulRecords: 0
+  };
 
-export async function processCausali(causali: any[]): Promise<ImportResult> {
-  let insertedCount = 0;
-  let updatedCount = 0; // Anche se upsert non lo distingue, lo teniamo per la struttura
-  let errorCount = 0;
-  // ... existing code ...
+  for (const record of causali) {
+    // ... existing code ...
+  }
+
+  stats.successfulRecords = stats.inserted + stats.updated;
+  console.log('Importazione causali completata:', stats);
+  return stats;
 } 

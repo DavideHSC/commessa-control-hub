@@ -1,0 +1,3 @@
+   03684671211      0101A1  ACQUISTI                                NMX          
+   03684671211      0101V1  VENDITE                                 NMX          
+   03684671211      0101V2  AUTOFATTURE                             NMX          

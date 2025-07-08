@@ -44,5 +44,14 @@ export const validatedPianoDeiContiSchema = z.object({
 
 export type ValidatedPianoDeiConti = z.infer<typeof validatedPianoDeiContiSchema>;
 
+// Schema per la validazione dei dati da CONTIAZI.TXT
+export const validatedPianoDeiContiAziendaleSchema = validatedPianoDeiContiSchema.extend({
+  codiceFiscaleAzienda: z.string().trim().min(11, { message: "Il codice fiscale azienda è obbligatorio." }),
+  // Eventuali altri campi specifici per CONTIAZI possono essere aggiunti qui
+  // Per ora, la struttura principale è ereditata e viene aggiunto solo il codice fiscale.
+});
+
+export type ValidatedPianoDeiContiAziendale = z.infer<typeof validatedPianoDeiContiAziendaleSchema>;
+
 // Rimuovo lo schema raw che non è più necessario,
 // il nuovo schema fa sia da validatore che da trasformatore di base. 

@@ -1,82 +1,46 @@
 // ATTENZIONE: Questo file è generato automaticamente. NON MODIFICARE A MANO.
 // Eseguire 'npm run generate:import-types' per rigenerarlo.
 
-export interface RawScrittureContabili {
-  externalId: string;
-  externalId: string;
-  externalId: string;
-  progressivoRigo: string;
-  progressivoRigoContabile: string;
-  codiceIva: string;
-  tipoConto: string;
-  centroDiCosto: string;
-  contropartita: string;
-  clienteFornitoreCodiceFiscale: string;
-  externalId: string;
-  parametro: string;
-  imponibile: string;
-  causaleId: string;
-  imposta: string;
-  conto: string;
-  importoDare: string;
-  importoAvere: string;
-  note: string;
-  dataRegistrazione: string;
-  importoLordo: string;
-  clienteFornitoreCodiceFiscale: string;
-  note: string;
-  dataDocumento: string;
-  numeroDocumento: string;
-  totaleDocumento: string;
-  noteMovimento: string;
-  movimentiAnalitici: string;
-}
-
-export interface RawPntesta {
-  codiceUnivocoScaricamento: string;
-  codiceCausale: string;
-  descrizioneCausale: string;
-  dataRegistrazione: string;
-  tipoRegistroIva: string;
-  clienteFornitoreCodiceFiscale: string;
-  clienteFornitoreSigla: string;
-  dataDocumento: string;
-  numeroDocumento: string;
-  protocolloNumero: string;
-  totaleDocumento: string;
-  noteMovimento: string;
-}
-
-export interface RawPnrigcon {
-  codiceUnivocoScaricamento: string;
-  progressivoRiga: string;
-  tipoConto: string;
-  codiceFiscale: string;
-  subcodiceFiscale: string;
-  siglaClienteFornitore: string;
-  conto: string;
-  importoDare: string;
-  importoAvere: string;
-  note: string;
-  insDatiMovimentiAnalitici: string;
-}
-
-export interface RawPnrigiva {
-  codiceUnivocoScaricamento: string;
-  codiceIva: string;
-  contropartita: string;
-  imponibile: string;
-  imposta: string;
-  importoLordo: string;
-  note: string;
-  siglaContropartita: string;
-}
-
-export interface RawMovanac {
-  codiceUnivocoScaricamento: string;
-  progressivoRigaContabile: string;
-  centroDiCosto: string;
-  parametro: string;
+export interface RawPianoDeiContiAziendale {
+  filler_1: string;
+  codiceFiscaleAzienda: string;
+  subcodiceAzienda: string;
+  tabellaItalstudio: string;
+  livello: string;
+  codice: string;
+  tipo: string;
+  descrizione: string;
+  sigla: string;
+  controlloSegno: string;
+  contoCostiRicavi: string;
+  validoImpresaOrdinaria: string;
+  validoImpresaSemplificata: string;
+  validoProfessionistaOrdinario: string;
+  validoProfessionistaSemplificato: string;
+  validoUnicoPf: string;
+  validoUnicoSp: string;
+  validoUnicoSc: string;
+  validoUnicoEnc: string;
+  classeIrpefIres: string;
+  classeIrap: string;
+  classeProfessionista: string;
+  classeIrapProfessionista: string;
+  classeIva: string;
+  classeDatiStudiSettore: string;
+  colonnaRegistroCronologico: string;
+  colonnaRegistroIncassiPagamenti: string;
+  contoDareCee: string;
+  contoAvereCee: string;
+  naturaConto: string;
+  gestioneBeniAmmortizzabili: string;
+  percDeduzioneManutenzione: string;
+  gruppo: string;
+  dettaglioClienteFornitore: string;
+  descrizioneBilancioDare: string;
+  descrizioneBilancioAvere: string;
+  utilizzaDescrizioneLocale: string;
+  descrizioneLocale: string;
+  consideraBilancioSemplificato: string;
 }
 
 export interface RawCausali {
@@ -196,19 +160,46 @@ export interface RawPianoDeiConti {
   descrizioneBilancioAvere: string;
 }
 
-export interface RawAnagraficaClifor {
-  codiceFiscaleAzienda: string;
-  subcodiceAzienda: string;
-  codiceUnivoco: string;
-  codiceFiscaleClifor: string;
-  subcodiceClifor: string;
+export interface RawScrittureContabili {
+  externalId: string;
+  riga: string;
+  progressivoRigo: string;
+  progressivoRigoContabile: string;
+  centroDiCosto: string;
   tipoConto: string;
-  sottocontoCliente: string;
-  sottocontoFornitore: string;
-  codiceAnagrafica: string;
-  partitaIva: string;
-  tipoSoggetto: string;
-  denominazione: string;
+  codiceIva: string;
+  clienteFornitoreCodiceFiscale: string;
+  parametro: string;
+  contropartita: string;
+  imponibile: string;
+  causaleId: string;
+  imposta: string;
+  conto: string;
+  importoDare: string;
+  importoAvere: string;
+  note: string;
+  dataRegistrazione: string;
+  importoLordo: string;
+  dataDocumento: string;
+  numeroDocumento: string;
+  totaleDocumento: string;
+  noteMovimento: string;
+  movimentiAnalitici: string;
+}
+
+export interface RawAnagraficaClifor {
+  CODICE_FISCALE_AZIENDA: string;
+  SUBCODICE_AZIENDA: string;
+  CODICE_UNIVOCO: string;
+  CODICE_FISCALE_CLIFOR: string;
+  SUBCODICE_CLIFOR: string;
+  TIPO_CONTO: string;
+  SOTTOCONTO_CLIENTE: string;
+  SOTTOCONTO_FORNITORE: string;
+  CODICE_ANAGRAFICA: string;
+  PARTITA_IVA: string;
+  TIPO_SOGGETTO: string;
+  DENOMINAZIONE: string;
   cognome: string;
   nome: string;
   sesso: string;

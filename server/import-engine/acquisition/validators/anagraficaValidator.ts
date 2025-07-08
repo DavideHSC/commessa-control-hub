@@ -71,7 +71,12 @@ export const validatedAnagraficaSchema = z.object({
   codiceUnivoco: z.string().trim().default(''),
   codiceFiscaleClifor: z.string().trim().default(''),
   subcodeClifor: z.string().trim().default(''),
-  tipoConto: z.string().trim().length(1).default(''),
+  tipoConto: z.string()
+    .trim()
+    .refine((val) => !val || ['C', 'F', 'E'].includes(val), {
+      message: "Tipo conto deve essere 'C' (Cliente), 'F' (Fornitore), 'E' (Entrambi) o vuoto"
+    })
+    .default(''),
   sottocontoCliente: z.string().trim().default(''),
   sottocontoFornitore: z.string().trim().default(''),
   codiceAnagrafica: z.string().trim().default(''),

@@ -32,6 +32,12 @@ type RigaContabile = {
   conto: {
     codice: string;
     nome: string;
+    tipo: 'Costo' | 'Ricavo' | 'Patrimoniale' | 'Cliente' | 'Fornitore';
+  };
+  soggetto: {
+    codice: string;
+    nome: string;
+    tipoSoggetto: 'Conto' | 'Fornitore' | 'Cliente';
   };
   allocazioni: Allocation[];
 };
@@ -114,7 +120,7 @@ const AllocationDialog = ({ transaction, open, onOpenChange }: { transaction: Re
     if (transaction) {
       const initialState: AllocationState = {};
       transaction.righe
-        .filter(r => r.conto.codice?.startsWith('6') || r.conto.codice?.startsWith('7'))
+        .filter(r => r.conto?.tipo === 'Costo' || r.conto?.tipo === 'Ricavo')
         .forEach(riga => {
           initialState[riga.id] = riga.allocazioni.map(a => {
             const commessa = commesse.find(c => c.nome === a.commessaNome);
@@ -169,7 +175,7 @@ const AllocationDialog = ({ transaction, open, onOpenChange }: { transaction: Re
 
   if (!transaction) return null;
 
-  const righeDaAllocare = transaction.righe.filter(r => r.conto.codice?.startsWith('6') || r.conto.codice?.startsWith('7'));
+  const righeDaAllocare = transaction.righe.filter(r => r.conto?.tipo === 'Costo' || r.conto?.tipo === 'Ricavo');
   const importoTotaleDaAllocare = righeDaAllocare.reduce((acc, r) => acc + (r.dare > 0 ? r.dare : r.avere), 0);
   const totaleAttualmenteAllocato = Object.values(allocations).flat().reduce((sum, alloc) => sum + alloc.importo, 0);
   const residuo = importoTotaleDaAllocare - totaleAttualmenteAllocato;
@@ -188,7 +194,7 @@ const AllocationDialog = ({ transaction, open, onOpenChange }: { transaction: Re
           {righeDaAllocare.map(riga => (
             <div key={riga.id} className="p-4 border rounded-md">
               <div className="flex justify-between items-center mb-2">
-                <div className="font-semibold">{riga.conto.nome} ({riga.conto.codice})</div>
+                <div className="font-semibold">{riga.soggetto.nome} ({riga.soggetto.codice})</div>
                 <div className="font-bold text-lg">€ {(riga.dare > 0 ? riga.dare : riga.avere).toFixed(2)}</div>
               </div>
               <div className="space-y-2">
@@ -255,8 +261,8 @@ const SubRowComponent = ({ row }: { row: Row<ReconciliationTransaction> }) => {
         <TableBody>
           {transaction.righe.map(riga => (
             <TableRow key={riga.id}>
-              <TableCell>{riga.conto.codice}</TableCell>
-              <TableCell>{riga.conto.nome}</TableCell>
+              <TableCell>{riga.soggetto.codice}</TableCell>
+              <TableCell>{riga.soggetto.nome}</TableCell>
               <TableCell className="text-right">{riga.dare > 0 ? `€ ${riga.dare.toFixed(2)}` : '-'}</TableCell>
               <TableCell className="text-right">{riga.avere > 0 ? `€ ${riga.avere.toFixed(2)}` : '-'}</TableCell>
             </TableRow>

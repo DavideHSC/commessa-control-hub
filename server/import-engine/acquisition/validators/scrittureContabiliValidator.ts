@@ -80,20 +80,25 @@ export const rawPnTestaSchema = z.object({
   noteMovimento: z.string(),
   dataRegistroIva: z.string().nullable(),
   dataCompetenzaLiquidIva: z.string().nullable(),
-  dataCompetenzaContabile: z.string().nullable(),
-  dataPlafond: z.string().nullable(),
-  annoProRata: z.string().nullable(),
+  dataCompetenzaContabile: z.string().optional(),
+  dataPlafond: z.string().optional(),
+  annoProRata: z.string().optional(),
   ritenute: z.string().nullable(),
   enasarco: z.string().nullable(),
   totaleInValuta: z.string().nullable(),
   versamentoData: z.string().nullable(),
   documentoDataPartita: z.string().nullable(),
-  documentoOperazione: z.string().nullable(),
+  documentoOperazione: z.string().optional(),
+  descrizioneCausale: z.string().optional(),
+  clienteFornitoreSigla: z.string().optional(),
+  cliForIntraSigla: z.string().optional(),
+  tipoMovimentoIntrastat: z.string().optional(),
 });
 
 export const validatedPnTestaSchema = z.object({
   externalId: z.string().trim().min(1, 'External ID richiesto'),
-  causaleId: z.string().trim(),
+  causaleId: z.string().trim().optional(),
+  descrizioneCausale: z.string().trim().optional(),
   dataRegistrazione: dateTransform,
   clienteFornitoreCodiceFiscale: z.string().trim().optional(),
   dataDocumento: dateTransform,
@@ -111,6 +116,9 @@ export const validatedPnTestaSchema = z.object({
   versamentoData: dateTransform,
   documentoDataPartita: dateTransform,
   documentoOperazione: dateTransform,
+  clienteFornitoreSigla: z.string().trim().optional(),
+  cliForIntraSigla: z.string().trim().optional(),
+  tipoMovimentoIntrastat: z.string().trim().optional(),
 }).passthrough();
 
 /**
@@ -119,19 +127,24 @@ export const validatedPnTestaSchema = z.object({
  */
 export const rawPnRigConSchema = z.object({
   externalId: z.string(),
-  progressivoRigo: z.string().nullable(),
-  tipoConto: z.string(),
-  clienteFornitoreCodiceFiscale: z.string(),
-  conto: z.string(),
-  importoDare: z.string().nullable(),
-  importoAvere: z.string().nullable(),
-  note: z.string(),
-  insDatiMovimentiAnalitici: z.string().nullable(),
-  dataInizioCompetenza: z.string().nullable(),
-  dataFineCompetenza: z.string().nullable(),
+  progressivoRigo: z.string().optional(),
+  tipoConto: z.string().optional(),
+  clienteFornitoreCodiceFiscale: z.string().optional(),
+  clienteFornitoreSubcodice: z.string().optional(),
+  clienteFornitoreSigla: z.string().optional(),
+  conto: z.string().optional(),
+  importoDare: z.string().optional(),
+  importoAvere: z.string().optional(),
+  note: z.string().optional(),
+  insDatiCompetenzaContabile: z.string().optional(),
+  dataInizioCompetenza: z.string().optional(),
+  dataFineCompetenza: z.string().optional(),
   dataRegistrazioneApertura: z.string().nullable(),
   dataInizioCompetenzaAnalit: z.string().nullable(),
   dataFineCompetenzaAnalit: z.string().nullable(),
+  // impostaNonConsiderata: z.string().optional(),
+  // importoLordo: z.string().optional(),
+  // siglaContropartita: z.string().optional(),
 });
 
 export const validatedPnRigConSchema = z.object({
@@ -139,12 +152,17 @@ export const validatedPnRigConSchema = z.object({
   progressivoRigo: z.string().nullable().transform((val) => val ?? '0'),
   tipoConto: z.string().trim().optional(),
   clienteFornitoreCodiceFiscale: z.string().trim().optional(),
+  clienteFornitoreSubcodice: z.string().trim().optional(),
+  clienteFornitoreSigla: z.string().trim().optional(),
   conto: z.string().trim().optional(),
   importoDare: currencyTransformPrimaNota,
   importoAvere: currencyTransformPrimaNota,
   note: z.string().trim().optional(),
-  insDatiMovimentiAnalitici: flagTransform,
-});
+  insDatiCompetenzaContabile: flagTransform,
+  // impostaNonConsiderata: z.string().trim().optional(),
+  // importoLordo: currencyTransformPrimaNota,
+  // siglaContropartita: z.string().trim().optional(),
+}).passthrough();
 
 /**
  * PNRIGIVA.TXT - Righe IVA
@@ -168,9 +186,11 @@ export const validatedPnRigIvaSchema = z.object({
   contropartita: z.string().trim().optional(),
   imponibile: currencyTransformPrimaNota,
   imposta: currencyTransformPrimaNota,
-  importoLordo: currencyTransformPrimaNota,
+  impostaNonConsiderata: currencyTransformPrimaNota.optional(),
+  importoLordo: currencyTransformPrimaNota.optional(),
   note: z.string().trim().optional(),
-});
+  siglaContropartita: z.string().trim().optional(),
+}).passthrough();
 
 /**
  * MOVANAC.TXT - Movimenti analitici

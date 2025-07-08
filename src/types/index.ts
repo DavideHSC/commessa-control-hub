@@ -116,6 +116,7 @@ export interface VoceAnalitica {
   id: string; // Es. '1', '2', '3' come da file Excel
   nome: string; // Es. 'personale', 'gestione automezzi'
   descrizione?: string;
+  externalId?: string | null;
 }
 
 /**

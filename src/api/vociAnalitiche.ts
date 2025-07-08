@@ -7,10 +7,11 @@ export const getVociAnalitiche = async (): Promise<VoceAnalitica[]> => {
     if (!response.ok) {
         throw new Error('Errore nel recupero delle voci analitiche');
     }
-    return response.json();
+    const result = await response.json();
+    return result.data;
 };
 
-export const createVoceAnalitica = async (data: VoceAnalitica): Promise<VoceAnalitica> => {
+export const createVoceAnalitica = async (data: Partial<VoceAnalitica>): Promise<VoceAnalitica> => {
     const response = await fetch(API_BASE_URL, {
         method: 'POST',
         headers: {
@@ -24,7 +25,7 @@ export const createVoceAnalitica = async (data: VoceAnalitica): Promise<VoceAnal
     return response.json();
 };
 
-export const updateVoceAnalitica = async (id: string, data: Partial<Omit<VoceAnalitica, 'id'>>): Promise<VoceAnalitica> => {
+export const updateVoceAnalitica = async (id: string, data: Partial<VoceAnalitica>): Promise<VoceAnalitica> => {
     const response = await fetch(`${API_BASE_URL}/${id}`, {
         method: 'PUT',
         headers: {

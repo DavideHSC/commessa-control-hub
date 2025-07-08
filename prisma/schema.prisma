@@ -30,6 +30,7 @@ model Cliente {
   telefono        String?
   tipoAnagrafica  String?
   commesse        Commessa[]
+  righeScrittura  RigaScrittura[]
   
   // === ESTENSIONI FASE 1 - PARSER PYTHON ===
   codiceAnagrafica             String?
@@ -45,8 +46,10 @@ model Cliente {
   
   // Sottoconti
   sottocontoAttivo             String?
-  sottocontoCliente            String?
-  sottocontoFornitore          String?
+  sottocontoCliente            String?              @unique
+  sottocontoPassivo           String?
+  sottocontoCosto             String?
+  condizionePagamentoId       String?
   
   // Codici Pagamento Specifici
   codiceIncassoCliente         String?
@@ -57,6 +60,9 @@ model Cliente {
   eCliente                     Boolean?
   eFornitore                   Boolean?
   haPartitaIva                 Boolean?
+  
+  // Per Cliente - Descrizioni aggiuntive
+  codiceDestinatario          String?
 }
 
 model Fornitore {
@@ -94,6 +100,7 @@ model Fornitore {
   tipoAnagrafica              String?
   tipoRitenuta                String?
   scritture                   ScritturaContabile[]
+  righeScrittura              RigaScrittura[]
   
   // === ESTENSIONI FASE 1 - PARSER PYTHON ===
   codiceAnagrafica             String?
@@ -109,8 +116,10 @@ model Fornitore {
   
   // Sottoconti
   sottocontoAttivo             String?
-  sottocontoCliente            String?
-  sottocontoFornitore          String?
+  sottocontoPassivo           String?
+  sottocontoFornitore         String?              @unique
+  sottocontoCosto             String?
+  condizionePagamentoId       String?
   
   // Codici Pagamento Specifici
   codiceIncassoCliente         String?
@@ -126,6 +135,9 @@ model Fornitore {
   quadro770Desc               String?
   tipoRitenuraDesc             String?
   contributoPrevid335Desc      String?
+  
+  // Per Fornitore - Descrizioni aggiuntive
+  codiceDestinatario          String?
 }
 
 model VoceAnalitica {
@@ -140,7 +152,7 @@ model VoceAnalitica {
 
 model Conto {
   id                         String          @id @default(cuid())
-  codice                     String?         @unique
+  codice                     String?
   nome                       String
   tipo                       TipoConto
   richiedeVoceAnalitica      Boolean         @default(false)
@@ -150,6 +162,13 @@ model Conto {
   voceAnaliticaId            String?
   voceAnalitica              VoceAnalitica?  @relation(fields: [voceAnaliticaId], references: [id])
   righeScrittura             RigaScrittura[]
+  
+  // === ESTENSIONI PER CONTIAZI (Piano dei Conti Aziendale) ===
+  codiceFiscaleAzienda         String  @default("") // Identifica l'azienda per la personalizzazione. "" = generico.
+  subcodiceAzienda             String? // Sub-codice per sedi/divisioni
+  utilizzaDescrizioneLocale    Boolean? // Flag per usare la descrizione locale
+  descrizioneLocale            String? // Descrizione personalizzata per l'azienda
+  consideraBilancioSemplificato Boolean? // Flag per bilancio semplificato
   
   // === ESTENSIONI FASE 1 - PARSER PYTHON ===
   // Gerarchia e Classificazione
@@ -205,6 +224,8 @@ model Conto {
   // Registri Professionisti
   colonnaRegistroCronologico   String?
   colonnaRegistroIncassiPagamenti String?
+  
+  @@unique([codice, codiceFiscaleAzienda])
 }
 
 model Commessa {
@@ -253,12 +274,18 @@ model RigaScrittura {
   descrizione          String
   dare                 Float
   avere                Float
-  contoId              String
+  contoId              String?
   scritturaContabileId String
   allocazioni          Allocazione[]
   righeIva             RigaIva[]
-  conto                Conto              @relation(fields: [contoId], references: [id])
+  conto                Conto?             @relation(fields: [contoId], references: [id])
   scritturaContabile   ScritturaContabile @relation(fields: [scritturaContabileId], references: [id], onDelete: Cascade)
+
+  // Relazioni dirette a Cliente/Fornitore
+  clienteId            String?
+  cliente              Cliente?           @relation(fields: [clienteId], references: [id])
+  fornitoreId          String?
+  fornitore            Fornitore?         @relation(fields: [fornitoreId], references: [id])
 }
 
 model Allocazione {
@@ -534,6 +561,7 @@ model ImportScritturaRigaContabile {
   codiceUnivocoScaricamento      String
   riga                           Int
   codiceConto                    String
+  tipoConto                      String?
   descrizioneConto               String
   importoDare                    Float?
   importoAvere                   Float?
@@ -579,6 +607,8 @@ enum TipoConto {
   Patrimoniale
   Fornitore
   Cliente
+  Economico
+  Ordine
 }
 
 enum TipoCampo {

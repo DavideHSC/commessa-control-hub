@@ -50,6 +50,12 @@ export interface ScrittureContabiliFiles {
   movAnac?: Buffer;
 }
 
+// Interfaccia per statistiche di creazione delle entità
+interface EntityCreationStat {
+  count: number;
+  sample: { id: string; nome: string }[];
+}
+
 export interface ImportScrittureContabiliResult {
   success: boolean;
   jobId: string;
@@ -60,11 +66,11 @@ export interface ImportScrittureContabiliResult {
     righeIvaOrganizzate: number;
     allocazioniOrganizzate: number;
     erroriValidazione: number;
-    contiCreati: { id: string, nome: string }[];
-    fornitoriCreati: { id:string, nome: string }[];
-    causaliCreate: { id: string, nome: string }[];
-    codiciIvaCreati: { id: string, nome: string }[];
-    vociAnaliticheCreate: { id: string, nome: string }[];
+    contiCreati: EntityCreationStat;
+    fornitoriCreati: EntityCreationStat;
+    causaliCreate: EntityCreationStat;
+    codiciIvaCreati: EntityCreationStat;
+    vociAnaliticheCreate: EntityCreationStat;
   };
   message: string;
 }
@@ -185,11 +191,26 @@ export class ImportScrittureContabiliWorkflow {
           righeIvaOrganizzate: transformResult.stats.entitaCreate.righeIva,
           allocazioniOrganizzate: transformResult.stats.entitaCreate.allocazioni,
           erroriValidazione: errorCount,
-          contiCreati: transformResult.conti.map(c => ({ id: c.codice!, nome: c.nome! })),
-          fornitoriCreati: transformResult.fornitori.map(f => ({ id: f.externalId!, nome: f.nome! })),
-          causaliCreate: transformResult.causali.map(c => ({ id: c.externalId!, nome: c.descrizione! })),
-          codiciIvaCreati: transformResult.codiciIva.map(c => ({ id: c.externalId!, nome: c.descrizione! })),
-          vociAnaliticheCreate: transformResult.vociAnalitiche.map(v => ({ id: v.id!, nome: v.nome! })),
+          contiCreati: {
+            count: transformResult.conti.length,
+            sample: transformResult.conti.slice(0, 3).map(c => ({ id: c.codice!, nome: c.nome! }))
+          },
+          fornitoriCreati: {
+            count: transformResult.fornitori.length,
+            sample: transformResult.fornitori.slice(0, 3).map(f => ({ id: f.externalId!, nome: f.nome! }))
+          },
+          causaliCreate: {
+            count: transformResult.causali.length,
+            sample: transformResult.causali.slice(0, 3).map(c => ({ id: c.externalId!, nome: c.descrizione! }))
+          },
+          codiciIvaCreati: {
+            count: transformResult.codiciIva.length,
+            sample: transformResult.codiciIva.slice(0, 3).map(c => ({ id: c.externalId!, nome: c.descrizione! }))
+          },
+          vociAnaliticheCreate: {
+            count: transformResult.vociAnalitiche.length,
+            sample: transformResult.vociAnalitiche.slice(0, 3).map(v => ({ id: v.id!, nome: v.nome! }))
+          },
         },
         message: `Import completato con successo. ${transformResult.stats.entitaCreate.scritture} scritture importate.`,
       };
@@ -197,20 +218,18 @@ export class ImportScrittureContabiliWorkflow {
       // RIEPILOGO FINALE
       console.log('\n🎉 RIEPILOGO FINALE');
       console.log('='.repeat(80));
-      console.log(`✅ Import completato con successo in ${duration}ms`);
-      console.log(`📊 Performance: ${recordsPerSecond} record/secondo`);
-      console.log(`\n📈 STATISTICHE FINALI:`);
-      console.log(`   🎯 Scritture contabili create:  ${result.stats.scrittureImportate.toString().padStart(4)}`);
-      console.log(`   🏢 Fornitori creati:            ${result.stats.fornitoriCreati.length.toString().padStart(4)}`);
-      console.log(`   📋 Causali contabili create:    ${result.stats.causaliCreate.length.toString().padStart(4)}`);
-      console.log(`   🏦 Conti creati:                ${result.stats.contiCreati.length.toString().padStart(4)}`);
-      console.log(`   💰 Righe contabili elaborate:   ${result.stats.righeContabiliOrganizzate.toString().padStart(4)}`);
-      console.log(`   🏭 Allocazioni elaborate:       ${result.stats.allocazioniOrganizzate.toString().padStart(4)}`);
-      console.log(`   ❌ Record con errori (DLQ):     ${result.stats.erroriValidazione.toString().padStart(4)}`);
-      console.log(`\n🚀 ARCHITETTURA ENTERPRISE: Parser 6/6 COMPLETATO!`);
+      console.log(`✅ Import completato con successo in ${duration}ms (${recordsPerSecond} record/secondo)`);
+      console.log('📈 STATISTICHE DI CREAZIONE:');
+      console.log(`   - Scritture: ${result.stats.scrittureImportate}`);
+      console.log(`   - Fornitori: ${result.stats.fornitoriCreati.count}`);
+      console.log(`   - Causali:   ${result.stats.causaliCreate.count}`);
+      console.log(`   - Conti:     ${result.stats.contiCreati.count}`);
+      console.log(`   - Codici IVA: ${result.stats.codiciIvaCreati.count}`);
+      console.log(`   - Errori DLQ: ${result.stats.erroriValidazione}`);
       console.log('='.repeat(80) + '\n');
-
+      
       this.telemetryService.logJobSuccess(job, result.stats);
+
       return result;
 
     } catch (error) {
@@ -236,11 +255,26 @@ export class ImportScrittureContabiliWorkflow {
           righeIvaOrganizzate: 0,
           allocazioniOrganizzate: 0,
           erroriValidazione: 0,
-          contiCreati: [],
-          fornitoriCreati: [],
-          causaliCreate: [],
-          codiciIvaCreati: [],
-          vociAnaliticheCreate: [],
+          contiCreati: {
+            count: 0,
+            sample: [],
+          },
+          fornitoriCreati: {
+            count: 0,
+            sample: [],
+          },
+          causaliCreate: {
+            count: 0,
+            sample: [],
+          },
+          codiciIvaCreati: {
+            count: 0,
+            sample: [],
+          },
+          vociAnaliticheCreate: {
+            count: 0,
+            sample: [],
+          },
         },
         message: `Errore durante l'import: ${error instanceof Error ? error.message : 'Errore sconosciuto'}`,
       };
@@ -380,119 +414,84 @@ export class ImportScrittureContabiliWorkflow {
       });
       this.telemetryService.logInfo(jobId, `✅ Cliente di sistema (cliente_sistema) assicurato.`);
 
-      // 1. CREA ENTITÀ DIPENDENTI (in ordine di dipendenza)
-      this.telemetryService.logInfo(jobId, `🏢 Creazione ${transformResult.fornitori.length} fornitori...`);
-      for (const fornitore of transformResult.fornitori) {
-        if (fornitore.externalId) {
-            await tx.fornitore.upsert({
-                where: { externalId: fornitore.externalId },
-                update: fornitore,
-                create: fornitore,
-            });
-        }
-      }
+      // 1. Creazione/aggiornamento entità dipendenti (upserts)
+      // Questo garantisce che tutte le dipendenze esistano prima di creare le scritture.
+      console.log('   - Creazione/aggiornamento anagrafiche dipendenti...');
 
-      this.telemetryService.logInfo(jobId, `📋 Creazione ${transformResult.causali.length} causali...`);
-      for (const causale of transformResult.causali) {
-        if (causale.externalId) {
-            await tx.causaleContabile.upsert({
-                where: { externalId: causale.externalId },
-                update: causale,
-                create: causale,
-            });
-        }
-      }
+      await Promise.all(transformResult.causali.map(causale =>
+        tx.causaleContabile.upsert({
+          where: { externalId: causale.externalId! },
+          update: causale,
+          create: causale,
+        })
+      ));
       
-      this.telemetryService.logInfo(jobId, `🏦 Creazione ${transformResult.conti.length} conti...`);
-      for (const conto of transformResult.conti) {
-        await tx.conto.upsert({
-          where: { id: conto.id },
+      await Promise.all(transformResult.codiciIva.map(codiceIva =>
+        tx.codiceIva.upsert({
+          where: { externalId: codiceIva.externalId! },
+          update: codiceIva,
+          create: codiceIva,
+        })
+      ));
+
+      await Promise.all(transformResult.conti.map(conto =>
+        tx.conto.upsert({
+          where: { 
+            codice_codiceFiscaleAzienda: {
+              codice: conto.codice!,
+              codiceFiscaleAzienda: conto.codiceFiscaleAzienda || ''
+            }
+          },
           update: conto,
           create: conto,
-        });
-      }
+        })
+      ));
       
-      this.telemetryService.logInfo(jobId, `📊 Creazione ${transformResult.codiciIva.length} codici IVA...`);
-      for (const codiceIva of transformResult.codiciIva) {
-        if (codiceIva.externalId) {
-            await tx.codiceIva.upsert({
-                where: { externalId: codiceIva.externalId },
-                update: codiceIva,
-                create: codiceIva,
-            });
-        }
-      }
+      // Upsert Fornitori
+      await Promise.all(transformResult.fornitori.map(fornitore =>
+        tx.fornitore.upsert({
+          where: { sottocontoFornitore: fornitore.sottocontoFornitore! },
+          update: {}, // Non aggiorniamo se esiste già
+          create: fornitore,
+        })
+      ));
       
-      this.telemetryService.logInfo(jobId, `🏭 Creazione ${transformResult.commesse.length} commesse...`);
-      for (const commessa of transformResult.commesse) {
-        await tx.commessa.upsert({
-          where: { id: commessa.id },
-          update: commessa,
-          create: commessa,
-        });
-      }
+      // Upsert Clienti
+      await Promise.all(transformResult.clienti.map(cliente =>
+        tx.cliente.upsert({
+          where: { sottocontoCliente: cliente.sottocontoCliente! },
+          update: {}, // Non aggiorniamo se esiste già
+          create: cliente,
+        })
+      ));
+
+      // 3. Creazione entità principali
+      // NOTA: Usiamo cicli di `create` invece di `createMany` perché `createMany`
+      // non supporta la creazione di relazioni nidificate (i `connect`), che è
+      // fondamentale per la nostra logica.
+      console.log('   - Creazione scritture, righe e allocazioni...');
       
-      this.telemetryService.logInfo(jobId, `📈 Creazione ${transformResult.vociAnalitiche.length} voci analitiche...`);
-      for (const voce of transformResult.vociAnalitiche) {
-        await tx.voceAnalitica.upsert({
-          where: { id: voce.id },
-          update: voce,
-          create: voce,
-        });
+      for (const scritturaData of transformResult.scritture) {
+        await tx.scritturaContabile.create({ data: scritturaData });
       }
 
-      // 2. UPSERT SCRITTURE CONTABILI (testate)
-      this.telemetryService.logInfo(jobId, `📝 Upsert ${transformResult.scritture.length} scritture contabili...`);
-      
-      for (const scrittura of transformResult.scritture) {
-        await tx.scritturaContabile.upsert({
-          where: { externalId: scrittura.externalId! },
-          update: scrittura,
-          create: scrittura,
-        });
+      for (const rigaData of transformResult.righeScrittura) {
+        await tx.rigaScrittura.create({ data: rigaData });
       }
       
-      this.telemetryService.logInfo(jobId, `✅ ${transformResult.scritture.length} scritture processate con upsert`);
-      
-      // 3. UPSERT RIGHE SCRITTURA (righe contabili)
-      this.telemetryService.logInfo(jobId, `💰 Upsert ${transformResult.righeScrittura.length} righe contabili...`);
-      for (const riga of transformResult.righeScrittura) {
-        await tx.rigaScrittura.upsert({
-          where: { id: riga.id! },
-          update: riga,
-          create: riga,
-        });
+      for (const rigaIvaData of transformResult.righeIva) {
+        await tx.rigaIva.create({ data: rigaIvaData });
       }
-      
-      this.telemetryService.logInfo(jobId, `✅ ${transformResult.righeScrittura.length} righe contabili processate con upsert`);
-      
-      // 4. UPSERT RIGHE IVA
-      this.telemetryService.logInfo(jobId, `🧾 Upsert ${transformResult.righeIva.length} righe IVA...`);
-      for (const rigaIva of transformResult.righeIva) {
-        await tx.rigaIva.upsert({
-          where: { id: rigaIva.id! },
-          update: rigaIva,
-          create: rigaIva,
-        });
+
+      for (const allocazioneData of transformResult.allocazioni) {
+        await tx.allocazione.create({ data: allocazioneData });
       }
+
+      console.log('   - Entità principali create con successo.');
       
-      this.telemetryService.logInfo(jobId, `✅ ${transformResult.righeIva.length} righe IVA processate con upsert`);
-      
-      // 5. UPSERT ALLOCAZIONI
-      this.telemetryService.logInfo(jobId, `🎯 Upsert ${transformResult.allocazioni.length} allocazioni...`);
-      for (const allocazione of transformResult.allocazioni) {
-        await tx.allocazione.upsert({
-          where: { id: allocazione.id! },
-          update: allocazione,
-          create: allocazione,
-        });
-      }
-      
-      this.telemetryService.logInfo(jobId, `✅ ${transformResult.allocazioni.length} allocazioni processate con upsert`);
-      
-      this.telemetryService.logInfo(jobId, '✅ PERSISTENZA COMPLETA: Tutte le entità salvate con successo!');
+      // 4. Fine transazione
     }, {
-      timeout: 300000, // 5 minuti timeout per dataset grandi
+      timeout: 900000, // 15 minuti timeout per dataset grandi
     });
   }
 

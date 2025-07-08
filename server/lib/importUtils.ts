@@ -5,24 +5,55 @@ const prisma = new PrismaClient();
 const SYSTEM_CUSTOMER_ID = 'system_customer_01'; // Assicurati che questo ID sia nel seed
 const SYSTEM_SUPPLIER_ID = 'system_supplier_01';
 
-export async function processScrittureInBatches(data: { testate: any[], righeContabili: any[], righeIva: any[], allocazioni: any[] }) {
+// Definizione delle interfacce per i dati parsati, per eliminare l'uso di 'any'
+export interface ITestata {
+    externalId: string;
+    clienteFornitoreCodiceFiscale?: string;
+    dataRegistrazione?: Date;
+    causaleId: string;
+    dataDocumento?: Date;
+    numeroDocumento: string;
+}
+
+export interface IRigaContabile {
+    externalId: string;
+    conto: string;
+    note: string;
+    importoDare: number;
+    importoAvere: number;
+}
+
+export interface IRigaIva {
+    externalId: string;
+    codiceIva: string;
+    imponibile: number;
+    imposta: number;
+}
+
+export interface IAllocazione {
+    externalId: string;
+    centroDiCosto: string;
+    parametro: number;
+}
+
+export async function processScrittureInBatches(data: { testate: ITestata[], righeContabili: IRigaContabile[], righeIva: IRigaIva[], allocazioni: IAllocazione[] }) {
     const { testate, righeContabili, righeIva, allocazioni } = data;
     
     // Mappe dati pre-elaborate per efficienza
     const testateMap = new Map(testate.map(t => [t.externalId.trim(), t]));
-    const righeContabiliMap = new Map<string, any[]>();
+    const righeContabiliMap = new Map<string, IRigaContabile[]>();
     righeContabili.forEach(r => {
         const testataId = r.externalId.substring(0, 12).trim();
         if (!righeContabiliMap.has(testataId)) righeContabiliMap.set(testataId, []);
         righeContabiliMap.get(testataId)!.push(r);
     });
-    const righeIvaMap = new Map<string, any[]>();
+    const righeIvaMap = new Map<string, IRigaIva[]>();
     righeIva.forEach(r => {
         const rigaId = r.externalId.trim();
         if (!righeIvaMap.has(rigaId)) righeIvaMap.set(rigaId, []);
         righeIvaMap.get(rigaId)!.push(r);
     });
-    const allocazioniMap = new Map<string, any[]>();
+    const allocazioniMap = new Map<string, IAllocazione[]>();
     allocazioni.forEach(a => {
         const rigaId = a.externalId.trim();
         if (!allocazioniMap.has(rigaId)) allocazioniMap.set(rigaId, []);
@@ -38,18 +69,19 @@ export async function processScrittureInBatches(data: { testate: any[], righeCon
         try {
             // Ogni testata viene processata in una transazione separata
             await prisma.$transaction(async (tx) => {
-                const fornitoreId = testata.clienteFornitoreCodiceFiscale?.trim();
-                if (fornitoreId) {
+                const fornitoreCodice = testata.clienteFornitoreCodiceFiscale?.trim();
+                if (fornitoreCodice) {
                     await tx.fornitore.upsert({
-                        where: { id: fornitoreId },
+                        where: { externalId: fornitoreCodice },
                         update: {},
                         create: {
-                            id: fornitoreId,
-                            externalId: fornitoreId,
-                            nome: `Fornitore importato - ${fornitoreId}`
+                            externalId: fornitoreCodice,
+                            nome: `Fornitore importato - ${fornitoreCodice}`
                         }
                     });
                 }
+
+                const fornitore = fornitoreCodice ? await tx.fornitore.findUnique({ where: { externalId: fornitoreCodice } }) : null;
 
                 const scritturaData = {
                     data: testata.dataRegistrazione,
@@ -57,7 +89,7 @@ export async function processScrittureInBatches(data: { testate: any[], righeCon
                     causaleId: testata.causaleId.trim(),
                     dataDocumento: testata.dataDocumento,
                     numeroDocumento: testata.numeroDocumento.trim(),
-                    fornitoreId: fornitoreId || undefined
+                    fornitoreId: fornitore?.id
                 };
 
                 const scrittura = await tx.scritturaContabile.upsert({
@@ -69,19 +101,34 @@ export async function processScrittureInBatches(data: { testate: any[], righeCon
                 const righeContabiliPerTestata = righeContabiliMap.get(testataId) || [];
                 for (const riga of righeContabiliPerTestata) {
                     const rigaId = riga.externalId.trim();
-                    const contoId = riga.conto.trim();
-                    if (!contoId) continue;
+                    const contoCodice = riga.conto.trim();
+                    if (!contoCodice) continue;
 
                     await tx.conto.upsert({
-                        where: { id: contoId },
+                        where: { 
+                            codice_codiceFiscaleAzienda: {
+                                codice: contoCodice,
+                                codiceFiscaleAzienda: ''
+                            }
+                        },
                         update: {},
                         create: {
-                            id: contoId,
-                            codice: contoId,
-                            nome: `Conto importato - ${contoId}`,
+                            codice: contoCodice,
+                            codiceFiscaleAzienda: '',
+                            nome: `Conto importato - ${contoCodice}`,
                             tipo: TipoConto.Patrimoniale,
                             richiedeVoceAnalitica: false,
                         }
+                    });
+
+                    const conto = await tx.conto.findUniqueOrThrow({ 
+                        where: { 
+                            codice_codiceFiscaleAzienda: {
+                                codice: contoCodice,
+                                codiceFiscaleAzienda: ''
+                            }
+                        }, 
+                        select: { id: true } 
                     });
 
                     const rigaScrittura = await tx.rigaScrittura.create({
@@ -90,54 +137,55 @@ export async function processScrittureInBatches(data: { testate: any[], righeCon
                             descrizione: riga.note.trim(),
                             dare: riga.importoDare,
                             avere: riga.importoAvere,
-                            contoId: contoId,
+                            contoId: conto.id,
                         }
                     });
 
                     const righeIvaPerRiga = righeIvaMap.get(rigaId) || [];
                     for (const rigaIva of righeIvaPerRiga) {
-                        const codiceIvaId = rigaIva.codiceIva.trim();
-                        if (!codiceIvaId) continue;
-                        await tx.codiceIva.upsert({
-                            where: { id: codiceIvaId },
+                        const codiceIvaCodice = rigaIva.codiceIva.trim();
+                        if (!codiceIvaCodice) continue;
+                        
+                        const codiceIva = await tx.codiceIva.upsert({
+                            where: { externalId: codiceIvaCodice },
                             update: {},
                             create: {
-                                id: codiceIvaId,
-                                descrizione: `IVA importata - ${codiceIvaId}`,
+                                externalId: codiceIvaCodice,
+                                codice: codiceIvaCodice,
+                                descrizione: `IVA importata - ${codiceIvaCodice}`,
                                 aliquota: 0,
                             }
                         });
+
                         await tx.rigaIva.create({
                             data: {
                                 rigaScritturaId: rigaScrittura.id,
                                 imponibile: rigaIva.imponibile,
                                 imposta: rigaIva.imposta,
-                                codiceIvaId: codiceIvaId,
+                                codiceIvaId: codiceIva.id,
                             }
                         });
                     }
 
                     const allocazioniPerRiga = allocazioniMap.get(rigaId) || [];
                     for (const alloc of allocazioniPerRiga) {
-                        const commessaId = alloc.centroDiCosto.trim();
-                        const voceAnaliticaId = alloc.parametro.toString().trim();
-                        if (!commessaId || !voceAnaliticaId) continue;
+                        const commessaCodice = alloc.centroDiCosto.trim();
+                        const voceAnaliticaCodice = alloc.parametro.toString().trim();
+                        if (!commessaCodice || !voceAnaliticaCodice) continue;
 
-                        await tx.voceAnalitica.upsert({
-                            where: { id: voceAnaliticaId },
+                        const voceAnalitica = await tx.voceAnalitica.upsert({
+                            where: { nome: voceAnaliticaCodice },
                             update: {},
                             create: {
-                                id: voceAnaliticaId,
-                                nome: `Voce importata - ${voceAnaliticaId}`
+                                nome: voceAnaliticaCodice
                             }
                         });
 
-                        await tx.commessa.upsert({
-                            where: { id: commessaId },
+                        const commessa = await tx.commessa.upsert({
+                            where: { nome: commessaCodice },
                             update: {},
                             create: {
-                                id: commessaId,
-                                nome: `Commessa importata - ${commessaId}`,
+                                nome: commessaCodice,
                                 clienteId: SYSTEM_CUSTOMER_ID
                             }
                         });
@@ -146,8 +194,8 @@ export async function processScrittureInBatches(data: { testate: any[], righeCon
                             data: {
                                 rigaScritturaId: rigaScrittura.id,
                                 importo: alloc.parametro,
-                                commessaId: commessaId,
-                                voceAnaliticaId: voceAnaliticaId, 
+                                commessaId: commessa.id,
+                                voceAnaliticaId: voceAnalitica.id, 
                             }
                         });
                     }
