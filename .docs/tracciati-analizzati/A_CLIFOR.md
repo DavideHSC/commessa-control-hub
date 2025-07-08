@@ -1,4 +1,4 @@
-Certamente. Procedo con l'analisi del tracciato `A_CLIFOR.TXT` seguendo la stessa metodologia utilizzata in precedenza.
+Analisi del tracciato `A_CLIFOR.TXT`.
 
 ### 1. Rappresentazione del Tracciato (formato Excel-like)
 

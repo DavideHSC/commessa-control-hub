@@ -1,4 +1,4 @@
-Ecco un'analisi completa del tracciato `CONTIAZI.TXT`, seguendo la stessa struttura usata per il file CONTIGEN.TXT.
+Aalisi del tracciato `CONTIAZI.TXT`, alternativo alla versione standard del file CONTIGEN.TXT.
 
 ---
 
