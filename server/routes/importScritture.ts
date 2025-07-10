@@ -64,8 +64,18 @@ router.post('/', upload.array('files', 10), async (req: Request, res: Response) 
             }
         }
 
-        // 4. Esegui il parsing per ogni file
-        const testate = parseFixedWidth<ITestata>(filesByDefinition['PNTESTA.TXT'].file.buffer.toString('utf-8'), filesByDefinition['PNTESTA.TXT'].definitions);
+        // 4. Determina il contesto aziendale
+        const pnTestaFile = filesByDefinition['PNTESTA.TXT'].file;
+        const pnTestaContent = pnTestaFile.buffer.toString('utf-8');
+        const firstLine = pnTestaContent.split('\n')[0] || '';
+        const codiceFiscaleAzienda = firstLine.substring(3, 14).trim(); // Posizione 4-14, lunghezza 11
+
+        if (!codiceFiscaleAzienda) {
+            return res.status(400).json({ error: "Impossibile determinare il codice fiscale dell'azienda dal file PNTESTA.TXT." });
+        }
+
+        // 5. Esegui il parsing per ogni file
+        const testate = parseFixedWidth<ITestata>(pnTestaContent, filesByDefinition['PNTESTA.TXT'].definitions);
         const righeContabili = parseFixedWidth<IRigaContabile>(filesByDefinition['PNRIGCON.TXT'].file.buffer.toString('utf-8'), filesByDefinition['PNRIGCON.TXT'].definitions);
         
         let righeIva: IRigaIva[] = [];
@@ -78,8 +88,14 @@ router.post('/', upload.array('files', 10), async (req: Request, res: Response) 
             allocazioni = parseFixedWidth<IAllocazione>(filesByDefinition['MOVANAC.TXT'].file.buffer.toString('utf-8'), filesByDefinition['MOVANAC.TXT'].definitions);
         }
 
-        // 5. Salva i dati in una transazione
-        const summary = await processScrittureInBatches({ testate, righeContabili, righeIva, allocazioni });
+        // 6. Salva i dati in una transazione
+        const summary = await processScrittureInBatches({ 
+            testate, 
+            righeContabili, 
+            righeIva, 
+            allocazioni, 
+            codiceFiscaleAzienda // Passa il contesto
+        });
 
         return res.status(200).json({ 
             message: `Importazione completata. ${summary.processedCount} record processati, ${summary.errorCount} errori.`,

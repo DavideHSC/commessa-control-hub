@@ -36,8 +36,14 @@ export interface IAllocazione {
     parametro: number;
 }
 
-export async function processScrittureInBatches(data: { testate: ITestata[], righeContabili: IRigaContabile[], righeIva: IRigaIva[], allocazioni: IAllocazione[] }) {
-    const { testate, righeContabili, righeIva, allocazioni } = data;
+export async function processScrittureInBatches(data: { 
+    testate: ITestata[], 
+    righeContabili: IRigaContabile[], 
+    righeIva: IRigaIva[], 
+    allocazioni: IAllocazione[],
+    codiceFiscaleAzienda: string 
+}) {
+    const { testate, righeContabili, righeIva, allocazioni, codiceFiscaleAzienda } = data;
     
     // Mappe dati pre-elaborate per efficienza
     const testateMap = new Map(testate.map(t => [t.externalId.trim(), t]));
@@ -83,10 +89,21 @@ export async function processScrittureInBatches(data: { testate: ITestata[], rig
 
                 const fornitore = fornitoreCodice ? await tx.fornitore.findUnique({ where: { externalId: fornitoreCodice } }) : null;
 
+                // FIX: Esegui il lookup della causale
+                const causaleCodice = testata.causaleId.trim();
+                const causale = await tx.causaleContabile.findUnique({
+                    where: { codice: causaleCodice },
+                    select: { id: true }
+                });
+
+                if (!causale) {
+                    throw new Error(`Causale contabile con codice '${causaleCodice}' non trovata per la scrittura ${testataId}.`);
+                }
+
                 const scritturaData = {
                     data: testata.dataRegistrazione,
                     descrizione: `Importazione - ${testataId}`,
-                    causaleId: testata.causaleId.trim(),
+                    causaleId: causale.id, // Usa l'ID trovato
                     dataDocumento: testata.dataDocumento,
                     numeroDocumento: testata.numeroDocumento.trim(),
                     fornitoreId: fornitore?.id
@@ -108,13 +125,13 @@ export async function processScrittureInBatches(data: { testate: ITestata[], rig
                         where: { 
                             codice_codiceFiscaleAzienda: {
                                 codice: contoCodice,
-                                codiceFiscaleAzienda: ''
+                                codiceFiscaleAzienda: codiceFiscaleAzienda // <-- FIX: Usa il codice fiscale corretto
                             }
                         },
                         update: {},
                         create: {
                             codice: contoCodice,
-                            codiceFiscaleAzienda: '',
+                            codiceFiscaleAzienda: codiceFiscaleAzienda, // <-- FIX: Usa il codice fiscale corretto
                             nome: `Conto importato - ${contoCodice}`,
                             tipo: TipoConto.Patrimoniale,
                             richiedeVoceAnalitica: false,
@@ -125,7 +142,7 @@ export async function processScrittureInBatches(data: { testate: ITestata[], rig
                         where: { 
                             codice_codiceFiscaleAzienda: {
                                 codice: contoCodice,
-                                codiceFiscaleAzienda: ''
+                                codiceFiscaleAzienda: codiceFiscaleAzienda // <-- FIX: Usa il codice fiscale corretto
                             }
                         }, 
                         select: { id: true } 

@@ -379,6 +379,70 @@ async function main() {
     }
   });
 
+  // Template Piano dei Conti AZIENDALE - AGGIUNTO
+  const existingPianoDeiContiAziendaleTemplate = await prisma.importTemplate.findUnique({
+    where: { name: 'piano_dei_conti_aziendale' },
+    include: { fieldDefinitions: true }
+  });
+
+  if (existingPianoDeiContiAziendaleTemplate) {
+    await prisma.fieldDefinition.deleteMany({
+      where: { templateId: existingPianoDeiContiAziendaleTemplate.id }
+    });
+    await prisma.importTemplate.delete({
+      where: { id: existingPianoDeiContiAziendaleTemplate.id }
+    });
+  }
+
+  await prisma.importTemplate.create({
+    data: {
+      name: 'piano_dei_conti_aziendale',
+      modelName: 'Conto', // Stesso modello di destinazione
+      fieldDefinitions: {
+        create: [
+          // Basato sul tracciato CONTIAZI.TXT
+          { fieldName: 'codiceFiscaleAzienda', start: 4, length: 16, end: 19 },
+          { fieldName: 'subcodiceAzienda', start: 20, length: 1, end: 20 },
+          { fieldName: 'livello', start: 22, length: 1, end: 22 },
+          { fieldName: 'codice', start: 23, length: 10, end: 32 },
+          { fieldName: 'tipo', start: 33, length: 1, end: 33 },
+          { fieldName: 'descrizione', start: 34, length: 60, end: 93 },
+          { fieldName: 'sigla', start: 94, length: 12, end: 105 },
+          { fieldName: 'controlloSegno', start: 106, length: 1, end: 106 },
+          { fieldName: 'contoCostiRicavi', start: 107, length: 10, end: 116 },
+          { fieldName: 'validoImpresaOrdinaria', start: 117, length: 1, end: 117, format: 'boolean' },
+          { fieldName: 'validoImpresaSemplificata', start: 118, length: 1, end: 118, format: 'boolean' },
+          { fieldName: 'validoProfessionistaOrdinario', start: 119, length: 1, end: 119, format: 'boolean' },
+          { fieldName: 'validoProfessionistaSemplificato', start: 120, length: 1, end: 120, format: 'boolean' },
+          { fieldName: 'validoUnicoPf', start: 121, length: 1, end: 121, format: 'boolean' },
+          { fieldName: 'validoUnicoSp', start: 122, length: 1, end: 122, format: 'boolean' },
+          { fieldName: 'validoUnicoSc', start: 123, length: 1, end: 123, format: 'boolean' },
+          { fieldName: 'validoUnicoEnc', start: 124, length: 1, end: 124, format: 'boolean' },
+          { fieldName: 'classeIrpefIres', start: 125, length: 10, end: 134 },
+          { fieldName: 'classeIrap', start: 135, length: 10, end: 144 },
+          { fieldName: 'classeProfessionista', start: 145, length: 10, end: 154 },
+          { fieldName: 'classeIrapProfessionista', start: 155, length: 10, end: 164 },
+          { fieldName: 'classeIva', start: 165, length: 10, end: 174 },
+          { fieldName: 'classeDatiExtracontabili', start: 175, length: 10, end: 184 },
+          { fieldName: 'colonnaRegistroCronologico', start: 185, length: 4, end: 188 },
+          { fieldName: 'colonnaRegistroIncassiPagamenti', start: 189, length: 4, end: 192 },
+          { fieldName: 'contoDareCee', start: 193, length: 12, end: 204 },
+          { fieldName: 'contoAvereCee', start: 205, length: 12, end: 216 },
+          { fieldName: 'naturaConto', start: 217, length: 4, end: 220 },
+          { fieldName: 'gestioneBeniAmmortizzabili', start: 221, length: 1, end: 221 },
+          { fieldName: 'percDeduzioneManutenzione', start: 222, length: 6, end: 227, format: 'number:decimal' },
+          { fieldName: 'gruppo', start: 228, length: 1, end: 228 },
+          { fieldName: 'dettaglioClienteFornitore', start: 229, length: 1, end: 229 },
+          { fieldName: 'descrizioneBilancioDare', start: 230, length: 60, end: 289 },
+          { fieldName: 'descrizioneBilancioAvere', start: 290, length: 60, end: 349 },
+          { fieldName: 'utilizzaDescrizioneLocale', start: 350, length: 1, end: 350, format: 'boolean' },
+          { fieldName: 'descrizioneLocale', start: 351, length: 40, end: 390 },
+          { fieldName: 'consideraBilancioSemplificato', start: 391, length: 1, end: 391, format: 'boolean' },
+        ]
+      },
+    }
+  });
+
   // Template Scritture Contabili
   type ScritturaField = {
     fileIdentifier: string;
