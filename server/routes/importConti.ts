@@ -18,15 +18,12 @@ router.post('/', upload.single('file'), async (req, res) => {
     }
 
     const fileContent = req.file.buffer.toString('latin1');
-    const firstLine = fileContent.split('\\n')[0] ?? '';
+    const originalFilename = req.file.originalname.toLowerCase();
 
-    // Heuristica per determinare il tipo di file:
-    // Il file CONTIAZI ha il codice fiscale dell'azienda nelle prime righe.
-    // Il file CONTIGEN in quella posizione ha spazi vuoti.
-    const potentialFiscalCode = firstLine.substring(3, 19).trim();
-    const isAziendale = potentialFiscalCode.length > 0;
-
-    console.log(`[Import Conti] Rilevato file ${isAziendale ? 'Aziendale' : 'Standard'} (ID: '${potentialFiscalCode}')`);
+    // Logica di rilevamento basata sul nome del file (più robusta)
+    const isAziendale = originalFilename.includes('contiazi');
+    
+    console.log(`[Import Conti] Rilevato file con nome '${req.file.originalname}'. Classificato come: ${isAziendale ? 'Aziendale' : 'Standard'}`);
 
     try {
         let result;
