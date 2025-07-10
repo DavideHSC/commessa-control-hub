@@ -1,77 +1,35 @@
 import { Prisma } from '@prisma/client';
 import { ValidatedPianoDeiConti, ValidatedPianoDeiContiAziendale } from '../../acquisition/validators/pianoDeiContiValidator';
-import * as decoders from '../decoders/contoDecoders';
+// Rimosso import decoders, non più necessari qui
 
 /**
  * Trasforma un record validato del Piano dei Conti in un oggetto
- * `Prisma.ContoCreateInput` pronto per l'inserimento nel database.
- * Questa funzione è pura e non ha effetti collaterali.
+ * `Prisma.StagingContoCreateInput` pronto per l'inserimento nella tabella di staging.
+ * Questa funzione è ora un semplice mapping 1:1.
  *
  * @param validatedRecord Il record validato da Zod.
- * @returns Un oggetto `Prisma.ContoCreateInput`.
+ * @returns Un oggetto `Prisma.StagingContoCreateInput`.
  */
-export function transformPianoDeiConti(
+export function transformPianoDeiContiToStaging(
   validatedRecord: ValidatedPianoDeiConti
-): Prisma.ContoCreateInput {
-  
-  const tipoConto = decoders.determineTipoConto(validatedRecord.tipo, validatedRecord.codice);
-
-  // Estrai 'descrizione' e mantieni il resto dei campi in 'remaningRecord'
-  const { descrizione, ...remaningRecord } = validatedRecord;
-
-  const dataToUpsert: Prisma.ContoCreateInput = {
-    ...remaningRecord,
-    nome: descrizione, // Mappa 'descrizione' a 'nome'
-    id: validatedRecord.codice,
-    externalId: validatedRecord.codice,
-    tipo: tipoConto,
-    codiceFiscaleAzienda: '', // Per CONTIGEN, questo è sempre una stringa vuota (generico)
-    livelloDesc: decoders.decodeLivello(validatedRecord.livello ?? ''),
-    gruppoDesc: decoders.decodeGruppo(validatedRecord.gruppo ?? ''),
-    controlloSegnoDesc: decoders.decodeControlloSegno(validatedRecord.controlloSegno ?? ''),
-    codificaFormattata: decoders.formatCodificaGerarchica(validatedRecord.codice, validatedRecord.livello),
-    richiedeVoceAnalitica: false,
-    vociAnaliticheAbilitateIds: [],
-    contropartiteSuggeriteIds: [],
+): Prisma.StagingContoCreateInput {
+  return {
+    ...validatedRecord,
+    codiceFiscaleAzienda: '', // Default per i conti generici
   };
-
-  return dataToUpsert;
 }
 
 /**
  * Trasforma un record validato del Piano dei Conti AZIENDALE in un oggetto
- * `Prisma.ContoCreateInput` pronto per l'inserimento nel database.
- * Questa funzione gestisce la logica specifica per i conti aziendali,
- * in particolare l'uso del `codiceFiscaleAzienda`.
+ * `Prisma.StagingContoCreateInput` pronto per l'inserimento nella tabella di staging.
  *
  * @param validatedRecord Il record validato da Zod (versione aziendale).
- * @returns Un oggetto `Prisma.ContoCreateInput`.
+ * @returns Un oggetto `Prisma.StagingContoCreateInput`.
  */
-export function transformPianoDeiContiAziendale(
+export function transformPianoDeiContiAziendaleToStaging(
   validatedRecord: ValidatedPianoDeiContiAziendale
-): Prisma.ContoCreateInput {
-  
-  const tipoConto = decoders.determineTipoConto(validatedRecord.tipo, validatedRecord.codice);
-
-  // Estrai 'descrizione' e mantieni il resto dei campi in 'remaningRecord'
-  const { descrizione, ...remaningRecord } = validatedRecord;
-
-  const dataToUpsert: Prisma.ContoCreateInput = {
-    ...remaningRecord,
-    nome: descrizione, // Mappa 'descrizione' a 'nome'
-    id: `${validatedRecord.codiceFiscaleAzienda}_${validatedRecord.codice}`,
-    externalId: validatedRecord.codice,
-    tipo: tipoConto,
-    // Qui usiamo il codice fiscale dal record, non una stringa vuota
-    codiceFiscaleAzienda: validatedRecord.codiceFiscaleAzienda, 
-    livelloDesc: decoders.decodeLivello(validatedRecord.livello ?? ''),
-    gruppoDesc: decoders.decodeGruppo(validatedRecord.gruppo ?? ''),
-    controlloSegnoDesc: decoders.decodeControlloSegno(validatedRecord.controlloSegno ?? ''),
-    codificaFormattata: decoders.formatCodificaGerarchica(validatedRecord.codice, validatedRecord.livello),
-    richiedeVoceAnalitica: false,
-    vociAnaliticheAbilitateIds: [],
-    contropartiteSuggeriteIds: [],
+): Prisma.StagingContoCreateInput {
+  return {
+    ...validatedRecord,
   };
-
-  return dataToUpsert;
 } 

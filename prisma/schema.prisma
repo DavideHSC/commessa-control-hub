@@ -628,3 +628,66 @@ enum FormulaImporto {
   iva
   totale
 }
+
+model StagingConto {
+  id                                String    @id @default(cuid())
+
+  // Identificativi di base e chiavi
+  codice                           String?   // CODIFICA
+  codiceFiscaleAzienda             String?   // Da CONTIAZI, default '' per CONTIGEN
+
+  // Campi descrittivi e di classificazione
+  descrizione                      String?
+  descrizioneLocale                String?   // Da CONTIAZI
+  sigla                            String?
+  livello                          String?
+  tipo                             String?
+  gruppo                           String?
+  naturaConto                      String?
+  controlloSegno                   String?
+  
+  // Flag di validità per regimi e dichiarazioni
+  validoImpresaOrdinaria           String?
+  validoImpresaSemplificata        String?
+  validoProfessionistaOrdinario    String?
+  validoProfessionistaSemplificato String?
+  validoUnicoPf                    String?
+  validoUnicoSp                    String?
+  validoUnicoSc                    String?
+  validoUnicoEnc                   String?
+  
+  // Raccordi fiscali e CEE
+  codiceClasseIrpefIres            String?
+  codiceClasseIrap                 String?
+  codiceClasseProfessionista       String?
+  codiceClasseIrapProfessionista   String?
+  codiceClasseIva                  String?
+  codiceClasseDatiStudiSettore     String?
+  contoDareCee                     String?
+  contoAvereCee                    String?
+
+  // Campi per gestioni specifiche
+  contoCostiRicaviCollegato        String?
+  gestioneBeniAmmortizzabili       String?
+  percDeduzioneManutenzione        String?
+  dettaglioClienteFornitore        String?
+  numeroColonnaRegCronologico      String?
+  numeroColonnaRegIncassiPag       String?
+
+  // Descrizioni per bilanci
+  descrizioneBilancioDare          String?
+  descrizioneBilancioAvere         String?
+
+  // Campi specifici di CONTIAZI
+  subcodiceAzienda                 String?
+  utilizzaDescrizioneLocale        String?
+  consideraNelBilancioSemplificato String?
+
+  // Campo riservato e metadati
+  tabellaItalstudio                String?
+  sourceFileName                   String?
+  importedAt                       DateTime  @default(now())
+
+  @@unique([codice, codiceFiscaleAzienda])
+  @@map("staging_conti")
+}
