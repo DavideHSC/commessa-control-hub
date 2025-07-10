@@ -140,15 +140,39 @@ model Fornitore {
   codiceDestinatario          String?
 }
 
+// =================================================================
+// MODELLI PER LA GESTIONE ANALITICA E LA RICONCILIAZIONE
+// =================================================================
+
 model VoceAnalitica {
   id          String        @id @default(cuid())
   nome        String        @unique
   descrizione String?
-  externalId  String?       @unique
+  tipo        String // "Costo" o "Ricavo"
+  
+  // Relazioni
+  conti       Conto[]
   allocazioni Allocazione[]
   budgetItems BudgetVoce[]
-  conti       Conto[]
 }
+
+model RegolaRipartizione {
+  id            String  @id @default(cuid())
+  descrizione   String
+  contoCodice   String  // Il codice del conto a cui applicare la regola
+  
+  commessaId    String
+  commessa      Commessa @relation(fields: [commessaId], references: [id])
+  
+  percentuale   Float
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+// =================================================================
+// MODELLI CORE
+// =================================================================
 
 model Conto {
   id                         String          @id @default(cuid())
@@ -156,11 +180,15 @@ model Conto {
   nome                       String
   tipo                       TipoConto
   richiedeVoceAnalitica      Boolean         @default(false)
-  vociAnaliticheAbilitateIds String[]
+  
+  // CAMPO CHIAVE PER IL FILTRO DI RICONCILIAZIONE
+  isRilevantePerCommesse     Boolean         @default(false)
+
+  // RELAZIONE MOLTI-A-MOLTI CON VOCI ANALITICHE
+  vociAnalitiche             VoceAnalitica[]
+
   contropartiteSuggeriteIds  String[]
   externalId                 String?         @unique
-  voceAnaliticaId            String?
-  voceAnalitica              VoceAnalitica?  @relation(fields: [voceAnaliticaId], references: [id])
   righeScrittura             RigaScrittura[]
   
   // === ESTENSIONI PER CONTIAZI (Piano dei Conti Aziendale) ===
@@ -236,6 +264,7 @@ model Commessa {
   externalId  String?       @unique
   parentId    String?
   allocazioni Allocazione[]
+  regoleRipartizione RegolaRipartizione[]
   importAllocazioni ImportAllocazione[]
   budget      BudgetVoce[]
   cliente     Cliente       @relation(fields: [clienteId], references: [id])
@@ -272,8 +301,8 @@ model ScritturaContabile {
 model RigaScrittura {
   id                   String             @id @default(cuid())
   descrizione          String
-  dare                 Float
-  avere                Float
+  dare                 Float?
+  avere                Float?
   contoId              String?
   scritturaContabileId String
   allocazioni          Allocazione[]
@@ -288,16 +317,27 @@ model RigaScrittura {
   fornitore            Fornitore?         @relation(fields: [fornitoreId], references: [id])
 }
 
+// QUESTA È LA TABELLA DI DESTINAZIONE FINALE POST-RICONCILIAZIONE
 model Allocazione {
-  id              String        @id @default(cuid())
+  id              String  @id @default(cuid())
   importo         Float
-  descrizione     String?
+  
+  tipoMovimento   String // Es: COSTO_EFFETTIVO, COSTO_STIMATO, RICAVO_EFFETTIVO
+
   rigaScritturaId String
-  commessaId      String
-  voceAnaliticaId String
-  commessa        Commessa      @relation(fields: [commessaId], references: [id])
   rigaScrittura   RigaScrittura @relation(fields: [rigaScritturaId], references: [id], onDelete: Cascade)
+
+  commessaId      String
+  commessa        Commessa      @relation(fields: [commessaId], references: [id])
+
+  voceAnaliticaId String
   voceAnalitica   VoceAnalitica @relation(fields: [voceAnaliticaId], references: [id])
+
+  dataMovimento   DateTime
+  note            String?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
 model CodiceIva {

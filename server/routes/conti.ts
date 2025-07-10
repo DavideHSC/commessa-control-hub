@@ -56,6 +56,53 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET all conti for configuration purposes (no pagination)
+router.get('/configurabili', async (req, res) => {
+  try {
+    const conti = await prisma.conto.findMany({
+      select: {
+        id: true,
+        codice: true,
+        nome: true,
+        isRilevantePerCommesse: true,
+      },
+      orderBy: {
+        codice: 'asc',
+      },
+    });
+    res.json({ data: conti });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Errore nel recupero dei conti per la configurazione.' });
+  }
+});
+
+// PATCH toggle a conto's relevance for analytics
+router.patch('/:id/toggle-rilevanza', async (req, res) => {
+  const { id } = req.params;
+  const { isRilevante } = req.body;
+
+  if (typeof isRilevante !== 'boolean') {
+    return res.status(400).json({ error: 'Il campo isRilevante deve essere un booleano.' });
+  }
+
+  try {
+    const contoAggiornato = await prisma.conto.update({
+      where: { id },
+      data: {
+        isRilevantePerCommesse: isRilevante,
+      },
+      select: {
+        id: true,
+        isRilevantePerCommesse: true,
+      }
+    });
+    res.json(contoAggiornato);
+  } catch (error) {
+    res.status(500).json({ error: `Errore nell'aggiornamento del conto ${id}.` });
+  }
+});
+
 // POST a new conto
 router.post('/', async (req, res) => {
   try {

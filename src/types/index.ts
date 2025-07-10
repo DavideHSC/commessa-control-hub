@@ -113,10 +113,12 @@ export interface Fornitore {
  * Esempio: "personale", "gestione automezzi", "sacchi".
  */
 export interface VoceAnalitica {
-  id: string; // Es. '1', '2', '3' come da file Excel
-  nome: string; // Es. 'personale', 'gestione automezzi'
+  id: string;
+  nome: string;
   descrizione?: string;
   externalId?: string | null;
+  tipo: 'Costo' | 'Ricavo';
+  conti?: Partial<Conto>[]; // Conti associati a questa voce
 }
 
 /**
@@ -129,9 +131,8 @@ export interface Conto {
   nome: string;
   tipo: 'Costo' | 'Ricavo' | 'Patrimoniale' | 'Fornitore' | 'Cliente';
   richiedeVoceAnalitica: boolean;
-  voceAnaliticaId: string | null;
-  voceAnalitica?: VoceAnalitica;
-  voceAnaliticaSuggeritaId?: string | null;
+  isRilevantePerCommesse?: boolean; // Aggiunto per la configurazione
+  vociAnalitiche?: Partial<VoceAnalitica>[]; // Voci analitiche associate
 
   // === ESTENSIONI FASE 1 - PARSER PYTHON (parser_contigen.py) ===
   tabellaItalstudio?: string | null;

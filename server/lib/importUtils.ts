@@ -194,7 +194,8 @@ export async function processScrittureInBatches(data: {
                             where: { nome: voceAnaliticaCodice },
                             update: {},
                             create: {
-                                nome: voceAnaliticaCodice
+                                nome: voceAnaliticaCodice,
+                                tipo: 'Costo' // FIX: Aggiunto tipo di default
                             }
                         });
 
@@ -212,7 +213,10 @@ export async function processScrittureInBatches(data: {
                                 rigaScritturaId: rigaScrittura.id,
                                 importo: alloc.parametro,
                                 commessaId: commessa.id,
-                                voceAnaliticaId: voceAnalitica.id, 
+                                voceAnaliticaId: voceAnalitica.id,
+                                // FIX: Aggiunti campi obbligatori
+                                tipoMovimento: 'COSTO_EFFETTIVO', 
+                                dataMovimento: testata.dataRegistrazione || new Date()
                             }
                         });
                     }

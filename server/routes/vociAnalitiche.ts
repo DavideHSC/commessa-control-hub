@@ -1,80 +1,77 @@
 import express from 'express';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 const router = express.Router();
 
-// GET all voci analitiche with pagination, search, and sort
+// GET all voci analitiche con i conti associati
 router.get('/', async (req, res) => {
   try {
-    const { 
-      page = '1', 
-      limit = '25', 
-      search = '',
-      sortBy = 'nome',
-      sortOrder = 'asc'
-    } = req.query;
-
-    const pageNumber = parseInt(page as string, 10);
-    const pageSize = parseInt(limit as string, 10);
-    const skip = (pageNumber - 1) * pageSize;
-    const take = pageSize;
-
-    const where: Prisma.VoceAnaliticaWhereInput = search ? {
-      OR: [
-        { nome: { contains: search as string, mode: 'insensitive' } },
-        { descrizione: { contains: search as string, mode: 'insensitive' } },
-      ],
-    } : {};
-
-    const orderBy: Prisma.VoceAnaliticaOrderByWithRelationInput = {
-        [(sortBy as string) || 'nome']: (sortOrder as 'asc' | 'desc') || 'asc'
-    };
-
-    const [voci, totalCount] = await prisma.$transaction([
-      prisma.voceAnalitica.findMany({
-        where,
-        orderBy,
-        skip,
-        take,
-      }),
-      prisma.voceAnalitica.count({ where }),
-    ]);
-
-    res.json({
-      data: voci,
-      pagination: {
-        page: pageNumber,
-        limit: pageSize,
-        total: totalCount,
-        totalPages: Math.ceil(totalCount / pageSize),
-      }
+    const voci = await prisma.voceAnalitica.findMany({
+      include: {
+        conti: {
+          select: {
+            id: true,
+            codice: true,
+            nome: true,
+          },
+        },
+      },
+      orderBy: {
+        nome: 'asc',
+      },
     });
+    res.json(voci);
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Errore nel recupero delle voci analitiche.' });
+    res.status(500).json({ error: "Errore nel recupero delle voci analitiche." });
   }
 });
 
-// POST a new voce analitica
+// POST create a new voce analitica
 router.post('/', async (req, res) => {
+  const { nome, descrizione, tipo, contiIds } = req.body;
+  if (!nome || !tipo) {
+    return res.status(400).json({ error: "Nome e tipo sono obbligatori." });
+  }
+
   try {
     const nuovaVoce = await prisma.voceAnalitica.create({
-      data: req.body,
+      data: {
+        nome,
+        descrizione,
+        tipo,
+        conti: {
+          connect: contiIds?.map((id: string) => ({ id })) || [],
+        },
+      },
     });
     res.status(201).json(nuovaVoce);
   } catch (error) {
-    res.status(500).json({ error: 'Errore nella creazione della voce analitica.' });
+    res.status(500).json({ error: "Errore nella creazione della voce analitica." });
   }
 });
 
-// PUT update a voce analitica
+// PUT update a voce analitica and its conti mapping
 router.put('/:id', async (req, res) => {
   const { id } = req.params;
+  const { nome, descrizione, tipo, contiIds } = req.body;
+
   try {
     const voceAggiornata = await prisma.voceAnalitica.update({
       where: { id },
-      data: req.body,
+      data: {
+        nome,
+        descrizione,
+        tipo,
+        conti: {
+          set: contiIds?.map((id: string) => ({ id })) || [],
+        },
+      },
+      include: {
+        conti: {
+          select: { id: true, codice: true, nome: true },
+        },
+      },
     });
     res.json(voceAggiornata);
   } catch (error) {
@@ -82,17 +79,19 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+
 // DELETE a voce analitica
 router.delete('/:id', async (req, res) => {
-  const { id } = req.params;
-  try {
-    await prisma.voceAnalitica.delete({
-      where: { id },
-    });
-    res.status(204).send();
-  } catch (error) {
-    res.status(500).json({ error: `Errore nell'eliminazione della voce analitica ${id}.` });
-  }
+    const { id } = req.params;
+    try {
+        await prisma.voceAnalitica.delete({
+            where: { id },
+        });
+        res.status(204).send();
+    } catch (error) {
+        res.status(500).json({ error: `Errore nell'eliminazione della voce analitica ${id}.` });
+    }
 });
+
 
 export default router; 

@@ -1,49 +1,44 @@
 import { VoceAnalitica } from "@/types";
+import { PaginatedResponse } from ".";
 
 const API_BASE_URL = '/api/voci-analitiche';
 
+// Funzione di utilità per il fetch dei dati
+const fetchData = async <T>(url: string, options?: RequestInit): Promise<T> => {
+    const response = await fetch(url, options);
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Errore generico' }));
+        throw new Error(errorData.message || 'Errore di rete');
+    }
+    // Per le risposte 204 (No Content), non c'è un corpo JSON da parsare
+    if (response.status === 204) {
+        return null as T;
+    }
+    return response.json();
+};
+
 export const getVociAnalitiche = async (): Promise<VoceAnalitica[]> => {
-    const response = await fetch(API_BASE_URL);
-    if (!response.ok) {
-        throw new Error('Errore nel recupero delle voci analitiche');
-    }
-    const result = await response.json();
-    return result.data;
+    return fetchData<VoceAnalitica[]>(API_BASE_URL);
 };
 
-export const createVoceAnalitica = async (data: Partial<VoceAnalitica>): Promise<VoceAnalitica> => {
-    const response = await fetch(API_BASE_URL, {
+export const createVoceAnalitica = async (voce: Partial<VoceAnalitica> & { contiIds?: string[] }): Promise<VoceAnalitica> => {
+    return fetchData<VoceAnalitica>(API_BASE_URL, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(voce),
     });
-    if (!response.ok) {
-        throw new Error('Errore nella creazione della voce analitica');
-    }
-    return response.json();
 };
 
-export const updateVoceAnalitica = async (id: string, data: Partial<VoceAnalitica>): Promise<VoceAnalitica> => {
-    const response = await fetch(`${API_BASE_URL}/${id}`, {
+export const updateVoceAnalitica = async (id: string, voce: Partial<VoceAnalitica> & { contiIds?: string[] }): Promise<VoceAnalitica> => {
+    return fetchData<VoceAnalitica>(`${API_BASE_URL}/${id}`, {
         method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(voce),
     });
-    if (!response.ok) {
-        throw new Error('Errore nell\'aggiornamento della voce analitica');
-    }
-    return response.json();
 };
 
 export const deleteVoceAnalitica = async (id: string): Promise<void> => {
-    const response = await fetch(`${API_BASE_URL}/${id}`, {
+    await fetchData<void>(`${API_BASE_URL}/${id}`, {
         method: 'DELETE',
     });
-    if (!response.ok) {
-        throw new Error('Errore nell\'eliminazione della voce analitica');
-    }
 }; 
