@@ -1,4 +1,4 @@
-# Piano di Refactoring v2.1: Flusso End-to-End
+# Piano di Refactoring v2.2: Flusso End-to-End con Logica di Staging
 
 **Stato:** In Corso
 **Obiettivo Finale:** Sostituire l'instabile sistema di importazione diretta con un robusto flusso "Staging -> Riconciliazione", e al termine del processo, rimuovere completamente ogni residuo tecnico della vecchia implementazione per garantire un'architettura pulita e manutenibile.
@@ -12,13 +12,19 @@
 | :-- | :--- | :--- | :--- |
 | **1.1**| **Refactoring Database** | ✅ Completato | Create le tabelle `StagingConto`, `StagingTestata`, `StagingRigaContabile`, `StagingRigaIva`, `StagingAllocazione` in `prisma/schema.prisma`. |
 | **1.2**| **Semplificazione Backend** | ✅ Completato | Modificati i workflow di importazione (`importPianoDeiContiWorkflow`, `importScrittureContabiliWorkflow`) per eseguire solo `createMany` sulle tabelle di staging, eliminando logiche di `upsert` e `lookup`. |
-| **1.3**| **Creazione Endpoint di Staging** | 🟡 In Corso | Creare endpoint di **sola lettura** (es. `GET /api/staging/conti`) per esporre i dati grezzi con paginazione, ricerca e ordinamento. |
-| **1.4**| **Creazione Viste Frontend** | 🟡 In Corso | Implementare una sezione dedicata (es. pagina "Dati di Staging") per visualizzare i dati importati, utilizzando i nuovi endpoint. |
+| **1.3**| **Creazione Endpoint di Staging** | ✅ Completato | Creati endpoint di **sola lettura** (es. `GET /api/staging/conti`, `/api/staging/scritture`) per esporre i dati grezzi con paginazione, ricerca e ordinamento. |
+| **1.4**| **Creazione Viste Frontend** | ✅ Completato | Implementata una sezione dedicata ("Dati di Staging") per visualizzare i dati importati. |
+| **1.5**| **Correzione Visibilità Dati** | ✅ Completato | **(Non pianificato)** Estesa la tabella di staging dei conti per mostrare **tutte** le colonne importate, garantendo una validazione 1:1 con il file sorgente. |
+| **1.6**| **Correzione Reset Database** | ✅ Completato | **(Non pianificato)** Aggiornata la funzione di sistema "Azzera e Ripopola" per includere lo svuotamento di tutte le nuove tabelle di staging. |
+| **1.7**| **Ottimizzazione Performance Import**| ✅ Completato | **(Non pianificato)** Sostituita la logica di importazione con `upsert` (lenta) con un pattern `deleteMany` + `createMany` per ripristinare performance ottimali. |
+
 
 ---
 
 ### **Fase 2: Sviluppo del Processo di Riconciliazione**
 **Obiettivo:** Creare il "ponte" logico e l'interfaccia utente per trasferire i dati dallo staging alle tabelle di produzione in modo controllato, validato e trasparente.
+
+**Nota sulla Logica di Staging:** La tabella di staging contiene intenzionalmente una copia fedele dei dati dei file, inclusi record "duplicati" con chiavi diverse (es. conto '411' standard e conto '411' per una specifica azienda). Questo è voluto. Il processo di riconciliazione implementerà la logica di "override": per ogni entità, cercherà prima la versione specifica per l'azienda; se non la trova, utilizzerà la versione standard. Questo garantisce che non si perda nessuna informazione durante l'importazione e che la logica di business sia isolata e gestita in questa fase.
 
 | ID | Task | Stato | Dettagli |
 | :-- | :--- | :--- | :--- |

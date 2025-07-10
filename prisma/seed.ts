@@ -338,7 +338,7 @@ async function main() {
   await prisma.importTemplate.create({
     data: {
       name: 'piano_dei_conti',
-      modelName: 'Conto',
+      modelName: 'StagingConto',
       fieldDefinitions: {
         create: [
           // Allineato 1:1 con parser_contigen.py
@@ -348,7 +348,7 @@ async function main() {
           { fieldName: 'tipo', start: 76, length: 1, end: 76 },
           { fieldName: 'sigla', start: 77, length: 12, end: 88 },
           { fieldName: 'controlloSegno', start: 89, length: 1, end: 89 },
-          { fieldName: 'contoCostiRicavi', start: 90, length: 10, end: 99 },
+          { fieldName: 'contoCostiRicaviCollegato', start: 90, length: 10, end: 99 },
           { fieldName: 'validoImpresaOrdinaria', start: 100, length: 1, end: 100, format: 'boolean' },
           { fieldName: 'validoImpresaSemplificata', start: 101, length: 1, end: 101, format: 'boolean' },
           { fieldName: 'validoProfessionistaOrdinario', start: 102, length: 1, end: 102, format: 'boolean' },
@@ -357,20 +357,20 @@ async function main() {
           { fieldName: 'validoUnicoSp', start: 105, length: 1, end: 105, format: 'boolean' },
           { fieldName: 'validoUnicoSc', start: 106, length: 1, end: 106, format: 'boolean' },
           { fieldName: 'validoUnicoEnc', start: 107, length: 1, end: 107, format: 'boolean' },
-          { fieldName: 'classeIrpefIres', start: 108, length: 10, end: 117 },
-          { fieldName: 'classeIrap', start: 118, length: 10, end: 127 },
-          { fieldName: 'classeProfessionista', start: 128, length: 10, end: 137 },
-          { fieldName: 'classeIrapProfessionista', start: 138, length: 10, end: 147 },
-          { fieldName: 'classeIva', start: 148, length: 10, end: 157 },
-          { fieldName: 'colonnaRegistroCronologico', start: 158, length: 4, end: 161 },
-          { fieldName: 'colonnaRegistroIncassiPagamenti', start: 162, length: 4, end: 165 },
+          { fieldName: 'codiceClasseIrpefIres', start: 108, length: 10, end: 117 },
+          { fieldName: 'codiceClasseIrap', start: 118, length: 10, end: 127 },
+          { fieldName: 'codiceClasseProfessionista', start: 128, length: 10, end: 137 },
+          { fieldName: 'codiceClasseIrapProfessionista', start: 138, length: 10, end: 147 },
+          { fieldName: 'codiceClasseIva', start: 148, length: 10, end: 157 },
+          { fieldName: 'numeroColonnaRegCronologico', start: 158, length: 4, end: 161 },
+          { fieldName: 'numeroColonnaRegIncassiPag', start: 162, length: 4, end: 165 },
           { fieldName: 'contoDareCee', start: 166, length: 12, end: 177 },
           { fieldName: 'contoAvereCee', start: 178, length: 12, end: 189 },
           { fieldName: 'naturaConto', start: 190, length: 4, end: 193 },
           { fieldName: 'gestioneBeniAmmortizzabili', start: 194, length: 1, end: 194 },
           { fieldName: 'percDeduzioneManutenzione', start: 195, length: 6, end: 200, format: 'number:decimal' },
           { fieldName: 'gruppo', start: 257, length: 1, end: 257 },
-          { fieldName: 'classeDatiExtracontabili', start: 258, length: 10, end: 267 },
+          { fieldName: 'codiceClasseDatiStudiSettore', start: 258, length: 10, end: 267 },
           { fieldName: 'dettaglioClienteFornitore', start: 268, length: 1, end: 268 },
           { fieldName: 'descrizioneBilancioDare', start: 269, length: 60, end: 328 },
           { fieldName: 'descrizioneBilancioAvere', start: 329, length: 60, end: 388 },
@@ -397,7 +397,7 @@ async function main() {
   await prisma.importTemplate.create({
     data: {
       name: 'piano_dei_conti_aziendale',
-      modelName: 'Conto', // Stesso modello di destinazione
+      modelName: 'StagingConto', // Stesso modello di destinazione
       fieldDefinitions: {
         create: [
           // Basato sul tracciato CONTIAZI.TXT
@@ -409,7 +409,7 @@ async function main() {
           { fieldName: 'descrizione', start: 34, length: 60, end: 93 },
           { fieldName: 'sigla', start: 94, length: 12, end: 105 },
           { fieldName: 'controlloSegno', start: 106, length: 1, end: 106 },
-          { fieldName: 'contoCostiRicavi', start: 107, length: 10, end: 116 },
+          { fieldName: 'contoCostiRicaviCollegato', start: 107, length: 10, end: 116 }, // FIX: Rinominato da contoCostiRicavi
           { fieldName: 'validoImpresaOrdinaria', start: 117, length: 1, end: 117, format: 'boolean' },
           { fieldName: 'validoImpresaSemplificata', start: 118, length: 1, end: 118, format: 'boolean' },
           { fieldName: 'validoProfessionistaOrdinario', start: 119, length: 1, end: 119, format: 'boolean' },

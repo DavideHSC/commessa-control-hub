@@ -7,24 +7,22 @@ const prisma = new PrismaClient();
 
 /**
  * Determina se il file è un piano dei conti standard o aziendale.
- * Ispeziona la prima riga del file per la presenza di un codice fiscale
- * nella posizione attesa per i file CONTIAZI.
+ * Ispeziona il nome del file per determinare se è di tipo standard o aziendale.
+ * Cerca la presenza di "contiazi" o "contigen" nel nome del file.
  * 
- * @param fileContent - Il contenuto del file come stringa.
+ * @param fileName - Il nome del file originale.
  * @returns 'aziendale' o 'standard'.
  */
-function determineFileType(fileContent: string): 'aziendale' | 'standard' {
-  const firstLine = fileContent.split('\\n')[0];
-  if (!firstLine) return 'standard'; // Se vuoto, default a standard
+function determineFileType(fileName: string): 'aziendale' | 'standard' {
+  const lowerCaseFileName = fileName.toLowerCase();
 
-  // Tracciato CONTIAZI: Codice Fiscale da posizione 4 a 19.
-  // Se questo campo non è vuoto, è quasi certamente un file aziendale.
-  if (firstLine.length >= 19 && firstLine.substring(3, 19).trim() !== '') {
-    console.log('[Handler] Rilevato file di tipo: Aziendale');
+  if (lowerCaseFileName.includes('contiazi')) {
+    console.log(`[Handler] Rilevato file di tipo: Aziendale (dal nome file: ${fileName})`);
     return 'aziendale';
   }
   
-  console.log('[Handler] Rilevato file di tipo: Standard');
+  // Default a standard se non è aziendale.
+  console.log(`[Handler] Rilevato file di tipo: Standard (dal nome file: ${fileName})`);
   return 'standard';
 }
 
@@ -38,10 +36,11 @@ export async function handlePianoDeiContiImportV2(req: Request, res: Response) {
   // Passiamo l'intero contenuto (buffer) come stringa al workflow.
   // L'encoding verrà gestito a valle se necessario.
   const fileContent = req.file.buffer.toString('latin1'); // latin1 è un encoding sicuro per i file legacy
-  console.log(`[API V2] Ricevuto file per importazione Piano dei Conti: ${req.file.originalname}, size: ${req.file.size} bytes`);
+  const fileName = req.file.originalname;
+  console.log(`[API V2] Ricevuto file per importazione Piano dei Conti: ${fileName}, size: ${req.file.size} bytes`);
 
   try {
-    const fileType = determineFileType(fileContent);
+    const fileType = determineFileType(fileName);
     let result;
 
     if (fileType === 'aziendale') {

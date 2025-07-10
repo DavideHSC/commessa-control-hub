@@ -70,24 +70,36 @@ export async function importPianoDeiContiAziendaleWorkflow(fileContent: string):
 
   // 4. Salvataggio in Staging
   if (recordsToCreate.length > 0) {
+    console.log(`[Workflow Staging] Inizio salvataggio ottimizzato di ${recordsToCreate.length} record per l'azienda ${codiceFiscaleAzienda}.`);
     try {
-      // Svuota la tabella di staging per questa specifica azienda
+      const recordCodes = recordsToCreate.map(r => r.codice).filter((c): c is string => !!c);
+
+      // 1. Cancellazione mirata e di massa solo dei record che stiamo per importare per questa azienda
       await prisma.stagingConto.deleteMany({
-        where: { codiceFiscaleAzienda: codiceFiscaleAzienda }
+        where: { 
+          codiceFiscaleAzienda: codiceFiscaleAzienda,
+          codice: {
+            in: recordCodes,
+          }
+        }
       });
 
+      // 2. Inserimento di massa
       const result = await prisma.stagingConto.createMany({
         data: recordsToCreate,
-        skipDuplicates: true,
+        skipDuplicates: false,
       });
+
       stats.successfulRecords = result.count;
       console.log(`[Workflow Staging] Salvati ${result.count} record per l'azienda ${codiceFiscaleAzienda}.`);
     } catch (e) {
       const error = e as Error;
-      stats.errorRecords = recordsToCreate.length; // Tutti falliti
-      stats.errors.push({ row: 0, message: `Errore di massa durante il createMany: ${error.message}`, data: {} });
+      stats.errorRecords = recordsToCreate.length;
+      stats.errors.push({ row: 0, message: `Errore di massa durante il salvataggio ottimizzato: ${error.message}`, data: {} });
       console.error(`[Workflow Staging] Errore durante il salvataggio in staging:`, error);
     }
+  } else {
+    console.log('[Workflow Staging] Nessun record valido da salvare.');
   }
 
   console.log('[Workflow Staging] Importazione Piano dei Conti Aziendale terminata.');

@@ -255,27 +255,47 @@ async function seedBasicData() {
     console.log('Dati di base popolati correttamente.');
 }
 
-router.post('/reset-database', async (req, res, next) => {
-    try {
-        console.log("Inizio azzeramento e ripopolamento database...");
+router.post('/reset-database', async (req, res) => {
+  console.log('Ricevuta richiesta di reset del database...');
+  try {
+    await prisma.$transaction(async (tx) => {
+      console.log('Inizio transazione di reset...');
 
-        // Usiamo i nomi delle tabelle reali (considerando i @@map)
-        await prisma.$executeRaw`TRUNCATE TABLE "import_allocazioni", "ImportScritturaRigaContabile", "ImportScritturaRigaIva", "import_scritture_testate", "Allocazione", "RigaIva", "RigaScrittura", "BudgetVoce", "ScritturaContabile", "Conto", "Commessa", "CausaleContabile", "CondizionePagamento", "CodiceIva", "VoceAnalitica", "Fornitore", "Cliente", "WizardState", "ImportLog" RESTART IDENTITY CASCADE;`;
-        
-        console.log("Database azzerato con successo. I template di importazione sono stati preservati.");
+      // 1. Cancellazione tabelle di staging (senza dipendenze strette)
+      console.log('Cancellazione dati di staging...');
+      await tx.stagingAllocazione.deleteMany({});
+      await tx.stagingRigaIva.deleteMany({});
+      await tx.stagingRigaContabile.deleteMany({});
+      await tx.stagingTestata.deleteMany({});
+      await tx.stagingConto.deleteMany({});
+      console.log('Cancellazione dati di staging completata.');
 
-        // Fase 2: Ripopolamento con dati di base
-        console.log("Fase 2: Ripopolamento con dati di base...");
-        await seedBasicData();
+      // 2. Ordine di cancellazione produzione per rispettare i vincoli di foreign key
+      console.log('Cancellazione dati di produzione esistenti...');
+      await tx.allocazione.deleteMany({});
+      await tx.rigaIva.deleteMany({});
+      await tx.rigaScrittura.deleteMany({});
+      await tx.scritturaContabile.deleteMany({});
+      await tx.budgetVoce.deleteMany({});
+      await tx.commessa.deleteMany({});
+      await tx.condizionePagamento.deleteMany({});
+      await tx.codiceIva.deleteMany({});
+      await tx.causaleContabile.deleteMany({});
+      await tx.conto.deleteMany({});
+      await tx.voceAnalitica.deleteMany({});
+      await tx.fornitore.deleteMany({});
+      await tx.cliente.deleteMany({});
+      await tx.wizardState.deleteMany({});
+      await tx.importLog.deleteMany({});
+      console.log('Cancellazione dati di produzione completata.');
+    });
 
-        const message = "Database azzerato e ripopolato con successo con i dati di base.";
-        console.log(message);
-        res.status(200).json({ message });
-
-    } catch (error) {
-        console.error('Errore durante l\'azzeramento e ripopolamento del database:', error);
-        next(error);
-    }
+    console.log('Reset del database completato.');
+    res.status(200).json({ message: 'Database resettato con successo.' });
+  } catch (error) {
+    console.error('Errore durante il reset del database:', error);
+    res.status(500).json({ message: 'Errore durante il reset del database.' });
+  }
 });
 
 // Rotta per consolidare le scritture importate
@@ -723,7 +743,7 @@ router.post('/seed-demo-data', async (req, res) => {
             // Cerchiamo un cliente con externalId senza spazi o caratteri speciali
             const primoCliente = clientiDisponibili.find(cf => 
                 cf.externalId && 
-                cf.externalId.trim() && 
+                cf.externalId.trim() &&
                 !/[.\s]/.test(cf.externalId.trim()) &&
                 cf.ragioneSociale && 
                 cf.ragioneSociale.trim()

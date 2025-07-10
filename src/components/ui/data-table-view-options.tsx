@@ -32,7 +32,7 @@ export function DataTableViewOptions<TData>({
           Vista
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-[150px]">
+      <DropdownMenuContent align="end" className="w-[200px] max-h-96 overflow-y-auto">
         <DropdownMenuLabel>Seleziona Colonne</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {table
