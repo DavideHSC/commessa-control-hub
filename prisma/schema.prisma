@@ -691,3 +691,136 @@ model StagingConto {
   @@unique([codice, codiceFiscaleAzienda])
   @@map("staging_conti")
 }
+
+// === TABELLE DI STAGING PER IMPORTAZIONE MOVIMENTI CONTABILI ===
+
+model StagingTestata {
+  id                                String    @id @default(cuid())
+  codiceUnivocoScaricamento        String    @unique
+  codiceFiscaleAzienda             String?
+  subcodiceFiscaleAzienda          String?
+  codiceAttivita                   String?
+  esercizio                        String?
+  codiceCausale                    String?
+  descrizioneCausale               String?
+  dataRegistrazione                String?
+  codiceAttivitaIva                String?
+  tipoRegistroIva                  String?
+  codiceNumerazioneIva             String?
+  clienteFornitoreCodiceFiscale    String?
+  clienteFornitoreSubcodice        String?
+  clienteFornitoreSigla            String?
+  documentoData                    String?
+  documentoNumero                  String?
+  documentoBis                     String?
+  dataRegistroIva                  String?
+  protocolloNumero                 String?
+  protocolloBis                    String?
+  dataCompetenzaLiquidIva          String?
+  totaleDocumento                  String?
+  dataCompetenzaContabile          String?
+  noteMovimento                    String?
+  dataPlafond                      String?
+  annoProRata                      String?
+  ritenute                         String?
+  enasarco                         String?
+  totaleInValuta                   String?
+  codiceValuta                     String?
+  codiceNumerazioneIvaVendite      String?
+  protocolloNumeroAutofattura      String?
+  protocolloBisAutofattura         String?
+  versamentoData                   String?
+  versamentoTipo                   String?
+  versamentoModello                String?
+  versamentoEstremi                String?
+  stato                            String?
+  tipoGestionePartite              String?
+  codicePagamento                  String?
+  codiceAttivitaIvaPartita         String?
+  tipoRegistroIvaPartita           String?
+  codiceNumerazioneIvaPartita      String?
+  cliForCodiceFiscalePartita       String?
+  cliForSubcodicePartita           String?
+  cliForSiglaPartita               String?
+  documentoDataPartita             String?
+  documentoNumeroPartita           String?
+  documentoBisPartita              String?
+  cliForIntraCodiceFiscale         String?
+  cliForIntraSubcodice             String?
+  cliForIntraSigla                 String?
+  tipoMovimentoIntrastat           String?
+  documentoOperazione              String?
+  sourceFileName                   String?
+  importedAt                       DateTime  @default(now())
+
+  @@map("staging_testate")
+}
+
+model StagingRigaContabile {
+  id                                String    @id @default(cuid())
+  codiceUnivocoScaricamento        String
+  progressivoNumeroRigo            String
+  tipoConto                        String?
+  clienteFornitoreCodiceFiscale    String?
+  clienteFornitoreSubcodice        String?
+  clienteFornitoreSigla            String?
+  conto                            String?
+  importoDare                      String?
+  importoAvere                     String?
+  note                             String?
+  insDatiCompetenzaContabile       String?
+  dataInizioCompetenza             String?
+  dataFineCompetenza               String?
+  noteDiCompetenza                 String?
+  dataRegistrazioneApertura        String?
+  contoDaRilevareMovimento1        String?
+  contoDaRilevareMovimento2        String?
+  insDatiMovimentiAnalitici        String?
+  dataInizioCompetenzaAnalitica    String?
+  dataFineCompetenzaAnalitica      String?
+  insDatiStudiDiSettore            String?
+  statoMovimentoStudi              String?
+  esercizioDiRilevanzaFiscale      String?
+  dettaglioCliForCodiceFiscale     String?
+  dettaglioCliForSubcodice         String?
+  dettaglioCliForSigla             String?
+  siglaConto                       String?
+  sourceFileName                   String?
+  importedAt                       DateTime  @default(now())
+
+  @@unique([codiceUnivocoScaricamento, progressivoNumeroRigo])
+  @@map("staging_righe_contabili")
+}
+
+model StagingRigaIva {
+  id                                String    @id @default(cuid())
+  codiceUnivocoScaricamento        String
+  rigaIdentifier                   String    @unique // Chiave univoca per la riga IVA
+  codiceIva                        String?
+  contropartita                    String?
+  imponibile                       String?
+  imposta                          String?
+  impostaIntrattenimenti           String?
+  imponibile50CorrNonCons          String?
+  impostaNonConsiderata            String?
+  importoLordo                     String?
+  note                             String?
+  siglaContropartita               String?
+  sourceFileName                   String?
+  importedAt                       DateTime  @default(now())
+
+  @@map("staging_righe_iva")
+}
+
+model StagingAllocazione {
+  id                                String    @id @default(cuid())
+  codiceUnivocoScaricamento        String
+  progressivoNumeroRigoCont        String
+  allocazioneIdentifier            String    @unique // Chiave univoca per l'allocazione
+  centroDiCosto                    String?
+  parametro                        String?
+  sourceFileName                   String?
+  importedAt                       DateTime  @default(now())
+  
+  @@map("staging_allocazioni")
+}

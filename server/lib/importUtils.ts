@@ -232,6 +232,74 @@ export async function processScrittureInBatches(data: {
     return { processedCount, errorCount };
 }
 
+
+/**
+ * Nuova funzione per il salvataggio dei movimenti contabili su tabelle di staging.
+ * Questa funzione non esegue lookup o trasformazioni, ma solo un salvataggio 1:1.
+ */
+export async function processScrittureToStaging(data: { 
+    testate: ITestata[], 
+    righeContabili: IRigaContabile[], 
+    righeIva: IRigaIva[], 
+    allocazioni: IAllocazione[]
+}) {
+    const { testate, righeContabili, righeIva, allocazioni } = data;
+    
+    // Svuota le tabelle di staging prima di ogni importazione per evitare dati duplicati
+    await prisma.stagingAllocazione.deleteMany({});
+    await prisma.stagingRigaIva.deleteMany({});
+    await prisma.stagingRigaContabile.deleteMany({});
+    await prisma.stagingTestata.deleteMany({});
+
+    // Prepara i dati per l'inserimento massivo
+    const testateToCreate = testate.map(t => ({
+        codiceUnivocoScaricamento: t.externalId,
+        // ... qui andrebbero mappati tutti gli altri campi da ITestata a StagingTestata
+        // Per ora ci concentriamo sulla struttura.
+        // NOTA: il tracciato originale va mappato qui campo per campo.
+        // Questa è una bozza semplificata.
+    }));
+
+    const righeContabiliToCreate = righeContabili.map(r => ({
+        codiceUnivocoScaricamento: r.externalId.substring(0, 12).trim(),
+        progressivoNumeroRigo: r.externalId.substring(12).trim(),
+        conto: r.conto,
+        importoDare: r.importoDare.toString(),
+        importoAvere: r.importoAvere.toString(),
+        note: r.note
+    }));
+
+    const righeIvaToCreate = righeIva.map((r, index) => ({
+        codiceUnivocoScaricamento: r.externalId.trim(),
+        rigaIdentifier: `${r.externalId.trim()}_${index}`, // Crea un ID univoco per la riga
+        codiceIva: r.codiceIva,
+        imponibile: r.imponibile.toString(),
+        imposta: r.imposta.toString()
+    }));
+
+    const allocazioniToCreate = allocazioni.map((a, index) => ({
+        codiceUnivocoScaricamento: a.externalId.substring(0, 12).trim(),
+        progressivoNumeroRigoCont: a.externalId.substring(12).trim(),
+        allocazioneIdentifier: `${a.externalId.trim()}_${index}`, // Crea un ID univoco
+        centroDiCosto: a.centroDiCosto,
+        parametro: a.parametro.toString(),
+    }));
+
+    // Esegui l'inserimento
+    await prisma.stagingTestata.createMany({ data: testateToCreate, skipDuplicates: true });
+    await prisma.stagingRigaContabile.createMany({ data: righeContabiliToCreate, skipDuplicates: true });
+    await prisma.stagingRigaIva.createMany({ data: righeIvaToCreate, skipDuplicates: true });
+    await prisma.stagingAllocazione.createMany({ data: allocazioniToCreate, skipDuplicates: true });
+
+    return {
+        testate: testate.length,
+        righeContabili: righeContabili.length,
+        righeIva: righeIva.length,
+        allocazioni: allocazioni.length
+    };
+}
+
+
 export function convertDateString(dateStr: string | null | undefined): Date | null {
     if (!dateStr || typeof dateStr !== 'string' || dateStr.trim().length !== 8 || dateStr.trim() === '00000000') {
         return null;

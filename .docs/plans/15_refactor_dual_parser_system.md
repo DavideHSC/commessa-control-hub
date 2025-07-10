@@ -11,9 +11,9 @@ Questa fase prepara il database a ricevere i dati grezzi senza vincoli relaziona
 
 | ID | Task | Stato | Dettagli |
 | :-- | :--- | :--- | :--- |
-| **1.1**| **Creazione Tabella `StagingConto`**| 🟡 In Corso | Aggiungere a `prisma/schema.prisma` una nuova tabella per i dati del Piano dei Conti. La tabella includerà tutti i campi presenti sia in `CONTIGEN.TXT` che in `CONTIAZI.TXT`, rendendoli tutti opzionali (`String?`). Sarà definita una **chiave composita univoca** `@@unique([codice, codiceFiscaleAzienda])` per gestire correttamente entrambi i tracciati. |
-| **1.2**| **Creazione Tabelle Staging Movimenti**| ⬜ Pending | Creare le tabelle `StagingTestata`, `StagingRigaContabile`, `StagingRigaIva`, `StagingAllocazione`. Ognuna sarà una rappresentazione 1:1 dei campi dei rispettivi file (`PNTESTA`, `PNRIGCON`, ecc.), usando solo tipi di dato semplici (`String?`, `Float?`). |
-| **1.3**| **Esecuzione Migrazione Database** | ⬜ Pending | Applicare le nuove tabelle al database tramite una migrazione Prisma. |
+| **1.1**| **Creazione Tabella `StagingConto`**| ✅ Completato | Aggiungere a `prisma/schema.prisma` una nuova tabella per i dati del Piano dei Conti. La tabella includerà tutti i campi presenti sia in `CONTIGEN.TXT` che in `CONTIAZI.TXT`, rendendoli tutti opzionali (`String?`). Sarà definita una **chiave composita univoca** `@@unique([codice, codiceFiscaleAzienda])` per gestire correttamente entrambi i tracciati. |
+| **1.2**| **Creazione Tabelle Staging Movimenti**| 🟡 In Corso | Creare le tabelle `StagingTestata`, `StagingRigaContabile`, `StagingRigaIva`, `StagingAllocazione`. Ognuna sarà una rappresentazione 1:1 dei campi dei rispettivi file (`PNTESTA`, `PNRIGCON`, ecc.), usando solo tipi di dato semplici (`String?`). |
+| **1.3**| **Esecuzione Migrazione Database** | 🟡 In Corso | Applicare le nuove tabelle al database tramite una migrazione Prisma. |
 
 ---
 

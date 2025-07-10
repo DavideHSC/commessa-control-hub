@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import multer from 'multer';
 import { parseFixedWidth, FieldDefinition } from '../lib/fixedWidthParser';
-import { IAllocazione, IRigaContabile, IRigaIva, ITestata, processScrittureInBatches } from '../lib/importUtils.js';
+import { IAllocazione, IRigaContabile, IRigaIva, ITestata, processScrittureToStaging } from '../lib/importUtils.js';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -89,16 +89,15 @@ router.post('/', upload.array('files', 10), async (req: Request, res: Response) 
         }
 
         // 6. Salva i dati in una transazione
-        const summary = await processScrittureInBatches({ 
+        const summary = await processScrittureToStaging({ 
             testate, 
             righeContabili, 
             righeIva, 
             allocazioni, 
-            codiceFiscaleAzienda // Passa il contesto
         });
 
         return res.status(200).json({ 
-            message: `Importazione completata. ${summary.processedCount} record processati, ${summary.errorCount} errori.`,
+            message: `Importazione in staging completata.`,
             summary
         });
 
