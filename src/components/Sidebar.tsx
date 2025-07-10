@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, FileText, BarChart3, Settings, Building2, Upload, Database, GitCompareArrows } from 'lucide-react';
+import { Home, FileText, BarChart3, Settings, Building2, Upload, Database, GitCompareArrows, Layers } from 'lucide-react'; // Importo l'icona Layers
 import {
   Sidebar as SidebarPrimitive,
   SidebarContent,
@@ -51,6 +51,11 @@ const serviziItems = [
     title: "Database",
     url: "/database",
     icon: Database,
+  },
+  {
+    title: "Dati di Staging",
+    url: "/database/staging",
+    icon: Layers, // Uso la nuova icona
   },
   {
     title: "Impostazioni",
@@ -110,7 +115,7 @@ export function Sidebar() {
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
               {serviziItems.map((item) => {
-                const isActive = location.pathname === item.url;
+                const isActive = location.pathname.startsWith(item.url) && item.url !== '/' || location.pathname === item.url;
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton

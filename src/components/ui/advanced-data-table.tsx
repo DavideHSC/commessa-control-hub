@@ -21,7 +21,7 @@ import { DataTableToolbar } from "./data-table-toolbar"
 import { Skeleton } from "./skeleton";
 
 interface AdvancedDataTableProps<TData> {
-  columns: ColumnDef<TData, any>[];
+  columns: ColumnDef<TData, unknown>[];
   data: TData[];
   totalCount: number;
   page: number;
@@ -29,7 +29,7 @@ interface AdvancedDataTableProps<TData> {
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
   
-  searchValue: string;
+  search: string;
   onSearchChange: (search: string) => void;
   
   sorting: SortingState;
@@ -51,7 +51,7 @@ export function AdvancedDataTable<TData>({
   pageSize,
   onPageChange,
   onPageSizeChange,
-  searchValue,
+  search,
   onSearchChange,
   sorting,
   onSortingChange,
@@ -100,7 +100,7 @@ export function AdvancedDataTable<TData>({
     <div className="space-y-4">
       <DataTableToolbar 
         table={table}
-        searchValue={searchValue}
+        searchValue={search}
         onSearchChange={onSearchChange}
       />
       <div className="rounded-md border">

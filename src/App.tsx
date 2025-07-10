@@ -14,6 +14,7 @@ import ImportPage from './pages/Import';
 import Database from './pages/Database';
 import ImpostazioniPage from "./pages/Impostazioni";
 import RiconciliazionePage from "./pages/Riconciliazione";
+import StagingPage from "./pages/Staging"; // Importo la nuova pagina
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/prima-nota/modifica/:id" element={<NuovaRegistrazionePrimaNota />} />
             <Route path="/import" element={<ImportPage />} />
             <Route path="/database" element={<Database />} />
+            <Route path="/database/staging" element={<StagingPage />} /> {/* Aggiungo la nuova rotta */}
             <Route path="/impostazioni" element={<ImpostazioniPage />} />
             <Route path="/riconciliazione" element={<RiconciliazionePage />} />
           </Route>
