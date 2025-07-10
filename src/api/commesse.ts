@@ -46,4 +46,12 @@ export const deleteCommessa = async (id: string): Promise<void> => {
     if (!response.ok) {
         throw new Error('Errore nell\'eliminazione della commessa');
     }
-}; 
+};
+
+export const getCommessePerSelezione = async (): Promise<Pick<Commessa, 'id' | 'nome'>[]> => {
+    const response = await fetch(`${API_BASE_URL}/commesse/select`);
+    if (!response.ok) {
+        throw new Error('Errore nel recupero delle commesse per la selezione');
+    }
+    return response.json();
+} 

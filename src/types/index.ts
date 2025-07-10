@@ -430,6 +430,20 @@ export interface FieldDefinition {
   fileIdentifier?: string | null;
 }
 
+export type RegolaRipartizione = {
+  id: string;
+  descrizione: string;
+  percentuale: number;
+  contoId: string;
+  commessaId: string;
+  voceAnaliticaId: string;
+  createdAt: string;
+  updatedAt: string;
+  conto: Conto;
+  commessa: Commessa;
+  voceAnalitica: VoceAnalitica;
+};
+
 /**
  * Rappresenta un template di importazione completo.
  */

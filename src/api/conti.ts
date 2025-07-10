@@ -64,3 +64,19 @@ export const toggleContoRelevance = async (id: string, isRilevante: boolean): Pr
       body: JSON.stringify({ isRilevante }),
   });
 }; 
+
+export const getContiPerSelezione = async (): Promise<Pick<Conto, 'id' | 'codice' | 'nome'>[]> => {
+    const response = await fetch(`${API_BASE_URL}/conti/select`);
+    if (!response.ok) {
+        throw new Error('Errore nel recupero dei conti per la selezione');
+    }
+    return response.json();
+}
+
+export const updateContoRelevance = async (id: string, isRilevante: boolean) => {
+    const response = await fetch(`${API_BASE_URL}/conti/${id}/toggle-rilevanza`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isRilevante }),
+  });
+}; 

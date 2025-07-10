@@ -103,6 +103,26 @@ router.patch('/:id/toggle-rilevanza', async (req, res) => {
   }
 });
 
+// GET all conti for select inputs
+router.get('/select', async (req, res) => {
+  try {
+    const conti = await prisma.conto.findMany({
+      select: {
+        id: true,
+        codice: true,
+        nome: true,
+      },
+      orderBy: {
+        codice: 'asc',
+      },
+    });
+    res.json(conti);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Errore nel recupero dei conti per la selezione.' });
+  }
+});
+
 // POST a new conto
 router.post('/', async (req, res) => {
   try {

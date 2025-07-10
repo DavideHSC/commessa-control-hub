@@ -151,23 +151,27 @@ model VoceAnalitica {
   tipo        String // "Costo" o "Ricavo"
   
   // Relazioni
-  conti       Conto[]
-  allocazioni Allocazione[]
-  budgetItems BudgetVoce[]
+  conti                Conto[]
+  allocazioni          Allocazione[]
+  budgetItems          BudgetVoce[]
+  regoleRipartizione   RegolaRipartizione[]
 }
 
 model RegolaRipartizione {
-  id            String  @id @default(cuid())
-  descrizione   String
-  contoCodice   String  // Il codice del conto a cui applicare la regola
-  
-  commessaId    String
-  commessa      Commessa @relation(fields: [commessaId], references: [id])
-  
-  percentuale   Float
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String   @id @default(cuid())
+  descrizione     String
+  percentuale     Float
+  contoId         String
+  commessaId      String
+  voceAnaliticaId String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  conto         Conto         @relation(fields: [contoId], references: [id], onDelete: Cascade)
+  commessa      Commessa      @relation(fields: [commessaId], references: [id], onDelete: Cascade)
+  voceAnalitica VoceAnalitica @relation(fields: [voceAnaliticaId], references: [id], onDelete: Cascade)
+
+  @@unique([contoId, commessaId, voceAnaliticaId])
 }
 
 // =================================================================
@@ -190,6 +194,7 @@ model Conto {
   contropartiteSuggeriteIds  String[]
   externalId                 String?         @unique
   righeScrittura             RigaScrittura[]
+  regoleRipartizione         RegolaRipartizione[]
   
   // === ESTENSIONI PER CONTIAZI (Piano dei Conti Aziendale) ===
   codiceFiscaleAzienda         String  @default("") // Identifica l'azienda per la personalizzazione. "" = generico.
@@ -322,16 +327,16 @@ model Allocazione {
   id              String  @id @default(cuid())
   importo         Float
   
-  tipoMovimento   String // Es: COSTO_EFFETTIVO, COSTO_STIMATO, RICAVO_EFFETTIVO
+  tipoMovimento   TipoMovimentoAnalitico
 
   rigaScritturaId String
   rigaScrittura   RigaScrittura @relation(fields: [rigaScritturaId], references: [id], onDelete: Cascade)
 
   commessaId      String
-  commessa        Commessa      @relation(fields: [commessaId], references: [id])
+  commessa        Commessa      @relation(fields: [commessaId], references: [id], onDelete: Cascade)
 
   voceAnaliticaId String
-  voceAnalitica   VoceAnalitica @relation(fields: [voceAnaliticaId], references: [id])
+  voceAnalitica   VoceAnalitica @relation(fields: [voceAnaliticaId], references: [id], onDelete: Cascade)
 
   dataMovimento   DateTime
   note            String?
@@ -426,6 +431,15 @@ model CodiceIva {
   cessioneProdottiEditoriali   Boolean?
   provvigioniDm34099           Boolean?
   acqOperazImponibiliOccasionali Boolean?
+}
+
+enum TipoMovimentoAnalitico {
+  COSTO_EFFETTIVO
+  RICAVO_EFFETTIVO
+  COSTO_STIMATO
+  RICAVO_STIMATO
+  COSTO_BUDGET
+  RICAVO_BUDGET
 }
 
 model CondizionePagamento {
@@ -863,4 +877,14 @@ model StagingAllocazione {
   importedAt                       DateTime  @default(now())
   
   @@map("staging_allocazioni")
+}
+
+/// The different file types that can be imported
+enum FileType {
+  CSV
+  XLSX
+  PDF
+  TXT
+  JSON
+  XML
 }

@@ -55,7 +55,7 @@ router.get('/', async (req, res) => {
             totalPages: Math.ceil(totalCount / pageSize),
         }
     });
-  } catch (error) {
+  } catch (error: unknown) {
     res.status(500).json({ error: 'Errore nel recupero delle commesse.' });
   }
 });
@@ -73,7 +73,7 @@ router.post('/', async (req, res) => {
       },
     });
     res.status(201).json(nuovaCommessa);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(error);
     res.status(500).json({ error: 'Errore nella creazione della commessa.' });
   }
@@ -99,7 +99,7 @@ router.put('/:id', async (req, res) => {
           where: { commessaId: id },
         });
         await tx.budgetVoce.createMany({
-          data: budget.map((voce: any) => ({
+          data: budget.map((voce: Partial<import('@prisma/client').BudgetVoce>) => ({
             ...voce,
             commessaId: id,
           })),
@@ -110,7 +110,7 @@ router.put('/:id', async (req, res) => {
     });
 
     res.json(result);
-  } catch (error) {
+  } catch (error: unknown) {
     console.error(error);
     res.status(500).json({ error: `Errore nell'aggiornamento della commessa ${id}.` });
   }
@@ -125,8 +125,27 @@ router.delete('/:id', async (req, res) => {
       where: { id },
     });
     res.status(204).send();
-  } catch (error) {
+  } catch (error: unknown) {
     res.status(500).json({ error: `Errore nell'eliminazione della commessa ${id}.` });
+  }
+});
+
+// GET all commesse for select inputs
+router.get('/select', async (req, res) => {
+  try {
+    const commesse = await prisma.commessa.findMany({
+      select: {
+        id: true,
+        nome: true,
+      },
+      orderBy: {
+        nome: 'asc',
+      },
+    });
+    res.json(commesse);
+  } catch (error: unknown) {
+    console.error(error);
+    res.status(500).json({ error: 'Errore nel recupero delle commesse per la selezione.' });
   }
 });
 

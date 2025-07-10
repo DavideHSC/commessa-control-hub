@@ -41,4 +41,12 @@ export const deleteVoceAnalitica = async (id: string): Promise<void> => {
     await fetchData<void>(`${API_BASE_URL}/${id}`, {
         method: 'DELETE',
     });
-}; 
+};
+
+export const getVociAnalitichePerSelezione = async (): Promise<Pick<VoceAnalitica, 'id' | 'nome'>[]> => {
+    const response = await fetch(`${API_BASE_URL}/voci-analitiche/select`);
+    if (!response.ok) {
+        throw new Error('Errore nel recupero delle voci analitiche per la selezione');
+    }
+    return response.json();
+} 

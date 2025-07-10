@@ -23,21 +23,21 @@ Come primo passo, implementeremo le fondamenta che abiliteranno tutte le automaz
 *   **Implementazione DB:** Aggiungere il campo `isRilevantePerCommesse: Boolean @default(false)` al modello `Conto`.
 *   **Implementazione UI:** Creare una pagina in "Impostazioni" chiamata **"Configurazione Conti per Analitica"**. Sarà una tabella di tutti i conti con un interruttore on/off per gestire il nuovo flag.
 
-### Task 1.2: Creazione delle Voci Analitiche e Mapping
+### Task 1.2: Creazione delle Voci Analitiche e Mapping (✅ Completato)
 *   **Logica:** Disaccoppieremo la contabilità fiscale da quella gestionale. Creeremo "etichette di business" (Voci Analitiche) e le mapperemo ai conti contabili per automatizzare i suggerimenti.
 *   **Implementazione DB:**
     1.  Creare il modello `VoceAnalitica` (`id`, `nome`, `tipo`).
     2.  Stabilire una relazione **molti-a-molti** tra `Conto` e `VoceAnalitica`.
 *   **Implementazione UI:** Creare una pagina "Gestione Voci Analitiche" con un'interfaccia a due pannelli per creare le voci e associare a ciascuna i conti rilevanti.
 
-### Task 1.3: Implementazione Regole di Ripartizione (Logica `DETTANAL`)
+### Task 1.3: Implementazione Regole di Ripartizione (Logica `DETTANAL`) (✅ Completato)
 *   **Logica:** Creeremo un sistema per definire regole di ripartizione automatica per costi indiretti o ricorrenti.
-*   **Implementazione DB:** Creare un modello `RegolaRipartizione` (es. `contoCodice`, `commessaId`, `percentuale`).
-*   **Implementazione UI:** Creare una pagina "Regole di Ripartizione" per gestire queste regole.
+*   **Implementazione DB (✅ Completato):** Creare un modello `RegolaRipartizione` (es. `contoCodice`, `commessaId`, `percentuale`).
+*   **Implementazione UI (✅ Completato):** Creare una pagina "Regole di Ripartizione" per gestire queste regole.
 
-### Task 1.4: Modello di Destinazione Finale
+### Task 1.4: Modello di Destinazione Finale (✅ Completato)
 *   **Logica:** Definiremo la tabella finale che conterrà i dati post-riconciliazione.
-*   **Implementazione DB:** Rivedere e finalizzare il modello `Allocazione` (o `MovimentoCommessa`) assicurandoci che contenga i campi necessari: `rigaScritturaId`, `commessaId`, `voceAnaliticaId`, `importo`, `tipoMovimento` (`COSTO_EFFETTIVO`, `COSTO_STIMATO`, etc.), `data`.
+*   **Implementazione DB (✅ Completato):** Rivedere e finalizzare il modello `Allocazione` (o `MovimentoCommessa`) assicurandoci che contenga i campi necessari: `rigaScritturaId`, `commessaId`, `voceAnaliticaId`, `importo`, `tipoMovimento` (`COSTO_EFFETTIVO`, `COSTO_STIMATO`, etc.), `data`.
 
 ---
 
