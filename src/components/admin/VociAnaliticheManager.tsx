@@ -32,11 +32,12 @@ const VociAnaliticheManager = () => {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
+      // Chiediamo tutti i dati impostando un limite elevato, dato che questa UI non è paginata
       const [vociData, contiData] = await Promise.all([
-        api.getVociAnalitiche(),
+        api.getVociAnalitiche({ page: 1, limit: 9999 }),
         getConfigurableConti(),
       ]);
-      setVoci(vociData);
+      setVoci(vociData.data); // Estraiamo l'array 'data' dalla risposta paginata
       setConti(contiData.map((c: ConfigurableConto) => ({ ...c, value: c.id, label: `${c.codice} - ${c.nome}` })));
     } catch (error) {
       toast({ title: 'Errore', description: 'Impossibile caricare i dati.', variant: 'destructive' });

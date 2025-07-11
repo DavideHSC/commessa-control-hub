@@ -14,49 +14,7 @@ async function main() {
   console.log('Pulizia tabella Commesse...');
   await prisma.commessa.deleteMany({});
 
-  // 2. Popola dati di base (Voci Analitiche) - con UPSERT per evitare errori
-  console.log('Creazione/aggiornamento Voci Analitiche di base...');
-  const vociAnaliticheData = [
-    { id: 'costo_personale', nome: 'Costo del personale' },
-    { id: 'gestione_automezzi', nome: 'Gestione automezzi' },
-    { id: 'gestione_attrezzature', nome: 'Gestione attrezzature' },
-    { id: 'sacchi_materiali_consumo', nome: 'Sacchi e materiali di consumo' },
-    { id: 'servizi_esterni', nome: 'Servizi esterni' },
-    { id: 'pulizia_strade_rurali', nome: 'Pulizia strade rurali' },
-    { id: 'gestione_aree_operative', nome: 'Gestione Aree operative' },
-    { id: 'ammortamento_automezzi', nome: 'Ammortamento Automezzi' },
-    { id: 'ammortamento_attrezzature', nome: 'Ammortamento Attrezzature' },
-    { id: 'locazione_sedi_operative', nome: 'Locazione sedi operative' },
-    { id: 'trasporti_esterni', nome: 'Trasporti esterni' },
-    { id: 'spese_generali', nome: 'Spese generali' },
-    { id: 'selezione_valorizzazione_rifiuti', nome: 'Selezione e Valorizzazione Rifiuti Differenziati' },
-    { id: 'gestione_frazione_organica', nome: 'Gestione frazione organica' },
-    { id: 'materiale_consumo', nome: 'Materiale di Consumo' },
-    { id: 'carburanti_lubrificanti', nome: 'Carburanti e Lubrificanti' },
-    { id: 'utenze', nome: 'Utenze' },
-    { id: 'lavorazioni_esterne', nome: 'Lavorazioni Esterne' },
-    { id: 'pulizie_cantiere', nome: 'Pulizie di Cantiere' },
-    { id: 'oneri_spese_accessorie', nome: 'Oneri e Spese Accessorie' },
-    { id: 'smaltimento_rifiuti', nome: 'Smaltimento Rifiuti Speciali' },
-    { id: 'manutenzione_mezzi', nome: 'Manutenzione Mezzi' },
-    { id: 'consulenze_tecniche_legali', nome: 'Consulenze Tecniche/Legali' },
-    { id: 'servizi_generici_cantiere', nome: 'Servizi Generici di Cantiere' },
-    { id: 'canoni_leasing', nome: 'Canoni Leasing Mezzi/Attrezz.' },
-    { id: 'manodopera_diretta', nome: 'Manodopera Diretta' },
-    { id: 'oneri_manodopera', nome: 'Oneri su Manodopera' },
-    { id: 'da_classificare', nome: 'Costi/Ricavi da Classificare' },
-  ];
-  
-  for (const voce of vociAnaliticheData) {
-    await prisma.voceAnalitica.upsert({
-      where: { id: voce.id },
-      update: { nome: voce.nome },
-      create: voce,
-    });
-  }
-  console.log('Voci Analitiche create/aggiornate.');
-
-  // 3. Cliente e Fornitore di sistema (necessari per importazioni) - UPSERT
+  // 2. Cliente e Fornitore di sistema (necessari per importazioni) - UPSERT
   await prisma.cliente.upsert({
     where: { id: SYSTEM_CUSTOMER_ID },
     update: {},
@@ -78,7 +36,7 @@ async function main() {
   });
   console.log('Cliente e Fornitore di sistema creati/verificati.');
 
-  // 4. Popola dati specifici del cliente (PENISOLAVERDE SPA) - UPSERT
+  // 3. Popola dati specifici del cliente (PENISOLAVERDE SPA) - UPSERT
   console.log('Creazione/aggiornamento dati cliente e commesse per PENISOLAVERDE SPA...');
   
   const clientePenisolaVerde = await prisma.cliente.upsert({
@@ -168,7 +126,7 @@ async function main() {
   });
   console.log('Commesse figlie (Attività) create.');
 
-  // 5. Template di Importazione (essenziali per funzionamento) - UPSERT
+  // 4. Template di Importazione (essenziali per funzionamento) - UPSERT
   console.log('Creazione/Aggiornamento Template di Importazione...');
   
   // Template Causali - Prima elimina quello esistente

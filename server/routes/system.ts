@@ -133,168 +133,23 @@ router.get('/import-logs/:templateName?', async (req, res) => {
   }
 });
 
-// Funzione helper per il seeding dei dati di base
-async function seedBasicData() {
-    const SYSTEM_CUSTOMER_ID = 'system_customer_01';
-    const SYSTEM_SUPPLIER_ID = 'system_supplier_01';
-
-    console.log('Inizio popolamento dati di base...');
-
-    // 1. Voci Analitiche
-    console.log('Creazione Voci Analitiche...');
-    const vociAnaliticheData = [
-        { id: 'costo_personale', nome: 'Costo del personale' },
-        { id: 'gestione_automezzi', nome: 'Gestione automezzi' },
-        { id: 'gestione_attrezzature', nome: 'Gestione attrezzature' },
-        { id: 'sacchi_materiali_consumo', nome: 'Sacchi e materiali di consumo' },
-        { id: 'servizi_esterni', nome: 'Servizi esterni' },
-        { id: 'pulizia_strade_rurali', nome: 'Pulizia strade rurali' },
-        { id: 'gestione_aree_operative', nome: 'Gestione Aree operative' },
-        { id: 'ammortamento_automezzi', nome: 'Ammortamento Automezzi' },
-        { id: 'ammortamento_attrezzature', nome: 'Ammortamento Attrezzature' },
-        { id: 'locazione_sedi_operative', nome: 'Locazione sedi operative' },
-        { id: 'trasporti_esterni', nome: 'Trasporti esterni' },
-        { id: 'spese_generali', nome: 'Spese generali' },
-        { id: 'selezione_valorizzazione_rifiuti', nome: 'Selezione e Valorizzazione Rifiuti Differenziati' },
-        { id: 'gestione_frazione_organica', nome: 'Gestione frazione organica' },
-    ];
-    
-    for (const voce of vociAnaliticheData) {
-        await prisma.voceAnalitica.create({ data: voce });
-    }
-
-    // 2. Cliente e Fornitore di sistema
-    await prisma.cliente.create({
-        data: {
-            id: SYSTEM_CUSTOMER_ID,
-            externalId: 'SYS-CUST',
-            nome: 'Cliente di Sistema (per importazioni)',
-        }
-    });
-
-    await prisma.fornitore.create({
-        data: {
-            id: SYSTEM_SUPPLIER_ID,
-            externalId: 'SYS-SUPP',
-            nome: 'Fornitore di Sistema (per importazioni)',
-        }
-    });
-
-    // 3. Cliente PENISOLAVERDE SPA e commesse
-    console.log('Creazione cliente e commesse per PENISOLAVERDE SPA...');
-    const clientePenisolaVerde = await prisma.cliente.create({
-        data: {
-            nome: 'PENISOLAVERDE SPA',
-            externalId: 'PENISOLAVERDE_SPA',
-            piva: '01234567890',
-        }
-    });
-
-    // Commesse Principali (Comuni)
-    const commessaSorrento = await prisma.commessa.create({
-        data: {
-            id: 'sorrento',
-            nome: 'Comune di Sorrento',
-            descrizione: 'Commessa principale per il comune di Sorrento',
-            clienteId: clientePenisolaVerde.id,
-        },
-    });
-
-    const commessaMassa = await prisma.commessa.create({
-        data: {
-            id: 'massa_lubrense',
-            nome: 'Comune di Massa Lubrense',
-            descrizione: 'Commessa principale per il comune di Massa Lubrense',
-            clienteId: clientePenisolaVerde.id,
-        },
-    });
-
-    const commessaPiano = await prisma.commessa.create({
-        data: {
-            id: 'piano_di_sorrento',
-            nome: 'Comune di Piano di Sorrento',
-            descrizione: 'Commessa principale per il comune di Piano di Sorrento',
-            clienteId: clientePenisolaVerde.id,
-        },
-    });
-
-    // Commesse Figlie (Attività / Centri di Costo)
-    await prisma.commessa.createMany({
-        data: [
-            {
-                id: 'sorrento_igiene_urbana',
-                nome: 'Igiene Urbana - Sorrento',
-                descrizione: 'Servizio di igiene urbana per Sorrento',
-                clienteId: clientePenisolaVerde.id,
-                parentId: commessaSorrento.id,
-            },
-            {
-                id: 'massa_lubrense_igiene_urbana',
-                nome: 'Igiene Urbana - Massa Lubrense',
-                descrizione: 'Servizio di igiene urbana per Massa Lubrense',
-                clienteId: clientePenisolaVerde.id,
-                parentId: commessaMassa.id,
-            },
-            {
-                id: 'piano_di_sorrento_igiene_urbana',
-                nome: 'Igiene Urbana - Piano di Sorrento',
-                descrizione: 'Servizio di igiene urbana per Piano di Sorrento',
-                clienteId: clientePenisolaVerde.id,
-                parentId: commessaPiano.id,
-            },
-            {
-                id: 'sorrento_verde_pubblico',
-                nome: 'Verde Pubblico - Sorrento',
-                descrizione: 'Servizio di gestione del verde pubblico per Sorrento',
-                clienteId: clientePenisolaVerde.id,
-                parentId: commessaSorrento.id,
-            },
-        ]
-    });
-
-    console.log('Dati di base popolati correttamente.');
-}
-
 router.post('/reset-database', async (req, res) => {
-  console.log('Ricevuta richiesta di reset del database...');
+  console.log("Avvio reset del database con ripopolamento...");
   try {
-    await prisma.$transaction(async (tx) => {
-      console.log('Inizio transazione di reset...');
+    console.log("Esecuzione di 'prisma migrate reset --force'...");
+    
+    // Esegui il comando di reset che svuota e riesegue il seed
+    await execAsync('npx prisma migrate reset --force');
+    
+    console.log("Database resettato e ripopolato con successo tramite lo script di seed.");
+    res.status(200).json({ message: 'Database resettato e ripopolato con successo.' });
 
-      // 1. Cancellazione tabelle di staging (senza dipendenze strette)
-      console.log('Cancellazione dati di staging...');
-      await tx.stagingAllocazione.deleteMany({});
-      await tx.stagingRigaIva.deleteMany({});
-      await tx.stagingRigaContabile.deleteMany({});
-      await tx.stagingTestata.deleteMany({});
-      await tx.stagingConto.deleteMany({});
-      console.log('Cancellazione dati di staging completata.');
-
-      // 2. Ordine di cancellazione produzione per rispettare i vincoli di foreign key
-      console.log('Cancellazione dati di produzione esistenti...');
-      await tx.allocazione.deleteMany({});
-      await tx.rigaIva.deleteMany({});
-      await tx.rigaScrittura.deleteMany({});
-      await tx.scritturaContabile.deleteMany({});
-      await tx.budgetVoce.deleteMany({});
-      await tx.commessa.deleteMany({});
-      await tx.condizionePagamento.deleteMany({});
-      await tx.codiceIva.deleteMany({});
-      await tx.causaleContabile.deleteMany({});
-      await tx.conto.deleteMany({});
-      await tx.voceAnalitica.deleteMany({});
-      await tx.fornitore.deleteMany({});
-      await tx.cliente.deleteMany({});
-      await tx.wizardState.deleteMany({});
-      await tx.importLog.deleteMany({});
-      console.log('Cancellazione dati di produzione completata.');
-    });
-
-    console.log('Reset del database completato.');
-    res.status(200).json({ message: 'Database resettato con successo.' });
   } catch (error) {
-    console.error('Errore durante il reset del database:', error);
-    res.status(500).json({ message: 'Errore durante il reset del database.' });
+    console.error("Errore durante il reset del database:", error);
+    res.status(500).json({
+      message: 'Errore durante il reset del database.',
+      error: error instanceof Error ? error.message : String(error)
+    });
   }
 });
 
@@ -341,7 +196,10 @@ router.post('/consolidate-scritture', async (req, res) => {
         for (const rigaStaging of scritturaStaging.righeContabili) {
           if (!rigaStaging.codiceConto) continue;
           
-          const conto = await tx.conto.findFirst({ where: { codice: rigaStaging.codiceConto } });
+          const conto = await tx.conto.findFirst({ 
+            where: { codice: rigaStaging.codiceConto },
+            include: { vociAnalitiche: true } // Includo le voci analitiche associate
+          });
           if (!conto) throw new Error(`Conto ${rigaStaging.codiceConto} non trovato.`);
 
           const rigaFinale = await tx.rigaScrittura.create({
@@ -356,17 +214,28 @@ router.post('/consolidate-scritture', async (req, res) => {
 
           progressivoToRigaIdMap[rigaStaging.riga] = rigaFinale.id;
 
-          if (conto.voceAnaliticaId && rigaStaging.allocazioni.length > 0) {
+          // Logica di Allocazione Corretta
+          const primaVoceAnalitica = conto.vociAnalitiche[0];
+
+          if (primaVoceAnalitica && rigaStaging.allocazioni.length > 0) {
             for (const allocazioneStaging of rigaStaging.allocazioni) {
               if (!allocazioneStaging.commessaId) continue;
+
+              // Aggiungo un controllo per la data di registrazione
+              if (!scritturaStaging.dataRegistrazione) {
+                throw new Error(`Data di registrazione mancante per la scrittura ${scritturaStaging.codiceUnivocoScaricamento}`);
+              }
+
               const commessa = await tx.commessa.findFirst({ where: { id: allocazioneStaging.commessaId } });
               if (commessa) {
                 await tx.allocazione.create({
                   data: {
                     rigaScritturaId: rigaFinale.id,
                     commessaId: commessa.id,
-                    voceAnaliticaId: conto.voceAnaliticaId,
+                    voceAnaliticaId: primaVoceAnalitica.id,
                     importo: allocazioneStaging.importo,
+                    dataMovimento: scritturaStaging.dataRegistrazione,
+                    tipoMovimento: conto.tipo === 'Costo' ? 'COSTO_EFFETTIVO' : 'RICAVO_EFFETTIVO'
                   },
                 });
               }
@@ -639,15 +508,6 @@ router.post('/seed-demo-data', async (req, res) => {
 
         // 1. Parsing di tutte le anagrafiche e prima nota
         const clientiFornitoriRaw = parseFixedWidth<ClienteFornitore>(readPrimaNotaFile('A_CLIFOR.TXT'), clienteFornitoreSchema);
-        console.log(`[Debug] Clienti parsati totali: ${clientiFornitoriRaw.length}`);
-        console.log(`[Debug] Clienti di tipo 'C': ${clientiFornitoriRaw.filter(cf => cf.tipo === 'C').length}`);
-        console.log(`[Debug] Primi 3 clienti:`, clientiFornitoriRaw.filter(cf => cf.tipo === 'C').slice(0, 3).map(cf => ({
-            tipo: cf.tipo,
-            externalId: cf.externalId,
-            ragioneSociale: cf.ragioneSociale,
-            codiceFiscale: cf.codiceFiscale
-        })));
-        
         const contiRaw = parseFixedWidth<ContoGen>(readDataFile('ContiGen.txt'), contiGenSchema);
         const causaliRaw = parseFixedWidth<Causale>(readDataFile('Causali.txt'), causaliSchema);
         const codiciIvaRaw = parseFixedWidth<CodiceIva>(readDataFile('CodicIva.txt'), codiciIvaSchema);
@@ -661,20 +521,15 @@ router.post('/seed-demo-data', async (req, res) => {
         // --- INIZIO TRANSAZIONE ---
         await prisma.$transaction(async (tx) => {
             // 2. Creazione Anagrafiche
-            const clientiDaCreare = clientiFornitoriRaw
-                .filter(cf => cf.tipo === 'C')
-                .map(cf => ({
-                    id: cf.externalId.trim(),
-                    externalId: cf.externalId.trim(),
-                    nome: cf.ragioneSociale.trim() || `${cf.cognome.trim()} ${cf.nome.trim()}`,
-                    piva: cf.partitaIva.trim() || cf.codiceFiscale.trim(),
-                }));
-            
-            console.log(`[Debug] Clienti da creare: ${clientiDaCreare.length}`);
-            console.log(`[Debug] Primi 3 clienti da creare:`, clientiDaCreare.slice(0, 3));
-            
             await tx.cliente.createMany({
-                data: clientiDaCreare,
+                data: clientiFornitoriRaw
+                    .filter(cf => cf.tipo === 'C')
+                    .map(cf => ({
+                        id: cf.externalId.trim(),
+                        externalId: cf.externalId.trim(),
+                        nome: cf.ragioneSociale.trim() || `${cf.cognome.trim()} ${cf.nome.trim()}`,
+                        piva: cf.partitaIva.trim() || cf.codiceFiscale.trim(),
+                    })),
                 skipDuplicates: true,
             });
 
@@ -735,71 +590,24 @@ router.post('/seed-demo-data', async (req, res) => {
             console.log('[Seeding Demo] Anagrafiche create.');
 
             // 3. Creazione Commesse per la Demo
-            console.log('[Seeding Demo] Creazione Commesse...');
-            // Troviamo un cliente più semplice per le commesse demo, evitando quelli con spazi o caratteri speciali
-            const clientiDisponibili = clientiFornitoriRaw.filter(cf => cf.tipo === 'C');
-            console.log(`[Debug] Clienti disponibili: ${clientiDisponibili.length}`);
+            const clienteDemo = clientiFornitoriRaw.find(cf => cf.ragioneSociale.includes('PENISOLAVERDE'));
+            const clienteDemoId = clienteDemo ? clienteDemo.externalId.trim() : 'non_trovato';
             
-            // Cerchiamo un cliente con externalId senza spazi o caratteri speciali
-            const primoCliente = clientiDisponibili.find(cf => 
-                cf.externalId && 
-                cf.externalId.trim() &&
-                !/[.\s]/.test(cf.externalId.trim()) &&
-                cf.ragioneSociale && 
-                cf.ragioneSociale.trim()
-            ) || clientiDisponibili[0]; // fallback al primo disponibile
-
-            if (!primoCliente) {
-                throw new Error("Nessun cliente trovato nei dati del file A_CLIFOR.TXT. Impossibile creare commesse demo.");
-            }
-            const clienteDemoId = primoCliente.externalId.trim();
-            const nomeClienteDemo = (primoCliente.ragioneSociale || `${primoCliente.cognome} ${primoCliente.nome}`).trim();
-            console.log(`[Seeding Demo] Utilizzo del cliente '${nomeClienteDemo}' (ID: ${clienteDemoId}) per le commesse demo.`);
-            
-            const clienteDb = await tx.cliente.findFirst({ where: { externalId: clienteDemoId } });
-            if (!clienteDb) {
-                console.log(`[Debug] Cliente non trovato nel DB. Cercando tra tutti i clienti creati...`);
-                const tuttiClienti = await tx.cliente.findMany();
-                console.log(`[Debug] Clienti nel DB: ${tuttiClienti.length}`, tuttiClienti.map(c => ({ id: c.id, externalId: c.externalId })));
-                throw new Error(`Cliente con externalId ${clienteDemoId} non trovato nel DB dopo il seeding delle anagrafiche.`);
-            }
-
-            // Creiamo le commesse basandoci sui centri di costo presenti nei dati di test
-            // per garantire la coerenza con le allocazioni di MOVANAC.TXT
-            const commesseDemoData = [
-                { id: '1', nome: 'Commessa Servizi Generali', clienteId: clienteDb.id },
-                { id: '2', nome: 'Commessa Manutenzione', clienteId: clienteDb.id },
-                { id: '3', nome: 'Commessa Pulizia', clienteId: clienteDb.id },
-                { id: '4', nome: 'Commessa Varie', clienteId: clienteDb.id },
-                { id: '6', nome: 'Commessa Amministrazione', clienteId: clienteDb.id },
-                { id: '9', nome: 'Commessa Consulenze', clienteId: clienteDb.id },
-                { id: '1000', nome: 'Commessa Smaltimento', clienteId: clienteDb.id }
-            ];
-
             await tx.commessa.createMany({
-                data: commesseDemoData,
+                data: [
+                  { id: '1', nome: 'Commessa Servizi Generali', clienteId: clienteDemoId },
+                  { id: '2', nome: 'Commessa Manutenzione', clienteId: clienteDemoId },
+                  { id: '3', nome: 'Commessa Pulizia', clienteId: clienteDemoId }
+                ],
                 skipDuplicates: true,
             });
             
-            console.log(`[Seeding Demo] Create ${commesseDemoData.length} commesse demo per il cliente ${nomeClienteDemo}.`);
+            console.log('[Seeding Demo] Commesse demo create.');
 
             // 4. Inserimento Scritture di Staging
-            console.log('[Seeding Demo] Inserimento scritture di staging...');
             const scrittureComplete = buildScrittureComplete(pntesta, pnrigcon, pnrigiva, movanac);
 
-            // Filtra le scritture per includere solo quelle definite nel piano di test
-            const codiciDemo = [
-                '012025110315', // Allocazione Complessa (1-a-N)
-                '012025110008', // Allocazione Semplice (1-a-1)
-                '012025110002', // Documento con Righe Multiple
-                '012025110013', // Riga non Allocata
-            ];
-            
-            const scrittureDemo = scrittureComplete.filter(s => codiciDemo.includes(s.testata.codiceUnivocoScaricamento));
-            
-            console.log(`[Seeding Demo] Trovate ${scrittureDemo.length} scritture valide per la demo.`);
-
-            for (const scrittura of scrittureDemo) {
+            for (const scrittura of scrittureComplete) {
                 const codiceUnivoco = scrittura.testata.codiceUnivocoScaricamento;
 
                 // 4.1 Creazione Testata
@@ -820,7 +628,7 @@ router.post('/seed-demo-data', async (req, res) => {
                     const createdRiga = await tx.importScritturaRigaContabile.create({
                         data: {
                             codiceUnivocoScaricamento: codiceUnivoco,
-                            riga: index + 1, // Usiamo l'indice per un progressivo affidabile
+                            riga: index + 1,
                             codiceConto: rigaContabile.conto.trim(),
                             descrizioneConto: rigaContabile.note.trim() || `Conto ${rigaContabile.conto.trim()}`,
                             importoDare: rigaContabile.importoDare,
@@ -830,22 +638,15 @@ router.post('/seed-demo-data', async (req, res) => {
                         }
                     });
 
-                    // Associa le allocazioni dalla riga contabile se esistono
                     if (rigaContabile.allocazioni && rigaContabile.allocazioni.length > 0) {
-                        const allocazioniDaCreare: Prisma.ImportAllocazioneCreateManyInput[] = [];
-                        for (const allocazioneFile of rigaContabile.allocazioni) {
-                            allocazioniDaCreare.push({
+                        await tx.importAllocazione.createMany({
+                            data: rigaContabile.allocazioni.map(alloc => ({
                                 importScritturaRigaContabileId: createdRiga.id,
-                                commessaId: allocazioneFile.centroDiCosto.trim(), // L'ID della commessa è direttamente il centro di costo
-                                importo: allocazioneFile.importo,
+                                commessaId: alloc.centroDiCosto.trim(),
+                                importo: alloc.importo,
                                 suggerimentoAutomatico: true,
-                            });
-                        }
-                        if (allocazioniDaCreare.length > 0) {
-                            await tx.importAllocazione.createMany({
-                                data: allocazioniDaCreare,
-                            });
-                        }
+                            })),
+                        });
                     }
                 }
 
@@ -854,7 +655,7 @@ router.post('/seed-demo-data', async (req, res) => {
                     await tx.importScritturaRigaIva.createMany({
                         data: scrittura.righeIva.map((riga, index) => ({
                             codiceUnivocoScaricamento: codiceUnivoco,
-                            riga: index + 1, // Uso l'indice + 1 per un progressivo affidabile
+                            riga: index + 1,
                             codiceIva: riga.codiceIva.trim(),
                             codiceConto: riga.contropartita.trim(),
                             imponibile: riga.imponibile,
@@ -863,13 +664,11 @@ router.post('/seed-demo-data', async (req, res) => {
                     });
                 }
             }
-            console.log(`[Seeding Demo] Create ${scrittureDemo.length} scritture di staging con le relative allocazioni.`);
-
         });
         // --- FINE TRANSAZIONE ---
 
         console.log('[Seeding Demo] Popolamento completato con successo.');
-        res.status(200).json({ message: 'Database resettato e popolato con dati demo completi.' });
+        res.status(200).json({ message: 'Database resettato e popolato con dati demo.' });
 
     } catch (error) {
         console.error("Errore durante la preparazione dei dati demo:", error);

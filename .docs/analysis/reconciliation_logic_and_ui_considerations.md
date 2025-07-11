@@ -30,9 +30,10 @@ Come primo passo, implementeremo le fondamenta che abiliteranno tutte le automaz
     2.  Stabilire una relazione **molti-a-molti** tra `Conto` e `VoceAnalitica`.
 *   **Implementazione UI:** Creare una pagina "Gestione Voci Analitiche" con un'interfaccia a due pannelli per creare le voci e associare a ciascuna i conti rilevanti.
 
-### Task 1.3: Implementazione Regole di Ripartizione (Logica `DETTANAL`) (✅ Completato)
+### Task 1.3: Implementazione Regole di Ripartizione (Logica `DETTANAL`)
 *   **Logica:** Creeremo un sistema per definire regole di ripartizione automatica per costi indiretti o ricorrenti.
-*   **Implementazione DB (✅ Completato):** Creare un modello `RegolaRipartizione` (es. `contoCodice`, `commessaId`, `percentuale`).
+*   **Implementazione DB (✅ Completato):** Creare un modello `RegolaRipartizione`.
+*   **Implementazione Backend (✅ Completato):** Creare gli endpoint API per le operazioni CRUD sulle regole.
 *   **Implementazione UI (✅ Completato):** Creare una pagina "Regole di Ripartizione" per gestire queste regole.
 
 ### Task 1.4: Modello di Destinazione Finale (✅ Completato)

@@ -1,52 +1,51 @@
 import { RegolaRipartizione } from '@/types';
+import {
+  RegolaRipartizioneInput,
+  regolaRipartizioneSchema,
+} from '@/schemas/regolaRipartizioneSchema';
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = '/api/regole-ripartizione';
 
-export type RegolaRipartizioneInput = Omit<RegolaRipartizione, 'id' | 'createdAt' | 'updatedAt' | 'conto' | 'commessa' | 'voceAnalitica'>;
+// Funzione di utilità per il fetch dei dati
+const fetchData = async <T>(url: string, options?: RequestInit): Promise<T> => {
+    const response = await fetch(url, options);
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Errore generico' }));
+        throw new Error(errorData.message || 'Errore di rete');
+    }
+    // Per le risposte 204 (No Content), non c'è un corpo JSON da parsare
+    if (response.status === 204) {
+        return null as T;
+    }
+    return response.json();
+};
+
 
 export const getRegoleRipartizione = async (): Promise<RegolaRipartizione[]> => {
-  const response = await fetch(`${API_BASE_URL}/regole-ripartizione`);
-  if (!response.ok) {
-    throw new Error('Errore nel recupero delle regole di ripartizione');
-  }
-  return response.json();
+  return fetchData<RegolaRipartizione[]>(API_BASE_URL);
 };
+
+export type { RegolaRipartizioneInput };
+export { regolaRipartizioneSchema };
 
 export const createRegolaRipartizione = async (data: RegolaRipartizioneInput): Promise<RegolaRipartizione> => {
-  const response = await fetch(`${API_BASE_URL}/regole-ripartizione`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  });
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || 'Errore nella creazione della regola di ripartizione');
-  }
-  return response.json();
+    return fetchData<RegolaRipartizione>(API_BASE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    });
 };
 
-export const updateRegolaRipartizione = async (id: string, data: RegolaRipartizioneInput): Promise<RegolaRipartizione> => {
-  const response = await fetch(`${API_BASE_URL}/regole-ripartizione/${id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(data),
-  });
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.error || `Errore nell'aggiornamento della regola di ripartizione`);
-  }
-  return response.json();
+export const updateRegolaRipartizione = async (id: string, data: Partial<RegolaRipartizioneInput>): Promise<RegolaRipartizione> => {
+    return fetchData<RegolaRipartizione>(`${API_BASE_URL}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+    });
 };
 
 export const deleteRegolaRipartizione = async (id: string): Promise<void> => {
-  const response = await fetch(`${API_BASE_URL}/regole-ripartizione/${id}`, {
+  await fetchData<void>(`${API_BASE_URL}/${id}`, {
     method: 'DELETE',
   });
-  if (!response.ok) {
-    throw new Error(`Errore nell'eliminazione della regola di ripartizione`);
-  }
 }; 

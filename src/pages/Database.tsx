@@ -10,7 +10,6 @@ import {
   getClienti,
   getFornitori,
   getPianoDeiConti,
-  getVociAnalitiche,
   getScrittureContabili,
   getCausaliContabili,
   getCodiciIva,
@@ -22,7 +21,6 @@ import { FornitoriTable } from '@/components/database/FornitoriTable';
 import { CausaliTable } from '@/components/database/CausaliTable';
 import { CodiciIvaTable } from '@/components/database/CodiciIvaTable';
 import { CondizioniPagamentoTable } from '@/components/database/CondizioniPagamentoTable';
-import { VociAnaliticheTable } from '@/components/database/VociAnaliticheTable';
 import { ContiTable } from '@/components/database/ContiTable';
 import { CommesseTable } from '@/components/database/CommesseTable';
 import { ScrittureTable } from '@/components/database/ScrittureTable';
@@ -35,7 +33,6 @@ interface TableStats {
   clienti: number;
   fornitori: number;
   conti: number;
-  vociAnalitiche: number;
   causali: number;
   codiciIva: number;
   condizioniPagamento: number;
@@ -49,7 +46,6 @@ const tableConfig: { key: TableKey; label: string; icon: React.ElementType }[] =
     { key: 'clienti', label: 'Clienti', icon: Users },
     { key: 'fornitori', label: 'Fornitori', icon: Landmark },
     { key: 'conti', label: 'Piano dei Conti', icon: Library },
-    { key: 'vociAnalitiche', label: 'Voci Analitiche', icon: Landmark },
     { key: 'causali', label: 'Causali', icon: FileText },
     { key: 'codiciIva', label: 'Codici IVA', icon: Library },
     { key: 'condizioniPagamento', label: 'Condizioni Pagamento', icon: Library },
@@ -71,7 +67,6 @@ const Database: React.FC = () => {
         clienti: dbStats.totaleClienti,
         fornitori: dbStats.totaleFornitori,
         conti: dbStats.totaleConti,
-        vociAnalitiche: dbStats.totaleVociAnalitiche,
         causali: dbStats.totaleCausali,
         codiciIva: dbStats.totaleCodiciIva,
         condizioniPagamento: dbStats.totaleCondizioniPagamento,
@@ -93,7 +88,6 @@ const Database: React.FC = () => {
     switch (selectedTable) {
         case 'clienti': return <ClientiTable />;
         case 'fornitori': return <FornitoriTable />;
-        case 'vociAnalitiche': return <VociAnaliticheTable />;
         case 'conti': return <ContiTable />;
         case 'commesse': return <CommesseTable />;
         case 'scritture': return <ScrittureTable />;

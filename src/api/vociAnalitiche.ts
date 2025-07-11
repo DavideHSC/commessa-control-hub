@@ -17,8 +17,11 @@ const fetchData = async <T>(url: string, options?: RequestInit): Promise<T> => {
     return response.json();
 };
 
-export const getVociAnalitiche = async (): Promise<VoceAnalitica[]> => {
-    return fetchData<VoceAnalitica[]>(API_BASE_URL);
+export const getVociAnalitiche = async (
+  params: Record<string, string | number> = {}
+): Promise<PaginatedResponse<VoceAnalitica>> => {
+  const query = new URLSearchParams(params as Record<string, string>).toString();
+  return fetchData<PaginatedResponse<VoceAnalitica>>(`${API_BASE_URL}?${query}`);
 };
 
 export const createVoceAnalitica = async (voce: Partial<VoceAnalitica> & { contiIds?: string[] }): Promise<VoceAnalitica> => {
