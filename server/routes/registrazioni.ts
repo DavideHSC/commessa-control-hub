@@ -39,19 +39,20 @@ const prisma = new PrismaClient();
 
 // GET all with pagination, search, and sort
 router.get('/', async (req, res) => {
-  try {
-    const { 
-      page = '1', 
-      limit = '25', 
-      search = '',
-      sortBy = 'data',
-      sortOrder = 'desc',
-      dateFrom = '',
-      dateTo = ''
-    } = req.query;
+  const { 
+    page = '1', 
+    limit = '25', 
+    search = '',
+    sortBy = 'data',
+    sortOrder = 'desc',
+    dateFrom = '',
+    dateTo = ''
+  } = req.query;
 
-    const pageNumber = parseInt(page as string, 10);
-    const pageSize = parseInt(limit as string, 10);
+  const pageNumber = parseInt(page as string, 10);
+  const pageSize = parseInt(limit as string, 10);
+
+  try {
     const skip = (pageNumber - 1) * pageSize;
     const take = pageSize;
 
@@ -96,6 +97,18 @@ router.get('/', async (req, res) => {
       }
     });
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2021') {
+      console.warn('La tabella ScritturaContabile non esiste, probabilmente a causa di un reset del DB in corso. Restituisco un set di dati vuoto.');
+      return res.json({
+        data: [],
+        pagination: {
+          page: pageNumber,
+          limit: pageSize,
+          total: 0,
+          totalPages: 0,
+        }
+      });
+    }
     console.error(error);
     res.status(500).json({ error: 'Errore nel caricamento delle scritture' });
   }

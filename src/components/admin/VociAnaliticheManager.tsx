@@ -7,10 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import * as api from '@/api/vociAnalitiche';
-import { getConfigurableConti } from '@/api/conti';
 import { VoceAnalitica } from '@prisma/client';
 import { VoceAnaliticaWithRelations, ContoForUI } from '@shared-types/index';
 import { MultiSelect } from '@/components/ui/multi-select';
+import { getContiPerSelezione } from '@/api/conti';
 
 interface ConfigurableConto {
   id: string;
@@ -36,7 +36,7 @@ const VociAnaliticheManager = () => {
       // Chiediamo tutti i dati impostando un limite elevato, dato che questa UI non è paginata
       const [vociData, contiData] = await Promise.all([
         api.getVociAnalitiche({ page: 1, limit: 9999 }),
-        getConfigurableConti(),
+        getContiPerSelezione(),
       ]);
       
       // Convertiamo i dati dell'API al tipo atteso, aggiungendo la proprietà conti vuota

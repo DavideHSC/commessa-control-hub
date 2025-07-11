@@ -6,17 +6,20 @@ import { useDebounce } from "use-debounce"
 import { Button } from "./button"
 import { Input } from "./input"
 import { DataTableViewOptions } from "./data-table-view-options"
+import React from "react";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
   searchValue: string
   onSearchChange: (value: string) => void
+  toolbarButtons?: React.ReactNode
 }
 
 export function DataTableToolbar<TData>({
   table,
   searchValue,
-  onSearchChange
+  onSearchChange,
+  toolbarButtons
 }: DataTableToolbarProps<TData>) {
 
   const [localSearch, setLocalSearch] = useState(searchValue);
@@ -44,6 +47,7 @@ export function DataTableToolbar<TData>({
           onChange={(event) => setLocalSearch(event.target.value)}
           className="h-8 w-[150px] lg:w-[250px]"
         />
+        {toolbarButtons}
         {localSearch && (
           <Button
             variant="ghost"

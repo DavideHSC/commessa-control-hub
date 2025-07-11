@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useMemo, useState } from 'react';
+import { ColumnDef } from '@tanstack/react-table';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { getConfigurableConti, toggleContoRelevance } from '@/api/conti';
+import { toggleContoRelevance } from '@/api/conti';
 import { useToast } from '@/hooks/use-toast';
+import { AdvancedDataTable } from '../ui/advanced-data-table';
+import { useAdvancedTable } from '@/hooks/useAdvancedTable';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 interface ConfigurableConto {
   id: string;
@@ -13,59 +16,95 @@ interface ConfigurableConto {
 }
 
 const ContiRelevanceForm = () => {
-  const [conti, setConti] = useState<ConfigurableConto[]>([]);
-  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const [tipo, setTipo] = useState('');
 
-  useEffect(() => {
-    const fetchConti = async () => {
-      try {
-        setLoading(true);
-        const data = await getConfigurableConti();
-        setConti(data);
-      } catch (error) {
-        toast({
-          title: 'Errore',
-          description: 'Impossibile caricare i conti per la configurazione.',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchConti();
-  }, [toast]);
+  const filters = useMemo(() => ({ tipo }), [tipo]);
 
-  const handleToggle = async (id: string, isRilevante: boolean) => {
-    try {
-      await toggleContoRelevance(id, isRilevante);
-      setConti(prevConti =>
-        prevConti.map(conto =>
-          conto.id === id ? { ...conto, isRilevantePerCommesse: isRilevante } : conto
-        )
-      );
-      toast({
-        title: 'Successo',
-        description: 'La rilevanza del conto è stata aggiornata.',
-      });
-    } catch (error) {
-      toast({
-        title: 'Errore',
-        description: "Impossibile aggiornare la rilevanza del conto.",
-        variant: 'destructive',
-      });
-      // Revert UI change on error
-      setConti(prevConti =>
-        prevConti.map(conto =>
-          conto.id === id ? { ...conto, isRilevantePerCommesse: !isRilevante } : conto
-        )
-      );
-    }
-  };
+  const {
+    data,
+    totalCount,
+    page,
+    pageSize,
+    search,
+    sorting,
+    loading,
+    onPageChange,
+    onPageSizeChange,
+    onSearchChange,
+    onSortingChange,
+    fetchData,
+  } = useAdvancedTable<ConfigurableConto>({
+    endpoint: '/api/conti',
+    initialPageSize: 10,
+    filters,
+  });
 
-  if (loading) {
-    return <div>Caricamento in corso...</div>;
-  }
+  const columns: ColumnDef<ConfigurableConto>[] = useMemo(
+    () => [
+      {
+        accessorKey: 'codice',
+        header: 'Codice Conto',
+        cell: ({ row }) => <div className="w-[150px]">{row.getValue('codice')}</div>,
+      },
+      {
+        accessorKey: 'nome',
+        header: 'Nome Conto',
+      },
+      {
+        id: 'isRilevantePerCommesse',
+        accessorKey: 'isRilevantePerCommesse',
+        header: () => <div className="text-right">Rilevante</div>,
+        cell: ({ row }) => {
+          const conto = row.original;
+
+          const handleToggle = async (isRilevante: boolean) => {
+            try {
+              await toggleContoRelevance(conto.id, isRilevante);
+              // Instead of updating local state, we refetch the data to ensure consistency
+              fetchData();
+              toast({
+                title: 'Successo',
+                description: 'La rilevanza del conto è stata aggiornata.',
+              });
+            } catch (error) {
+              toast({
+                title: 'Errore',
+                description: "Impossibile aggiornare la rilevanza del conto.",
+                variant: 'destructive',
+              });
+            }
+          };
+
+          return (
+            <div className="text-right">
+              <Switch
+                checked={conto.isRilevantePerCommesse}
+                onCheckedChange={handleToggle}
+              />
+            </div>
+          );
+        },
+      },
+    ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [fetchData]
+  );
+  
+  const filterComponent = (
+    <div className="flex items-center space-x-2">
+      <Select value={tipo} onValueChange={setTipo}>
+        <SelectTrigger className="h-8 w-[150px]">
+          <SelectValue placeholder="Filtra per tipo" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">Tutti i tipi</SelectItem>
+          <SelectItem value="Costo">Costo</SelectItem>
+          <SelectItem value="Ricavo">Ricavo</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
 
   return (
     <Card>
@@ -77,31 +116,21 @@ const ContiRelevanceForm = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[150px]">Codice Conto</TableHead>
-                <TableHead>Nome Conto</TableHead>
-                <TableHead className="w-[150px] text-right">Rilevante</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {conti.map(conto => (
-                <TableRow key={conto.id}>
-                  <TableCell className="font-medium">{conto.codice}</TableCell>
-                  <TableCell>{conto.nome}</TableCell>
-                  <TableCell className="text-right">
-                    <Switch
-                      checked={conto.isRilevantePerCommesse}
-                      onCheckedChange={(checked) => handleToggle(conto.id, checked)}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <AdvancedDataTable
+          columns={columns}
+          data={data}
+          totalCount={totalCount}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={onPageChange}
+          onPageSizeChange={onPageSizeChange}
+          search={search}
+          onSearchChange={onSearchChange}
+          sorting={sorting}
+          onSortingChange={onSortingChange}
+          loading={loading}
+          toolbarButtons={filterComponent}
+        />
       </CardContent>
     </Card>
   );

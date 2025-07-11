@@ -1,5 +1,5 @@
 import express from 'express';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient, TipoConto } from '@prisma/client';
 
 const prisma = new PrismaClient();
 const router = express.Router();
@@ -7,12 +7,13 @@ const router = express.Router();
 // GET all conti with pagination, search, and sort
 router.get('/', async (req, res) => {
   try {
-    const { 
-      page = '1', 
-      limit = '25', 
+    const {
+      page = '1',
+      limit = '25',
       search = '',
       sortBy = 'codice',
-      sortOrder = 'asc'
+      sortOrder = 'asc',
+      tipo,
     } = req.query;
 
     const pageNumber = parseInt(page as string, 10);
@@ -20,15 +21,21 @@ router.get('/', async (req, res) => {
     const skip = (pageNumber - 1) * pageSize;
     const take = pageSize;
 
-    const where: Prisma.ContoWhereInput = search ? {
-      OR: [
+    const where: Prisma.ContoWhereInput = {};
+
+    if (search) {
+      where.OR = [
         { codice: { contains: search as string, mode: 'insensitive' } },
         { nome: { contains: search as string, mode: 'insensitive' } },
-      ],
-    } : {};
+      ];
+    }
+
+    if (tipo && Object.values(TipoConto).includes(tipo as TipoConto)) {
+      where.tipo = tipo as TipoConto;
+    }
 
     const orderBy: Prisma.ContoOrderByWithRelationInput = {
-        [(sortBy as string) || 'codice']: (sortOrder as 'asc' | 'desc') || 'asc'
+      [(sortBy as string) || 'codice']: (sortOrder as 'asc' | 'desc') || 'asc',
     };
 
     const [conti, totalCount] = await prisma.$transaction([
@@ -53,27 +60,6 @@ router.get('/', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Errore nel recupero dei conti.' });
-  }
-});
-
-// GET all conti for configuration purposes (no pagination)
-router.get('/configurabili', async (req, res) => {
-  try {
-    const conti = await prisma.conto.findMany({
-      select: {
-        id: true,
-        codice: true,
-        nome: true,
-        isRilevantePerCommesse: true,
-      },
-      orderBy: {
-        codice: 'asc',
-      },
-    });
-    res.json({ data: conti });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Errore nel recupero dei conti per la configurazione.' });
   }
 });
 

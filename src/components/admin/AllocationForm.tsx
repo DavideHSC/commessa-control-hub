@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem as UiSelectItem, SelectTrigger, Selec
 import { Label } from '@/components/ui/label';
 import { Allocazione } from '@shared-types/index';
 import { PlusCircle, Trash2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 // Definiamo qui il tipo per le opzioni dei select, dato che è un tipo di UI
 export interface SelectItem {
@@ -21,6 +22,7 @@ interface AllocationFormProps {
 }
 
 export function AllocationForm({ scrittura, commesse, vociAnalitiche, onSave }: AllocationFormProps) {
+  const { toast } = useToast();
   const [allocations, setAllocations] = useState<Partial<Allocazione>[]>([]);
 
   useEffect(() => {
@@ -68,8 +70,11 @@ export function AllocationForm({ scrittura, commesse, vociAnalitiche, onSave }: 
     ) as Allocazione[];
     
     if (completeAllocations.length !== allocations.length || isTotalMismatch) {
-        console.error("Dati di allocazione incompleti o totali non corrispondenti");
-        // TODO: Mostrare un toast di errore
+        toast({
+            title: "Dati incompleti",
+            description: "Assicurati di aver compilato tutti i campi (commessa, voce, importo) per ogni allocazione e che il totale corrisponda.",
+            variant: "destructive"
+        });
         return;
     }
 

@@ -186,6 +186,98 @@ router.post('/run', async (req, res) => {
 });
 
 
+/**
+ * Finalizza l'importazione del piano dei conti, trasferendo i dati
+ * dalla tabella di staging alla tabella di produzione.
+ * Questo approccio "delete-and-recreate" garantisce che la tabella
+ * finale rifletta esattamente l'ultimo import.
+ */
+router.post('/finalize-conti', async (req, res) => {
+    console.log('[Finalize Conti] Avvio finalizzazione piano dei conti...');
+    try {
+        const stagingConti = await prisma.stagingConto.findMany();
+
+        if (stagingConti.length === 0) {
+            console.log('[Finalize Conti] Nessun conto in staging da finalizzare.');
+            return res.status(200).json({ message: 'Nessun conto in staging da importare.' });
+        }
+
+        const contiToCreate = stagingConti.map(sc => {
+            let tipoConto: 'Costo' | 'Ricavo' | 'Patrimoniale' | 'Economico' | 'Fornitore' | 'Cliente' | 'Ordine';
+
+            if (sc.gruppo === 'C') {
+                tipoConto = 'Costo';
+            } else if (sc.gruppo === 'R') {
+                tipoConto = 'Ricavo';
+            } else {
+                switch (sc.tipo) {
+                    case 'P': tipoConto = 'Patrimoniale'; break;
+                    case 'E': tipoConto = 'Economico'; break;
+                    case 'F': tipoConto = 'Fornitore'; break;
+                    case 'C': tipoConto = 'Cliente'; break;
+                    case 'O': tipoConto = 'Ordine'; break;
+                    default: tipoConto = 'Patrimoniale';
+                }
+            }
+
+            return {
+                codice: sc.codice,
+                nome: sc.descrizione ?? 'Senza nome',
+                tipo: tipoConto,
+                codiceFiscaleAzienda: sc.codiceFiscaleAzienda ?? '',
+                descrizioneLocale: sc.descrizioneLocale,
+                subcodiceAzienda: sc.subcodiceAzienda,
+                livello: sc.livello,
+                sigla: sc.sigla,
+                gruppo: sc.gruppo,
+                controlloSegno: sc.controlloSegno,
+                utilizzaDescrizioneLocale: sc.utilizzaDescrizioneLocale === 'S',
+                consideraBilancioSemplificato: sc.consideraNelBilancioSemplificato === 'S',
+                validoImpresaOrdinaria: sc.validoImpresaOrdinaria === 'S',
+                validoImpresaSemplificata: sc.validoImpresaSemplificata === 'S',
+                validoProfessionistaOrdinario: sc.validoProfessionistaOrdinario === 'S',
+                validoProfessionistaSemplificato: sc.validoProfessionistaSemplificato === 'S',
+                validoUnicoPf: sc.validoUnicoPf === 'S',
+                validoUnicoSp: sc.validoUnicoSp === 'S',
+                validoUnicoSc: sc.validoUnicoSc === 'S',
+                validoUnicoEnc: sc.validoUnicoEnc === 'S',
+                tabellaItalstudio: sc.tabellaItalstudio,
+                classeIrpefIres: sc.codiceClasseIrpefIres,
+                classeIrap: sc.codiceClasseIrap,
+                classeProfessionista: sc.codiceClasseProfessionista,
+                classeIrapProfessionista: sc.codiceClasseIrapProfessionista,
+                classeIva: sc.codiceClasseIva,
+                contoCostiRicavi: sc.contoCostiRicaviCollegato,
+                contoDareCee: sc.contoDareCee,
+                contoAvereCee: sc.contoAvereCee,
+                naturaConto: sc.naturaConto,
+                gestioneBeniAmmortizzabili: sc.gestioneBeniAmmortizzabili,
+                percDeduzioneManutenzione: sc.percDeduzioneManutenzione ? parseFloat(sc.percDeduzioneManutenzione) : null,
+                dettaglioClienteFornitore: sc.dettaglioClienteFornitore,
+            };
+        });
+
+        console.log(`[Finalize Conti] Trovati ${contiToCreate.length} conti da creare.`);
+        
+        await prisma.$transaction(async (tx) => {
+            console.log('[Finalize Conti] Svuotamento tabella Conti di produzione...');
+            await tx.conto.deleteMany({});
+            console.log('[Finalize Conti] Caricamento nuovi conti...');
+            await tx.conto.createMany({
+                data: contiToCreate,
+            });
+        });
+
+        console.log('[Finalize Conti] Finalizzazione completata con successo.');
+        res.status(200).json({ message: `Importati con successo ${contiToCreate.length} conti nel piano dei conti di produzione.` });
+
+    } catch (error) {
+        console.error('[Finalize Conti] Errore durante la finalizzazione del piano dei conti:', error);
+        res.status(500).json({ message: 'Errore durante la finalizzazione del piano dei conti.', error: error instanceof Error ? error.message : String(error) });
+    }
+});
+
+
 const allocationSchema = z.object({
   commessaId: z.string(),
   importo: z.number().positive(),

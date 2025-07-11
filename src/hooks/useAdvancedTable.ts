@@ -7,6 +7,7 @@ interface UseAdvancedTableProps<T> {
   endpoint: string;
   initialSorting?: SortingState;
   initialPageSize?: number;
+  filters?: Record<string, string | number | boolean | undefined>;
 }
 
 interface PaginatedResponse<T> {
@@ -23,6 +24,7 @@ export function useAdvancedTable<T>({
   endpoint, 
   initialSorting = [],
   initialPageSize = 5,
+  filters = {},
 }: UseAdvancedTableProps<T>) {
   const [data, setData] = useState<T[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -37,7 +39,8 @@ export function useAdvancedTable<T>({
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-          const params: Record<string, any> = {
+          const params: Record<string, string | number | boolean | undefined> = {
+      ...filters,
       page,
       limit: pageSize,
     };
@@ -68,7 +71,7 @@ export function useAdvancedTable<T>({
     } finally {
       setLoading(false);
     }
-  }, [endpoint, page, pageSize, debouncedSearch, sorting]);
+  }, [endpoint, page, pageSize, debouncedSearch, sorting, filters]);
 
   useEffect(() => {
     fetchData();

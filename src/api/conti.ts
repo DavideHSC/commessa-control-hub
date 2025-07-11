@@ -45,18 +45,6 @@ export const deleteConto = async (id: string): Promise<void> => {
 // Funzioni per la configurazione della rilevanza
 // =============================================
 
-interface ConfigurableConto {
-    id: string;
-    codice: string;
-    nome: string;
-    isRilevantePerCommesse: boolean;
-}
-
-export const getConfigurableConti = async (): Promise<ConfigurableConto[]> => {
-  const { data } = await fetchData<{ data: ConfigurableConto[] }>('/api/conti/configurabili');
-  return data;
-};
-
 export const toggleContoRelevance = async (id: string, isRilevante: boolean): Promise<{ id: string, isRilevantePerCommesse: boolean }> => {
   return fetchData<{ id: string, isRilevantePerCommesse: boolean }>(`/api/conti/${id}/toggle-rilevanza`, {
       method: 'PATCH',

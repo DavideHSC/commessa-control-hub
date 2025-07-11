@@ -43,6 +43,8 @@ interface AdvancedDataTableProps<TData extends { id: string }> {
   // Interactivity props
   onRowClick?: (row: TData) => void;
   selectedRowId?: string;
+
+  toolbarButtons?: React.ReactNode;
 }
 
 export function AdvancedDataTable<TData extends { id: string }>({
@@ -61,6 +63,7 @@ export function AdvancedDataTable<TData extends { id: string }>({
   emptyMessage = "No results found.",
   onRowClick,
   selectedRowId,
+  toolbarButtons,
 }: AdvancedDataTableProps<TData>) {
 
   const isServerSide = totalCount !== undefined && page !== undefined && pageSize !== undefined;
@@ -110,6 +113,7 @@ export function AdvancedDataTable<TData extends { id: string }>({
         table={table}
         searchValue={search}
         onSearchChange={onSearchChange}
+        toolbarButtons={toolbarButtons}
       />
       <div className="rounded-md border">
         <Table>
