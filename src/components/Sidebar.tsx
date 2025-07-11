@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, FileText, BarChart3, Settings, Building2, Upload, Database, GitCompareArrows, Layers } from 'lucide-react'; // Importo l'icona Layers
+import { Home, FileText, BarChart3, Settings, Building2, Upload, Database, GitCompareArrows, Layers, ChevronsUpDown, ListTree, SlidersHorizontal } from 'lucide-react'; // Importo l'icona Layers
 import {
   Sidebar as SidebarPrimitive,
   SidebarContent,
@@ -12,6 +12,12 @@ import {
   SidebarHeader,
 } from '@/components/ui/sidebar';
 import { useNavigate, useLocation } from 'react-router-dom';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 
 const menuItems = [
   {
@@ -57,12 +63,30 @@ const serviziItems = [
     url: "/database/staging",
     icon: Layers, // Uso la nuova icona
   },
-  {
-    title: "Impostazioni",
-    url: "/impostazioni",
-    icon: Settings,
-  },
 ];
+
+const settingsSubMenu = [
+    {
+        title: "Operazioni di Sistema",
+        url: "/impostazioni",
+        icon: Settings,
+    },
+    {
+        title: "Configurazione Conti",
+        url: "/impostazioni/conti",
+        icon: SlidersHorizontal,
+    },
+    {
+        title: "Voci Analitiche",
+        url: "/impostazioni/voci-analitiche",
+        icon: ListTree,
+    },
+    {
+        title: "Regole di Ripartizione",
+        url: "/impostazioni/regole-ripartizione",
+        icon: GitCompareArrows,
+    }
+]
 
 export function Sidebar() {
   const navigate = useNavigate();
@@ -130,6 +154,32 @@ export function Sidebar() {
                   </SidebarMenuItem>
                 );
               })}
+                <Accordion type="single" collapsible className="w-full" defaultValue={location.pathname.startsWith('/impostazioni') ? 'impostazioni' : ''}>
+                    <AccordionItem value="impostazioni" className="border-b-0">
+                        <AccordionTrigger className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-slate-100 rounded-lg transition-colors duration-200 text-slate-700 hover:no-underline">
+                            <Settings className={`w-5 h-5 text-slate-600`} />
+                            <span className={`font-medium`}>Impostazioni</span>
+                        </AccordionTrigger>
+                        <AccordionContent className="pl-4">
+                            {settingsSubMenu.map((item) => {
+                                const isActive = location.pathname === item.url;
+                                return (
+                                <SidebarMenuItem key={item.title}>
+                                    <SidebarMenuButton
+                                    onClick={() => navigate(item.url)}
+                                    className={`w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-slate-100 rounded-lg transition-colors duration-200 ${
+                                        isActive ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'text-slate-700'
+                                    }`}
+                                    >
+                                    <item.icon className={`w-5 h-5 ${isActive ? 'text-indigo-600' : 'text-slate-600'}`} />
+                                    <span className={`font-medium`}>{item.title}</span>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                                );
+                            })}
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

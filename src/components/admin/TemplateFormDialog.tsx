@@ -1,208 +1,131 @@
 "use client";
 
-import React, { useEffect } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import React, { useState, useEffect } from 'react';
+import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Trash2 } from 'lucide-react';
 import { ImportTemplate, FieldDefinition } from '@prisma/client';
-import { createImportTemplate, updateImportTemplate } from '@/api/importTemplates';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { toast } from 'sonner';
-import { Trash2, PlusCircle } from 'lucide-react';
 
-interface TemplateFormDialogProps {
-  isOpen: boolean;
-  onClose: (refresh: boolean) => void;
-  template: ImportTemplate | null;
-}
+// Tipo esteso per includere le relazioni
+export type ImportTemplateWithRelations = ImportTemplate & {
+    fieldDefinitions: FieldDefinition[];
+};
 
 const fieldSchema = z.object({
   id: z.string().optional(),
-  fieldName: z.string().min(1, "Il nome del campo è obbligatorio."),
-  start: z.coerce.number().min(0, "L'inizio deve essere non negativo."),
-  length: z.coerce.number().min(1, "La lunghezza deve essere almeno 1."),
-  type: z.enum(['string', 'number', 'date']),
-  fileIdentifier: z.string().optional().nullable(),
+  fieldName: z.string().min(1, 'Obbligatorio'),
+  start: z.number().min(0),
+  length: z.number().min(0),
+  end: z.number().min(0),
+  fileIdentifier: z.string().optional(),
+  format: z.string().optional(),
 });
 
-const templateSchema = z.object({
-  name: z.string().min(2, "Il nome del template è obbligatorio."),
-  fields: z.array(fieldSchema).min(1, "Deve esserci almeno un campo."),
+const formSchema = z.object({
+  name: z.string().min(1, 'Il nome del template è obbligatorio'),
+  modelName: z.string().min(1, 'Il nome del modello è obbligatorio'),
+  fileIdentifier: z.string().optional(),
+  fieldDefinitions: z.array(fieldSchema),
 });
 
+type TemplateFormData = z.infer<typeof formSchema>;
 
-export const TemplateFormDialog: React.FC<TemplateFormDialogProps> = ({ isOpen, onClose, template }) => {
-  const form = useForm<z.infer<typeof templateSchema>>({
-    resolver: zodResolver(templateSchema),
+interface TemplateFormDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: Partial<TemplateFormData>) => void;
+  initialData: ImportTemplateWithRelations | null;
+}
+
+export const TemplateFormDialog: React.FC<TemplateFormDialogProps> = ({ isOpen, onClose, onSubmit, initialData }) => {
+  const { control, handleSubmit, reset } = useForm<TemplateFormData>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
-      fields: [],
+      modelName: '',
+      fileIdentifier: '',
+      fieldDefinitions: [],
     },
   });
 
   const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "fields"
+    control,
+    name: 'fieldDefinitions',
   });
 
   useEffect(() => {
-    if (template) {
-      form.reset({
-        name: template.name,
-        fields: template.fieldDefinitions.map(f => ({...f, id: f.id || undefined }))
+    if (initialData) {
+      reset({
+        name: initialData.name,
+        modelName: initialData.modelName,
+        fileIdentifier: initialData.fileIdentifier ?? '',
+        fieldDefinitions: initialData.fieldDefinitions,
       });
     } else {
-      form.reset({
-        name: '',
-        fields: [{ fieldName: '', start: 0, length: 1, type: 'string', fileIdentifier: '' }],
-      });
+      reset({ name: '', modelName: '', fileIdentifier: '', fieldDefinitions: [] });
     }
-  }, [template, form]);
-
-  const onSubmit = async (values: z.infer<typeof templateSchema>) => {
-    try {
-        // Trasforma i dati dal formato del form al formato del backend
-        const backendData = {
-            name: values.name,
-            fieldDefinitions: values.fields
-        };
-        
-        if (template) {
-            await updateImportTemplate(template.id, backendData);
-            toast.success("Template aggiornato con successo.");
-        } else {
-            await createImportTemplate(backendData as any);
-            toast.success("Template creato con successo.");
-        }
-        onClose(true);
-    } catch (error) {
-        toast.error((error as Error).message);
-    }
-  };
+  }, [initialData, reset]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose(false)}>
-      <DialogContent className="max-w-4xl">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{template ? 'Modifica Template' : 'Nuovo Template'}</DialogTitle>
-          <DialogDescription>
-            Definisci il nome del template e i campi a larghezza fissa.
-          </DialogDescription>
+          <DialogTitle>{initialData ? 'Modifica Template' : 'Nuovo Template'}</DialogTitle>
+          <DialogDescription>Configura i campi per il parsing del file.</DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4">
-                <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Nome Template</FormLabel>
-                        <FormControl>
-                            <Input placeholder="Es. clienti_fornitori" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                />
-
-                <div>
-                    <Label>Campi del Template</Label>
-                    <div className="space-y-4 mt-2">
-                        {fields.map((field, index) => (
-                        <div key={field.id} className="flex items-end space-x-2 p-3 border rounded-md">
-                            <FormField
-                                control={form.control}
-                                name={`fields.${index}.fieldName`}
-                                render={({ field }) => (
-                                    <FormItem><FormLabel>Nome Campo</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name={`fields.${index}.start`}
-                                render={({ field }) => (
-                                    <FormItem><FormLabel>Inizio</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name={`fields.${index}.length`}
-                                render={({ field }) => (
-                                    <FormItem><FormLabel>Lunghezza</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
-                                )}
-                            />
-                             <FormField
-                                control={form.control}
-                                name={`fields.${index}.type`}
-                                render={({ field }) => (
-                                    <FormItem><FormLabel>Tipo</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                                        <SelectContent>
-                                            <SelectItem value="string">Testo</SelectItem>
-                                            <SelectItem value="number">Numero</SelectItem>
-                                            <SelectItem value="date">Data</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage /></FormItem>
-                                )}
-                            />
-                             <FormField
-                                control={form.control}
-                                name={`fields.${index}.fileIdentifier`}
-                                render={({ field }) => (
-                                    <FormItem><FormLabel>ID File (Opz.)</FormLabel><FormControl><Input {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
-                                )}
-                            />
-                            <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </div>
-                        ))}
-                    </div>
-                    <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="mt-4"
-                        onClick={() => append({ fieldName: '', start: 0, length: 1, type: 'string', fileIdentifier: '' })}>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Aggiungi Campo
-                    </Button>
-                </div>
+        <form onSubmit={handleSubmit(data => onSubmit(data))} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="name">Nome Template</Label>
+              <Controller name="name" control={control} render={({ field }) => <Input {...field} id="name" />} />
             </div>
-            <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => onClose(false)}>Annulla</Button>
-              <Button type="submit">Salva Template</Button>
-            </DialogFooter>
-          </form>
-        </Form>
+            <div>
+              <Label htmlFor="modelName">Nome Modello</Label>
+              <Controller name="modelName" control={control} render={({ field }) => <Input {...field} id="modelName" />} />
+            </div>
+             <div>
+              <Label htmlFor="fileIdentifier">Identificativo File (Opzionale)</Label>
+              <Controller name="fileIdentifier" control={control} render={({ field }) => <Input {...field} value={field.value ?? ''} id="fileIdentifier" />} />
+            </div>
+          </div>
+          
+          <div className='space-y-2'>
+            <Label>Definizione Campi</Label>
+            {fields.map((field, index) => (
+              <div key={field.id} className="grid grid-cols-12 gap-2 items-center p-2 border rounded-md">
+                <div className="col-span-3">
+                  <Controller name={`fieldDefinitions.${index}.fieldName`} control={control} render={({ field }) => <Input {...field} placeholder="Nome Campo"/>} />
+                </div>
+                <div className="col-span-2">
+                  <Controller name={`fieldDefinitions.${index}.start`} control={control} render={({ field }) => <Input {...field} type="number" placeholder="Inizio" onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} />} />
+                </div>
+                <div className="col-span-2">
+                  <Controller name={`fieldDefinitions.${index}.length`} control={control} render={({ field }) => <Input {...field} type="number" placeholder="Lunghezza" onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} />} />
+                </div>
+                <div className="col-span-2">
+                  <Controller name={`fieldDefinitions.${index}.end`} control={control} render={({ field }) => <Input {...field} type="number" placeholder="Fine" onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} />} />
+                </div>
+                <div className="col-span-2">
+                  <Controller name={`fieldDefinitions.${index}.format`} control={control} render={({ field }) => <Input {...field} value={field.value ?? ''} placeholder="Formato" />} />
+                </div>
+                <div className="col-span-1">
+                  <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+                </div>
+              </div>
+            ))}
+            <Button type="button" size="sm" variant="outline" onClick={() => append({ fieldName: '', start: 0, length: 0, end: 0 })}>Aggiungi Campo</Button>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>Annulla</Button>
+            <Button type="submit">Salva</Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

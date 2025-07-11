@@ -126,7 +126,37 @@ async function main() {
   });
   console.log('Commesse figlie (Attività) create.');
 
-  // 4. Template di Importazione (essenziali per funzionamento) - UPSERT
+  // 4. Voci Analitiche di base
+  console.log('Creazione Voci Analitiche di base...');
+  await prisma.voceAnalitica.deleteMany({}); // Pulisce prima di ricreare
+  await prisma.voceAnalitica.createMany({
+    data: [
+      // Voci di Costo
+      { nome: 'Materiale di Consumo', tipo: 'Costo' },
+      { nome: 'Carburanti e Lubrificanti', tipo: 'Costo' },
+      { nome: 'Utenze', tipo: 'Costo' },
+      { nome: 'Lavorazioni Esterne', tipo: 'Costo' },
+      { nome: 'Spese Generali / di Struttura', tipo: 'Costo' },
+      { nome: 'Pulizie di Cantiere', tipo: 'Costo' },
+      { nome: 'Oneri e Spese Accessorie', tipo: 'Costo' },
+      { nome: 'Smaltimento Rifiuti Speciali', tipo: 'Costo' },
+      { nome: 'Manutenzione Mezzi', tipo: 'Costo' },
+      { nome: 'Consulenze Tecniche/Legali', tipo: 'Costo' },
+      { nome: 'Servizi Generici di Cantiere', tipo: 'Costo' },
+      { nome: 'Manodopera Diretta', tipo: 'Costo' },
+      { nome: 'Oneri su Manodopera', tipo: 'Costo' },
+      
+      // Voci di Ricavo
+      { nome: 'Ricavi da Prestazioni Contrattuali', tipo: 'Ricavo' },
+      { nome: 'Rettifiche Negative su Ricavi (NC)', tipo: 'Ricavo' },
+      { nome: 'Ricavi Accessori', tipo: 'Ricavo' },
+    ],
+    skipDuplicates: true,
+  });
+  console.log('Voci Analitiche di base create.');
+
+
+  // 5. Template di Importazione (essenziali per funzionamento) - UPSERT
   console.log('Creazione/Aggiornamento Template di Importazione...');
   
   // Template Causali - Prima elimina quello esistente

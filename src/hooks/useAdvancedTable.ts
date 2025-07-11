@@ -36,11 +36,14 @@ export function useAdvancedTable<T>({
 
   const [debouncedSearch] = useDebounce(search, 500);
 
+  // Stringify filters to create a stable dependency for useCallback
+  const filtersString = JSON.stringify(filters);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
           const params: Record<string, string | number | boolean | undefined> = {
-      ...filters,
+      ...JSON.parse(filtersString),
       page,
       limit: pageSize,
     };
@@ -71,7 +74,7 @@ export function useAdvancedTable<T>({
     } finally {
       setLoading(false);
     }
-  }, [endpoint, page, pageSize, debouncedSearch, sorting, filters]);
+  }, [endpoint, page, pageSize, debouncedSearch, sorting, filtersString]);
 
   useEffect(() => {
     fetchData();

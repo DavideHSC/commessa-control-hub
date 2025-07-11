@@ -116,7 +116,7 @@ const RegoleRipartizioneManager: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Gestione Regole di Ripartizione</CardTitle>
         <Button onClick={handleAddNew}>Aggiungi Nuova Regola</Button>
       </CardHeader>

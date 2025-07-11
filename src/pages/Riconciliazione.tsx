@@ -172,7 +172,15 @@ export default function Riconciliazione() {
                                         <p><strong>Descrizione:</strong> {selectedScrittura.descrizione}</p>
                                         <p className="mt-4"><strong>Conto:</strong> {selectedScrittura.conto.nome} ({selectedScrittura.conto.codice})</p>
                                         <p><strong>Importo:</strong> {selectedScrittura.importo.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}</p>
-                                        <p><strong>Voce Analitica Suggerita:</strong> {selectedScrittura.voceAnaliticaSuggerita?.nome || 'N/A'}</p>
+                                        
+                                        {selectedScrittura.voceAnaliticaSuggerita && (
+                                            <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded-md">
+                                                <p className="text-sm font-semibold text-blue-800">
+                                                    <span className="mr-2">💡</span>
+                                                    Voce Analitica Suggerita: {selectedScrittura.voceAnaliticaSuggerita.nome}
+                                                </p>
+                                            </div>
+                                        )}
                                         
                                         <div className="mt-4 border-t pt-4">
                                             <AllocationForm

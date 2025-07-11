@@ -17,13 +17,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { TemplateFormDialog } from './TemplateFormDialog'; 
+import { TemplateFormDialog, ImportTemplateWithRelations } from './TemplateFormDialog'; 
 import { useAdvancedTable } from '@/hooks/useAdvancedTable';
 import { AdvancedDataTable } from '../ui/advanced-data-table';
+import {
+  createImportTemplate,
+  updateImportTemplate,
+} from "@/api/importTemplates";
 
 const ImportTemplatesAdmin: React.FC = () => {
-    const [isFormOpen, setIsFormOpen] = useState(false);
-    const [editingTemplate, setEditingTemplate] = useState<ImportTemplate | null>(null);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [selectedTemplate, setSelectedTemplate] = useState<ImportTemplateWithRelations | null>(null);
     const [deletingTemplate, setDeletingTemplate] = useState<ImportTemplate | null>(null);
 
     const {
@@ -45,8 +49,8 @@ const ImportTemplatesAdmin: React.FC = () => {
     });
 
     const handleEdit = (template: ImportTemplate) => {
-        setEditingTemplate(template);
-        setIsFormOpen(true);
+        setSelectedTemplate(template as ImportTemplateWithRelations);
+        setIsDialogOpen(true);
     };
 
     const handleDelete = async () => {
@@ -62,20 +66,33 @@ const ImportTemplatesAdmin: React.FC = () => {
         }
     };
     
-    const handleFormClose = (refresh: boolean) => {
-        setIsFormOpen(false);
-        setEditingTemplate(null);
-        if (refresh) {
-            refreshData();
-        }
+    const handleCloseDialog = () => {
+        setIsDialogOpen(false);
+        setSelectedTemplate(null);
     }
+
+    const handleFormSubmit = async (data: any) => {
+        try {
+            if (selectedTemplate) {
+                await updateImportTemplate(selectedTemplate.id, data);
+                toast.success(`Template "${data.name}" aggiornato con successo.`);
+            } else {
+                await createImportTemplate(data);
+                toast.success(`Template "${data.name}" creato con successo.`);
+            }
+            refreshData();
+            handleCloseDialog();
+        } catch (error) {
+            toast.error((error as Error).message);
+        }
+    };
 
     const columns = getColumns(handleEdit, (template) => setDeletingTemplate(template));
 
     return (
         <div>
             <div className="flex justify-end mb-4">
-                <Button onClick={() => { setEditingTemplate(null); setIsFormOpen(true); }}>
+                <Button onClick={() => { setSelectedTemplate(null); setIsDialogOpen(true); }}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Aggiungi Template
                 </Button>
@@ -98,9 +115,10 @@ const ImportTemplatesAdmin: React.FC = () => {
             />
 
             <TemplateFormDialog
-                isOpen={isFormOpen}
-                onClose={handleFormClose}
-                template={editingTemplate}
+                isOpen={isDialogOpen}
+                onClose={handleCloseDialog}
+                onSubmit={handleFormSubmit}
+                initialData={selectedTemplate}
             /> 
             
             <AlertDialog open={!!deletingTemplate} onOpenChange={() => setDeletingTemplate(null)}>

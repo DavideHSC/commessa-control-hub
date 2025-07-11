@@ -1,7 +1,3 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ContiRelevanceForm from "@/components/admin/ContiRelevanceForm";
-import VociAnaliticheManager from "@/components/admin/VociAnaliticheManager";
-import RegoleRipartizioneManager from "@/components/admin/RegoleRipartizioneManager";
 import { SystemOperations } from "@/components/admin/SystemOperations";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -57,11 +53,11 @@ const Impostazioni = () => {
 
   return (
     <div className="container mx-auto p-4 space-y-6">
-      <h1 className="text-2xl font-bold">Impostazioni</h1>
+      <h1 className="text-2xl font-bold">Operazioni di Sistema</h1>
 
       <Card>
         <CardHeader>
-          <CardTitle>Operazioni di Sistema</CardTitle>
+          <CardTitle>Azioni sul Database</CardTitle>
           <CardDescription>
             Azioni critiche che influenzano l'intero stato del database. Usare con cautela.
           </CardDescription>
@@ -94,27 +90,6 @@ const Impostazioni = () => {
           </Button>
         </CardContent>
       </Card>
-
-      <Tabs defaultValue="conti" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="conti">Configurazione Conti per Analitica</TabsTrigger>
-          <TabsTrigger value="voci-analitiche">Gestione Voci Analitiche</TabsTrigger>
-          <TabsTrigger value="regole-ripartizione">Regole di Ripartizione</TabsTrigger>
-          <TabsTrigger value="sistema">Operazioni di Sistema</TabsTrigger>
-        </TabsList>
-        <TabsContent value="conti">
-          <ContiRelevanceForm />
-        </TabsContent>
-        <TabsContent value="voci-analitiche">
-          <VociAnaliticheManager />
-        </TabsContent>
-        <TabsContent value="regole-ripartizione">
-          <RegoleRipartizioneManager />
-        </TabsContent>
-        <TabsContent value="sistema">
-          <SystemOperations />
-        </TabsContent>
-      </Tabs>
     </div>
   );
 };

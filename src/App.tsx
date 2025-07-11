@@ -15,6 +15,9 @@ import Database from './pages/Database';
 import ImpostazioniPage from "./pages/Impostazioni";
 import RiconciliazionePage from "./pages/Riconciliazione";
 import StagingPage from "./pages/Staging"; // Importo la nuova pagina
+import ConfigurazioneContiPage from "./pages/impostazioni/ConfigurazioneConti";
+import VociAnalitichePage from "./pages/impostazioni/VociAnalitiche";
+import RegoleRipartizionePage from "./pages/impostazioni/RegoleRipartizione";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +44,9 @@ const App = () => (
             <Route path="/database" element={<Database />} />
             <Route path="/database/staging" element={<StagingPage />} /> {/* Aggiungo la nuova rotta */}
             <Route path="/impostazioni" element={<ImpostazioniPage />} />
+            <Route path="/impostazioni/conti" element={<ConfigurazioneContiPage />} />
+            <Route path="/impostazioni/voci-analitiche" element={<VociAnalitichePage />} />
+            <Route path="/impostazioni/regole-ripartizione" element={<RegoleRipartizionePage />} />
             <Route path="/riconciliazione" element={<RiconciliazionePage />} />
           </Route>
           <Route path="*" element={<NotFound />} />

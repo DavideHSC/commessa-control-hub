@@ -54,7 +54,7 @@ export const toggleContoRelevance = async (id: string, isRilevante: boolean): Pr
 }; 
 
 export const getContiPerSelezione = async (): Promise<Pick<Conto, 'id' | 'codice' | 'nome'>[]> => {
-    const response = await fetch(`${API_BASE_URL}/conti/select`);
+    const response = await fetch(`${API_BASE_URL}/select`);
     if (!response.ok) {
         throw new Error('Errore nel recupero dei conti per la selezione');
     }

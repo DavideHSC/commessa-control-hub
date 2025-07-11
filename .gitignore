@@ -33,3 +33,5 @@ server/**/*.js
 prisma/**/*.cjs
 server/**/*.cjs
 *.cjs
+
+.docs/messages

@@ -27,13 +27,15 @@ interface DataTableProps<TData, TValue> {
   data: TData[]
   renderSubComponent?: (props: { row: Row<TData> }) => React.ReactElement;
   getRowCanExpand?: (row: Row<TData>) => boolean;
+  meta?: any;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   renderSubComponent,
-  getRowCanExpand
+  getRowCanExpand,
+  meta,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -42,6 +44,7 @@ export function DataTable<TData, TValue>({
     getPaginationRowModel: getPaginationRowModel(),
     getExpandedRowModel: getExpandedRowModel(),
     getRowCanExpand,
+    meta,
   })
 
   return (

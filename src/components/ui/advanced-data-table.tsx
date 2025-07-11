@@ -31,7 +31,7 @@ interface AdvancedDataTableProps<TData extends { id: string }> {
   onPageChange?: (page: number) => void;
   onPageSizeChange?: (size: number) => void;
   
-  search?: string;
+  searchValue?: string;
   onSearchChange?: (search: string) => void;
   
   sorting?: SortingState;
@@ -55,7 +55,7 @@ export function AdvancedDataTable<TData extends { id: string }>({
   pageSize,
   onPageChange,
   onPageSizeChange,
-  search,
+  searchValue,
   onSearchChange,
   sorting,
   onSortingChange,
@@ -111,7 +111,7 @@ export function AdvancedDataTable<TData extends { id: string }>({
     <div className="space-y-4">
       <DataTableToolbar 
         table={table}
-        searchValue={search}
+        searchValue={searchValue}
         onSearchChange={onSearchChange}
         toolbarButtons={toolbarButtons}
       />
