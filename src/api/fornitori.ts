@@ -1,4 +1,4 @@
-import { Fornitore } from '@/types';
+import { Fornitore } from '@prisma/client';
 
 const API_URL = '/api/fornitori';
 

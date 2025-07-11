@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getDashboardData } from '@/api';
-import { CommessaDashboard, DashboardData } from '@/types';
+import { Badge } from '@/components/ui/badge';
+import { CommessaDashboard, DashboardData } from '@shared-types/index';
 import { DollarSign, TrendingUp, TrendingDown, Layers, AlertCircle } from 'lucide-react';
 
 const formatCurrency = (value: number) => {

@@ -1,4 +1,5 @@
-import { Commessa, VoceAnalitica, Conto, ScritturaContabile, CausaleContabile, Cliente, Fornitore, CodiceIva, CondizionePagamento, ImportTemplate, TableStats } from '@/types';
+import { Commessa, VoceAnalitica, Conto, ScritturaContabile, CausaleContabile, Cliente, Fornitore, CodiceIva, CondizionePagamento, ImportTemplate } from '@prisma/client';
+import { TableStats } from '@shared-types/index';
 import qs from 'qs';
 import axios from 'axios';
 

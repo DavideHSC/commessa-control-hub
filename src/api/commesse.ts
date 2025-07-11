@@ -1,4 +1,4 @@
-import { Commessa } from "@/types";
+import { Commessa } from "@prisma/client";
 
 const API_BASE_URL = '/api/commesse';
 

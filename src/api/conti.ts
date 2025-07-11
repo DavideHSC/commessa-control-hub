@@ -1,4 +1,4 @@
-import { Conto } from "@/types";
+import { Conto } from "@prisma/client";
 import { PaginatedResponse } from ".";
 
 const API_BASE_URL = '/api/conti';

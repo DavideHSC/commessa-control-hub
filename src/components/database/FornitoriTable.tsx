@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { createFornitore, updateFornitore, deleteFornitore } from '@/api/fornitori';
-import { Fornitore } from '@/types';
+import { Fornitore } from '@prisma/client';
 import { fornitoreSchema, FornitoreFormValues } from '@/schemas/database';
 import { useCrudTable } from '@/hooks/useCrudTable';
 import { useAdvancedTable } from '@/hooks/useAdvancedTable';

@@ -3,21 +3,50 @@ import { riconciliazioneColumns } from "@/components/admin/riconciliazione-colum
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiClient } from "@/api";
-import { useState } from "react";
-import { ReconciliationResult, RigaDaRiconciliare } from "@shared-types/index";
+import { useEffect, useState } from "react";
+import { ReconciliationResult, RigaDaRiconciliare, Allocazione } from "@shared-types/index";
 import { useToast } from "@/hooks/use-toast";
 import { ReconciliationSummary } from "@/components/admin/ReconciliationSummary";
+import { AllocationForm, SelectItem } from "@/components/admin/AllocationForm";
+import { getCommesseForSelect } from "@/api/commesse";
+import { getVociAnalitiche } from "@/api/vociAnalitiche";
 
 export default function Riconciliazione() {
     const [reconciliationResult, setReconciliationResult] = useState<ReconciliationResult | null>(null);
+    const [riconciliateCount, setRiconciliateCount] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedScrittura, setSelectedScrittura] = useState<RigaDaRiconciliare | null>(null);
+    const [commesse, setCommesse] = useState<SelectItem[]>([]);
+    const [vociAnalitiche, setVociAnalitiche] = useState<SelectItem[]>([]);
     const { toast } = useToast();
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [commesseData, vociAnaliticheResponse] = await Promise.all([
+                    getCommesseForSelect(),
+                    getVociAnalitiche({ page: 1, limit: 1000 }), // Carica tutte le voci
+                ]);
+                setCommesse(commesseData.map(c => ({ value: c.id, label: c.nome })));
+                setVociAnalitiche(vociAnaliticheResponse.data.map(v => ({ value: v.id, label: v.nome })));
+            } catch (error) {
+                console.error("Errore nel caricamento dei dati per i select", error);
+                toast({
+                    title: "Errore di caricamento",
+                    description: "Impossibile caricare commesse e voci analitiche.",
+                    variant: "destructive",
+                });
+            }
+        };
+
+        fetchData();
+    }, [toast]);
 
     const handleRunReconciliation = async () => {
         setIsLoading(true);
         setReconciliationResult(null);
         setSelectedScrittura(null);
+        setRiconciliateCount(0); // Reset contatore
         try {
             const response = await apiClient.post('/reconciliation/run');
             setReconciliationResult(response.data);
@@ -41,12 +70,49 @@ export default function Riconciliazione() {
         setSelectedScrittura(row);
     };
 
+    const handleSaveAllocations = async (allocations: Allocazione[]) => {
+        if (!selectedScrittura) return;
+
+        try {
+            await apiClient.post('/reconciliation/finalize', {
+                rigaScritturaId: selectedScrittura.id,
+                allocations: allocations,
+            });
+
+            toast({
+                title: "Salvataggio completato",
+                description: "L'allocazione è stata salvata con successo.",
+            });
+            
+            setRiconciliateCount(prev => prev + 1);
+            setReconciliationResult(prev => prev ? ({
+                ...prev,
+                righeDaRiconciliare: prev.righeDaRiconciliare.filter(r => r.id !== selectedScrittura.id),
+            }) : null);
+            setSelectedScrittura(null);
+
+        } catch (error) {
+            console.error("Errore durante il salvataggio dell'allocazione:", error);
+            toast({
+                title: "Errore di salvataggio",
+                description: "Impossibile salvare l'allocazione.",
+                variant: "destructive",
+            });
+        }
+    };
+
+    const summaryWithLiveCount = reconciliationResult ? {
+        ...reconciliationResult.summary,
+        needsManualReconciliation: reconciliationResult.summary.needsManualReconciliation - riconciliateCount,
+        reconciled: (reconciliationResult.summary.reconciledAutomatically || 0) + riconciliateCount,
+    } : null;
+
     return (
         <div className="container mx-auto p-4">
             <h1 className="text-2xl font-bold mb-4">Riconciliazione Scritture</h1>
             
             <Card className="mb-4">
-                <CardHeader>
+                 <CardHeader>
                     <CardTitle>Avvia Processo di Riconciliazione</CardTitle>
                     <CardDescription>
                         Fai clic sul pulsante qui sotto per avviare l'analisi delle scritture contabili importate
@@ -60,13 +126,13 @@ export default function Riconciliazione() {
                 </CardContent>
             </Card>
 
-            {reconciliationResult && (
+            {summaryWithLiveCount && (
                  <Card className="mb-4">
                     <CardHeader>
                         <CardTitle>Riepilogo Analisi</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <ReconciliationSummary summary={reconciliationResult.summary} />
+                        <ReconciliationSummary summary={summaryWithLiveCount} />
                     </CardContent>
                 </Card>
             )}
@@ -108,7 +174,14 @@ export default function Riconciliazione() {
                                         <p><strong>Importo:</strong> {selectedScrittura.importo.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}</p>
                                         <p><strong>Voce Analitica Suggerita:</strong> {selectedScrittura.voceAnaliticaSuggerita?.nome || 'N/A'}</p>
                                         
-                                        {/* Qui aggiungeremo la tabella con le righe di dettaglio e i form di allocazione */}
+                                        <div className="mt-4 border-t pt-4">
+                                            <AllocationForm
+                                                scrittura={selectedScrittura}
+                                                commesse={commesse}
+                                                vociAnalitiche={vociAnalitiche}
+                                                onSave={handleSaveAllocations}
+                                            />
+                                        </div>
                                     </div>
                                 ) : (
                                     <div className="flex items-center justify-center h-40">

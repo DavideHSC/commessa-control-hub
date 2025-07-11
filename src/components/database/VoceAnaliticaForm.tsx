@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from '@/components/ui/textarea';
 import { voceSchema } from '@/schemas/database';
-import { VoceAnalitica } from '@/types';
+import { VoceAnalitica } from '@prisma/client';
 
 type VoceAnaliticaFormValues = z.infer<typeof voceSchema>;
 

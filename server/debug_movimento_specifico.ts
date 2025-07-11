@@ -61,8 +61,8 @@ async function debugMovimentoSpecifico() {
         console.log(`   Riga ${idx + 1}:`);
         console.log(`     Conto: ${riga.conto?.codice || 'N/A'} - ${riga.conto?.nome || 'N/A'}`);
         console.log(`     Descrizione: ${riga.descrizione}`);
-        console.log(`     Dare: €${riga.dare.toFixed(2)}`);
-        console.log(`     Avere: €${riga.avere.toFixed(2)}`);
+        console.log(`     Dare: €${(riga.dare || 0).toFixed(2)}`);
+        console.log(`     Avere: €${(riga.avere || 0).toFixed(2)}`);
         
         totaleDare += Number(riga.dare);
         totaleAvere += Number(riga.avere);

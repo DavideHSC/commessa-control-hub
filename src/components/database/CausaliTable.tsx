@@ -31,7 +31,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { createCausale, updateCausale, deleteCausale } from '@/api/causali';
-import { CausaleContabile } from '@/types';
+import { CausaleContabile } from '@prisma/client';
 import { causaleSchema } from '@/schemas/database';
 import { useCrudTable } from '@/hooks/useCrudTable';
 import { useAdvancedTable } from '@/hooks/useAdvancedTable';

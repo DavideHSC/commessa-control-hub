@@ -1,4 +1,4 @@
-import { ScritturaContabile } from "@/types";
+import { ScritturaContabile } from "@prisma/client";
 import { PaginatedResponse } from ".";
 
 const API_BASE_URL = '/api';

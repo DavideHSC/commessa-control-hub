@@ -131,7 +131,14 @@ router.post('/', async (req, res) => {
                     create: righe.map(riga => ({
                         ...riga,
                         allocazioni: {
-                            create: riga.allocazioni || [],
+                            create: (riga.allocazioni || []).map(a => ({
+                                importo: a.importo,
+                                descrizione: a.descrizione,
+                                dataMovimento: new Date(data.data),
+                                tipoMovimento: 'COSTO_EFFETTIVO', // Default
+                                commessa: { connect: { id: a.commessaId } },
+                                voceAnalitica: { connect: { id: a.voceAnaliticaId } }
+                            }))
                         }
                     }))
                 }
@@ -152,7 +159,6 @@ router.put('/:id', async (req, res) => {
 
     try {
         const updatedScrittura = await prisma.$transaction(async (tx) => {
-            // 1. Recupera lo stato attuale della scrittura e delle sue righe
             const scritturaCorrente = await tx.scritturaContabile.findUnique({
                 where: { id },
                 include: { righe: true },
@@ -165,14 +171,11 @@ router.put('/:id', async (req, res) => {
             const righeCorrentiIds = scritturaCorrente.righe.map(r => r.id);
             const righeInArrivoIds = righe.map(r => r.id);
 
-            // 2. Identifica le righe da creare, aggiornare ed eliminare
             const righeDaEliminareIds = righeCorrentiIds.filter(rid => !righeInArrivoIds.includes(rid));
             const righeDaAggiornare = righe.filter(r => righeCorrentiIds.includes(r.id));
             const righeDaCreare = righe.filter(r => !righeCorrentiIds.includes(r.id));
 
-            // 3. Esegui le operazioni in modo sicuro
             if (righeDaEliminareIds.length > 0) {
-                // Prima cancella le allocazioni associate per evitare violazioni di vincoli
                 await tx.allocazione.deleteMany({
                     where: { rigaScritturaId: { in: righeDaEliminareIds } },
                 });
@@ -182,7 +185,6 @@ router.put('/:id', async (req, res) => {
             }
 
             for (const riga of righeDaAggiornare) {
-                // Esegui l'upsert anche per le allocazioni
                 await tx.rigaScrittura.update({
                     where: { id: riga.id },
                     data: {
@@ -191,19 +193,20 @@ router.put('/:id', async (req, res) => {
                         avere: riga.avere,
                         contoId: riga.contoId,
                         allocazioni: {
-                            deleteMany: {}, // Cancella le vecchie allocazioni per questa riga
-                            create: riga.allocazioni.map(a => ({
-                                commessaId: a.commessaId,
-                                voceAnaliticaId: a.voceAnaliticaId,
+                            deleteMany: {},
+                            create: (riga.allocazioni || []).map(a => ({
                                 importo: a.importo,
                                 descrizione: a.descrizione,
+                                dataMovimento: new Date(data.data),
+                                tipoMovimento: 'COSTO_EFFETTIVO', // Default
+                                commessa: { connect: { id: a.commessaId } },
+                                voceAnalitica: { connect: { id: a.voceAnaliticaId } }
                             })),
                         },
                     },
                 });
             }
             
-            // 4. Aggiorna la testata della scrittura e crea le nuove righe
             return tx.scritturaContabile.update({
                 where: { id },
                 data: {
@@ -216,11 +219,13 @@ router.put('/:id', async (req, res) => {
                             avere: riga.avere,
                             contoId: riga.contoId,
                             allocazioni: {
-                                create: riga.allocazioni.map(a => ({
-                                    commessaId: a.commessaId,
-                                    voceAnaliticaId: a.voceAnaliticaId,
+                                create: (riga.allocazioni || []).map(a => ({
                                     importo: a.importo,
                                     descrizione: a.descrizione,
+                                    dataMovimento: new Date(data.data),
+                                    tipoMovimento: 'COSTO_EFFETTIVO', // Default
+                                    commessa: { connect: { id: a.commessaId } },
+                                    voceAnalitica: { connect: { id: a.voceAnaliticaId } }
                                 })),
                             },
                         })),

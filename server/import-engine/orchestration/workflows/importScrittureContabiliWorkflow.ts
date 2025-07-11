@@ -5,7 +5,7 @@ import {
   movAnacDefinitions,
 } from '../../acquisition/definitions/scrittureContabiliDefinitions';
 import { PrismaClient } from '@prisma/client';
-import { parseFixedWidth, FieldDefinition } from '../../../lib/fixedWidthParser';
+import { parseFixedWidth } from '../../../lib/fixedWidthParser';
 import { DLQService } from '../../persistence/dlq/DLQService';
 import { ImportJob } from '../../core/jobs/ImportJob';
 import { TelemetryService } from '../../core/telemetry/TelemetryService';
@@ -14,16 +14,7 @@ import {
   rawPnRigConSchema,
   rawPnRigIvaSchema,
   rawMovAnacSchema,
-  validatedPnTestaSchema,
-  validatedPnRigConSchema,
-  validatedPnRigIvaSchema,
-  validatedMovAnacSchema,
-  ValidatedPnTesta,
-  ValidatedPnRigCon,
-  ValidatedPnRigIva,
-  ValidatedMovAnac,
 } from '../../acquisition/validators/scrittureContabiliValidator';
-import { transformScrittureContabili, ScrittureContabiliTransformResult } from '../../transformation/transformers/scrittureContabiliTransformer';
 
 // =============================================================================
 // PARSER 6: SCRITTURE CONTABILI - WORKFLOW ORCHESTRATOR
@@ -61,16 +52,11 @@ export interface ImportScrittureContabiliResult {
   jobId: string;
   stats: {
     filesProcessed: number;
-    scrittureImportate: number;
-    righeContabiliOrganizzate: number;
-    righeIvaOrganizzate: number;
-    allocazioniOrganizzate: number;
+    testateStaging: number;
+    righeContabiliStaging: number;
+    righeIvaStaging: number;
+    allocazioniStaging: number;
     erroriValidazione: number;
-    contiCreati: EntityCreationStat;
-    fornitoriCreati: EntityCreationStat;
-    causaliCreate: EntityCreationStat;
-    codiciIvaCreati: EntityCreationStat;
-    vociAnaliticheCreate: EntityCreationStat;
   };
   message: string;
 }
@@ -113,7 +99,7 @@ export class ImportScrittureContabiliWorkflow {
     this.telemetryService.logJobStart(job);
 
     try {
-      // FASE 1: ACQUISIZIONE - Parsing type-safe dei 4 file
+      // FASE 1: ACQUISIZIONE
       console.log('\n📋 FASE 1: ACQUISIZIONE DATI');
       console.log('─'.repeat(50));
       console.log('🔍 DEBUG: File ricevuti:');
@@ -135,14 +121,11 @@ export class ImportScrittureContabiliWorkflow {
       console.log(`   📄 MOVANAC.TXT:   ${rawData.movAnac.length.toString().padStart(4)} record (allocazioni)`);
       console.log(`   📊 TOTALE:        ${totalRawRecords.toString().padStart(4)} record estratti`);
 
-      // FASE 2: VALIDAZIONE - Validazione Zod con error handling
+      // FASE 2: VALIDAZIONE
       console.log('\n🔍 FASE 2: VALIDAZIONE E PULIZIA DATI');
       console.log('─'.repeat(50));
       this.telemetryService.logInfo(job.id, 'Iniziando validazione dati...');
       const validatedData = await this.validateMultiFileData(rawData, job.id);
-      
-      const totalValidRecords = validatedData.testate.length + validatedData.righeContabili.length + 
-                               validatedData.righeIva.length + validatedData.allocazioni.length;
       const errorCount = await this.dlqService.countErrorsForJob(job.id);
       
       console.log(`✅ Validazione completata:`);
@@ -150,35 +133,58 @@ export class ImportScrittureContabiliWorkflow {
       console.log(`   ✓ Righe contabili valide: ${validatedData.righeContabili.length.toString().padStart(4)} / ${rawData.pnRigCon.length}`);
       console.log(`   ✓ Righe IVA valide:      ${validatedData.righeIva.length.toString().padStart(4)} / ${rawData.pnRigIva.length}`);
       console.log(`   ✓ Allocazioni valide:    ${validatedData.allocazioni.length.toString().padStart(4)} / ${rawData.movAnac.length}`);
-      console.log(`   📊 TOTALE VALIDI:        ${totalValidRecords.toString().padStart(4)} record`);
+      console.log(`   📊 TOTALE VALIDI:        ${totalRawRecords.toString().padStart(4)} record`);
       console.log(`   ❌ Record scartati:       ${errorCount.toString().padStart(4)} record (→ DLQ)`);
 
-      // FASE 3: TRASFORMAZIONE - Logica business pura
-      console.log('\n🔄 FASE 3: TRASFORMAZIONE BUSINESS LOGIC');
-      console.log('─'.repeat(50));
-      this.telemetryService.logInfo(job.id, 'Iniziando trasformazione business logic...');
-      const transformResult = await transformScrittureContabili(
-        validatedData.testate,
-        validatedData.righeContabili,
-        validatedData.righeIva,
-        validatedData.allocazioni
-      );
-      
-      console.log(`✅ Trasformazione completata:`);
-      console.log(`   📝 Scritture create:        ${transformResult.stats.entitaCreate.scritture.toString().padStart(4)}`);
-      console.log(`   💰 Righe contabili create:  ${transformResult.stats.entitaCreate.righeScrittura.toString().padStart(4)}`);
-      console.log(`   📊 Righe IVA create:        ${transformResult.stats.entitaCreate.righeIva.toString().padStart(4)}`);
-      console.log(`   🏭 Allocazioni create:      ${transformResult.stats.entitaCreate.allocazioni.toString().padStart(4)}`);
+      // FASE 3: MAPPATURA PER LO STAGING (con conversione a stringa)
+      const toString = (val: unknown): string => val?.toString() ?? '';
 
-      // FASE 4: PERSISTENZA - Pattern staging-commit atomico
+      const stagingTestate = validatedData.testate.map(t => ({
+        ...Object.fromEntries(Object.entries(t).map(([key, value]) => [key, toString(value)])),
+        codiceUnivocoScaricamento: toString(t.externalId),
+      }));
+
+      const stagingRigheContabili = validatedData.righeContabili.map(r => ({
+        ...Object.fromEntries(Object.entries(r).map(([key, value]) => [key, toString(value)])),
+        codiceUnivocoScaricamento: toString(r.externalId),
+        progressivoNumeroRigo: toString(r.progressivoRigo),
+      }));
+
+      const stagingRigheIva = validatedData.righeIva.map(r => ({
+        ...Object.fromEntries(Object.entries(r).map(([key, value]) => [key, toString(value)])),
+        codiceUnivocoScaricamento: toString(r.externalId),
+        rigaIdentifier: toString(r.riga),
+      }));
+
+      const stagingAllocazioni = validatedData.allocazioni.map(a => ({
+        ...Object.fromEntries(Object.entries(a).map(([key, value]) => [key, toString(value)])),
+        codiceUnivocoScaricamento: toString(a.externalId),
+        progressivoNumeroRigoCont: toString(a.progressivoRigoContabile),
+        allocazioneIdentifier: `${toString(a.externalId)}-${toString(a.progressivoRigoContabile)}`
+      }));
+
+      // FASE 4: PERSISTENZA DIRETTA SU STAGING
       console.log('\n💾 FASE 4: PERSISTENZA ATOMICA');
       console.log('─'.repeat(50));
-      this.telemetryService.logInfo(job.id, 'Iniziando persistenza con staging-commit...');
-      await this.persistWithStagingCommit(transformResult, job.id);
+      this.telemetryService.logInfo(job.id, 'Iniziando persistenza su tabelle di staging...');
+      
+      await this.prisma.$transaction([
+          this.prisma.stagingTestata.deleteMany({}),
+          this.prisma.stagingRigaContabile.deleteMany({}),
+          this.prisma.stagingRigaIva.deleteMany({}),
+          this.prisma.stagingAllocazione.deleteMany({})
+      ]);
+
+      await this.prisma.$transaction([
+        this.prisma.stagingTestata.createMany({ data: stagingTestate, skipDuplicates: true }),
+        this.prisma.stagingRigaContabile.createMany({ data: stagingRigheContabili, skipDuplicates: true }),
+        this.prisma.stagingRigaIva.createMany({ data: stagingRigheIva, skipDuplicates: true }),
+        this.prisma.stagingAllocazione.createMany({ data: stagingAllocazioni, skipDuplicates: true }),
+      ]);
 
       const endTime = Date.now();
       const duration = endTime - startTime;
-      const recordsPerSecond = Math.round((totalValidRecords / duration) * 1000);
+      const recordsPerSecond = Math.round((totalRawRecords / duration) * 1000);
 
       // Costruisci risultato successo
       const result: ImportScrittureContabiliResult = {
@@ -186,33 +192,13 @@ export class ImportScrittureContabiliWorkflow {
         jobId: job.id,
         stats: {
           filesProcessed: this.countProcessedFiles(files),
-          scrittureImportate: transformResult.stats.entitaCreate.scritture,
-          righeContabiliOrganizzate: transformResult.stats.entitaCreate.righeScrittura,
-          righeIvaOrganizzate: transformResult.stats.entitaCreate.righeIva,
-          allocazioniOrganizzate: transformResult.stats.entitaCreate.allocazioni,
+          testateStaging: stagingTestate.length,
+          righeContabiliStaging: stagingRigheContabili.length,
+          righeIvaStaging: stagingRigheIva.length,
+          allocazioniStaging: stagingAllocazioni.length,
           erroriValidazione: errorCount,
-          contiCreati: {
-            count: transformResult.conti.length,
-            sample: transformResult.conti.slice(0, 3).map(c => ({ id: c.codice!, nome: c.nome! }))
-          },
-          fornitoriCreati: {
-            count: transformResult.fornitori.length,
-            sample: transformResult.fornitori.slice(0, 3).map(f => ({ id: f.externalId!, nome: f.nome! }))
-          },
-          causaliCreate: {
-            count: transformResult.causali.length,
-            sample: transformResult.causali.slice(0, 3).map(c => ({ id: c.externalId!, nome: c.descrizione! }))
-          },
-          codiciIvaCreati: {
-            count: transformResult.codiciIva.length,
-            sample: transformResult.codiciIva.slice(0, 3).map(c => ({ id: c.externalId!, nome: c.descrizione! }))
-          },
-          vociAnaliticheCreate: {
-            count: transformResult.vociAnalitiche.length,
-            sample: transformResult.vociAnalitiche.slice(0, 3).map(v => ({ id: v.id!, nome: v.nome! }))
-          },
         },
-        message: `Import completato con successo. ${transformResult.stats.entitaCreate.scritture} scritture importate.`,
+        message: `Importazione nello staging completata con successo. ${stagingTestate.length} testate caricate.`,
       };
 
       // RIEPILOGO FINALE
@@ -220,12 +206,11 @@ export class ImportScrittureContabiliWorkflow {
       console.log('='.repeat(80));
       console.log(`✅ Import completato con successo in ${duration}ms (${recordsPerSecond} record/secondo)`);
       console.log('📈 STATISTICHE DI CREAZIONE:');
-      console.log(`   - Scritture: ${result.stats.scrittureImportate}`);
-      console.log(`   - Fornitori: ${result.stats.fornitoriCreati.count}`);
-      console.log(`   - Causali:   ${result.stats.causaliCreate.count}`);
-      console.log(`   - Conti:     ${result.stats.contiCreati.count}`);
-      console.log(`   - Codici IVA: ${result.stats.codiciIvaCreati.count}`);
-      console.log(`   - Errori DLQ: ${result.stats.erroriValidazione}`);
+      console.log(`   - Scritture: ${result.stats.testateStaging}`);
+      console.log(`   - Fornitori: ${result.stats.righeContabiliStaging}`);
+      console.log(`   - Causali:   ${result.stats.righeIvaStaging}`);
+      console.log(`   - Conti:     ${result.stats.allocazioniStaging}`);
+      console.log(`   - Codici IVA: ${result.stats.erroriValidazione}`);
       console.log('='.repeat(80) + '\n');
       
       this.telemetryService.logJobSuccess(job, result.stats);
@@ -250,33 +235,13 @@ export class ImportScrittureContabiliWorkflow {
         jobId: job.id,
         stats: {
           filesProcessed: 0,
-          scrittureImportate: 0,
-          righeContabiliOrganizzate: 0,
-          righeIvaOrganizzate: 0,
-          allocazioniOrganizzate: 0,
-          erroriValidazione: 0,
-          contiCreati: {
-            count: 0,
-            sample: [],
-          },
-          fornitoriCreati: {
-            count: 0,
-            sample: [],
-          },
-          causaliCreate: {
-            count: 0,
-            sample: [],
-          },
-          codiciIvaCreati: {
-            count: 0,
-            sample: [],
-          },
-          vociAnaliticheCreate: {
-            count: 0,
-            sample: [],
-          },
+          testateStaging: 0,
+          righeContabiliStaging: 0,
+          righeIvaStaging: 0,
+          allocazioniStaging: 0,
+          erroriValidazione: await this.dlqService.countErrorsForJob(job.id),
         },
-        message: `Errore durante l'import: ${error instanceof Error ? error.message : 'Errore sconosciuto'}`,
+        message: error instanceof Error ? error.message : 'Errore sconosciuto durante l\'importazione.',
       };
     }
   }
@@ -329,18 +294,22 @@ export class ImportScrittureContabiliWorkflow {
 
   private async validateMultiFileData(rawData: RawData, jobId: string) {
     const validatedData = {
-      testate: [] as ValidatedPnTesta[],
-      righeContabili: [] as ValidatedPnRigCon[],
-      righeIva: [] as ValidatedPnRigIva[],
-      allocazioni: [] as ValidatedMovAnac[],
+      testate: [] as Record<string, unknown>[],
+      righeContabili: [] as Record<string, unknown>[],
+      righeIva: [] as Record<string, unknown>[],
+      allocazioni: [] as Record<string, unknown>[],
     };
 
     // Valida PNTESTA.TXT
     for (let i = 0; i < rawData.pnTesta.length; i++) {
       try {
-        // BYPASS: Usa direttamente i dati raw (già hanno i nomi corretti dal template DB)
-        const validated = validatedPnTestaSchema.parse(rawData.pnTesta[i]);
-        validatedData.testate.push(validated);
+        const validationResult = rawPnTestaSchema.safeParse(rawData.pnTesta[i]);
+        if (validationResult.success) {
+          validatedData.testate.push(validationResult.data);
+        } else {
+          console.error(`Errore validazione PNTESTA.TXT riga ${i + 1}:`, JSON.stringify(validationResult.error, null, 2));
+          await this.dlqService.logError(jobId, 'PNTESTA.TXT', i + 1, rawData.pnTesta[i], 'validation', validationResult.error);
+        }
       } catch (error) {
         console.error(`Errore validazione PNTESTA.TXT riga ${i + 1}:`, JSON.stringify(error, null, 2));
         await this.dlqService.logError(jobId, 'PNTESTA.TXT', i + 1, rawData.pnTesta[i], 'validation', error);
@@ -350,11 +319,15 @@ export class ImportScrittureContabiliWorkflow {
     // Valida PNRIGCON.TXT
     for (let i = 0; i < rawData.pnRigCon.length; i++) {
       try {
-        // BYPASS: Usa direttamente i dati raw (già hanno i nomi corretti dal template DB)
-        const validated = validatedPnRigConSchema.parse(rawData.pnRigCon[i]);
-        validatedData.righeContabili.push(validated);
+        const validationResult = rawPnRigConSchema.safeParse(rawData.pnRigCon[i]);
+        if (validationResult.success) {
+          validatedData.righeContabili.push(validationResult.data);
+        } else {
+          console.error(`Errore validazione PNRIGCON.TXT riga ${i + 1}:`, JSON.stringify(validationResult.error, null, 2));
+          await this.dlqService.logError(jobId, 'PNRIGCON.TXT', i + 1, rawData.pnRigCon[i], 'validation', validationResult.error);
+        }
       } catch (error) {
-        console.error(`Errore validazione PNRIGCON.TXT riga ${i + 1}:`, error);
+        console.error(`Errore validazione PNRIGCON.TXT riga ${i + 1}:`, JSON.stringify(error, null, 2));
         await this.dlqService.logError(jobId, 'PNRIGCON.TXT', i + 1, rawData.pnRigCon[i], 'validation', error);
       }
     }
@@ -362,11 +335,15 @@ export class ImportScrittureContabiliWorkflow {
     // Valida PNRIGIVA.TXT
     for (let i = 0; i < rawData.pnRigIva.length; i++) {
       try {
-        // BYPASS: Usa direttamente i dati raw (già hanno i nomi corretti dal template DB)
-        const validated = validatedPnRigIvaSchema.parse(rawData.pnRigIva[i]);
-        validatedData.righeIva.push(validated);
+        const validationResult = rawPnRigIvaSchema.safeParse(rawData.pnRigIva[i]);
+        if (validationResult.success) {
+          validatedData.righeIva.push(validationResult.data);
+        } else {
+          console.error(`Errore validazione PNRIGIVA.TXT riga ${i + 1}:`, JSON.stringify(validationResult.error, null, 2));
+          await this.dlqService.logError(jobId, 'PNRIGIVA.TXT', i + 1, rawData.pnRigIva[i], 'validation', validationResult.error);
+        }
       } catch (error) {
-        console.error(`Errore validazione PNRIGIVA.TXT riga ${i + 1}:`, error);
+        console.error(`Errore validazione PNRIGIVA.TXT riga ${i + 1}:`, JSON.stringify(error, null, 2));
         await this.dlqService.logError(jobId, 'PNRIGIVA.TXT', i + 1, rawData.pnRigIva[i], 'validation', error);
       }
     }
@@ -374,11 +351,15 @@ export class ImportScrittureContabiliWorkflow {
     // Valida MOVANAC.TXT
     for (let i = 0; i < rawData.movAnac.length; i++) {
       try {
-        // BYPASS: Usa direttamente i dati raw (già hanno i nomi corretti dal template DB)
-        const validated = validatedMovAnacSchema.parse(rawData.movAnac[i]);
-        validatedData.allocazioni.push(validated);
+        const validationResult = rawMovAnacSchema.safeParse(rawData.movAnac[i]);
+        if (validationResult.success) {
+          validatedData.allocazioni.push(validationResult.data);
+        } else {
+          console.error(`Errore validazione MOVANAC.TXT riga ${i + 1}:`, JSON.stringify(validationResult.error, null, 2));
+          await this.dlqService.logError(jobId, 'MOVANAC.TXT', i + 1, rawData.movAnac[i], 'validation', validationResult.error);
+        }
       } catch (error) {
-        console.error(`Errore validazione MOVANAC.TXT riga ${i + 1}:`, error);
+        console.error(`Errore validazione MOVANAC.TXT riga ${i + 1}:`, JSON.stringify(error, null, 2));
         await this.dlqService.logError(jobId, 'MOVANAC.TXT', i + 1, rawData.movAnac[i], 'validation', error);
       }
     }
@@ -390,110 +371,7 @@ export class ImportScrittureContabiliWorkflow {
   // FASE 4: PERSISTENZA STAGING-COMMIT
   // ---------------------------------------------------------------------------
 
-  private async persistWithStagingCommit(
-    transformResult: ScrittureContabiliTransformResult,
-    jobId: string
-  ): Promise<void> {
-    
-    this.telemetryService.logInfo(jobId, '💾 PERSISTENZA COMPLETA: Salvataggio di tutte le entità');
-    
-    // Usa una transazione per garantire atomicità completa (timeout esteso)
-    await this.prisma.$transaction(async (tx) => {
-      
-      // NOTA: Logica deleteMany rimossa per prevenire perdita dati
-      // Le operazioni di creazione saranno convertite in upsert nella fase successiva
-      
-      // Assicurati che il cliente di sistema esista
-      await tx.cliente.upsert({
-        where: { id: 'cliente_sistema' },
-        update: {},
-        create: {
-          id: 'cliente_sistema',
-          nome: 'Cliente di Sistema',
-        },
-      });
-      this.telemetryService.logInfo(jobId, `✅ Cliente di sistema (cliente_sistema) assicurato.`);
-
-      // 1. Creazione/aggiornamento entità dipendenti (upserts)
-      // Questo garantisce che tutte le dipendenze esistano prima di creare le scritture.
-      console.log('   - Creazione/aggiornamento anagrafiche dipendenti...');
-
-      await Promise.all(transformResult.causali.map(causale =>
-        tx.causaleContabile.upsert({
-          where: { externalId: causale.externalId! },
-          update: causale,
-          create: causale,
-        })
-      ));
-      
-      await Promise.all(transformResult.codiciIva.map(codiceIva =>
-        tx.codiceIva.upsert({
-          where: { externalId: codiceIva.externalId! },
-          update: codiceIva,
-          create: codiceIva,
-        })
-      ));
-
-      await Promise.all(transformResult.conti.map(conto =>
-        tx.conto.upsert({
-          where: { 
-            codice_codiceFiscaleAzienda: {
-              codice: conto.codice!,
-              codiceFiscaleAzienda: conto.codiceFiscaleAzienda || ''
-            }
-          },
-          update: conto,
-          create: conto,
-        })
-      ));
-      
-      // Upsert Fornitori
-      await Promise.all(transformResult.fornitori.map(fornitore =>
-        tx.fornitore.upsert({
-          where: { sottocontoFornitore: fornitore.sottocontoFornitore! },
-          update: {}, // Non aggiorniamo se esiste già
-          create: fornitore,
-        })
-      ));
-      
-      // Upsert Clienti
-      await Promise.all(transformResult.clienti.map(cliente =>
-        tx.cliente.upsert({
-          where: { sottocontoCliente: cliente.sottocontoCliente! },
-          update: {}, // Non aggiorniamo se esiste già
-          create: cliente,
-        })
-      ));
-
-      // 3. Creazione entità principali
-      // NOTA: Usiamo cicli di `create` invece di `createMany` perché `createMany`
-      // non supporta la creazione di relazioni nidificate (i `connect`), che è
-      // fondamentale per la nostra logica.
-      console.log('   - Creazione scritture, righe e allocazioni...');
-      
-      for (const scritturaData of transformResult.scritture) {
-        await tx.scritturaContabile.create({ data: scritturaData });
-      }
-
-      for (const rigaData of transformResult.righeScrittura) {
-        await tx.rigaScrittura.create({ data: rigaData });
-      }
-      
-      for (const rigaIvaData of transformResult.righeIva) {
-        await tx.rigaIva.create({ data: rigaIvaData });
-      }
-
-      for (const allocazioneData of transformResult.allocazioni) {
-        await tx.allocazione.create({ data: allocazioneData });
-      }
-
-      console.log('   - Entità principali create con successo.');
-      
-      // 4. Fine transazione
-    }, {
-      timeout: 900000, // 15 minuti timeout per dataset grandi
-    });
-  }
+  // IL METODO `persistWithStagingCommit` VIENE RIMOSSO
 
   // ---------------------------------------------------------------------------
   // UTILITY

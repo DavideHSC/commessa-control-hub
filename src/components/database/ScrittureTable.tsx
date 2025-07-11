@@ -18,7 +18,7 @@ import {
 import { toast } from "sonner";
 import { deleteRegistrazione } from '@/api/registrazioni';
 import { clearScrittureContabili } from '@/api/database';
-import { ScritturaContabile, RigaScrittura } from '@/types';
+import { ScritturaContabile, RigaScrittura } from '@prisma/client';
 import { useAdvancedTable } from '@/hooks/useAdvancedTable';
 import { AdvancedDataTable } from '../ui/advanced-data-table';
 import { ColumnDef } from '@tanstack/react-table';

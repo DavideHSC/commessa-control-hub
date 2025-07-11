@@ -1,107 +1,115 @@
-import { PrismaClient, FieldDefinition } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { parseFixedWidth } from '../../acquisition/parsers/typeSafeFixedWidthParser';
-import { causaleContabileValidator, ValidatedCausaleContabile } from '../../acquisition/validators/causaleContabileValidator';
-import { transformCausaleContabile } from '../../transformation/transformers/causaleContabileTransformer';
-import { RawCausali } from '../../core/types/generated';
+import { causaleContabileValidator } from '../../acquisition/validators/causaleContabileValidator';
+import { z } from 'zod';
 
 const prisma = new PrismaClient();
 
-interface ImportStats {
-  totalRecords: number;
-  successfulRecords: number;
-  errorRecords: number;
-  errors: { row: number; message: string; data: RawCausali }[];
+// Definiamo un tipo per i dati grezzi, poiché il validatore esegue già coercizione
+type RawCausaleContabile = Record<string, unknown>;
+
+export interface CausaleContabileImportResult {
+  success: boolean;
+  message: string;
+  stats: {
+    totalRecords: number;
+    successfulRecords: number;
+    errorRecords: number;
+  };
+  errors: Array<{ row: number; error: string; data: unknown }>;
 }
 
 /**
- * Orchestra l'intero processo di importazione per le causali contabili.
+ * Orchestra l'intero processo di importazione per le causali contabili in staging.
  * @param fileContent Il contenuto del file da importare.
  * @returns Statistiche sull'esito dell'importazione.
  */
-export async function runImportCausaliContabiliWorkflow(fileContent: string): Promise<ImportStats> {
-  const stats: ImportStats = {
-    totalRecords: 0,
-    successfulRecords: 0,
-    errorRecords: 0,
-    errors: [],
-  };
+export async function runImportCausaliContabiliWorkflow(fileContent: string): Promise<CausaleContabileImportResult> {
+  console.log('🚀 Inizio workflow importazione causali contabili in staging');
+  const errors: Array<{ row: number; error: string; data: unknown }> = [];
 
-  // 1. Recupera le definizioni dei campi per il template 'causali'
-  const fieldDefinitions = await prisma.fieldDefinition.findMany({
-    where: {
-      template: {
-        name: 'causali' // Assicurati che il nome del template sia corretto
-      }
-    }
-  });
+  try {
+    // 1. Parsing
+    const parseResult = await parseFixedWidth<RawCausaleContabile>(fileContent, 'causali_contabili');
+    const { data: rawRecords } = parseResult;
+    console.log(`[Workflow Causali] Parsati ${rawRecords.length} record grezzi.`);
 
-  if (fieldDefinitions.length === 0) {
-    throw new Error("Definizioni dei campi per il template 'causali' non trovate.");
-  }
-
-  // 2. Parsa il file
-  const parseResult = await parseFixedWidth(fileContent, 'causali');
-  const rawRecords = parseResult.data;
-  stats.totalRecords = rawRecords.length;
-  console.log(`[Workflow Causali] Parsati ${stats.totalRecords} record grezzi dal file.`);
-
-  const validRecords: ValidatedCausaleContabile[] = [];
-
-  // 3. Valida ogni record
-  console.log('[Workflow Causali] Inizio validazione e coercizione dei tipi...');
-  for (const [index, rawRecord] of rawRecords.entries()) {
-    const validationResult = causaleContabileValidator.safeParse(rawRecord);
-    if (validationResult.success) {
-      validRecords.push(validationResult.data);
-    } else {
-      stats.errorRecords++;
-      const flatError = validationResult.error.flatten();
-      console.warn(`[Workflow Causali] Errore di validazione alla riga ${index + 1}:`, flatError);
-    }
-  }
-  console.log(`[Workflow Causali] Validazione completata. Record validi: ${validRecords.length}, Errori: ${stats.errorRecords}.`);
-
-  // 4. Trasforma i record validi
-  console.log('[Workflow Causali] Inizio trasformazione dei record validi...');
-  const recordsToUpsert = validRecords.map(transformCausaleContabile);
-  console.log(`[Workflow Causali] Trasformati ${recordsToUpsert.length} record, pronti per il salvataggio.`);
-
-  // 5. Salva nel database con logica Upsert
-  let successfulUpserts = 0;
-
-  if (recordsToUpsert.length > 0) {
-    console.log(`[Workflow Causali] Tentativo di salvataggio (upsert) di ${recordsToUpsert.length} record nel database...`);
-    
-    for (const record of recordsToUpsert) {
-      try {
-        // L'externalId è il codice della causale, che è l'identificatore di business univoco.
-        if (!record.externalId) {
-          console.warn(`[Workflow Causali] Record scartato perché privo di externalId:`, record);
-          stats.errorRecords++;
-          continue;
-        }
-
-        await prisma.causaleContabile.upsert({
-          where: { externalId: record.externalId },
-          update: record,
-          create: record,
+    // 2. Validazione
+    const validRecords: z.infer<typeof causaleContabileValidator>[] = [];
+    for (const [index, record] of rawRecords.entries()) {
+      const validationResult = causaleContabileValidator.safeParse(record);
+      if (validationResult.success) {
+        validRecords.push(validationResult.data);
+      } else {
+        const errorRow = index + 1;
+        const errorMessage = JSON.stringify(validationResult.error.flatten());
+        console.warn(`[Workflow Causali] Errore di validazione alla riga ${errorRow}:`, errorMessage);
+        errors.push({
+          row: errorRow,
+          error: errorMessage,
+          data: record
         });
-        successfulUpserts++;
-      } catch (e: unknown) {
-        const error = e as Error;
-        console.error(`[Workflow Causali] Errore durante l'upsert del record con externalId ${record.externalId}:`, error.message);
-        console.error(`[Workflow Causali] Dati del record fallito:`, JSON.stringify(record, null, 2));
-        stats.errorRecords++;
-        
-        // NOTA: Non aggiungiamo a stats.errors perché il tipo del 'record' trasformato
-        // non corrisponde più a 'RawCausali', causando conflitti di tipo.
-        // Il logging a console è sufficiente per il debug in questo caso.
       }
     }
-    stats.successfulRecords = successfulUpserts;
-    console.log(`[Workflow Causali] Salvataggio completato. Record processati con successo: ${successfulUpserts}.`);
-  }
+    console.log(`[Workflow Causali] Validazione completata. Record validi: ${validRecords.length}, Errori: ${errors.length}.`);
 
-  console.log('[Workflow Causali] Processo di importazione terminato.');
-  return stats;
+    if (validRecords.length === 0) {
+        return {
+            success: true,
+            message: 'Nessun record valido da importare.',
+            stats: {
+                totalRecords: rawRecords.length,
+                successfulRecords: 0,
+                errorRecords: errors.length,
+            },
+            errors,
+        };
+    }
+
+    // 3. Salvataggio in Staging
+    const recordsToCreate = validRecords.map(record => {
+        const recordAsString: { [key: string]: string } = {};
+        for (const key in record) {
+            if (Object.prototype.hasOwnProperty.call(record, key)) {
+                const value = record[key as keyof typeof record];
+                recordAsString[key] = value?.toString() ?? '';
+            }
+        }
+        return recordAsString;
+    });
+    
+    await prisma.stagingCausaleContabile.deleteMany({});
+    const result = await prisma.stagingCausaleContabile.createMany({
+      data: recordsToCreate,
+      skipDuplicates: true,
+    });
+    
+    const finalMessage = `[Workflow Causali] Salvataggio in staging completato. Record salvati: ${result.count}.`;
+    console.log(finalMessage);
+
+    return {
+        success: true,
+        message: finalMessage,
+        stats: {
+            totalRecords: rawRecords.length,
+            successfulRecords: result.count,
+            errorRecords: errors.length + (validRecords.length - result.count)
+        },
+        errors
+    };
+
+  } catch (error) {
+    const errorMessage = `[Workflow Causali] Errore fatale: ${error instanceof Error ? error.message : String(error)}`;
+    console.error(errorMessage, error);
+    return {
+        success: false,
+        message: errorMessage,
+        stats: {
+            totalRecords: 0,
+            successfulRecords: 0,
+            errorRecords: 0
+        },
+        errors: [{ row: 0, error: errorMessage, data: {} }]
+    };
+  }
 } 

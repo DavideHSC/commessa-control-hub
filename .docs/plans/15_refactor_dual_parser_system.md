@@ -39,7 +39,7 @@
 
 | ID | Task | Stato | Dettagli |
 | :-- | :--- | :--- | :--- |
-| **3.1**| **Pulizia Backend** | 🟡 In Corso | Rimuovere codice legacy come la funzione `processScrittureInBatches` e svuotare i vecchi `transformer` non più necessari. Le rotte di import originali diventeranno semplici wrapper per la logica di staging. |
-| **3.2**| **Pulizia Frontend** | 🟡 In Corso | Semplificare la pagina di `Import` originale. Il suo unico scopo sarà l'upload e il reindirizzamento alla pagina di Staging. Rimuovere stati e logiche legati al vecchio processo. |
-| **3.3**| **Pulizia Database** | ⬜ Pending | Scrivere ed eseguire uno script una-tantum per eliminare dalle tabelle di produzione i dati "placeholder" o inconsistenti creati dalla vecchia logica, se necessario. |
-| **3.4**| **Revisione Finale** | ⬜ Pending | Eseguire un'analisi finale del codice per assicurarsi che non siano rimasti "fossili" della vecchia implementazione. | 
+| **3.1**| **Pulizia Backend** | ✅ Completato | Rimosso codice legacy come la funzione `processScrittureInBatches` e svuotati i vecchi `transformer`. Le rotte di import sono ora wrapper per la logica di staging. |
+| **3.2**| **Pulizia Frontend** | ✅ Completato | Semplificata la pagina di `Import` originale. Il suo unico scopo è l'upload e il reindirizzamento alla pagina di Staging. |
+| **3.3**| **Pulizia Database** | ✅ Completato | Eseguite query SQL per eliminare i dati "placeholder" o inconsistenti creati dalla vecchia logica. |
+| **3.4**| **Revisione Finale** | ✅ Completato | Eseguita analisi finale e refactoring di tutti i workflow di importazione per allinearli all'architettura di staging. | 

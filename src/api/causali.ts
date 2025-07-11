@@ -1,4 +1,4 @@
-import { CausaleContabile } from '@/types';
+import { CausaleContabile } from '@prisma/client';
 
 export const getCausali = async (): Promise<CausaleContabile[]> => {
   const response = await fetch('/api/causali');

@@ -1,7 +1,7 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { ImportTemplate } from "@/types"
+import { ImportTemplate } from "@prisma/client"
 import { Button } from "@/components/ui/button"
 import { MoreHorizontal, Edit, Trash2 } from "lucide-react"
 import {

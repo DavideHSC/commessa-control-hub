@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Commessa } from '@/types';
+import { Commessa } from '@prisma/client';
 import { getCommesse } from '@/api';
 import {
   Accordion,

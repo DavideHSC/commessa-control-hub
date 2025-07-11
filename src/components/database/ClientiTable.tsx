@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { createCliente, updateCliente, deleteCliente } from '@/api/clienti';
-import { Cliente } from '@/types';
+import { Cliente } from '@prisma/client';
 import { clienteSchema, ClienteFormValues } from '@/schemas/database';
 import { useCrudTable } from '@/hooks/useCrudTable';
 import { useAdvancedTable } from '@/hooks/useAdvancedTable';

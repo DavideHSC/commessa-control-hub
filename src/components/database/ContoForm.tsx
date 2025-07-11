@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { contoSchema } from '@/schemas/database';
-import { Conto as ContoType, VoceAnalitica } from '@/types';
+import { Conto as ContoType, VoceAnalitica } from '@prisma/client';
 import { TipoConto } from '@prisma/client';
 import * as z from 'zod';
 

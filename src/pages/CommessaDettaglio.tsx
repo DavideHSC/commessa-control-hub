@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Trash2, FileText, Landmark, DollarSign, Calculator } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Commessa, VoceAnalitica, ScritturaContabile } from '@/types';
+import { Commessa, VoceAnalitica, ScritturaContabile } from '@prisma/client';
 import { getCommesse, getVociAnalitiche } from '@/api';
 import { getRegistrazioni } from '@/api/registrazioni';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';

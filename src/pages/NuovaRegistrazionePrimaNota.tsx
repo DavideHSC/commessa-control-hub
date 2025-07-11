@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Commessa, Conto, CausaleContabile, ScritturaContabile, RigaScrittura, Allocazione, VoceAnalitica } from '@/types';
+import { Commessa, Conto, CausaleContabile, ScritturaContabile, RigaScrittura, Allocazione, VoceAnalitica } from '@prisma/client';
 import { getCommesse, getPianoDeiConti, getCausaliContabili, getVociAnalitiche } from '@/api';
 import {
   Dialog,

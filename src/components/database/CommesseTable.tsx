@@ -39,7 +39,7 @@ import {
 } from "@/components/ui/form";
 import { createCommessa, updateCommessa, deleteCommessa } from '@/api/commesse';
 import { getClienti } from '@/api';
-import { Commessa, Cliente } from '@/types';
+import { Commessa, Cliente } from '@prisma/client';
 import { commessaSchema } from '@/schemas/database';
 import { useCrudTable } from '@/hooks/useCrudTable';
 import { useAdvancedTable } from '@/hooks/useAdvancedTable';

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { ImportTemplate } from '@/types';
+import { ImportTemplate } from '@prisma/client';
 import { deleteImportTemplate } from '@/api/importTemplates';
 import { getColumns } from './import-templates-columns';
 import { Button } from '@/components/ui/button';

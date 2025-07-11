@@ -13,7 +13,7 @@ import { getContiPerSelezione } from '@/api/conti';
 import { getCommesseForSelect } from '@/api/commesse';
 import { getVociAnalitichePerSelezione } from '@/api/vociAnalitiche';
 
-import { RegolaRipartizione, Conto, Commessa, VoceAnalitica } from '@/types';
+import { RegolaRipartizione, Conto, Commessa, VoceAnalitica } from '@prisma/client';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

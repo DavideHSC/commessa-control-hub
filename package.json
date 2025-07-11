@@ -17,7 +17,9 @@
     "lint:import-engine": "eslint server/import-engine/**/*.ts",
     "test:import-engine": "echo \"Error: no test specified for import-engine\" && exit 1",
     "generate:import-types": "tsx -r dotenv/config server/import-engine/acquisition/generators/TypeGenerator.ts",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "cleanup:db": "tsc prisma/cleanup_placeholder_accounts.ts --outDir prisma/ --module CommonJS && ren prisma\\cleanup_placeholder_accounts.js prisma\\cleanup_placeholder_accounts.cjs && node prisma/cleanup_placeholder_accounts.cjs",
+    "db:reset": "npx prisma migrate reset --force"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.7.0",
@@ -76,6 +78,7 @@
     "react": "^18.3.1",
     "react-day-picker": "8.10.1",
     "react-dom": "^18.3.1",
+    "react-dropzone": "^14.3.8",
     "react-hook-form": "^7.54.0",
     "react-resizable-panels": "^2.1.7",
     "react-router-dom": "^6.28.0",

@@ -1,4 +1,4 @@
-import { RegolaRipartizione } from '@/types';
+import { RegolaRipartizione } from '@prisma/client';
 import {
   RegolaRipartizioneInput,
   regolaRipartizioneSchema,

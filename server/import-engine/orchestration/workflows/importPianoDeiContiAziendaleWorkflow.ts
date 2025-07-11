@@ -1,7 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { parseFixedWidth } from '../../acquisition/parsers/typeSafeFixedWidthParser';
 import { validatedPianoDeiContiAziendaleSchema, ValidatedPianoDeiContiAziendale } from '../../acquisition/validators/pianoDeiContiValidator';
-import { transformPianoDeiContiAziendaleToStaging } from '../../transformation/transformers/pianoDeiContiTransformer';
 import { RawPianoDeiContiAziendale } from '../../core/types/generated';
 
 const prisma = new PrismaClient();
@@ -64,32 +63,53 @@ export async function importPianoDeiContiAziendaleWorkflow(fileContent: string):
   }
   console.log(`[Workflow Staging] Validazione completata. Record validi: ${validRecords.length}, Errori: ${stats.errorRecords}.`);
 
-  // 3. Trasformazione
-  const recordsToCreate = validRecords.map(transformPianoDeiContiAziendaleToStaging);
-  console.log(`[Workflow Staging] Trasformati ${recordsToCreate.length} record, pronti per lo staging.`);
+  // 3. Mappatura esplicita
+  const toString = (val: string | undefined): string => val ?? '';
+  const recordsToCreate = validRecords.map(r => ({
+    codiceFiscaleAzienda: toString(r.codiceFiscaleAzienda),
+    codice: toString(r.codice),
+    descrizione: toString(r.descrizione),
+    tipo: toString(r.tipo),
+    livello: toString(r.livello),
+    sigla: toString(r.sigla),
+    gruppo: toString(r.gruppo),
+    controlloSegno: toString(r.controlloSegno),
+    validoImpresaOrdinaria: toString(r.validoImpresaOrdinaria),
+    validoImpresaSemplificata: toString(r.validoImpresaSemplificata),
+    validoProfessionistaOrdinario: toString(r.validoProfessionistaOrdinario),
+    validoProfessionistaSemplificato: toString(r.validoProfessionistaSemplificato),
+    validoUnicoPf: toString(r.validoUnicoPf),
+    validoUnicoSp: toString(r.validoUnicoSp),
+    validoUnicoSc: toString(r.validoUnicoSc),
+    validoUnicoEnc: toString(r.validoUnicoEnc),
+    codiceClasseIrpefIres: toString(r.codiceClasseIrpefIres),
+    codiceClasseIrap: toString(r.codiceClasseIrap),
+    codiceClasseProfessionista: toString(r.codiceClasseProfessionista),
+    codiceClasseIrapProfessionista: toString(r.codiceClasseIrapProfessionista),
+    codiceClasseIva: toString(r.codiceClasseIva),
+    contoCostiRicaviCollegato: toString(r.contoCostiRicaviCollegato),
+    contoDareCee: toString(r.contoDareCee),
+    contoAvereCee: toString(r.contoAvereCee),
+    naturaConto: toString(r.naturaConto),
+    gestioneBeniAmmortizzabili: toString(r.gestioneBeniAmmortizzabili),
+    percDeduzioneManutenzione: toString(r.percDeduzioneManutenzione),
+    dettaglioClienteFornitore: toString(r.dettaglioClienteFornitore),
+    descrizioneBilancioDare: toString(r.descrizioneBilancioDare),
+    descrizioneBilancioAvere: toString(r.descrizioneBilancioAvere),
+    codiceClasseDatiStudiSettore: toString(r.codiceClasseDatiStudiSettore),
+    numeroColonnaRegCronologico: toString(r.numeroColonnaRegCronologico),
+    numeroColonnaRegIncassiPag: toString(r.numeroColonnaRegIncassiPag),
+  }));
 
   // 4. Salvataggio in Staging
   if (recordsToCreate.length > 0) {
     console.log(`[Workflow Staging] Inizio salvataggio ottimizzato di ${recordsToCreate.length} record per l'azienda ${codiceFiscaleAzienda}.`);
     try {
-      const recordCodes = recordsToCreate.map(r => r.codice).filter((c): c is string => !!c);
-
-      // 1. Cancellazione mirata e di massa solo dei record che stiamo per importare per questa azienda
-      await prisma.stagingConto.deleteMany({
-        where: { 
-          codiceFiscaleAzienda: codiceFiscaleAzienda,
-          codice: {
-            in: recordCodes,
-          }
-        }
-      });
-
-      // 2. Inserimento di massa
+      await prisma.stagingConto.deleteMany({ where: { codiceFiscaleAzienda: codiceFiscaleAzienda } });
       const result = await prisma.stagingConto.createMany({
         data: recordsToCreate,
-        skipDuplicates: false,
+        skipDuplicates: true,
       });
-
       stats.successfulRecords = result.count;
       console.log(`[Workflow Staging] Salvati ${result.count} record per l'azienda ${codiceFiscaleAzienda}.`);
     } catch (e) {

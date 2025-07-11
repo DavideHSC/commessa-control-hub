@@ -1,7 +1,7 @@
-// Questo file conterrà tutti i dati mock per la nostra demo.
-// Simula un database a cui l'applicazione accederà tramite un layer API fittizio.
+// Mock data e tipi per lo sviluppo e i test
+import { PrismaClient } from '@prisma/client';
 
-import { VoceAnalitica, Conto, Commessa, CausaleContabile, ScritturaContabile } from '../types';
+import { VoceAnalitica, Conto, Commessa, CausaleContabile, ScritturaContabile } from '@prisma/client';
 
 // ====================================================================
 // 1. VOCI ANALITICHE (ex Centri di Costo)

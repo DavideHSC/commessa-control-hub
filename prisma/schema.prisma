@@ -891,3 +891,55 @@ enum FileType {
   JSON
   XML
 }
+
+model StagingCodiceIva {
+  id                              String   @id @default(cuid())
+  codice                          String?
+  descrizione                     String?
+  aliquota                        String?
+  codiceRegistro                  String?
+  tipo                            String?
+  ventilazione                    String?
+  tipoOperazione                  String?
+  naturaOperazione                String?
+  esigibilita                     String?
+  norma                           String?
+  validitaInizio                  String?
+  validitaFine                    String?
+
+  @@map("staging_codici_iva")
+}
+
+model StagingCausaleContabile {
+    id              String @id @default(cuid())
+    codice          String?
+    descrizione     String?
+    tipo            String?
+    validitaInizio  String?
+    validitaFine    String?
+    
+    @@map("staging_causali_contabili")
+}
+
+model StagingCondizionePagamento {
+    id              String @id @default(cuid())
+    codice          String?
+    descrizione     String?
+    tipo            String?
+    validitaInizio  String?
+    validitaFine    String?
+    
+    @@map("staging_condizioni_pagamento")
+}
+
+model StagingAnagrafica {
+  id                              String   @id @default(cuid())
+  codice                          String?
+  descrizione                     String?
+  codiceRegistro                  String?
+  tipo                            String?
+  validitaInizio                  String?
+  validitaFine                    String?
+
+  @@map("staging_anagrafiche")
+}

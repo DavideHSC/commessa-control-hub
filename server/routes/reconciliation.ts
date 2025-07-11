@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { Conto, PrismaClient, VoceAnalitica, Prisma } from '@prisma/client';
+import { Conto, PrismaClient, VoceAnalitica, Prisma, TipoMovimentoAnalitico } from '@prisma/client';
 import { z } from 'zod';
 import { ReconciliationResult, RigaDaRiconciliare } from '../types/reconciliation';
 
@@ -63,7 +63,7 @@ router.post('/run', async (req, res) => {
     console.log(`[Recon] Trovate ${righeRilevanti.length} righe di staging da processare.`);
     
     // Recupera gli ID univoci delle testate
-    const idTestateDaProcessare = [...new Set(righeRilevanti.map(r => r.codiceUnivocoScaricamento))];
+    const idTestateDaProcessare = Array.from(new Set(righeRilevanti.map(r => r.codiceUnivocoScaricamento)));
     console.log(`[Recon] Le righe appartengono a ${idTestateDaProcessare.length} scritture uniche.`);
 
     // Fase 2: Tentativo di riconciliazione automatica (Livello 1 - MOVANAC)
@@ -290,6 +290,52 @@ router.post('/manual-allocation', async (req, res) => {
       error: error instanceof Error ? error.message : String(error),
     });
   }
+});
+
+interface FinalizeAllocationPayload {
+    rigaScritturaId: string;
+    allocations: {
+        commessaId: string;
+        voceAnaliticaId: string;
+        importo: number;
+    }[];
+}
+
+router.post('/finalize', async (req, res) => {
+    const { rigaScritturaId, allocations } = req.body as FinalizeAllocationPayload;
+
+    if (!rigaScritturaId || !allocations || allocations.length === 0) {
+        return res.status(400).json({ error: 'Dati di allocazione non validi.' });
+    }
+
+    try {
+        const rigaScrittura = await prisma.rigaScrittura.findUnique({
+            where: { id: rigaScritturaId },
+            include: { scritturaContabile: true }
+        });
+
+        if (!rigaScrittura) {
+            return res.status(404).json({ error: 'Riga scrittura non trovata.' });
+        }
+
+        const newAllocations = allocations.map(a => ({
+            ...a,
+            rigaScritturaId: rigaScritturaId,
+            dataMovimento: rigaScrittura.scritturaContabile.data || new Date(),
+            tipoMovimento: TipoMovimentoAnalitico.COSTO_EFFETTIVO // O derivare dal conto
+        }));
+
+        await prisma.allocazione.createMany({
+            data: newAllocations
+        });
+
+        // Qui potremmo anche marcare la riga come "riconciliata" se avessimo un flag
+        
+        res.status(200).json({ message: 'Allocazione salvata con successo.' });
+    } catch (error) {
+        console.error("Errore nel finalizzare l'allocazione:", error);
+        res.status(500).json({ error: 'Errore interno del server.' });
+    }
 });
 
 export default router; 

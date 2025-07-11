@@ -1,6 +1,11 @@
-import { ImportTemplate } from "@/types";
+import { ImportTemplate, FieldDefinition } from "@prisma/client";
 
-export const getImportTemplates = async (): Promise<ImportTemplate[]> => {
+// Tipo che include le relazioni
+type ImportTemplateWithRelations = ImportTemplate & {
+    fieldDefinitions: FieldDefinition[];
+};
+
+export const getImportTemplates = async (): Promise<ImportTemplateWithRelations[]> => {
     const response = await fetch('/api/import-templates');
     if (!response.ok) {
         throw new Error('Errore nel recupero dei template di importazione');
@@ -8,7 +13,7 @@ export const getImportTemplates = async (): Promise<ImportTemplate[]> => {
     return response.json();
 };
 
-export const createImportTemplate = async (templateData: Omit<ImportTemplate, 'id' | 'fieldDefinitions'> & { fields: Omit<ImportTemplate['fieldDefinitions'][0], 'id'>[] }): Promise<ImportTemplate> => {
+export const createImportTemplate = async (templateData: Omit<ImportTemplate, 'id'> & { fields: Omit<FieldDefinition, 'id' | 'templateId'>[] }): Promise<ImportTemplateWithRelations> => {
     const response = await fetch('/api/import-templates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -21,7 +26,7 @@ export const createImportTemplate = async (templateData: Omit<ImportTemplate, 'i
 };
 
 
-export const updateImportTemplate = async (id: string, templateData: Omit<ImportTemplate, 'id'>): Promise<ImportTemplate> => {
+export const updateImportTemplate = async (id: string, templateData: Omit<ImportTemplate, 'id'>): Promise<ImportTemplateWithRelations> => {
     const response = await fetch(`/api/import-templates/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },

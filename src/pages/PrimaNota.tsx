@@ -12,7 +12,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { ScritturaContabile, Conto } from '@/types';
+import { ScritturaContabile, Conto } from '@prisma/client';
 import { getRegistrazioni, deleteRegistrazione } from '@/api/registrazioni';
 import { getPianoDeiConti } from '@/api';
 import {

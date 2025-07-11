@@ -1,4 +1,4 @@
-import { Cliente } from '@/types';
+import { Cliente } from '@prisma/client';
 
 const API_URL = '/api/clienti';
 

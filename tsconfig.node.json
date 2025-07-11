@@ -1,16 +1,16 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "target": "ES2022",
-    "strict": true,
-    "types": ["node"],
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./*"],
-      "@shared-types/*": ["../types/*"]
+    "outDir": "./dist/server",
+    "module": "CommonJS",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "ts-node": {
+      "compilerOptions": {
+        "module": "CommonJS"
+      }
     }
   },
-  "include": ["vite.config.ts", "server"]
+  "include": ["server/**/*.ts", "prisma/**/*.ts"],
+  "exclude": ["node_modules", "src"]
 }

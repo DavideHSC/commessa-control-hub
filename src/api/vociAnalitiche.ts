@@ -1,4 +1,4 @@
-import { VoceAnalitica } from "@/types";
+import { VoceAnalitica } from "@prisma/client";
 import { PaginatedResponse } from ".";
 
 const API_BASE_URL = '/api/voci-analitiche';

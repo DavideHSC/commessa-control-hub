@@ -40,7 +40,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { createConto, updateConto, deleteConto } from '@/api/conti';
-import { Conto as ContoType, VoceAnalitica } from '@/types';
+import { Conto as ContoType, VoceAnalitica } from '@prisma/client';
 import { TipoConto } from '@prisma/client';
 import { contoSchema } from '@/schemas/database';
 import { useCrudTable } from '@/hooks/useCrudTable';

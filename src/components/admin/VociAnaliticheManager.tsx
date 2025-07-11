@@ -8,7 +8,8 @@ import { PlusCircle, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import * as api from '@/api/vociAnalitiche';
 import { getConfigurableConti } from '@/api/conti';
-import { VoceAnaliticaWithRelations, ContoForUI } from '@/types';
+import { VoceAnalitica } from '@prisma/client';
+import { VoceAnaliticaWithRelations, ContoForUI } from '@shared-types/index';
 import { MultiSelect } from '@/components/ui/multi-select';
 
 interface ConfigurableConto {
