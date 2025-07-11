@@ -18,7 +18,7 @@ Il principio guida è: **configurazione esplicita a monte, massima automazione a
 
 Come primo passo, implementeremo le fondamenta che abiliteranno tutte le automazioni successive. Questo coinvolge modifiche allo schema `prisma/schema.prisma` e la creazione delle relative interfacce di configurazione.
 
-### Task 1.1: Filtro dei Conti Rilevanti
+### Task 1.1: Filtro dei Conti Rilevanti (✅ Completato)
 *   **Logica:** Introdurremo un meccanismo per filtrare le migliaia di scritture contabili e concentrarci solo su quelle rilevanti per le commesse (costi e ricavi).
 *   **Implementazione DB:** Aggiungere il campo `isRilevantePerCommesse: Boolean @default(false)` al modello `Conto`.
 *   **Implementazione UI:** Creare una pagina in "Impostazioni" chiamata **"Configurazione Conti per Analitica"**. Sarà una tabella di tutti i conti con un interruttore on/off per gestire il nuovo flag.
@@ -30,7 +30,7 @@ Come primo passo, implementeremo le fondamenta che abiliteranno tutte le automaz
     2.  Stabilire una relazione **molti-a-molti** tra `Conto` e `VoceAnalitica`.
 *   **Implementazione UI:** Creare una pagina "Gestione Voci Analitiche" con un'interfaccia a due pannelli per creare le voci e associare a ciascuna i conti rilevanti.
 
-### Task 1.3: Implementazione Regole di Ripartizione (Logica `DETTANAL`)
+### Task 1.3: Implementazione Regole di Ripartizione (Logica `DETTANAL`) (✅ Completato)
 *   **Logica:** Creeremo un sistema per definire regole di ripartizione automatica per costi indiretti o ricorrenti.
 *   **Implementazione DB (✅ Completato):** Creare un modello `RegolaRipartizione`.
 *   **Implementazione Backend (✅ Completato):** Creare gli endpoint API per le operazioni CRUD sulle regole.
@@ -46,7 +46,7 @@ Come primo passo, implementeremo le fondamenta che abiliteranno tutte le automaz
 
 Una volta preparato il database, svilupperemo l'endpoint principale che orchestra la logica di riconciliazione.
 
-### Task 2.1: Endpoint `POST /api/reconciliation/run`
+### Task 2.1: Endpoint `POST /api/reconciliation/run` (✅ Completato)
 Il processo logico eseguito da questo endpoint seguirà una gerarchia precisa per ogni riga di costo/ricavo:
 
 1.  **Pre-Filtro Intelligente:** Il sistema estrae **solo** le scritture dallo staging che contengono almeno una riga relativa a un `Conto` marcato come `isRilevantePerCommesse = true`.
@@ -63,7 +63,7 @@ Il processo logico eseguito da questo endpoint seguirà una gerarchia precisa pe
 
 Infine, costruiremo l'interfaccia utente che permetterà all'operatore di finalizzare il processo.
 
-### Task 3.1: Pagina di Riconciliazione
+### Task 3.1: Pagina di Riconciliazione (🟡 In Corso)
 *   **Implementazione UI:** Svilupperemo la pagina "Riconciliazione" come descritto in precedenza (layout a due colonne, lista scritture a sinistra, dettaglio a destra).
 *   **Funzionalità Chiave:**
     *   La tabella di dettaglio mostrerà lo stato di ogni riga (`Automatica`, `Da Assegnare`, etc.).

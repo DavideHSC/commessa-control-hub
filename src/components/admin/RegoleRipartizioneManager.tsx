@@ -10,7 +10,7 @@ import {
   RegolaRipartizioneInput,
 } from '@/api/regoleRipartizione';
 import { getContiPerSelezione } from '@/api/conti';
-import { getCommessePerSelezione } from '@/api/commesse';
+import { getCommesseForSelect } from '@/api/commesse';
 import { getVociAnalitichePerSelezione } from '@/api/vociAnalitiche';
 
 import { RegolaRipartizione, Conto, Commessa, VoceAnalitica } from '@/types';
@@ -44,7 +44,7 @@ const RegoleRipartizioneManager: React.FC = () => {
   
   const { data: commesse } = useQuery<SelectItem[], Error>({ 
     queryKey: ['commesseForSelect'], 
-    queryFn: getCommessePerSelezione
+    queryFn: getCommesseForSelect
   });
 
   const { data: vociAnalitiche } = useQuery<SelectItem[], Error>({ 

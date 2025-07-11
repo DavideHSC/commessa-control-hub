@@ -1,5 +1,10 @@
 import { Commessa, VoceAnalitica, Conto, ScritturaContabile, CausaleContabile, Cliente, Fornitore, CodiceIva, CondizionePagamento, ImportTemplate, TableStats } from '@/types';
 import qs from 'qs';
+import axios from 'axios';
+
+export const apiClient = axios.create({
+  baseURL: '/api',
+});
 
 const API_BASE_URL = '/api';
 

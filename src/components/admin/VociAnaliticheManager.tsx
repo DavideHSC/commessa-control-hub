@@ -8,7 +8,7 @@ import { PlusCircle, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import * as api from '@/api/vociAnalitiche';
 import { getConfigurableConti } from '@/api/conti';
-import { VoceAnalitica } from '@/types';
+import { VoceAnaliticaWithRelations, ContoForUI } from '@/types';
 import { MultiSelect } from '@/components/ui/multi-select';
 
 interface ConfigurableConto {
@@ -23,9 +23,9 @@ interface SelectableConto extends ConfigurableConto {
 }
 
 const VociAnaliticheManager = () => {
-  const [voci, setVoci] = useState<VoceAnalitica[]>([]);
+  const [voci, setVoci] = useState<VoceAnaliticaWithRelations[]>([]);
   const [conti, setConti] = useState<SelectableConto[]>([]);
-  const [selectedVoce, setSelectedVoce] = useState<VoceAnalitica | null>(null);
+  const [selectedVoce, setSelectedVoce] = useState<VoceAnaliticaWithRelations | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -37,7 +37,14 @@ const VociAnaliticheManager = () => {
         api.getVociAnalitiche({ page: 1, limit: 9999 }),
         getConfigurableConti(),
       ]);
-      setVoci(vociData.data); // Estraiamo l'array 'data' dalla risposta paginata
+      
+      // Convertiamo i dati dell'API al tipo atteso, aggiungendo la proprietà conti vuota
+      const vociWithRelations: VoceAnaliticaWithRelations[] = vociData.data.map(voce => ({
+        ...voce,
+        conti: [] // Inizializziamo con un array vuoto, verrà popolato dall'API se necessario
+      }));
+      
+      setVoci(vociWithRelations);
       setConti(contiData.map((c: ConfigurableConto) => ({ ...c, value: c.id, label: `${c.codice} - ${c.nome}` })));
     } catch (error) {
       toast({ title: 'Errore', description: 'Impossibile caricare i dati.', variant: 'destructive' });
@@ -50,7 +57,7 @@ const VociAnaliticheManager = () => {
     fetchData();
   }, [fetchData]);
 
-  const handleSelectVoce = (voce: VoceAnalitica) => {
+  const handleSelectVoce = (voce: VoceAnaliticaWithRelations) => {
     setSelectedVoce(voce);
   };
 
@@ -166,7 +173,13 @@ const VociAnaliticheManager = () => {
                         defaultValue={selectedVoce.conti?.map(c => c.id) || []}
                         onValueChange={(selectedIds) => {
                             const selectedConti = conti.filter(c => selectedIds.includes(c.id));
-                            setSelectedVoce({ ...selectedVoce, conti: selectedConti });
+                            // Convertiamo i SelectableConto in ContoForUI
+                            const contiForState: ContoForUI[] = selectedConti.map(c => ({
+                                id: c.id,
+                                codice: c.codice,
+                                nome: c.nome,
+                            }));
+                            setSelectedVoce({ ...selectedVoce, conti: contiForState });
                         }}
                         className="w-full"
                     />

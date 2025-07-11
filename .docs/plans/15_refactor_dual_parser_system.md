@@ -28,9 +28,9 @@
 
 | ID | Task | Stato | Dettagli |
 | :-- | :--- | :--- | :--- |
-| **2.1**| **Progettazione UI di Riconciliazione** | ⬜ Pending | Disegnare l'interfaccia utente che permetterà di avviare il processo di riconciliazione e di visualizzarne i risultati, inclusi report di errore dettagliati. |
-| **2.2**| **Implementazione Logica di Riconciliazione** | ⬜ Pending | Implementare gli endpoint di backend (es. `POST /api/reconciliation/run`) che leggono i dati dallo staging, eseguono validazioni e lookup, e li trasferiscono nelle tabelle finali. |
-| **2.3**| **Collegamento Frontend-Backend** | ⬜ Pending | Sviluppare i componenti frontend per interagire con la logica di riconciliazione e mostrare i risultati all'utente. |
+| **2.1**| **Progettazione UI di Riconciliazione** | 🟡 In Corso | Disegnare l'interfaccia utente che permetterà di avviare il processo di riconciliazione e di visualizzarne i risultati, inclusi report di errore dettagliati. |
+| **2.2**| **Implementazione Logica di Riconciliazione** | ✅ Completato | Implementare gli endpoint di backend (es. `POST /api/reconciliation/run`) che leggono i dati dallo staging, eseguono validazioni e lookup, e li trasferiscono nelle tabelle finali. |
+| **2.3**| **Collegamento Frontend-Backend** | 🟡 In Corso | Sviluppare i componenti frontend per interagire con la logica di riconciliazione e mostrare i risultati all'utente. |
 
 ---
 
@@ -39,7 +39,7 @@
 
 | ID | Task | Stato | Dettagli |
 | :-- | :--- | :--- | :--- |
-| **3.1**| **Pulizia Backend** | ⬜ Pending | Rimuovere codice legacy come la funzione `processScrittureInBatches` e svuotare i vecchi `transformer` non più necessari. Le rotte di import originali diventeranno semplici wrapper per la logica di staging. |
-| **3.2**| **Pulizia Frontend** | ⬜ Pending | Semplificare la pagina di `Import` originale. Il suo unico scopo sarà l'upload e il reindirizzamento alla pagina di Staging. Rimuovere stati e logiche legati al vecchio processo. |
+| **3.1**| **Pulizia Backend** | 🟡 In Corso | Rimuovere codice legacy come la funzione `processScrittureInBatches` e svuotare i vecchi `transformer` non più necessari. Le rotte di import originali diventeranno semplici wrapper per la logica di staging. |
+| **3.2**| **Pulizia Frontend** | 🟡 In Corso | Semplificare la pagina di `Import` originale. Il suo unico scopo sarà l'upload e il reindirizzamento alla pagina di Staging. Rimuovere stati e logiche legati al vecchio processo. |
 | **3.3**| **Pulizia Database** | ⬜ Pending | Scrivere ed eseguire uno script una-tantum per eliminare dalle tabelle di produzione i dati "placeholder" o inconsistenti creati dalla vecchia logica, se necessario. |
 | **3.4**| **Revisione Finale** | ⬜ Pending | Eseguire un'analisi finale del codice per assicurarsi che non siano rimasti "fossili" della vecchia implementazione. | 
