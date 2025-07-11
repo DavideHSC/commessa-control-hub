@@ -1,9 +1,15 @@
 import { Router } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { Conto, PrismaClient, VoceAnalitica, Prisma } from '@prisma/client';
 import { z } from 'zod';
+import { ReconciliationResult, RigaDaRiconciliare } from '../types/reconciliation';
 
 const router = Router();
 const prisma = new PrismaClient();
+
+// Definiamo un tipo per le righe con la testata inclusa
+type StagingRigaContabileWithTestata = Prisma.StagingRigaContabileGetPayload<{
+  include: { testata: true }
+}>;
 
 /**
  * Esegue il processo di riconciliazione delle scritture contabili.
@@ -21,31 +27,36 @@ router.post('/run', async (req, res) => {
     console.log('[Recon] Fase 1: Filtro Intelligente');
     const contiRilevanti = await prisma.conto.findMany({
       where: { isRilevantePerCommesse: true },
-      select: { id: true, codice: true },
     });
 
     if (contiRilevanti.length === 0) {
       console.log('[Recon] Nessun conto marcato come rilevante per le commesse. Processo terminato.');
       return res.status(200).json({
         message: 'Nessun conto rilevante per le commesse è stato configurato.',
-        summary: { totalRowsToProcess: 0, reconciledAutomatically: 0, needsManualReconciliation: 0 },
+        summary: { totalScrittureToProcess: 0, totalRigheToProcess: 0, reconciledAutomatically: 0, needsManualReconciliation: 0 },
+        righeDaRiconciliare: [],
         errors: [],
       });
     }
+    const contiRilevantiMap = new Map<string, Conto>(contiRilevanti.map(c => [c.id, c]));
     const codiciContiRilevanti = contiRilevanti.map(c => c.codice).filter((c): c is string => !!c);
     const contoCodiceToIdMap = new Map(contiRilevanti.map(c => [c.codice, c.id]));
     console.log(`[Recon] Trovati ${codiciContiRilevanti.length} conti rilevanti.`);
 
     // Trova le righe di staging che usano questi conti
-    const righeRilevanti = await prisma.stagingRigaContabile.findMany({
+    const righeRilevanti: StagingRigaContabileWithTestata[] = await prisma.stagingRigaContabile.findMany({
       where: { conto: { in: codiciContiRilevanti } },
+      include: {
+        testata: true, // Includiamo la testata per avere la data e altre info
+      }
     });
 
     if (righeRilevanti.length === 0) {
         console.log('[Recon] Nessuna riga di staging trovata per i conti rilevanti. Processo terminato.');
         return res.status(200).json({
           message: 'Nessuna riga di staging da processare per i conti rilevanti.',
-          summary: { totalRowsToProcess: 0, reconciledAutomatically: 0, needsManualReconciliation: 0 },
+          summary: { totalScrittureToProcess: 0, totalRigheToProcess: 0, reconciledAutomatically: 0, needsManualReconciliation: 0 },
+          righeDaRiconciliare: [],
           errors: [],
         });
     }
@@ -63,7 +74,7 @@ router.post('/run', async (req, res) => {
     console.log(`[Recon] Trovate ${allocazioniStaging.length} righe di allocazione nello staging.`);
 
     let reconciledByMovanacCount = 0;
-    const righeDaProcessareLivello2: typeof righeRilevanti = [];
+    const righeDaProcessareLivello2: StagingRigaContabileWithTestata[] = [];
 
     for (const riga of righeRilevanti) {
       const hasMatchingAllocazione = allocazioniStaging.some(
@@ -87,7 +98,7 @@ router.post('/run', async (req, res) => {
     console.log(`[Recon] Trovate ${regoleRipartizione.length} regole di ripartizione, che coprono ${contiConRegole.size} conti unici.`);
 
     let reconciledByRuleCount = 0;
-    const righeDaProcessareManualmente: typeof righeRilevanti = [];
+    const righeDaProcessareManualmente: StagingRigaContabileWithTestata[] = [];
 
     for (const riga of righeDaProcessareLivello2) {
       const contoId = riga.conto ? contoCodiceToIdMap.get(riga.conto) : undefined;
@@ -107,20 +118,38 @@ router.post('/run', async (req, res) => {
       where: { id: { in: Array.from(contoCodiceToIdMap.values()) } },
       select: {
         id: true,
-        vociAnalitiche: { select: { id: true }, take: 1 }, // Prendiamo solo la prima voce mappata come suggerimento
+        vociAnalitiche: { select: { id: true, nome: true }, take: 1 }, // Prendiamo solo la prima voce mappata come suggerimento
       },
     });
 
     const contoToVoceMap = new Map(
-      contiConVociAnalitiche.map(c => [c.id, c.vociAnalitiche[0]?.id])
+      contiConVociAnalitiche.map(c => [c.id, c.vociAnalitiche[0]])
     );
     
-    const righePerUI = righeDaProcessareManualmente.map(riga => {
+    const righeDaRiconciliare: RigaDaRiconciliare[] = righeDaProcessareManualmente.map(riga => {
       const contoId = riga.conto ? contoCodiceToIdMap.get(riga.conto) : undefined;
-      const suggerimentoVoceId = contoId ? contoToVoceMap.get(contoId) : undefined;
+      const conto = contoId ? contiRilevantiMap.get(contoId) : undefined;
+      const suggerimentoVoce = contoId ? contoToVoceMap.get(contoId) : undefined;
+      
+      const importoDare = riga.importoDare ? parseFloat(riga.importoDare) : 0;
+      const importoAvere = riga.importoAvere ? parseFloat(riga.importoAvere) : 0;
+      const importo = importoDare > 0 ? importoDare : importoAvere;
+
       return {
-        ...riga,
-        suggerimentoVoceAnaliticaId: suggerimentoVoceId,
+        id: riga.id,
+        externalId: riga.codiceUnivocoScaricamento,
+        data: riga.testata.dataRegistrazione ? new Date(riga.testata.dataRegistrazione) : new Date(),
+        descrizione: riga.note || riga.testata.noteMovimento || 'Nessuna descrizione',
+        importo: importo,
+        conto: {
+          id: conto?.id || '',
+          codice: conto?.codice || riga.conto,
+          nome: conto?.nome || 'Conto non trovato',
+        },
+        voceAnaliticaSuggerita: suggerimentoVoce ? {
+          id: suggerimentoVoce.id,
+          nome: suggerimentoVoce.nome,
+        } : null,
       };
     });
 
@@ -131,7 +160,7 @@ router.post('/run', async (req, res) => {
     
     const totalReconciledAutomatically = reconciledByMovanacCount + reconciledByRuleCount;
 
-    res.status(200).json({
+    const result: ReconciliationResult = {
       message: 'Processo di riconciliazione completato con successo.',
       summary: {
         totalScrittureToProcess: idTestateDaProcessare.length,
@@ -139,13 +168,18 @@ router.post('/run', async (req, res) => {
         reconciledAutomatically: totalReconciledAutomatically,
         needsManualReconciliation: righeDaProcessareManualmente.length,
       },
-      data: righePerUI, // Includiamo i dati per il frontend
+      righeDaRiconciliare: righeDaRiconciliare,
       errors: [],
-    });
+    };
+
+    res.status(200).json(result);
+
   } catch (error) {
     console.error('Errore durante il processo di riconciliazione:', error);
     res.status(500).json({ 
       message: 'Si è verificato un errore durante la riconciliazione.',
+      summary: { totalScrittureToProcess: 0, totalRigheToProcess: 0, reconciledAutomatically: 0, needsManualReconciliation: 0 },
+      righeDaRiconciliare: [],
       error: error instanceof Error ? error.message : String(error),
     });
   }
@@ -181,10 +215,8 @@ router.post('/manual-allocation', async (req, res) => {
         return res.status(404).json({ error: 'Riga di staging non trovata o testata mancante.' });
     }
     
-    // TODO: Risolvere il problema di typing di Prisma con le relazioni incluse.
-    // Il cast a 'any' è un workaround temporaneo per sbloccare lo sviluppo.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const rigaTyped = rigaStaging as any;
+    // Riga tipizzata correttamente con testata inclusa
+    const rigaTyped: StagingRigaContabileWithTestata = rigaStaging;
     
     const result = await prisma.$transaction(async (tx) => {
 
@@ -212,9 +244,9 @@ router.post('/manual-allocation', async (req, res) => {
           update: {},
           create: {
               externalId: rigaTyped.codiceUnivocoScaricamento,
-              data: new Date(rigaTyped.testata.dataRegistrazione),
-              dataDocumento: rigaTyped.testata.dataDocumento ? new Date(rigaTyped.testata.dataDocumento) : undefined,
-              numeroDocumento: rigaTyped.testata.numeroDocumento,
+              data: rigaTyped.testata.dataRegistrazione ? new Date(rigaTyped.testata.dataRegistrazione) : new Date(),
+              dataDocumento: rigaTyped.testata.documentoData ? new Date(rigaTyped.testata.documentoData) : undefined,
+              numeroDocumento: rigaTyped.testata.documentoNumero,
               descrizione: `Importata da staging - ${rigaTyped.testata.noteMovimento || rigaTyped.codiceUnivocoScaricamento}`,
               // TODO: Aggiungere lookup per causale e fornitore
           }
@@ -239,7 +271,7 @@ router.post('/manual-allocation', async (req, res) => {
           commessaId: alloc.commessaId,
           importo: alloc.importo,
           tipoMovimento: 'COSTO_EFFETTIVO',
-          dataMovimento: new Date(rigaTyped.testata.dataRegistrazione),
+          dataMovimento: rigaTyped.testata.dataRegistrazione ? new Date(rigaTyped.testata.dataRegistrazione) : new Date(),
         })),
       });
 

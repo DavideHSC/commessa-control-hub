@@ -1,60 +1,73 @@
-"use client";
+"use client"
 
-import { RigaDaRiconciliare } from "@/api/reconciliation";
-import { Badge } from "@/components/ui/badge";
 import { ColumnDef } from "@tanstack/react-table";
-import { AllocationCell } from "./AllocationCell";
+import { Badge } from "@/components/ui/badge";
+import { RigaDaRiconciliare } from "@shared-types/index";
+import { ArrowUpDown } from "lucide-react"
+import { Button } from "../ui/button"
 
-export const getColumns = (onSaveSuccess: (rigaId: string) => void): ColumnDef<RigaDaRiconciliare>[] => [
+export const riconciliazioneColumns: ColumnDef<RigaDaRiconciliare>[] = [
   {
-    accessorKey: "conto",
-    header: "Conto",
+    accessorKey: "data",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Data
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+    cell: ({ row }) => {
+        const date = new Date(row.original.data)
+        return <div>{date.toLocaleDateString()}</div>
+    }
   },
   {
-    accessorKey: "note",
+    accessorKey: "descrizione",
     header: "Descrizione",
-  },
-  {
-    accessorKey: "importoDare",
-    header: "Dare",
     cell: ({ row }) => {
-        const amount = parseFloat(row.getValue("importoDare"))
-        const formatted = new Intl.NumberFormat("it-IT", {
-            style: "currency",
-            currency: "EUR",
-        }).format(amount)
-        return <div className="text-right font-medium">{formatted}</div>
+        return <div className="font-medium">{row.original.descrizione}</div>
     }
   },
   {
-    accessorKey: "importoAvere",
-    header: "Avere",
+    accessorKey: "conto.nome",
+    header: "Conto",
     cell: ({ row }) => {
-        const amount = parseFloat(row.getValue("importoAvere"))
-        const formatted = new Intl.NumberFormat("it-IT", {
-            style: "currency",
-            currency: "EUR",
-        }).format(amount)
-        return <div className="text-right font-medium">{formatted}</div>
+        return <div>{row.original.conto.nome} ({row.original.conto.codice})</div>
     }
   },
   {
-    id: "suggerimento",
-    header: "Suggerimento Voce",
+    accessorKey: "importo",
+    header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="text-right w-full"
+          >
+            Importo
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        )
+      },
     cell: ({ row }) => {
-      const { suggerimentoVoceAnaliticaId } = row.original;
-      return suggerimentoVoceAnaliticaId ? (
-        <Badge variant="outline">ID: {suggerimentoVoceAnaliticaId}</Badge>
-      ) : (
-        <Badge variant="secondary">N/A</Badge>
-      );
+      const amount = row.original.importo
+      const formatted = new Intl.NumberFormat("it-IT", {
+        style: "currency",
+        currency: "EUR",
+      }).format(amount)
+ 
+      return <div className="text-right font-medium">{formatted}</div>
     },
   },
   {
-    id: "actions",
-    header: "Azione",
+    accessorKey: "voceAnaliticaSuggerita.nome",
+    header: "Voce Suggerita",
     cell: ({ row }) => {
-        return <AllocationCell row={row} onSaveSuccess={onSaveSuccess} />
+        return <div>{row.original.voceAnaliticaSuggerita?.nome || <span className="text-muted-foreground">N/A</span>}</div>
     }
-  }
-]; 
+  },
+] 

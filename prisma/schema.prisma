@@ -807,7 +807,7 @@ model StagingTestata {
   sourceFileName                   String?
   importedAt                       DateTime  @default(now())
 
-  @@map("staging_testate")
+  righe StagingRigaContabile[]
 }
 
 model StagingRigaContabile {
@@ -841,6 +841,9 @@ model StagingRigaContabile {
   siglaConto                       String?
   sourceFileName                   String?
   importedAt                       DateTime  @default(now())
+
+  // Relazione con la testata
+  testata                StagingTestata @relation(fields: [codiceUnivocoScaricamento], references: [codiceUnivocoScaricamento], onDelete: Cascade)
 
   @@unique([codiceUnivocoScaricamento, progressivoNumeroRigo])
   @@map("staging_righe_contabili")

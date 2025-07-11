@@ -1,134 +1,125 @@
+import { ReconciliationTable } from "@/components/admin/ReconciliationTable";
+import { riconciliazioneColumns } from "@/components/admin/riconciliazione-columns";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useCallback, useState } from "react";
-import { ReconciliationResult, runReconciliation } from "@/api/reconciliation";
-import { Loader2 } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal } from "lucide-react";
-import { ReconciliationTable } from "@/components/admin/ReconciliationTable";
-import { AxiosError } from "axios";
+import { apiClient } from "@/api";
+import { useState } from "react";
+import { ReconciliationResult, RigaDaRiconciliare } from "@shared-types/index";
+import { useToast } from "@/hooks/use-toast";
+import { ReconciliationSummary } from "@/components/admin/ReconciliationSummary";
 
-// Type guard per l'errore di Axios
-function isAxiosError(error: unknown): error is AxiosError<{ message: string }> {
-    return (error as AxiosError<{ message: string }>)?.isAxiosError === true;
-}
+export default function Riconciliazione() {
+    const [reconciliationResult, setReconciliationResult] = useState<ReconciliationResult | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [selectedScrittura, setSelectedScrittura] = useState<RigaDaRiconciliare | null>(null);
+    const { toast } = useToast();
 
-const Riconciliazione = () => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<ReconciliationResult | null>(null);
-
-  const handleRunReconciliation = async () => {
-    setLoading(true);
-    setError(null);
-    setResult(null);
-    try {
-      const res = await runReconciliation();
-      setResult(res);
-    } catch (err) {
-        if (isAxiosError(err)) {
-            setError(err.response?.data?.message || err.message);
-        } else if (err instanceof Error) {
-            setError(err.message);
-        } else {
-            setError('Si è verificato un errore sconosciuto');
+    const handleRunReconciliation = async () => {
+        setIsLoading(true);
+        setReconciliationResult(null);
+        setSelectedScrittura(null);
+        try {
+            const response = await apiClient.post('/reconciliation/run');
+            setReconciliationResult(response.data);
+            toast({
+                title: "Analisi completata",
+                description: "Il processo di riconciliazione è terminato.",
+            });
+        } catch (error) {
+            console.error("Errore durante la riconciliazione:", error);
+            toast({
+                title: "Errore",
+                description: "Si è verificato un errore durante la riconciliazione.",
+                variant: "destructive",
+            });
+        } finally {
+            setIsLoading(false);
         }
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  const handleSaveSuccess = useCallback((rigaId: string) => {
-    setResult(prevResult => {
-        if (!prevResult) return null;
+    const handleRowClick = (row: RigaDaRiconciliare) => {
+        setSelectedScrittura(row);
+    };
 
-        const newData = prevResult.data.filter(riga => riga.id !== rigaId);
-        const newSummary = {
-            ...prevResult.summary,
-            needsManualReconciliation: prevResult.summary.needsManualReconciliation - 1,
-        };
+    return (
+        <div className="container mx-auto p-4">
+            <h1 className="text-2xl font-bold mb-4">Riconciliazione Scritture</h1>
+            
+            <Card className="mb-4">
+                <CardHeader>
+                    <CardTitle>Avvia Processo di Riconciliazione</CardTitle>
+                    <CardDescription>
+                        Fai clic sul pulsante qui sotto per avviare l'analisi delle scritture contabili importate
+                        e identificare quelle che richiedono un'allocazione manuale.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Button onClick={handleRunReconciliation} disabled={isLoading}>
+                        {isLoading ? "Analisi in corso..." : "Avvia Analisi"}
+                    </Button>
+                </CardContent>
+            </Card>
 
-        return {
-            ...prevResult,
-            data: newData,
-            summary: newSummary,
-        };
-    });
-  }, []);
+            {reconciliationResult && (
+                 <Card className="mb-4">
+                    <CardHeader>
+                        <CardTitle>Riepilogo Analisi</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ReconciliationSummary summary={reconciliationResult.summary} />
+                    </CardContent>
+                </Card>
+            )}
 
-  return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Riconciliazione Scritture</h1>
-      
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Avvia Processo di Riconciliazione</CardTitle>
-          <CardDescription>
-            Clicca il pulsante per avviare l'analisi delle scritture contabili importate nello staging. 
-            Il sistema identificherà le scritture che possono essere allocate automaticamente e quelle che richiedono un intervento manuale.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button onClick={handleRunReconciliation} disabled={loading}>
-            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            {loading ? 'Analisi in corso...' : 'Avvia Analisi'}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {error && (
-         <Alert variant="destructive" className="mb-6">
-            <Terminal className="h-4 w-4" />
-            <AlertTitle>Errore</AlertTitle>
-            <AlertDescription>{error}</AlertDescription>
-         </Alert>
-      )}
-
-      {result && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Risultati dell'Analisi</CardTitle>
-            <CardDescription>{result.message}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="p-4 border rounded-lg">
-                <p className="text-sm text-muted-foreground">Scritture da Processare</p>
-                <p className="text-2xl font-bold">{result.summary.totalScrittureToProcess}</p>
-              </div>
-              <div className="p-4 border rounded-lg">
-                <p className="text-sm text-muted-foreground">Righe Totali Rilevanti</p>
-                <p className="text-2xl font-bold">{result.summary.totalRigheToProcess}</p>
-              </div>
-              <div className="p-4 border rounded-lg bg-green-50 dark:bg-green-900/10">
-                <p className="text-sm text-green-600 dark:text-green-400">Riconciliate Automaticamente</p>
-                <p className="text-2xl font-bold text-green-700 dark:text-green-300">{result.summary.reconciledAutomatically}</p>
-              </div>
-              <div className="p-4 border rounded-lg bg-yellow-50 dark:bg-yellow-900/10">
-                <p className="text-sm text-yellow-600 dark:text-yellow-400">Da Rivedere Manualmente</p>
-                <p className="text-2xl font-bold text-yellow-700 dark:text-yellow-300">{result.summary.needsManualReconciliation}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {result && result.data.length > 0 && (
-        <Card className="mt-6">
-            <CardHeader>
-                <CardTitle>Righe da Riconciliare Manualmente</CardTitle>
-                <CardDescription>
-                    Le seguenti righe non hanno potuto essere associate automaticamente. Assegna una commessa e una voce analitica a ciascuna.
-                </CardDescription>
-            </CardHeader>
-            <CardContent>
-                <ReconciliationTable data={result.data} onSaveSuccess={handleSaveSuccess} />
-            </CardContent>
-        </Card>
-      )}
-
-    </div>
-  );
-};
-
-export default Riconciliazione; 
+            {reconciliationResult && reconciliationResult.righeDaRiconciliare.length > 0 && (
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+                    <div className="lg:col-span-3">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Scritture da Riconciliare</CardTitle>
+                                <CardDescription>
+                                    Seleziona una scrittura per visualizzarne i dettagli e procedere con l'allocazione.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <ReconciliationTable
+                                    data={reconciliationResult.righeDaRiconciliare}
+                                    onRowClick={handleRowClick}
+                                    selectedRowId={selectedScrittura?.id}
+                                />
+                            </CardContent>
+                        </Card>
+                    </div>
+                    <div className="lg:col-span-2">
+                        <Card className="sticky top-4">
+                            <CardHeader>
+                                <CardTitle>Dettaglio Scrittura</CardTitle>
+                                <CardDescription>
+                                    {selectedScrittura ? `Dettagli per la scrittura ${selectedScrittura.externalId}` : "Seleziona una scrittura per vedere i dettagli"}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                {selectedScrittura ? (
+                                    <div>
+                                        <p><strong>ID Esterno:</strong> {selectedScrittura.externalId}</p>
+                                        <p><strong>Data:</strong> {new Date(selectedScrittura.data).toLocaleDateString()}</p>
+                                        <p><strong>Descrizione:</strong> {selectedScrittura.descrizione}</p>
+                                        <p className="mt-4"><strong>Conto:</strong> {selectedScrittura.conto.nome} ({selectedScrittura.conto.codice})</p>
+                                        <p><strong>Importo:</strong> {selectedScrittura.importo.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}</p>
+                                        <p><strong>Voce Analitica Suggerita:</strong> {selectedScrittura.voceAnaliticaSuggerita?.nome || 'N/A'}</p>
+                                        
+                                        {/* Qui aggiungeremo la tabella con le righe di dettaglio e i form di allocazione */}
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-center h-40">
+                                        <p className="text-muted-foreground">Nessuna scrittura selezionata</p>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+} 

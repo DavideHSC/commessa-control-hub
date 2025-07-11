@@ -2,13 +2,15 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "module": "ESNext",
-    "moduleResolution": "Node",
+    "moduleResolution": "node",
     "target": "ES2022",
     "strict": true,
-    "types": ["node"]
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "@shared-types/*": ["../types/*"]
+    }
   },
-  "include": [
-    "prisma/**/*.ts",
-    "src/**/*.ts"
-  ]
+  "include": ["vite.config.ts", "server"]
 }

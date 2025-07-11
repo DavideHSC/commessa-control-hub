@@ -1,32 +1,22 @@
+"use client"
+
 import { AdvancedDataTable } from "@/components/ui/advanced-data-table";
-import { RigaDaRiconciliare } from "@/api/reconciliation";
-import { getColumns } from "./riconciliazione-columns";
-import { ColumnDef } from "@tanstack/react-table";
-import { useMemo } from "react";
+import { RigaDaRiconciliare } from "@/types";
+import { riconciliazioneColumns } from "./riconciliazione-columns";
 
 interface ReconciliationTableProps {
   data: RigaDaRiconciliare[];
-  onSaveSuccess: (rigaId: string) => void;
+  onRowClick: (row: RigaDaRiconciliare) => void;
+  selectedRowId?: string;
 }
 
-export const ReconciliationTable = ({ data, onSaveSuccess }: ReconciliationTableProps) => {
-
-  const columns = useMemo(() => getColumns(onSaveSuccess), [onSaveSuccess]);
-
+export function ReconciliationTable({ data, onRowClick, selectedRowId }: ReconciliationTableProps) {
   return (
     <AdvancedDataTable
-      columns={columns as ColumnDef<RigaDaRiconciliare, unknown>[]}
+      columns={riconciliazioneColumns}
       data={data}
-      totalCount={data.length}
-      page={1}
-      pageSize={data.length}
-      search=""
-      sorting={[]}
-      loading={false}
-      onPageChange={() => {}}
-      onPageSizeChange={() => {}}
-      onSearchChange={() => {}}
-      onSortingChange={() => {}}
+      onRowClick={onRowClick}
+      selectedRowId={selectedRowId}
     />
   );
-}; 
+} 

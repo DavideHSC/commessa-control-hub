@@ -20,30 +20,32 @@ import { DataTablePagination } from "./data-table-pagination"
 import { DataTableToolbar } from "./data-table-toolbar"
 import { Skeleton } from "./skeleton";
 
-interface AdvancedDataTableProps<TData> {
+interface AdvancedDataTableProps<TData extends { id: string }> {
   columns: ColumnDef<TData, unknown>[];
   data: TData[];
-  totalCount: number;
-  page: number;
-  pageSize: number;
-  onPageChange: (page: number) => void;
-  onPageSizeChange: (size: number) => void;
   
-  search: string;
-  onSearchChange: (search: string) => void;
+  // Server-side props (optional)
+  totalCount?: number;
+  page?: number;
+  pageSize?: number;
+  onPageChange?: (page: number) => void;
+  onPageSizeChange?: (size: number) => void;
   
-  sorting: SortingState;
-  onSortingChange: (sorting: SortingState) => void;
+  search?: string;
+  onSearchChange?: (search: string) => void;
+  
+  sorting?: SortingState;
+  onSortingChange?: (sorting: SortingState) => void;
   
   loading?: boolean;
   emptyMessage?: string;
-  
-  // onAdd?: () => void;
-  // onEdit?: (item: TData) => void;
-  // onDelete?: (item: TData) => void;
+
+  // Interactivity props
+  onRowClick?: (row: TData) => void;
+  selectedRowId?: string;
 }
 
-export function AdvancedDataTable<TData>({
+export function AdvancedDataTable<TData extends { id: string }>({
   columns,
   data,
   totalCount,
@@ -57,36 +59,42 @@ export function AdvancedDataTable<TData>({
   onSortingChange,
   loading = false,
   emptyMessage = "No results found.",
+  onRowClick,
+  selectedRowId,
 }: AdvancedDataTableProps<TData>) {
 
-  const pageCount = Math.ceil(totalCount / pageSize);
+  const isServerSide = totalCount !== undefined && page !== undefined && pageSize !== undefined;
+  const pageCount = isServerSide ? Math.ceil(totalCount / pageSize) : undefined;
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    // Server-side pagination
-    manualPagination: true,
+    // Pagination
+    manualPagination: isServerSide,
     pageCount,
-    // Server-side sorting
-    manualSorting: true,
+    // Sorting
+    manualSorting: isServerSide,
+    // State
     state: {
       pagination: {
-        pageIndex: page - 1,
-        pageSize,
+        pageIndex: isServerSide ? page - 1 : 0,
+        pageSize: isServerSide ? pageSize : data.length,
       },
-      sorting,
+      sorting: sorting || [],
     },
     onPaginationChange: (updater) => {
+        if (!onPageChange || !onPageSizeChange) return;
         if (typeof updater === 'function') {
-            const newPagination = updater({ pageIndex: page - 1, pageSize });
+            const newPagination = updater({ pageIndex: page! - 1, pageSize: pageSize! });
             onPageChange(newPagination.pageIndex + 1);
             onPageSizeChange(newPagination.pageSize);
         }
     },
     onSortingChange: (updater) => {
+        if (!onSortingChange) return;
         if (typeof updater === 'function') {
-            onSortingChange(updater(sorting));
+            onSortingChange(updater(sorting || []));
         } else {
             onSortingChange(updater);
         }
@@ -138,7 +146,9 @@ export function AdvancedDataTable<TData>({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
+                  data-state={selectedRowId === row.original.id && "selected"}
+                  onClick={() => onRowClick?.(row.original)}
+                  className={onRowClick ? "cursor-pointer" : ""}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -164,7 +174,7 @@ export function AdvancedDataTable<TData>({
         </Table>
       </div>
       <div className="h-2" />
-      <DataTablePagination table={table} totalCount={totalCount} />
+      {isServerSide && <DataTablePagination table={table} totalCount={totalCount} />}
     </div>
   )
 }

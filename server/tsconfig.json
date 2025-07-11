@@ -4,14 +4,15 @@
     "module": "ESNext",
     "lib": ["ES2022"],
     "outDir": "./dist",
-    "rootDir": "./",
+    "rootDir": ".",
+    "baseUrl": ".",
     "strict": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "declaration": false,
+    "declaration": true,
     "removeComments": true,
     "noImplicitAny": false,
     "strictNullChecks": true,
@@ -22,16 +23,15 @@
     "moduleResolution": "node",
     "allowJs": true,
     "checkJs": false,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "paths": {
+      "@/*": ["../src/*"],
+      "@shared-types/*": ["../types/*"]
+    }
   },
   "ts-node": {
     "esm": true
   },
-  "include": [
-    "**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 } 
