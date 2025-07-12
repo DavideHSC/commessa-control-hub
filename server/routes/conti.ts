@@ -14,6 +14,7 @@ router.get('/', async (req, res) => {
       sortBy = 'codice',
       sortOrder = 'asc',
       tipo,
+      rilevanti, // Nuovo parametro per filtrare conti rilevanti per commesse
     } = req.query;
 
     const pageNumber = parseInt(page as string, 10);
@@ -32,6 +33,11 @@ router.get('/', async (req, res) => {
 
     if (tipo && Object.values(TipoConto).includes(tipo as TipoConto)) {
       where.tipo = tipo as TipoConto;
+    }
+
+    // Filtro per conti rilevanti per commesse
+    if (rilevanti === 'true') {
+      where.isRilevantePerCommesse = true;
     }
 
     const orderBy: Prisma.ContoOrderByWithRelationInput = {

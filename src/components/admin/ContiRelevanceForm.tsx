@@ -12,6 +12,7 @@ interface ConfigurableConto {
   id: string;
   codice: string;
   nome: string;
+  tipo: string;
   isRilevantePerCommesse: boolean;
 }
 
@@ -37,7 +38,7 @@ const ContiRelevanceForm = () => {
   } = useAdvancedTable<ConfigurableConto>({
     endpoint: '/api/conti',
     initialPageSize: 10,
-    filters,
+    filters, // Mostra tutti i conti per permettere la configurazione
   });
 
   const columns: ColumnDef<ConfigurableConto>[] = useMemo(
@@ -50,6 +51,11 @@ const ContiRelevanceForm = () => {
       {
         accessorKey: 'nome',
         header: 'Nome Conto',
+      },
+      {
+        accessorKey: 'tipo',
+        header: 'Tipo',
+        cell: ({ row }) => <div className="w-[100px]">{row.getValue('tipo')}</div>,
       },
       {
         id: 'isRilevantePerCommesse',
@@ -85,7 +91,7 @@ const ContiRelevanceForm = () => {
             </div>
           );
         },
-      },
+      }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [fetchData]
@@ -124,7 +130,7 @@ const ContiRelevanceForm = () => {
           pageSize={pageSize}
           onPageChange={onPageChange}
           onPageSizeChange={onPageSizeChange}
-          search={search}
+          searchValue={search}
           onSearchChange={onSearchChange}
           sorting={sorting}
           onSortingChange={onSortingChange}

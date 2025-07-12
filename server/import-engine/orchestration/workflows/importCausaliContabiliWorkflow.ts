@@ -30,7 +30,7 @@ export async function runImportCausaliContabiliWorkflow(fileContent: string): Pr
 
   try {
     // 1. Parsing
-    const parseResult = await parseFixedWidth<RawCausaleContabile>(fileContent, 'causali_contabili');
+    const parseResult = await parseFixedWidth<RawCausaleContabile>(fileContent, 'causali');
     const { data: rawRecords } = parseResult;
     console.log(`[Workflow Causali] Parsati ${rawRecords.length} record grezzi.`);
 

@@ -83,48 +83,30 @@ async function main() {
   });
   console.log('Commesse principali (Comuni) create.');
 
-  // Commesse Figlie (Attività / Centri di Costo)
+  // Commesse Figlie (Attività / Centri di Costo) - da creare come commesse principali
   await prisma.commessa.create({
     data: {
-      id: 'sorrento_igiene_urbana',
-      externalId: '4',
-      nome: 'Igiene Urbana - Sorrento',
-      descrizione: 'Servizio di igiene urbana per Sorrento',
+      id: "sorrento_igiene_urbana",
+      externalId: "4",
+      nome: "Igiene Urbana - Sorrento",
+      descrizione: "Servizio di igiene urbana per Sorrento",
       clienteId: clientePenisolaVerde.id,
-      parentId: commessaSorrento.id,
+      // parentId: "sorrento", // CAMPO RIMOSSO DALLO SCHEMA
     },
   });
   await prisma.commessa.create({
     data: {
-      id: 'massa_lubrense_igiene_urbana',
-      externalId: '5',
-      nome: 'Igiene Urbana - Massa Lubrense',
-      descrizione: 'Servizio di igiene urbana per Massa Lubrense',
+      id: "meta_igiene_urbana",
+      externalId: "5",
+      nome: "Igiene Urbana - Meta",
+      descrizione: "Servizio di igiene urbana per Meta",
       clienteId: clientePenisolaVerde.id,
-      parentId: commessaMassa.id,
+      // parentId: "meta", // CAMPO RIMOSSO DALLO SCHEMA
     },
   });
-  await prisma.commessa.create({
-    data: {
-      id: 'piano_di_sorrento_igiene_urbana',
-      externalId: '6',
-      nome: 'Igiene Urbana - Piano di Sorrento',
-      descrizione: 'Servizio di igiene urbana per Piano di Sorrento',
-      clienteId: clientePenisolaVerde.id,
-      parentId: commessaPiano.id,
-    },
-  });
-  await prisma.commessa.create({
-    data: {
-      id: 'sorrento_verde_pubblico',
-      externalId: '7',
-      nome: 'Verde Pubblico - Sorrento',
-      descrizione: 'Servizio di gestione del verde pubblico per Sorrento',
-      clienteId: clientePenisolaVerde.id,
-      parentId: commessaSorrento.id,
-    },
-  });
-  console.log('Commesse figlie (Attività) create.');
+
+  console.log('Commesse secondarie (Attività) create.');
+
 
   // 4. Voci Analitiche di base
   console.log('Creazione Voci Analitiche di base...');
@@ -526,46 +508,46 @@ async function main() {
         create: [
           // Layout basato su .docs/code/parser_a_clifor.py - CORRETTO CON START A BASE 1
           // Python slice line[py_start:py_end] -> { start: py_start + 1, length: py_end - py_start }
-          { fieldName: 'CODICE_FISCALE_AZIENDA', start: 4, length: 16, end: 19 },      // (3, 19)
-          { fieldName: 'SUBCODICE_AZIENDA', start: 20, length: 1, end: 20 },         // (19, 20)
-          { fieldName: 'CODICE_UNIVOCO', start: 21, length: 12, end: 32 },          // (20, 32)
-          { fieldName: 'CODICE_FISCALE_CLIFOR', start: 33, length: 16, end: 48 },   // (32, 48)
-          { fieldName: 'SUBCODICE_CLIFOR', start: 49, length: 1, end: 49 },         // (48, 49)
-          { fieldName: 'TIPO_CONTO', start: 50, length: 1, end: 50 },              // (49, 50)
-          { fieldName: 'SOTTOCONTO_CLIENTE', start: 51, length: 10, end: 60 },      // (50, 60)
-          { fieldName: 'SOTTOCONTO_FORNITORE', start: 61, length: 10, end: 70 },    // (60, 70)
-          { fieldName: 'CODICE_ANAGRAFICA', start: 71, length: 12, end: 82 },       // (70, 82)
-          { fieldName: 'PARTITA_IVA', start: 83, length: 11, end: 93 },             // (82, 93)
-          { fieldName: 'TIPO_SOGGETTO', start: 94, length: 1, end: 94 },           // (93, 94)
-          { fieldName: 'DENOMINAZIONE', start: 95, length: 60, end: 154 },          // (94, 154)
-          { fieldName: 'cognome', start: 155, length: 20, end: 174 },               // (154, 174)
-          { fieldName: 'nome', start: 175, length: 20, end: 194 },                  // (174, 194)
-          { fieldName: 'sesso', start: 195, length: 1, end: 195 },                 // (194, 195)
-          { fieldName: 'dataNascita', start: 196, length: 8, end: 203, format: 'date:DDMMYYYY' }, // (195, 203)
-          { fieldName: 'comuneNascita', start: 204, length: 4, end: 207 },        // (203, 207)
-          { fieldName: 'comuneResidenza', start: 208, length: 4, end: 211 },      // (207, 211)
-          { fieldName: 'cap', start: 212, length: 5, end: 216 },                   // (211, 216)
-          { fieldName: 'indirizzo', start: 217, length: 30, end: 246 },             // (216, 246)
-          { fieldName: 'prefissoTelefono', start: 247, length: 4, end: 250 },      // (246, 250)
-          { fieldName: 'numeroTelefono', start: 251, length: 11, end: 261 },        // (250, 261)
-          { fieldName: 'idFiscaleEstero', start: 262, length: 20, end: 281 },      // (261, 281)
-          { fieldName: 'codiceIso', start: 282, length: 2, end: 283 },            // (281, 283)
-          { fieldName: 'codiceIncassoPagamento', start: 284, length: 8, end: 291 },  // (283, 291)
-          { fieldName: 'codiceIncassoCliente', start: 292, length: 8, end: 299 },    // (291, 299)
-          { fieldName: 'codicePagamentoFornitore', start: 300, length: 8, end: 307 },// (299, 307)
-          { fieldName: 'codiceValuta', start: 308, length: 4, end: 311 },           // (307, 311)
-          { fieldName: 'gestioneDati770', start: 312, length: 1, end: 312, format: 'boolean' },        // (311, 312)
-          { fieldName: 'soggettoARitenuta', start: 313, length: 1, end: 313, format: 'boolean' },      // (312, 313)
-          { fieldName: 'quadro770', start: 314, length: 1, end: 314 },              // (313, 314)
-          { fieldName: 'contributoPrevidenziale', start: 315, length: 1, end: 315, format: 'boolean' },// (314, 315)
-          { fieldName: 'codiceRitenuta', start: 316, length: 5, end: 320 },         // (315, 320)
-          { fieldName: 'enasarco', start: 321, length: 1, end: 321, format: 'boolean' },                // (320, 321)
-          { fieldName: 'tipoRitenuta', start: 322, length: 1, end: 322 },           // (321, 322)
-          { fieldName: 'soggettoInail', start: 323, length: 1, end: 323, format: 'boolean' },          // (322, 323)
-          { fieldName: 'contributoPrevid335', start: 324, length: 1, end: 324 },   // (323, 324)
-          { fieldName: 'aliquota', start: 325, length: 6, end: 330, format: 'percentage' },               // (324, 330)
-          { fieldName: 'percContributoCassa', start: 331, length: 6, end: 336, format: 'percentage' },   // (330, 336)
-          { fieldName: 'attivitaMensilizzazione', start: 337, length: 2, end: 338 } // (336, 338)
+          { fieldName: 'codiceFiscaleAzienda', start: 4, length: 16, end: 19 },
+          { fieldName: 'subcodiceAzienda', start: 20, length: 1, end: 20 },
+          { fieldName: 'codiceUnivoco', start: 21, length: 12, end: 32 },
+          { fieldName: 'codiceFiscaleClifor', start: 33, length: 16, end: 48 },
+          { fieldName: 'subcodiceClifor', start: 49, length: 1, end: 49 },
+          { fieldName: 'tipoConto', start: 50, length: 1, end: 50 },
+          { fieldName: 'sottocontoCliente', start: 51, length: 10, end: 60 },
+          { fieldName: 'sottocontoFornitore', start: 61, length: 10, end: 70 },
+          { fieldName: 'codiceAnagrafica', start: 71, length: 12, end: 82 },
+          { fieldName: 'partitaIva', start: 83, length: 11, end: 93 },
+          { fieldName: 'tipoSoggetto', start: 94, length: 1, end: 94 },
+          { fieldName: 'denominazione', start: 95, length: 60, end: 154 },
+          { fieldName: 'cognome', start: 155, length: 20, end: 174 },
+          { fieldName: 'nome', start: 175, length: 20, end: 194 },
+          { fieldName: 'sesso', start: 195, length: 1, end: 195 },
+          { fieldName: 'dataNascita', start: 196, length: 8, end: 203, format: 'date:DDMMYYYY' },
+          { fieldName: 'comuneNascita', start: 204, length: 4, end: 207 },
+          { fieldName: 'comuneResidenza', start: 208, length: 4, end: 211 },
+          { fieldName: 'cap', start: 212, length: 5, end: 216 },
+          { fieldName: 'indirizzo', start: 217, length: 30, end: 246 },
+          { fieldName: 'prefissoTelefono', start: 247, length: 4, end: 250 },
+          { fieldName: 'numeroTelefono', start: 251, length: 11, end: 261 },
+          { fieldName: 'idFiscaleEstero', start: 262, length: 20, end: 281 },
+          { fieldName: 'codiceIso', start: 282, length: 2, end: 283 },
+          { fieldName: 'codiceIncassoPagamento', start: 284, length: 8, end: 291 },
+          { fieldName: 'codiceIncassoCliente', start: 292, length: 8, end: 299 },
+          { fieldName: 'codicePagamentoFornitore', start: 300, length: 8, end: 307 },
+          { fieldName: 'codiceValuta', start: 308, length: 4, end: 311 },
+          { fieldName: 'gestioneDati770', start: 312, length: 1, end: 312, format: 'boolean' },
+          { fieldName: 'soggettoARitenuta', start: 313, length: 1, end: 313, format: 'boolean' },
+          { fieldName: 'quadro770', start: 314, length: 1, end: 314 },
+          { fieldName: 'contributoPrevidenziale', start: 315, length: 1, end: 315, format: 'boolean' },
+          { fieldName: 'codiceRitenuta', start: 316, length: 5, end: 320 },
+          { fieldName: 'enasarco', start: 321, length: 1, end: 321, format: 'boolean' },
+          { fieldName: 'tipoRitenuta', start: 322, length: 1, end: 322 },
+          { fieldName: 'soggettoInail', start: 323, length: 1, end: 323, format: 'boolean' },
+          { fieldName: 'contributoPrevid335', start: 324, length: 1, end: 324 },
+          { fieldName: 'aliquota', start: 325, length: 6, end: 330, format: 'percentage' },
+          { fieldName: 'percContributoCassa', start: 331, length: 6, end: 336, format: 'percentage' },
+          { fieldName: 'attivitaMensilizzazione', start: 337, length: 2, end: 338 }
         ]
       },
     },

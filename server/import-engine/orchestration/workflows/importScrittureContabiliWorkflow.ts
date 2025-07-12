@@ -1,7 +1,8 @@
 import { 
   pnTestaDefinitions,
   pnRigConDefinitions,
-  pnRigIvaDefinitions,
+  pnRigIvaVecchioDefinitions,
+  pnRigIvaNuovoDefinitions,
   movAnacDefinitions,
 } from '../../acquisition/definitions/scrittureContabiliDefinitions';
 import { PrismaClient } from '@prisma/client';
@@ -137,50 +138,146 @@ export class ImportScrittureContabiliWorkflow {
       console.log(`   ❌ Record scartati:       ${errorCount.toString().padStart(4)} record (→ DLQ)`);
 
       // FASE 3: MAPPATURA PER LO STAGING (con conversione a stringa)
+      const { testate, righeContabili, righeIva, allocazioni } = validatedData;
+      this.telemetryService.logInfo(job.id, 'Iniziando mappatura verso modelli di staging...');
+
       const toString = (val: unknown): string => val?.toString() ?? '';
 
-      const stagingTestate = validatedData.testate.map(t => ({
-        ...Object.fromEntries(Object.entries(t).map(([key, value]) => [key, toString(value)])),
-        codiceUnivocoScaricamento: toString(t.externalId),
-      }));
-
-      const stagingRigheContabili = validatedData.righeContabili.map(r => ({
-        ...Object.fromEntries(Object.entries(r).map(([key, value]) => [key, toString(value)])),
-        codiceUnivocoScaricamento: toString(r.externalId),
-        progressivoNumeroRigo: toString(r.progressivoRigo),
-      }));
-
-      const stagingRigheIva = validatedData.righeIva.map(r => ({
-        ...Object.fromEntries(Object.entries(r).map(([key, value]) => [key, toString(value)])),
-        codiceUnivocoScaricamento: toString(r.externalId),
-        rigaIdentifier: toString(r.riga),
-      }));
-
-      const stagingAllocazioni = validatedData.allocazioni.map(a => ({
-        ...Object.fromEntries(Object.entries(a).map(([key, value]) => [key, toString(value)])),
-        codiceUnivocoScaricamento: toString(a.externalId),
-        progressivoNumeroRigoCont: toString(a.progressivoRigoContabile),
-        allocazioneIdentifier: `${toString(a.externalId)}-${toString(a.progressivoRigoContabile)}`
-      }));
-
-      // FASE 4: PERSISTENZA DIRETTA SU STAGING
-      console.log('\n💾 FASE 4: PERSISTENZA ATOMICA');
-      console.log('─'.repeat(50));
-      this.telemetryService.logInfo(job.id, 'Iniziando persistenza su tabelle di staging...');
+      // Estraggo l'esercizio e il codice azienda per usarli come filtro
+      // Prendo il primo record come riferimento, assumendo che sia consistente per tutto il file
+      const riferimento = testate.length > 0 ? testate[0] : {};
+      const esercizio = toString(riferimento.esercizio) || new Date().getFullYear().toString();
+      const codiceAzienda = toString(riferimento.codiceFiscaleAzienda) || '';
       
+      const externalIds = testate.map(t => t.externalId).filter((id): id is string => !!id);
+
+      const stagingTestate = testate.map((t) => ({
+        importJobId: job.id,
+        codiceUnivocoScaricamento: toString(t.externalId),
+        
+        // MAPPING CORRETTO da campi validati a schema Prisma
+        esercizio: toString(t.esercizio) || esercizio, // Usa l'esercizio del record o quello di riferimento
+        codiceAzienda: toString(t.codiceFiscaleAzienda) || codiceAzienda, // Usa il codiceAzienda del record o quello di riferimento
+        codiceCausale: toString(t.causaleId),
+        descrizioneCausale: toString(t.descrizioneCausale),
+        dataRegistrazione: toString(t.dataRegistrazione),
+        tipoRegistroIva: toString(t.tipoRegistroIva),
+        clienteFornitoreCodiceFiscale: toString(t.clienteFornitoreCodiceFiscale),
+        clienteFornitoreSigla: toString(t.clienteFornitoreSigla),
+        dataDocumento: toString(t.dataDocumento),
+        numeroDocumento: toString(t.numeroDocumento),
+        totaleDocumento: toString(t.totaleDocumento),
+        noteMovimento: toString(t.noteMovimento),
+        dataRegistroIva: toString(t.dataRegistroIva),
+        dataCompetenzaLiquidIva: toString(t.dataCompetenzaLiquidIva),
+        dataCompetenzaContabile: toString(t.dataCompetenzaContabile),
+        dataPlafond: toString(t.dataPlafond),
+        annoProRata: toString(t.annoProRata),
+        ritenute: toString(t.ritenute),
+        protocolloRegistroIva: toString(t.protocolloNumero),
+
+        // CAMPI OBBLIGATORI CON DEFAULT VUOTO
+        esigibilitaIva: '', 
+        flagQuadrSchedaContabile: '',
+        flagStampaRegIva: '',
+      }));
+
+      const stagingRigheContabili = righeContabili.map((r) => ({
+        // RIMOSSO importJobId e rigaIdentifier CHE NON ESISTONO NELLO SCHEMA
+        codiceUnivocoScaricamento: toString(r.externalId),
+        externalId: toString(r.externalId),
+        progressivoRigo: toString(r.progressivoRigo),
+        tipoConto: toString(r.tipoConto),
+        conto: toString(r.conto),
+        importoDare: toString(r.importoDare),
+        importoAvere: toString(r.importoAvere),
+        note: toString(r.note),
+        clienteFornitoreCodiceFiscale: toString(r.clienteFornitoreCodiceFiscale),
+        clienteFornitoreSubcodice: toString(r.clienteFornitoreSubcodice),
+        clienteFornitoreSigla: toString(r.clienteFornitoreSigla),
+        insDatiCompetenzaContabile: toString(r.insDatiCompetenzaContabile),
+        dataInizioCompetenza: toString(r.dataInizioCompetenza),
+        dataFineCompetenza: toString(r.dataFineCompetenza),
+        dataRegistrazioneApertura: toString(r.dataRegistrazioneApertura),
+        dataInizioCompetenzaAnalit: toString(r.dataInizioCompetenzaAnalit),
+        dataFineCompetenzaAnalit: toString(r.dataFineCompetenzaAnalit),
+      }));
+
+      const stagingRigheIva = righeIva.map((r, index) => ({
+        importJobId: job.id,
+        codiceUnivocoScaricamento: toString(r.externalId),
+
+        // CALCOLO PROGRESSIVO E IDENTIFICATORE UNIVOCO
+        riga: (index + 1).toString(),
+        rigaIdentifier: `${toString(r.externalId)}-${index + 1}`,
+
+        // MAPPING CORRETTO
+        codiceIva: toString(r.codiceIva),
+        contropartita: toString(r.contropartita),
+        imponibile: toString(r.imponibile),
+        imposta: toString(r.imposta),
+        importoLordo: toString(r.importoLordo),
+        impostaNonConsiderata: toString(r.impostaNonConsiderata),
+        note: toString(r.note),
+        siglaContropartita: toString(r.siglaContropartita),
+      }));
+
+      const stagingAllocazioni = allocazioni.map((a, index) => ({
+        // RIMOSSO importJobId CHE NON ESISTE NELLO SCHEMA
+        codiceUnivocoScaricamento: toString(a.externalId),
+        externalId: toString(a.externalId),
+        progressivoRigoContabile: toString(a.progressivoRigoContabile),
+        centroDiCosto: toString(a.codiceContoAnalitico), // Mapping corretto da Zod a Prisma
+        parametro: toString(a.parametro),
+        progressivoNumeroRigoCont: toString(a.progressivoRigoContabile),
+        allocazioneIdentifier: `${toString(a.externalId)}-${toString(a.progressivoRigoContabile)}-${index}`,
+      }));
+
+      this.telemetryService.logInfo(job.id, 'Mappatura completata.');
+
+      // FASE 4: CARICAMENTO NELLO STAGING DB
+      this.telemetryService.logInfo(job.id, 'Iniziando caricamento in staging DB...', {
+        'app.importer.esercizio': esercizio,
+        'app.importer.codice_azienda': codiceAzienda,
+        'app.importer.testate_count': stagingTestate.length,
+        'app.importer.righe_contabili_count': stagingRigheContabili.length,
+        'app.importer.righe_iva_count': stagingRigheIva.length,
+        'app.importer.allocazioni_count': stagingAllocazioni.length,
+      });
+
+      // Pulizia selettiva basata su esercizio e codice azienda
       await this.prisma.$transaction([
-          this.prisma.stagingTestata.deleteMany({}),
-          this.prisma.stagingRigaContabile.deleteMany({}),
-          this.prisma.stagingRigaIva.deleteMany({}),
-          this.prisma.stagingAllocazione.deleteMany({})
+        this.prisma.stagingTestata.deleteMany({ 
+          where: { 
+            AND: [
+              { esercizio: esercizio },
+              { codiceAzienda: codiceAzienda }
+            ]
+          } 
+        }),
+        this.prisma.stagingRigaContabile.deleteMany({ 
+          where: { 
+            codiceUnivocoScaricamento: { in: externalIds }
+          } 
+        }),
+        this.prisma.stagingRigaIva.deleteMany({ 
+          where: { 
+            codiceUnivocoScaricamento: { in: externalIds }
+          } 
+        }),
+        this.prisma.stagingAllocazione.deleteMany({ 
+          where: { 
+            codiceUnivocoScaricamento: { in: externalIds }
+          } 
+        }),
       ]);
 
-      await this.prisma.$transaction([
-        this.prisma.stagingTestata.createMany({ data: stagingTestate, skipDuplicates: true }),
-        this.prisma.stagingRigaContabile.createMany({ data: stagingRigheContabili, skipDuplicates: true }),
-        this.prisma.stagingRigaIva.createMany({ data: stagingRigheIva, skipDuplicates: true }),
-        this.prisma.stagingAllocazione.createMany({ data: stagingAllocazioni, skipDuplicates: true }),
-      ]);
+      await this.prisma.stagingTestata.createMany({ data: stagingTestate, skipDuplicates: true });
+      await this.prisma.stagingRigaContabile.createMany({ data: stagingRigheContabili, skipDuplicates: true });
+      await this.prisma.stagingRigaIva.createMany({ data: stagingRigheIva, skipDuplicates: true });
+      await this.prisma.stagingAllocazione.createMany({ data: stagingAllocazioni, skipDuplicates: true });
+
+      this.telemetryService.logInfo(job.id, 'Persistenza su tabelle di staging completata.');
 
       const endTime = Date.now();
       const duration = endTime - startTime;
@@ -271,10 +368,23 @@ export class ImportScrittureContabiliWorkflow {
       files.pnRigCon.toString('utf-8'),
       pnRigConDefinitions
     );
+    
+    // Rilevamento automatico del formato per PNRIGIVA
+    let parsedRigheIva: Record<string, unknown>[] = [];
+    if (files.pnRigIva) {
+      const righeIvaContent = files.pnRigIva.toString('utf-8');
+      const firstLine = righeIvaContent.split('\n')[0];
+      
+      // Il tracciato nuovo/esteso è più lungo di 170 caratteri.
+      const definition = (firstLine && firstLine.length > 170) 
+        ? pnRigIvaNuovoDefinitions 
+        : pnRigIvaVecchioDefinitions;
+      
+      const definitionName = definition === pnRigIvaNuovoDefinitions ? 'NUOVO/ESTESO' : 'VECCHIO/STANDARD';
+      this.telemetryService.logInfo(jobId, `Rilevato formato PNRIGIVA: ${definitionName}. Applico la definizione di parsing corrispondente.`);
 
-    const pnRigIvaRaw = files.pnRigIva
-      ? parseFixedWidth<Record<string, unknown>>(files.pnRigIva.toString('utf-8'), pnRigIvaDefinitions)
-      : [];
+      parsedRigheIva = parseFixedWidth(righeIvaContent, definition);
+    }
 
     const movAnacRaw = files.movAnac
       ? parseFixedWidth<Record<string, unknown>>(files.movAnac.toString('utf-8'), movAnacDefinitions)
@@ -283,7 +393,7 @@ export class ImportScrittureContabiliWorkflow {
     return {
       pnTesta: pnTestaRaw,
       pnRigCon: pnRigConRaw,
-      pnRigIva: pnRigIvaRaw,
+      pnRigIva: parsedRigheIva,
       movAnac: movAnacRaw,
     };
   }

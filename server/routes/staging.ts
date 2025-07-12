@@ -88,7 +88,9 @@ router.get('/scritture', async (req, res) => {
     const [testate, totalCount] = await prisma.$transaction([
       prisma.stagingTestata.findMany({
         where,
-        orderBy,
+        orderBy: {
+          createdAt: "desc",
+        },
         skip,
         take,
       }),

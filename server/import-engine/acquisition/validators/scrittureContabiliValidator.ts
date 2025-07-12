@@ -71,7 +71,15 @@ const flagTransform = z
  */
 export const rawPnTestaSchema = z.object({
   externalId: z.string(),
+
+  // Campi dal tracciato, richiesti per il mapping
+  esercizio: z.string().optional(),
+  codiceFiscaleAzienda: z.string().optional(),
+  codiceAttivita: z.string().optional(),
   causaleId: z.string(),
+  protocolloNumero: z.string().optional(),
+
+  // Campi già presenti
   dataRegistrazione: z.string().nullable(),
   clienteFornitoreCodiceFiscale: z.string(),
   dataDocumento: z.string().nullable(),
@@ -93,10 +101,18 @@ export const rawPnTestaSchema = z.object({
   clienteFornitoreSigla: z.string().optional(),
   cliForIntraSigla: z.string().optional(),
   tipoMovimentoIntrastat: z.string().optional(),
+  tipoRegistroIva: z.string().optional(), // Aggiunto per coerenza
 });
 
 export const validatedPnTestaSchema = z.object({
   externalId: z.string().trim().min(1, 'External ID richiesto'),
+
+  // Campi aggiunti per il workflow
+  esercizio: z.string().trim().optional(),
+  codiceFiscaleAzienda: z.string().trim().optional(),
+  codiceAttivita: z.string().trim().optional(),
+  protocolloNumero: z.string().trim().optional(),
+  
   causaleId: z.string().trim().optional(),
   descrizioneCausale: z.string().trim().optional(),
   dataRegistrazione: dateTransform,
@@ -119,6 +135,7 @@ export const validatedPnTestaSchema = z.object({
   clienteFornitoreSigla: z.string().trim().optional(),
   cliForIntraSigla: z.string().trim().optional(),
   tipoMovimentoIntrastat: z.string().trim().optional(),
+  tipoRegistroIva: z.string().trim().optional(),
 }).passthrough();
 
 /**
@@ -166,34 +183,35 @@ export const validatedPnRigConSchema = z.object({
 
 /**
  * PNRIGIVA.TXT - Righe IVA
- * Gestisce gli aspetti fiscali delle operazioni
+ * Ogni riga rappresenta un dettaglio IVA della registrazione
  */
 export const rawPnRigIvaSchema = z.object({
   externalId: z.string(),
-  codiceIva: z.string(),
-  contropartita: z.string(),
-  imponibile: z.string().nullable(),
-  imposta: z.string().nullable(),
-  importoLordo: z.string().nullable(),
-  note: z.string(),
-  riga: z.string().nullable(),
+  codiceIva: z.string().optional(),
+  imponibile: z.string().optional(),
+  imposta: z.string().optional(),
+  importoLordo: z.string().optional(),
+  impostaNonConsiderata: z.string().optional(),
+  // riga: z.string().trim(), // RIMOSSO - non esiste nel file, verrà calcolato
+  note: z.string().optional(),
+  contropartita: z.string().optional(),
+  siglaContropartita: z.string().optional(),
 });
 
 export const validatedPnRigIvaSchema = z.object({
   externalId: z.string().trim().min(1, 'External ID richiesto'),
-  riga: z.string().trim(),
   codiceIva: z.string().trim().optional(),
-  contropartita: z.string().trim().optional(),
   imponibile: currencyTransformPrimaNota,
   imposta: currencyTransformPrimaNota,
-  impostaNonConsiderata: currencyTransformPrimaNota.optional(),
-  importoLordo: currencyTransformPrimaNota.optional(),
+  importoLordo: currencyTransformPrimaNota,
+  impostaNonConsiderata: currencyTransformPrimaNota,
   note: z.string().trim().optional(),
+  contropartita: z.string().trim().optional(),
   siglaContropartita: z.string().trim().optional(),
 }).passthrough();
 
 /**
- * MOVANAC.TXT - Movimenti analitici
+ * MOVANAC.TXT - Dettagli per centri di costo/ricavo (movimenti analitici)
  * Gestisce l'allocazione dei costi/ricavi sui centri di costo (commesse)
  */
 export const rawMovAnacSchema = z.object({

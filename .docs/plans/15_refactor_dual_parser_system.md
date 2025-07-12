@@ -28,7 +28,7 @@
 
 | ID | Task | Stato | Dettagli |
 | :-- | :--- | :--- | :--- |
-| **2.1**| **Progettazione UI di Riconciliazione** | 🟡 In Corso | Disegnare l'interfaccia utente che permetterà di avviare il processo di riconciliazione e di visualizzarne i risultati, inclusi report di errore dettagliati. |
+| **2.1**| **Progettazione UI di Riconciliazione** | ✅ Completato | Disegnare l'interfaccia utente che permetterà di avviare il processo di riconciliazione e di visualizzarne i risultati, inclusi report di errore dettagliati. |
 | **2.2**| **Implementazione Logica di Riconciliazione** | ✅ Completato | Implementato endpoint di backend (`POST /reconciliation/finalize-conti`) che trasferisce il piano dei conti dallo staging alla tabella finale. |
 | **2.3**| **Collegamento Frontend-Backend** | ✅ Completato | Sviluppati i componenti frontend (pulsante di finalizzazione, tabella di configurazione conti) per interagire con la logica di riconciliazione. |
 

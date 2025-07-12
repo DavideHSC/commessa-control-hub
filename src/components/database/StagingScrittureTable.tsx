@@ -6,7 +6,7 @@ import { useAdvancedTable } from '@/hooks/useAdvancedTable';
 import { AdvancedDataTable } from '../ui/advanced-data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from '../ui/data-table-column-header';
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 
 export const StagingScrittureTable = () => {
   const {
@@ -23,7 +23,7 @@ export const StagingScrittureTable = () => {
     onSortingChange,
   } = useAdvancedTable<StagingTestata>({
     endpoint: '/api/staging/scritture',
-    initialSorting: [{ id: 'importedAt', desc: true }]
+    initialSorting: [{ id: 'createdAt', desc: true }]
   });
 
   const columns: ColumnDef<StagingTestata>[] = [
@@ -40,9 +40,15 @@ export const StagingScrittureTable = () => {
     {
       accessorKey: "dataRegistrazione",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Data Reg." />,
+      cell: ({ row }) => {
+        const value = row.getValue("dataRegistrazione");
+        if (typeof value !== 'string') return "N/D";
+        const date = new Date(value);
+        return isValid(date) ? format(date, "dd/MM/yyyy") : "N/D";
+      },
     },
     {
-      accessorKey: "documentoNumero",
+      accessorKey: "numeroDocumento",
       header: ({ column }) => <DataTableColumnHeader column={column} title="N. Doc" />,
     },
     {
@@ -58,9 +64,14 @@ export const StagingScrittureTable = () => {
       header: ({ column }) => <DataTableColumnHeader column={column} title="File Origine" />,
     },
     {
-      accessorKey: "importedAt",
+      accessorKey: "createdAt",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Importato il" />,
-      cell: ({ row }) => format(new Date(row.getValue("importedAt")), "dd/MM/yyyy HH:mm:ss"),
+      cell: ({ row }) => {
+        const value = row.getValue("createdAt");
+        if (typeof value !== 'string') return "N/D";
+        const date = new Date(value);
+        return isValid(date) ? format(date, "dd/MM/yyyy HH:mm:ss") : "N/D";
+      }
     },
   ];
   

@@ -87,20 +87,24 @@ export const pnRigConDefinitions: FieldDefinition[] = [
   { fieldName: 'siglaConto', length: 12, start: 301, end: 312 },
 ];
 
-export const pnRigIvaDefinitions: FieldDefinition[] = [
+// DEFINIZIONE CORRETTA PER TRACCIATO PNRIGIVA VECCHIO (senza siglaContropartita)
+export const pnRigIvaVecchioDefinitions: FieldDefinition[] = [
   { fieldName: 'externalId', length: 12, start: 4, end: 15, isKey: true },
-  { fieldName: 'riga', length: 3, start: 16, end: 18, isKey: true, type: 'string' },
-  { fieldName: 'codiceIva', length: 4, start: 19, end: 22 },
-  { fieldName: 'contropartita', length: 10, start: 23, end: 32 },
-  { fieldName: 'imponibile', length: 12, start: 33, end: 44, type: 'string' },
-  { fieldName: 'imposta', length: 12, start: 45, end: 56, type: 'string' },
-  { fieldName: 'impostaIntrattenimenti', length: 12, start: 57, end: 68, type: 'string' },
-  { fieldName: 'imponibile50CorrNonCons', length: 12, start: 69, end: 80, type: 'string' },
+  { fieldName: 'codiceIva', length: 4, start: 16, end: 19 },
+  { fieldName: 'contropartita', length: 10, start: 20, end: 29 },
+  { fieldName: 'imponibile', length: 12, start: 30, end: 41, type: 'string' },
+  { fieldName: 'imposta', length: 12, start: 42, end: 53, type: 'string' },
+  { fieldName: 'impostaIntrattenimenti', length: 12, start: 54, end: 65, type: 'string' },
+  { fieldName: 'imponibile50CorrNonCons', length: 12, start: 66, end: 77, type: 'string' },
+  { fieldName: 'impostaNonConsiderata', length: 12, start: 78, end: 89, type: 'string' },
+  { fieldName: 'importoLordo', length: 12, start: 90, end: 101, type: 'string' },
+  { fieldName: 'note', length: 60, start: 102, end: 161 },
+];
 
-  { fieldName: 'impostaNonConsiderata', length: 12, start: 81, end: 92, type: 'string' },
-    { fieldName: 'importoLordo', length: 12, start: 93, end: 104, type: 'string' },
-  { fieldName: 'note', length: 60, start: 105, end: 164 },
-  { fieldName: 'siglaContropartita', length: 12, start: 165, end: 176 },
+// DEFINIZIONE CORRETTA PER TRACCIATO PNRIGIVA NUOVO/ESTESO
+export const pnRigIvaNuovoDefinitions: FieldDefinition[] = [
+  ...pnRigIvaVecchioDefinitions,
+  { fieldName: 'siglaContropartita', length: 12, start: 162, end: 173 },
 ];
 
 export const movAnacDefinitions: FieldDefinition[] = [
