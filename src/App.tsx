@@ -42,7 +42,7 @@ const App = () => (
             <Route path="/prima-nota/modifica/:id" element={<NuovaRegistrazionePrimaNota />} />
             <Route path="/import" element={<ImportPage />} />
             <Route path="/database" element={<Database />} />
-            <Route path="/database/staging" element={<StagingPage />} /> {/* Aggiungo la nuova rotta */}
+            <Route path="/staging" element={<StagingPage />} />
             <Route path="/impostazioni" element={<ImpostazioniPage />} />
             <Route path="/impostazioni/conti" element={<ConfigurazioneContiPage />} />
             <Route path="/impostazioni/voci-analitiche" element={<VociAnalitichePage />} />

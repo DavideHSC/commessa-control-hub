@@ -1,21 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Database as DatabaseIcon, RefreshCw, Users, Building, FileText, Landmark, Library } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from "sonner";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ImportTemplatesAdmin from '@/components/admin/ImportTemplatesAdmin';
-import {
-  getCommesse,
-  getClienti,
-  getFornitori,
-  getPianoDeiConti,
-  getScrittureContabili,
-  getCausaliContabili,
-  getCodiciIva,
-  getCondizioniPagamento,
-  getDatabaseStats,
-} from '@/api';
+import { getDatabaseStats } from '@/api';
 import { ClientiTable } from '@/components/database/ClientiTable';
 import { FornitoriTable } from '@/components/database/FornitoriTable';
 import { CausaliTable } from '@/components/database/CausaliTable';
@@ -24,8 +13,7 @@ import { CondizioniPagamentoTable } from '@/components/database/CondizioniPagame
 import { ContiTable } from '@/components/database/ContiTable';
 import { CommesseTable } from '@/components/database/CommesseTable';
 import { ScrittureTable } from '@/components/database/ScrittureTable';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
+import { TabbedViewLayout, TabConfig } from '@/components/layout/TabbedViewLayout';
 
 interface TableStats {
   scritture: number;
@@ -40,21 +28,9 @@ interface TableStats {
 
 type TableKey = keyof TableStats;
 
-const tableConfig: { key: TableKey; label: string; icon: React.ElementType }[] = [
-    { key: 'scritture', label: 'Scritture', icon: FileText },
-    { key: 'commesse', label: 'Commesse', icon: Building },
-    { key: 'clienti', label: 'Clienti', icon: Users },
-    { key: 'fornitori', label: 'Fornitori', icon: Landmark },
-    { key: 'conti', label: 'Piano dei Conti', icon: Library },
-    { key: 'causali', label: 'Causali', icon: FileText },
-    { key: 'codiciIva', label: 'Codici IVA', icon: Library },
-    { key: 'condizioniPagamento', label: 'Condizioni Pagamento', icon: Library },
-];
-
 const Database: React.FC = () => {
   const [stats, setStats] = useState<TableStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedTable, setSelectedTable] = useState<TableKey>('scritture');
 
   const fetchCounts = async (showLoading = true) => {
     if (showLoading) setLoading(true);
@@ -62,14 +38,14 @@ const Database: React.FC = () => {
     try {
       const dbStats = await getDatabaseStats();
       setStats({
-        scritture: dbStats.totaleScrittureContabili,
-        commesse: dbStats.totaleCommesse,
-        clienti: dbStats.totaleClienti,
-        fornitori: dbStats.totaleFornitori,
-        conti: dbStats.totaleConti,
-        causali: dbStats.totaleCausali,
-        codiciIva: dbStats.totaleCodiciIva,
-        condizioniPagamento: dbStats.totaleCondizioniPagamento,
+        scritture: dbStats.totaleScrittureContabili.count,
+        commesse: dbStats.totaleCommesse.count,
+        clienti: dbStats.totaleClienti.count,
+        fornitori: dbStats.totaleFornitori.count,
+        conti: dbStats.totaleConti.count,
+        causali: dbStats.totaleCausali.count,
+        codiciIva: dbStats.totaleCodiciIva.count,
+        condizioniPagamento: dbStats.totaleCondizioniPagamento.count,
       });
 
     } catch (err: unknown) {
@@ -83,20 +59,18 @@ const Database: React.FC = () => {
   useEffect(() => {
     fetchCounts();
   }, []);
+  
+  const tableTabs: TabConfig[] = useMemo(() => [
+    { key: 'scritture', label: 'Scritture', icon: FileText, component: <ScrittureTable />, count: stats?.scritture },
+    { key: 'commesse', label: 'Commesse', icon: Building, component: <CommesseTable />, count: stats?.commesse },
+    { key: 'clienti', label: 'Clienti', icon: Users, component: <ClientiTable />, count: stats?.clienti },
+    { key: 'fornitori', label: 'Fornitori', icon: Landmark, component: <FornitoriTable />, count: stats?.fornitori },
+    { key: 'conti', label: 'Piano dei Conti', icon: Library, component: <ContiTable />, count: stats?.conti },
+    { key: 'causali', label: 'Causali', icon: FileText, component: <CausaliTable />, count: stats?.causali },
+    { key: 'codiciIva', label: 'Codici IVA', icon: Library, component: <CodiciIvaTable />, count: stats?.codiciIva },
+    { key: 'condizioniPagamento', label: 'Condizioni Pagamento', icon: Library, component: <CondizioniPagamentoTable />, count: stats?.condizioniPagamento },
+  ], [stats]);
 
-  const renderSelectedTable = () => {
-    switch (selectedTable) {
-        case 'clienti': return <ClientiTable />;
-        case 'fornitori': return <FornitoriTable />;
-        case 'conti': return <ContiTable />;
-        case 'commesse': return <CommesseTable />;
-        case 'scritture': return <ScrittureTable />;
-        case 'causali': return <CausaliTable />;
-        case 'codiciIva': return <CodiciIvaTable />;
-        case 'condizioniPagamento': return <CondizioniPagamentoTable />;
-        default: return <p>Seleziona una tabella</p>;
-    }
-  };
 
   return (
     <div className="flex flex-col h-full">
@@ -117,44 +91,11 @@ const Database: React.FC = () => {
             <TabsTrigger value="template-management">Gestione Template Import</TabsTrigger>
           </TabsList>
           <TabsContent value="data-management">
-            {loading && !stats ? (
-              <div className="space-y-4">
-                <Skeleton className="h-12 w-1/4" />
-                <Skeleton className="h-64 w-full" />
-              </div>
-            ) : (
-              <ResizablePanelGroup direction="horizontal" className="rounded-lg border">
-                <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
-                  <div className="p-4">
-                    <h2 className="text-lg font-semibold mb-4">Tabelle</h2>
-                    <nav className="flex flex-col space-y-1">
-                      {tableConfig.map(table => (
-                        <Button
-                          key={table.key}
-                          variant={selectedTable === table.key ? "secondary" : "ghost"}
-                          className="w-full justify-start"
-                          onClick={() => setSelectedTable(table.key)}
-                        >
-                          <table.icon className="mr-2 h-4 w-4" />
-                          <span>{table.label}</span>
-                          {stats && (
-                            <Badge variant="outline" className="ml-auto">
-                              {stats[table.key]}
-                            </Badge>
-                          )}
-                        </Button>
-                      ))}
-                    </nav>
-                  </div>
-                </ResizablePanel>
-                <ResizableHandle withHandle />
-                <ResizablePanel defaultSize={80}>
-                  <div className="p-4 h-full overflow-auto">
-                    {renderSelectedTable()}
-                  </div>
-                </ResizablePanel>
-              </ResizablePanelGroup>
-            )}
+            <TabbedViewLayout 
+              tabs={tableTabs}
+              defaultSelectedTab="scritture"
+              isLoading={loading && !stats}
+            />
           </TabsContent>
           <TabsContent value="template-management">
             <ImportTemplatesAdmin />

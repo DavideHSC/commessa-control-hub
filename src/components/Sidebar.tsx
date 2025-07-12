@@ -60,7 +60,7 @@ const serviziItems = [
   },
   {
     title: "Dati di Staging",
-    url: "/database/staging",
+    url: "/staging",
     icon: Layers, // Uso la nuova icona
   },
 ];
@@ -139,7 +139,7 @@ export function Sidebar() {
           <SidebarGroupContent>
             <SidebarMenu className="space-y-1">
               {serviziItems.map((item) => {
-                const isActive = location.pathname.startsWith(item.url) && item.url !== '/' || location.pathname === item.url;
+                const isActive = location.pathname === item.url;
                 return (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
@@ -162,6 +162,7 @@ export function Sidebar() {
                         </AccordionTrigger>
                         <AccordionContent className="pl-4">
                             {settingsSubMenu.map((item) => {
+                                // La logica più specifica è importante qui per i sotto-menu
                                 const isActive = location.pathname === item.url;
                                 return (
                                 <SidebarMenuItem key={item.title}>

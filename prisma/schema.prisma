@@ -780,6 +780,8 @@ model StagingTestata {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  righe     StagingRigaContabile[]
+
   @@map("staging_testate")
 }
 
@@ -793,6 +795,8 @@ model StagingRigaContabile {
   importoAvere          String
   note                  String
   codiceUnivocoScaricamento String
+
+  testata               StagingTestata @relation(fields: [codiceUnivocoScaricamento], references: [codiceUnivocoScaricamento], onDelete: Cascade, onUpdate: Cascade)
 
   // Campi mancanti aggiunti
   clienteFornitoreCodiceFiscale String
