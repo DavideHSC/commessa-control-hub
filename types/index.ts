@@ -68,4 +68,38 @@ export interface ReconciliationResult {
   summary: ReconciliationSummaryData;
   righeDaRiconciliare: RigaDaRiconciliare[];
   errors: string[];
+}
+
+// Tipi per la dashboard avanzata
+export interface CommessaDashboard {
+  id: string;
+  nome: string;
+  cliente: {
+    id: string;
+    nome: string;
+  };
+  stato: string;
+  ricavi: number;
+  costi: number;
+  margine: number;
+  budget: number;
+}
+
+export interface DashboardData {
+  commesse: CommessaDashboard[];
+  kpi: {
+    commesseAttive: number;
+    ricaviTotali: number;
+    costiTotali: number;
+    margineLordoMedio: number;
+    commesseConMargineNegativo: number;
+    budgetVsConsuntivo: number;
+    movimentiNonAllocati: number;
+    ricaviMeseCorrente: number;
+    costiMeseCorrente: number;
+  };
+  trends: {
+    ricaviMensili: Array<{ mese: string; ricavi: number; costi: number; margine: number }>;
+    topCommesse: Array<{ nome: string; margine: number; ricavi: number }>;
+  };
 } 

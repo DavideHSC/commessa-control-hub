@@ -4,8 +4,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { getDashboardData } from '@/api';
 import { Badge } from '@/components/ui/badge';
-import { CommessaDashboard, DashboardData } from '@shared-types/index';
-import { DollarSign, TrendingUp, TrendingDown, Layers, AlertCircle } from 'lucide-react';
+import type { CommessaDashboard, DashboardData } from '../../types';
+import { AlertCircle, BarChart3, Activity } from 'lucide-react';
+
+// Nuovi componenti avanzati
+import { KpiGrid } from '@/components/dashboard/KpiWidget';
+import { ChartsGrid } from '@/components/dashboard/ChartContainer';
+import { AlertsPanel } from '@/components/dashboard/AlertsPanel';
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(value);
@@ -50,18 +55,27 @@ const Dashboard: React.FC = () => {
     return <div className="text-center text-slate-500">Nessun dato da visualizzare.</div>;
   }
 
-  const { kpi, commesse } = data;
+  const { kpi, commesse, trends } = data;
 
   return (
     <div className="space-y-6">
       <Header />
-      <KpiSummary 
-        commesseAttive={kpi.commesseAttive}
-        ricaviTotali={kpi.ricaviTotali}
-        costiTotali={kpi.costiTotali}
-        margineLordoMedio={kpi.margineLordoMedio}
-      />
-      <CommesseTable commesse={commesse} />
+      
+      {/* Nuova griglia KPI avanzata */}
+      <KpiGrid kpi={kpi} />
+      
+      {/* Grafici e visualizzazioni */}
+      <ChartsGrid trends={trends} kpi={kpi} />
+      
+      {/* Layout a due colonne per Alert e Tabella */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="lg:col-span-1">
+          <AlertsPanel kpi={kpi} commesse={commesse} />
+        </div>
+        <div className="lg:col-span-2">
+          <CommesseTable commesse={commesse} />
+        </div>
+      </div>
     </div>
   );
 };
@@ -76,58 +90,28 @@ const ErrorDisplay = ({ message }: { message: string }) => (
 );
 
 const Header = () => (
-  <div>
-    <h1 className="text-3xl font-bold text-slate-900">Dashboard Commesse</h1>
-    <p className="text-slate-600 mt-1">
-      Panoramica operativa e analisi di redditività delle commesse.
-    </p>
+  <div className="flex items-center justify-between">
+    <div>
+      <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
+        <BarChart3 className="h-8 w-8 text-blue-600" />
+        Dashboard Commesse
+      </h1>
+      <p className="text-slate-600 mt-1">
+        Centro di controllo operativo per l'analisi finanziaria e gestionale delle commesse.
+      </p>
+    </div>
+    <div className="hidden md:flex items-center gap-2 text-sm text-slate-500">
+      <Activity className="h-4 w-4" />
+      Aggiornato: {new Date().toLocaleDateString('it-IT', { 
+        day: '2-digit', 
+        month: 'short', 
+        hour: '2-digit', 
+        minute: '2-digit' 
+      })}
+    </div>
   </div>
 );
 
-const KpiSummary = ({ commesseAttive, ricaviTotali, costiTotali, margineLordoMedio }: DashboardData['kpi']) => (
-  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">Commesse Attive</CardTitle>
-        <Layers className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{commesseAttive}</div>
-        <p className="text-xs text-muted-foreground">Numero di commesse in gestione.</p>
-      </CardContent>
-    </Card>
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">Ricavi Totali</CardTitle>
-        <TrendingUp className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{formatCurrency(ricaviTotali)}</div>
-        <p className="text-xs text-muted-foreground">Ricavi totali generati.</p>
-      </CardContent>
-    </Card>
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">Costi Totali</CardTitle>
-        <TrendingDown className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{formatCurrency(costiTotali)}</div>
-        <p className="text-xs text-muted-foreground">Costi totali sostenuti.</p>
-      </CardContent>
-    </Card>
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">Margine Lordo Medio</CardTitle>
-        <DollarSign className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{formatPercent(margineLordoMedio / 100)}</div>
-        <p className="text-xs text-muted-foreground">Margine medio di profitto.</p>
-      </CardContent>
-    </Card>
-  </div>
-);
 
 const CommesseTable = ({ commesse }: { commesse: CommessaDashboard[] }) => (
   <Card>
