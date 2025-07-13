@@ -39,8 +39,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { createConto, updateConto, deleteConto } from '@/api/conti';
-import { Conto as ContoType, VoceAnalitica } from '@prisma/client';
+import { createConto, updateConto, deleteConto, ContoWithRelations } from '@/api/conti';
+import { Conto as ContoType, VoceAnalitica, Prisma } from '@prisma/client';
 import { TipoConto } from '@prisma/client';
 import { contoSchema } from '@/schemas/database';
 import { useCrudTable } from '@/hooks/useCrudTable';
@@ -54,6 +54,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { ContoForm } from './ContoForm';
 
 type ContoFormValues = z.infer<typeof contoSchema>;
+
+
 
 export const ContiTable = () => {
   const [vociAnalitiche, setVociAnalitiche] = useState<VoceAnalitica[]>([]);
@@ -86,7 +88,7 @@ export const ContiTable = () => {
     onSearchChange,
     onSortingChange,
     fetchData: refreshData,
-  } = useAdvancedTable<ContoType>({
+  } = useAdvancedTable<ContoWithRelations>({
     endpoint: '/api/conti',
     initialSorting: [{ id: 'codice', desc: false }]
   });
@@ -101,7 +103,7 @@ export const ContiTable = () => {
     handleOpenDialog,
     onSubmit,
     handleDelete,
-  } = useCrudTable<ContoType, ContoFormValues>({
+  } = useCrudTable<ContoWithRelations, ContoFormValues>({
     schema: contoSchema,
     api: {
         create: (values) => createConto(values as ContoType),
@@ -174,7 +176,7 @@ export const ContiTable = () => {
     }
   };
 
-  const columns: ColumnDef<ContoType>[] = [
+  const columns: ColumnDef<ContoWithRelations>[] = [
     {
         accessorKey: "codice",
         header: ({ column }) => <DataTableColumnHeader column={column} title="Codice" />,
@@ -206,11 +208,17 @@ export const ContiTable = () => {
       cell: ({ row }) => (row.getValue("richiedeVoceAnalitica") ? "Sì" : "No"),
     },
     {
-        accessorKey: 'voceAnalitica.nome',
+        accessorKey: 'vociAnalitiche',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Voce Analitica" />
+          <DataTableColumnHeader column={column} title="Voci Analitiche" />
         ),
-        cell: ({ row }) => row.original.voceAnalitica?.nome || 'N/A',
+        cell: ({ row }) => {
+            const voci = row.original.vociAnalitiche;
+            if (!voci || voci.length === 0) {
+                return 'N/A';
+            }
+            return voci.map(v => v.nome).join(', ');
+        },
     },
     {
         id: "actions",

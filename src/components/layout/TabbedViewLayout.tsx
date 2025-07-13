@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -37,8 +36,8 @@ export const TabbedViewLayout: React.FC<TabbedViewLayoutProps> = ({
   }
 
   return (
-    <ResizablePanelGroup direction="horizontal" className="rounded-lg border">
-      <ResizablePanel defaultSize={20} minSize={15} maxSize={30}>
+    <div className="flex h-full rounded-lg border">
+      <div className="w-64 border-r bg-gray-50">
         <div className="p-4">
           <h2 className="text-lg font-semibold mb-4">Tabelle</h2>
           <nav className="flex flex-col space-y-1">
@@ -60,13 +59,12 @@ export const TabbedViewLayout: React.FC<TabbedViewLayoutProps> = ({
             ))}
           </nav>
         </div>
-      </ResizablePanel>
-      <ResizableHandle withHandle />
-      <ResizablePanel defaultSize={80}>
+      </div>
+      <div className="flex-1">
         <div className="p-4 h-full overflow-auto">
           {activeTab ? activeTab.component : <p>Seleziona una tabella</p>}
         </div>
-      </ResizablePanel>
-    </ResizablePanelGroup>
+      </div>
+    </div>
   );
 }; 

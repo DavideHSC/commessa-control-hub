@@ -50,6 +50,9 @@ router.get('/', async (req, res) => {
         orderBy,
         skip,
         take,
+        include: {
+          vociAnalitiche: true,
+        },
       }),
       prisma.conto.count({ where }),
     ]);
@@ -120,6 +123,9 @@ router.post('/', async (req, res) => {
   try {
     const nuovoConto = await prisma.conto.create({
       data: req.body,
+      include: {
+        vociAnalitiche: true,
+      },
     });
     res.status(201).json(nuovoConto);
   } catch (error) {
@@ -134,6 +140,9 @@ router.put('/:id', async (req, res) => {
     const contoAggiornato = await prisma.conto.update({
       where: { id },
       data: req.body,
+      include: {
+        vociAnalitiche: true,
+      },
     });
     res.json(contoAggiornato);
   } catch (error) {

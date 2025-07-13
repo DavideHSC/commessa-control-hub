@@ -232,6 +232,7 @@ export const commessaSchema = z.object({
     nome: z.string().min(2, "Il nome è obbligatorio."),
     descrizione: z.string().optional(),
     clienteId: z.string().min(1, "È obbligatorio selezionare un cliente."),
+    parentId: z.string().optional().nullable(),
 });
 
 export const clienteSchema = z.object({

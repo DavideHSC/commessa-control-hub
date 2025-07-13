@@ -25,6 +25,7 @@ router.get('/', async (req, res) => {
         { nome: { contains: search as string, mode: 'insensitive' } },
         { descrizione: { contains: search as string, mode: 'insensitive' } },
         { cliente: { nome: { contains: search as string, mode: 'insensitive' } } },
+        { parent: { nome: { contains: search as string, mode: 'insensitive' } } },
       ],
     } : {};
 
@@ -40,7 +41,9 @@ router.get('/', async (req, res) => {
         take,
         include: { 
           cliente: true, 
-          budget: true 
+          budget: true,
+          parent: true,
+          children: true
         }
       }),
       prisma.commessa.count({ where })
@@ -71,6 +74,12 @@ router.post('/', async (req, res) => {
           create: budget || [], // budget è un array di BudgetVoce
         }
       },
+      include: {
+        cliente: true,
+        parent: true,
+        children: true,
+        budget: true,
+      }
     });
     res.status(201).json(nuovaCommessa);
   } catch (error: unknown) {
@@ -91,6 +100,12 @@ router.put('/:id', async (req, res) => {
       const commessaAggiornata = await tx.commessa.update({
         where: { id },
         data: commessaData,
+        include: {
+          cliente: true,
+          parent: true,
+          children: true,
+          budget: true,
+        }
       });
 
       // 2. Se è stato fornito un nuovo budget, cancelliamo quello vecchio e creiamo quello nuovo

@@ -32,7 +32,6 @@ export const VoceAnaliticaForm: React.FC<VoceAnaliticaFormProps> = ({ onSubmit, 
       id: initialData?.id || '',
       nome: initialData?.nome || '',
       descrizione: initialData?.descrizione || '',
-      externalId: initialData?.externalId || '',
     },
   });
 

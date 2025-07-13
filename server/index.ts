@@ -24,7 +24,6 @@ import importContiRoutes from './routes/importConti';
 import systemRoutes from './routes/system';
 import statsRoutes from './routes/stats';
 import importPrimaNota from './routes/importPrimaNota';
-import reconciliationRoutes from './routes/reconciliation';
 import stagingRoutes from './routes/staging'; // Aggiungo l'import
 
 // Import delle nuove rotte V2
@@ -65,7 +64,6 @@ app.use('/api/codici-iva', codiciIvaRoutes);
 app.use('/api/condizioni-pagamento', condizioniPagamentoRoutes);
 app.use('/api/system', systemRoutes);
 app.use('/api/database/stats', statsRoutes);
-app.use('/api/reconciliation', reconciliationRoutes);
 app.use('/api/staging', stagingRoutes); // Aggiungo la rotta
 
 // Setup delle nuove rotte V2

@@ -18,7 +18,7 @@ import {
 import { toast } from "sonner";
 import { deleteRegistrazione } from '@/api/registrazioni';
 import { clearScrittureContabili } from '@/api/database';
-import { ScritturaContabile, RigaScrittura } from '@prisma/client';
+import { ScritturaContabile, RigaScrittura, Prisma } from '@prisma/client';
 import { useAdvancedTable } from '@/hooks/useAdvancedTable';
 import { AdvancedDataTable } from '../ui/advanced-data-table';
 import { ColumnDef } from '@tanstack/react-table';
@@ -26,6 +26,15 @@ import { DataTableColumnHeader } from '../ui/data-table-column-header';
 import { CommesseTable } from "./CommesseTable";
 import { ContiTable } from "./ContiTable";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
+const scritturaWithRelations = Prisma.validator<Prisma.ScritturaContabileDefaultArgs>()({
+  include: { 
+    righe: true,
+    fornitore: true,
+    causale: true 
+  },
+});
+type ScritturaWithRelations = Prisma.ScritturaContabileGetPayload<typeof scritturaWithRelations>;
 
 const consolidateScritture = async () => {
   const response = await fetch('/api/system/consolidate-scritture', { method: 'POST' });
@@ -37,7 +46,7 @@ const consolidateScritture = async () => {
 };
 
 export const ScrittureTable: React.FC = () => {
-  const [deletingRegistrazione, setDeletingRegistrazione] = useState<ScritturaContabile | null>(null);
+  const [deletingRegistrazione, setDeletingRegistrazione] = useState<ScritturaWithRelations | null>(null);
   const [isClearing, setIsClearing] = useState(false);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -55,7 +64,7 @@ export const ScrittureTable: React.FC = () => {
     onSearchChange,
     onSortingChange,
     fetchData: refreshData,
-  } = useAdvancedTable<ScritturaContabile>({
+  } = useAdvancedTable<ScritturaWithRelations>({
     endpoint: '/api/registrazioni',
     initialSorting: [{ id: 'data', desc: true }]
   });
@@ -98,7 +107,7 @@ export const ScrittureTable: React.FC = () => {
     }
   };
 
-  const handleEdit = (registrazione: ScritturaContabile) => {
+  const handleEdit = (registrazione: ScritturaWithRelations) => {
     navigate(`/prima-nota/modifica/${registrazione.id}`);
   };
 
@@ -106,7 +115,7 @@ export const ScrittureTable: React.FC = () => {
     return righe.reduce((acc, riga) => acc + (riga.dare || 0), 0);
   };
 
-  const columns: ColumnDef<ScritturaContabile>[] = [
+  const columns: ColumnDef<ScritturaWithRelations>[] = [
     {
       accessorKey: "data",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Data" />,

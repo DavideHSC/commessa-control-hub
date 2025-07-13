@@ -1,8 +1,15 @@
-import { Commessa } from "@prisma/client";
+import { Commessa, Cliente, BudgetVoce } from "@prisma/client";
 
 const API_BASE_URL = '/api/commesse';
 
-export const getCommesse = async (): Promise<Commessa[]> => {
+export type CommessaWithRelations = Commessa & {
+  cliente: Cliente;
+  parent: Commessa | null;
+  children: Commessa[];
+  budget: BudgetVoce[];
+};
+
+export const getCommesse = async (): Promise<CommessaWithRelations[]> => {
     const response = await fetch(API_BASE_URL);
     if (!response.ok) {
         throw new Error('Errore nel recupero delle commesse');
@@ -11,7 +18,7 @@ export const getCommesse = async (): Promise<Commessa[]> => {
     return result.data;
 };
 
-export const createCommessa = async (data: Partial<Commessa>): Promise<Commessa> => {
+export const createCommessa = async (data: Partial<Commessa>): Promise<CommessaWithRelations> => {
     const response = await fetch(API_BASE_URL, {
         method: 'POST',
         headers: {
@@ -25,7 +32,7 @@ export const createCommessa = async (data: Partial<Commessa>): Promise<Commessa>
     return response.json();
 };
 
-export const updateCommessa = async (id: string, data: Partial<Commessa>): Promise<Commessa> => {
+export const updateCommessa = async (id: string, data: Partial<Commessa>): Promise<CommessaWithRelations> => {
     const response = await fetch(`${API_BASE_URL}/${id}`, {
         method: 'PUT',
         headers: {

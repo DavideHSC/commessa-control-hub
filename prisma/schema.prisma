@@ -270,10 +270,13 @@ model Commessa {
   dataInizio  DateTime?
   stato       String?
   clienteId   String
+  parentId    String?
   allocazioni Allocazione[]
   importAllocazioni ImportAllocazione[]
   budget      BudgetVoce[]
   cliente     Cliente       @relation(fields: [clienteId], references: [id])
+  parent      Commessa?     @relation("CommessaHierarchy", fields: [parentId], references: [id])
+  children    Commessa[]    @relation("CommessaHierarchy")
   regoleRipartizione RegolaRipartizione[]
 }
 

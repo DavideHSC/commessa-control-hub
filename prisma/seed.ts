@@ -83,7 +83,7 @@ async function main() {
   });
   console.log('Commesse principali (Comuni) create.');
 
-  // Commesse Figlie (Attività / Centri di Costo) - da creare come commesse principali
+  // Commesse Figlie (Attività / Centri di Costo) - con relazioni gerarchiche
   await prisma.commessa.create({
     data: {
       id: "sorrento_igiene_urbana",
@@ -91,17 +91,17 @@ async function main() {
       nome: "Igiene Urbana - Sorrento",
       descrizione: "Servizio di igiene urbana per Sorrento",
       clienteId: clientePenisolaVerde.id,
-      // parentId: "sorrento", // CAMPO RIMOSSO DALLO SCHEMA
+      parentId: "sorrento",
     },
   });
   await prisma.commessa.create({
     data: {
-      id: "meta_igiene_urbana",
+      id: "massa_lubrense_igiene_urbana", 
       externalId: "5",
-      nome: "Igiene Urbana - Meta",
-      descrizione: "Servizio di igiene urbana per Meta",
+      nome: "Igiene Urbana - Massa Lubrense",
+      descrizione: "Servizio di igiene urbana per Massa Lubrense",
       clienteId: clientePenisolaVerde.id,
-      // parentId: "meta", // CAMPO RIMOSSO DALLO SCHEMA
+      parentId: "massa_lubrense",
     },
   });
 

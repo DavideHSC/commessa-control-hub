@@ -87,7 +87,7 @@ export const StagingScrittureTable = () => {
           totalCount={totalCount}
           page={page}
           pageSize={pageSize}
-          search={search}
+          searchValue={search}
           sorting={sorting}
           loading={loading}
           onPageChange={onPageChange}

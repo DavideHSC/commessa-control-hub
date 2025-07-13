@@ -37,9 +37,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { createCommessa, updateCommessa, deleteCommessa } from '@/api/commesse';
+import { createCommessa, updateCommessa, deleteCommessa, CommessaWithRelations, getCommesseForSelect } from '@/api/commesse';
 import { getClienti } from '@/api';
-import { Commessa, Cliente } from '@prisma/client';
+import { Commessa, Cliente, Prisma } from '@prisma/client';
 import { commessaSchema } from '@/schemas/database';
 import { useCrudTable } from '@/hooks/useCrudTable';
 import { useAdvancedTable } from '@/hooks/useAdvancedTable';
@@ -47,10 +47,12 @@ import { AdvancedDataTable } from '../ui/advanced-data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTableColumnHeader } from '../ui/data-table-column-header';
 
+
 type CommessaFormValues = z.infer<typeof commessaSchema>;
 
 export const CommesseTable = () => {
   const [clienti, setClienti] = useState<Cliente[]>([]);
+  const [commesseParent, setCommesseParent] = useState<{id: string, nome: string}[]>([]);
 
   const {
     data,
@@ -65,21 +67,25 @@ export const CommesseTable = () => {
     onSearchChange,
     onSortingChange,
     fetchData: refreshData,
-  } = useAdvancedTable<Commessa>({
+  } = useAdvancedTable<CommessaWithRelations>({
     endpoint: '/api/commesse',
     initialSorting: [{ id: 'nome', desc: false }]
   });
 
   useEffect(() => {
-    const fetchClienti = async () => {
+    const fetchData = async () => {
       try {
-        const clientiData = await getClienti({ limit: 1000 });
+        const [clientiData, commesseData] = await Promise.all([
+          getClienti({ limit: 1000 }),
+          getCommesseForSelect()
+        ]);
         setClienti(clientiData);
+        setCommesseParent(commesseData);
       } catch (error) {
-        console.error("Failed to fetch clienti:", error);
+        console.error("Failed to fetch data:", error);
       }
     };
-    fetchClienti();
+    fetchData();
   }, []);
 
   const {
@@ -92,7 +98,7 @@ export const CommesseTable = () => {
     handleOpenDialog,
     onSubmit,
     handleDelete,
-  } = useCrudTable<Commessa, CommessaFormValues>({
+  } = useCrudTable<CommessaWithRelations, CommessaFormValues>({
     schema: commessaSchema,
     api: {
       create: createCommessa,
@@ -105,7 +111,7 @@ export const CommesseTable = () => {
     getId: (commessa) => commessa.id,
   });
 
-  const columns: ColumnDef<Commessa>[] = [
+  const columns: ColumnDef<CommessaWithRelations>[] = [
     {
       accessorKey: "id",
       header: ({ column }) => <DataTableColumnHeader column={column} title="ID" />,
@@ -113,6 +119,19 @@ export const CommesseTable = () => {
     {
       accessorKey: "nome",
       header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />,
+      cell: ({ row }) => (
+        <div className="flex items-center">
+          {row.original.parent && (
+            <>
+              <span className="w-4 h-4 mr-2 text-gray-400">└─</span>
+              <span className="ml-2">{row.original.nome}</span>
+            </>
+          )}
+          {!row.original.parent && (
+            <span className="font-medium">{row.original.nome}</span>
+          )}
+        </div>
+      ),
     },
     {
       id: "parent",
@@ -191,6 +210,23 @@ export const CommesseTable = () => {
                               <FormControl><Textarea placeholder="Dettagli sulla commessa" {...field} /></FormControl>
                               <FormMessage />
                           </FormItem>
+                      )}/>
+                      <FormField control={form.control} name="parentId" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Commessa Padre (Opzionale)</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value || ""}>
+                            <FormControl><SelectTrigger><SelectValue placeholder="Seleziona una commessa padre" /></SelectTrigger></FormControl>
+                            <SelectContent>
+                              <SelectItem value="">Nessuna (commessa principale)</SelectItem>
+                              {commesseParent
+                                .filter(commessa => commessa.id !== editingCommessa?.id) // Evita che una commessa sia figlia di se stessa
+                                .map(commessa => (
+                                <SelectItem key={commessa.id} value={commessa.id}>{commessa.nome}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
                       )}/>
                       <FormField control={form.control} name="clienteId" render={({ field }) => (
                         <FormItem>

@@ -1,5 +1,9 @@
-import { Conto } from "@prisma/client";
+import { Conto, VoceAnalitica } from "@prisma/client";
 import { PaginatedResponse } from ".";
+
+export type ContoWithRelations = Conto & {
+  vociAnalitiche: VoceAnalitica[];
+};
 
 const API_BASE_URL = '/api/conti';
 
@@ -18,16 +22,16 @@ export const getConti = async (params: Record<string, string | number> = {}): Pr
     return fetchData<PaginatedResponse<Conto>>(`${API_BASE_URL}?${query}`);
 };
 
-export const createConto = async (conto: Omit<Conto, 'id' | 'createdAt' | 'updatedAt'>): Promise<Conto> => {
-    return fetchData<Conto>(API_BASE_URL, {
+export const createConto = async (conto: Omit<Conto, 'id' | 'createdAt' | 'updatedAt'>): Promise<ContoWithRelations> => {
+    return fetchData<ContoWithRelations>(API_BASE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(conto),
     });
 };
 
-export const updateConto = async (id: string, conto: Partial<Conto>): Promise<Conto> => {
-    return fetchData<Conto>(`${API_BASE_URL}/${id}`, {
+export const updateConto = async (id: string, conto: Partial<Conto>): Promise<ContoWithRelations> => {
+    return fetchData<ContoWithRelations>(`${API_BASE_URL}/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(conto),
