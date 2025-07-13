@@ -15,6 +15,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -187,6 +188,9 @@ export const CommesseTable = () => {
           <DialogContent>
               <DialogHeader>
                   <DialogTitle>{editingCommessa ? 'Modifica Commessa' : 'Nuova Commessa'}</DialogTitle>
+                  <DialogDescription>
+                    {editingCommessa ? 'Modifica i dettagli di una commessa esistente.' : 'Crea una nuova commessa per tracciare costi e ricavi.'}
+                  </DialogDescription>
               </DialogHeader>
               <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -214,10 +218,13 @@ export const CommesseTable = () => {
                       <FormField control={form.control} name="parentId" render={({ field }) => (
                         <FormItem>
                           <FormLabel>Commessa Padre (Opzionale)</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <Select
+                            onValueChange={(value) => field.onChange(value === 'null' ? null : value)}
+                            value={field.value ?? 'null'}
+                          >
                             <FormControl><SelectTrigger><SelectValue placeholder="Seleziona una commessa padre" /></SelectTrigger></FormControl>
                             <SelectContent>
-                              <SelectItem value="">Nessuna (commessa principale)</SelectItem>
+                              <SelectItem value="null">Nessuna (commessa principale)</SelectItem>
                               {commesseParent
                                 .filter(commessa => commessa.id !== editingCommessa?.id) // Evita che una commessa sia figlia di se stessa
                                 .map(commessa => (
