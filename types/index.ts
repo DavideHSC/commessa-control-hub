@@ -70,6 +70,14 @@ export interface ReconciliationResult {
   errors: string[];
 }
 
+export interface AllocationStats {
+  unallocatedCount: number;
+  totalUnallocatedAmount: number;
+  totalMovements: number;
+  finalizedCount: number;
+  allocationPercentage: number;
+}
+
 // Tipi per la dashboard avanzata
 export interface CommessaDashboard {
   id: string;

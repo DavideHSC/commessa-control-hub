@@ -152,8 +152,7 @@ router.get('/', async (req, res) => {
       
       // Calcola percentuale avanzamento consolidata
       const percentualeAvanzamentoConsolidata = budgetTotale > 0 ? 
-        ((padre.percentualeAvanzamento * padre.budget) + 
-         figlieAssociate.reduce((acc, f) => acc + (f.percentualeAvanzamento * f.budget), 0)) / budgetTotale : 0;
+        Math.min((costiTotali / budgetTotale) * 100, 100) : 0;
 
       return {
         ...padre,
@@ -184,31 +183,31 @@ router.get('/', async (req, res) => {
     const oraCorrente = new Date();
     const inizioMese = new Date(oraCorrente.getFullYear(), oraCorrente.getMonth(), 1);
     const ricaviMeseCorrente = scritture
-      .filter(s => new Date(s.data) >= inizioMese)
+      .filter(s => s.data && new Date(s.data) >= inizioMese)
       .flatMap(s => s.righe)
       .filter(r => r.conto && r.conto.tipo === 'Ricavo' && r.allocazioni.length > 0)
       .reduce((acc, r) => acc + (r.avere || 0), 0);
 
     const costiMeseCorrente = scritture
-      .filter(s => new Date(s.data) >= inizioMese)
+      .filter(s => s.data && new Date(s.data) >= inizioMese)
       .flatMap(s => s.righe)
       .filter(r => r.conto && r.conto.tipo === 'Costo' && r.allocazioni.length > 0)
       .reduce((acc, r) => acc + (r.dare || 0), 0);
 
     // Calcola trend mensili (ultimi 6 mesi)
-    const ricaviMensili = [];
+    const ricaviMensili: Array<{ mese: string; ricavi: number; costi: number; margine: number }> = [];
     for (let i = 5; i >= 0; i--) {
       const meseInizio = new Date(oraCorrente.getFullYear(), oraCorrente.getMonth() - i, 1);
       const meseFine = new Date(oraCorrente.getFullYear(), oraCorrente.getMonth() - i + 1, 0);
       
       const ricaviMese = scritture
-        .filter(s => new Date(s.data) >= meseInizio && new Date(s.data) <= meseFine)
+        .filter(s => s.data && new Date(s.data) >= meseInizio && new Date(s.data) <= meseFine)
         .flatMap(s => s.righe)
         .filter(r => r.conto && r.conto.tipo === 'Ricavo' && r.allocazioni.length > 0)
         .reduce((acc, r) => acc + (r.avere || 0), 0);
 
       const costiMese = scritture
-        .filter(s => new Date(s.data) >= meseInizio && new Date(s.data) <= meseFine)
+        .filter(s => s.data && new Date(s.data) >= meseInizio && new Date(s.data) <= meseFine)
         .flatMap(s => s.righe)
         .filter(r => r.conto && r.conto.tipo === 'Costo' && r.allocazioni.length > 0)
         .reduce((acc, r) => acc + (r.dare || 0), 0);
@@ -251,7 +250,11 @@ router.get('/', async (req, res) => {
         topCommesse,
       },
       commesse: commesseDashboard,
-      clienti: clienti,
+      clienti: clienti.map(c => ({
+        id: c.id,
+        nome: c.nome,
+        externalId: c.externalId || undefined
+      })),
     };
 
     res.json(dashboardData);

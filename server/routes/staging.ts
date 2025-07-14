@@ -138,6 +138,82 @@ router.get('/stats', async (req, res) => {
     }
 });
 
+// GET allocation statistics for the widget
+router.get('/allocation-stats', async (req, res) => {
+    try {
+        // Count total staging righe contabili (before finalization)
+        const totalStagingMovements = await prisma.stagingRigaContabile.count();
+
+        // Count finalized movements (after finalization)
+        const finalizedCount = await prisma.rigaScrittura.count();
+
+        // Count allocated movements (finalized movements that have allocations)
+        const allocatedCount = await prisma.rigaScrittura.count({
+            where: {
+                allocazioni: {
+                    some: {}
+                }
+            }
+        });
+
+        // Calculate unallocated movements (finalized but not allocated)
+        const unallocatedFinalizedCount = finalizedCount - allocatedCount;
+        
+        // Total unallocated = staging + finalized but not allocated
+        const totalUnallocatedCount = totalStagingMovements + unallocatedFinalizedCount;
+
+        // Calculate total unallocated amount from staging
+        const stagingRows = await prisma.stagingRigaContabile.findMany({
+            select: {
+                importoDare: true,
+                importoAvere: true
+            }
+        });
+
+        const totalStagingAmount = stagingRows.reduce((sum, row) => {
+            const dare = parseFloat(row.importoDare || '0');
+            const avere = parseFloat(row.importoAvere || '0');
+            return sum + Math.abs(dare - avere); // Consideriamo il valore assoluto della differenza
+        }, 0);
+
+        // Calculate unallocated amount from finalized movements
+        const unallocatedFinalizedRows = await prisma.rigaScrittura.findMany({
+            where: {
+                allocazioni: {
+                    none: {}
+                }
+            },
+            select: {
+                dare: true,
+                avere: true
+            }
+        });
+
+        const totalUnallocatedFinalizedAmount = unallocatedFinalizedRows.reduce((sum, row) => {
+            const dare = row.dare || 0;
+            const avere = row.avere || 0;
+            return sum + Math.abs(dare - avere);
+        }, 0);
+
+        const totalUnallocatedAmount = totalStagingAmount + totalUnallocatedFinalizedAmount;
+
+        // Calculate total movements and allocation percentage
+        const totalMovements = totalStagingMovements + finalizedCount;
+        const allocationPercentage = totalMovements > 0 ? Math.round(((allocatedCount) / totalMovements) * 100) : 0;
+
+        res.json({
+            unallocatedCount: totalUnallocatedCount,
+            totalUnallocatedAmount,
+            totalMovements,
+            finalizedCount,
+            allocationPercentage
+        });
+    } catch (error) {
+        console.error("Errore nel recupero delle statistiche di allocazione:", error);
+        res.status(500).json({ error: 'Errore nel recupero delle statistiche di allocazione.' });
+    }
+});
+
 router.get('/events', (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');

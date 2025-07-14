@@ -95,14 +95,30 @@ Dall'analisi del file `frontend_visualization_tips-and_other_info.md` emerge che
 ---
 
 ## **Fase 4: Integrazione Sistema di Allocazione**
-**Obiettivo:** Rendere l'allocazione dei costi un processo fluido e integrato nelle pagine utente.
+**Obiettivo:** Completare il cuore dell'applicazione rendendo l'allocazione dei costi un processo fluido e integrato.
+
+**🔍 STATO ATTUALE RILEVATO:**
+- ✅ **Database Schema**: Completo con modelli Allocazione, VoceAnalitica, RegolaRipartizione
+- ✅ **Import Workflow**: Robusto sistema di staging con validazione (PNTESTA, PNRIGCON, PNRIGIVA, MOVANAC)
+- ✅ **Frontend UI**: Interfaccia riconciliazione avanzata già implementata
+- ✅ **Gestione Configurazione**: Voci analitiche e regole di ripartizione operative
+- ❌ **API Backend**: Mancano completamente le API `/api/reconciliation/*`
+- ❌ **Logica Allocazione**: Processo di riconciliazione e allocazione non implementato
+- ❌ **Finalizzazione Scritture**: `finalizeScritture()` non implementata
+- ❌ **Automazioni MOVANAC**: Collegamento allocazioni pre-definite non attivo
 
 | ID | Task | Stato | Descrizione |
 | :-- | :--- | :---: | :--- |
-| **AL-01** | **Widget Movimenti da Allocare** | 📋 | Creare componente sempre visibile che mostra: Numero movimenti pending, Importo totale non allocato, Quick action per aprire wizard allocazione. |
-| **AL-02** | **Wizard Allocazione Guidata** | 📋 | Implementare processo step-by-step: 1. Selezione movimento, 2. Suggerimenti automatici, 3. Scelta commessa/voce analitica, 4. Conferma e applicazione. |
-| **AL-03** | **Sistema di Regole Intelligenti** | 📋 | Implementare logica che impara dalle allocazioni passate: Pattern recognition per fornitori ricorrenti, Auto-suggest basato su storico, Validazione automatica allocazioni. |
-| **AL-04** | **Audit Trail e Correzioni** | 📋 | Creare sistema per: Storico modifiche allocazioni, Possibilità di annullare/correggere, Note e giustificazioni, Report di controllo. |
+| **AL-01** | **Widget Movimenti da Allocare** | 📋 | **IMPLEMENTARE:** API per contare movimenti non allocati + componente sempre visibile con KPI real-time: Numero movimenti pending, Importo totale non allocato, Quick action per aprire wizard allocazione. |
+| **AL-02** | **Wizard Allocazione Guidata** | 📋 | **IMPLEMENTARE:** API `/api/reconciliation/run` con logica a 3 livelli + completare `finalizeScritture()` + attivare automazioni MOVANAC/DETTANAL. Processo: 1. Auto-allocazione MOVANAC, 2. Applicazione regole DETTANAL, 3. Riconciliazione manuale con suggerimenti. |
+| **AL-03** | **Sistema di Regole Intelligenti** | 📋 | **ESTENDERE:** Pattern recognition per fornitori ricorrenti + auto-suggest basato su storico allocazioni + validazione automatica. Utilizzare RegolaRipartizione esistente come base. |
+| **AL-04** | **Audit Trail e Correzioni** | 📋 | **IMPLEMENTARE:** Sistema completo per tracking modifiche allocazioni + storico + possibilità annullare/correggere + note e giustificazioni + report di controllo. |
+
+**🎯 PRIORITÀ CRITICHE:**
+1. **Implementare API Riconciliazione** - `/api/reconciliation/run`, `/manual-allocation`, `/finalize`
+2. **Completare Finalizzazione Scritture** - Collegare `StagingRigaContabile` → `RigaScrittura`
+3. **Attivare Automazioni** - Processare dati `MOVANAC.TXT` per allocazioni pre-definite
+4. **Logica Allocazione Automatica** - Utilizzare `RegolaRipartizione` per allocazioni automatiche
 
 ---
 
@@ -133,25 +149,88 @@ Dall'analisi del file `frontend_visualization_tips-and_other_info.md` emerge che
 
 ## **Specifiche Tecniche Chiave**
 
-### **Architettura Componenti**
+### **Architettura Componenti - STATO ATTUALE**
 ```
 src/
 ├── components/
 │   ├── commessa/
-│   │   ├── CommessaCard.tsx (nuova card avanzata)
-│   │   ├── CommessaHierarchy.tsx (vista gerarchica)
-│   │   ├── PerformanceIndicators.tsx (KPI visuali)
-│   │   └── AllocationWizard.tsx (wizard allocazione)
+│   │   ├── ✅ CommessaActionMenu.tsx (menu azioni rapide)
+│   │   ├── ✅ StatusIndicators.tsx (KPI visuali avanzati)
+│   │   ├── ✅ ComparativeView.tsx (analisi comparative)
+│   │   └── ❌ AllocationWizard.tsx (DA IMPLEMENTARE)
 │   ├── dashboard/
-│   │   ├── KpiWidget.tsx (KPI dinamici)
-│   │   ├── ChartContainer.tsx (grafici)
-│   │   ├── AlertsPanel.tsx (notifiche)
-│   │   └── FilterControls.tsx (filtri)
-│   └── financial/
-│       ├── ProfitLossWidget.tsx (P&L)
-│       ├── BudgetVsActual.tsx (confronto)
-│       ├── CashflowChart.tsx (flussi)
-│       └── MovimentiTimeline.tsx (timeline)
+│   │   ├── ✅ CompactHeader.tsx (KPI dinamici)
+│   │   ├── ✅ HierarchicalCommesseTable.tsx (vista gerarchica)
+│   │   ├── ✅ FilterControls.tsx (filtri avanzati)
+│   │   └── ✅ SidebarPanel.tsx (alerts e notifiche)
+│   ├── admin/
+│   │   ├── ✅ AllocationForm.tsx (form allocazione manuale)
+│   │   ├── ✅ AllocationCell.tsx (celle allocazione rapida)
+│   │   ├── ✅ ReconciliationTable.tsx (tabella riconciliazione)
+│   │   ├── ✅ ReconciliationSummary.tsx (dashboard riepilogo)
+│   │   ├── ✅ RegoleRipartizioneManager.tsx (gestione regole)
+│   │   └── ✅ VociAnaliticheManager.tsx (gestione voci analitiche)
+│   ├── database/
+│   │   ├── ✅ StagingXXXTable.tsx (tabelle staging complete)
+│   │   └── ✅ FinalizationStatus.tsx (stato finalizzazione)
+│   └── dialogs/
+│       ├── ✅ EditBudgetDialog.tsx (modifica budget)
+│       └── ❌ AllocationWizardDialog.tsx (DA IMPLEMENTARE)
+```
+
+### **Backend API - STATO ATTUALE**
+```
+server/
+├── routes/
+│   ├── ✅ staging.ts (gestione completa staging)
+│   ├── ✅ voci-analitiche.ts (CRUD voci analitiche)
+│   ├── ✅ regole-ripartizione.ts (CRUD regole)
+│   ├── ✅ dashboard.ts (KPI e performance)
+│   ├── ✅ commesse.ts (gestione commesse)
+│   └── ❌ reconciliation.ts (DA IMPLEMENTARE)
+├── lib/
+│   ├── ✅ finalization.ts (finalizzazione base)
+│   ├── ✅ importUtils.ts (utilities import)
+│   └── ❌ reconciliationEngine.ts (DA IMPLEMENTARE)
+└── import-engine/
+    ├── ✅ workflows/ (ImportScrittureContabiliWorkflow)
+    ├── ✅ validators/ (validazione Zod completa)
+    └── ✅ persistence/ (DLQ service)
+```
+
+### **Database Schema - IMPLEMENTATO**
+```sql
+-- ✅ CORE ALLOCATION MODELS
+model Allocazione {
+  importo         Float
+  tipoMovimento   String
+  dataMovimento   DateTime
+  rigaScrittura   RigaScrittura
+  commessa        Commessa
+  voceAnalitica   VoceAnalitica
+}
+
+-- ✅ BUSINESS LOGIC MODELS  
+model VoceAnalitica {
+  conti           Conto[]
+  regole          RegolaRipartizione[]
+  allocazioni     Allocazione[]
+}
+
+model RegolaRipartizione {
+  percentuale     Float
+  conto           Conto
+  commessa        Commessa
+  voceAnalitica   VoceAnalitica
+}
+
+-- ✅ STAGING MODELS (COMPLETO)
+model StagingTestata
+model StagingRigaContabile  
+model StagingRigaIva
+model StagingAllocazione    -- DA MOVANAC.TXT
+model StagingConto
+model StagingAnagrafica
 ```
 
 ### **Integrazione API**

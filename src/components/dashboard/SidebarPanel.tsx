@@ -15,6 +15,7 @@ import {
   BarChart3
 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AllocationWidget } from '@/components/allocation/AllocationWidget';
 
 interface SidebarPanelProps {
   kpi: {
@@ -115,6 +116,9 @@ export const SidebarPanel: React.FC<SidebarPanelProps> = ({ kpi, commesse }) => 
 
   return (
     <div className="space-y-4">
+      
+      {/* Allocation Widget - Sempre in alto per importanza */}
+      <AllocationWidget />
       
       {/* Quick Stats */}
       <Card>

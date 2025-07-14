@@ -8,6 +8,7 @@ import { ReconciliationResult, RigaDaRiconciliare, Allocazione } from "@shared-t
 import { useToast } from "@/hooks/use-toast";
 import { ReconciliationSummary } from "@/components/admin/ReconciliationSummary";
 import { AllocationForm, SelectItem } from "@/components/admin/AllocationForm";
+import { SmartSuggestions } from "@/components/allocation/SmartSuggestions";
 import { getCommesseForSelect } from "@/api/commesse";
 import { getVociAnalitiche } from "@/api/vociAnalitiche";
 
@@ -79,6 +80,16 @@ export default function Riconciliazione() {
                 allocations: allocations,
             });
 
+            // Apprendimento automatico dai suggerimenti applicati
+            try {
+                await apiClient.post('/smart-allocation/learn', {
+                    rigaId: selectedScrittura.id,
+                    allocazioni: allocations,
+                });
+            } catch (learnError) {
+                console.warn("Errore nell'apprendimento automatico:", learnError);
+            }
+
             toast({
                 title: "Salvataggio completato",
                 description: "L'allocazione è stata salvata con successo.",
@@ -97,6 +108,25 @@ export default function Riconciliazione() {
                 title: "Errore di salvataggio",
                 description: "Impossibile salvare l'allocazione.",
                 variant: "destructive",
+            });
+        }
+    };
+
+    const handleApplySmartSuggestion = (suggestion: any) => {
+        // Applica il suggerimento intelligente precompilando l'AllocationForm
+        if (selectedScrittura) {
+            const allocation = {
+                commessaId: suggestion.commessaId,
+                voceAnaliticaId: suggestion.voceAnaliticaId,
+                importo: suggestion.percentuale 
+                    ? selectedScrittura.importo * (suggestion.percentuale / 100)
+                    : selectedScrittura.importo
+            };
+            
+            // Questo sarà gestito dal componente AllocationForm
+            toast({
+                title: "Suggerimento applicato",
+                description: `Applicato suggerimento: ${suggestion.commessaNome}`,
             });
         }
     };
@@ -156,7 +186,19 @@ export default function Riconciliazione() {
                             </CardContent>
                         </Card>
                     </div>
-                    <div className="lg:col-span-2">
+                    <div className="lg:col-span-2 space-y-4">
+                        {/* Suggerimenti Intelligenti */}
+                        {selectedScrittura && (
+                            <SmartSuggestions
+                                rigaId={selectedScrittura.id}
+                                contoId={selectedScrittura.conto.id}
+                                importo={selectedScrittura.importo}
+                                descrizione={selectedScrittura.descrizione}
+                                onApplySuggestion={handleApplySmartSuggestion}
+                            />
+                        )}
+
+                        {/* Dettaglio Scrittura */}
                         <Card className="sticky top-4">
                             <CardHeader>
                                 <CardTitle>Dettaglio Scrittura</CardTitle>

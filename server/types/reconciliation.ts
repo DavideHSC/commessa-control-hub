@@ -29,4 +29,12 @@ export interface ReconciliationResult {
   summary: ReconciliationSummaryData;
   righeDaRiconciliare: RigaDaRiconciliare[];
   errors: string[];
+}
+
+export interface AllocationStats {
+  unallocatedCount: number;
+  totalUnallocatedAmount: number;
+  totalMovements: number;
+  finalizedCount: number;
+  allocationPercentage: number;
 } 

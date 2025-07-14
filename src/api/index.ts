@@ -1,5 +1,5 @@
 import { Commessa, VoceAnalitica, Conto, ScritturaContabile, CausaleContabile, Cliente, Fornitore, CodiceIva, CondizionePagamento, ImportTemplate } from '@prisma/client';
-import { TableStats, DashboardData } from '../types';
+import { TableStats, DashboardData, AllocationStats } from '../types';
 import qs from 'qs';
 import axios from 'axios';
 
@@ -60,6 +60,8 @@ export const getCondizioniPagamento = (params?: Record<string, unknown>) => fetc
 export const getImportTemplates = (params?: Record<string, unknown>) => fetchPaginatedData<ImportTemplate>('/api/import-templates', params);
 
 export const getDashboardData = () => fetchData<DashboardData>('/dashboard', 'Errore nel caricamento dei dati della dashboard');
+
+export const getAllocationStats = () => fetchData<AllocationStats>('/staging/allocation-stats', 'Errore nel caricamento delle statistiche di allocazione');
 
 export const resetDatabase = async () => {
   const response = await fetch('/api/system/reset-database', { method: 'POST' });
