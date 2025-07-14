@@ -25,6 +25,7 @@ import systemRoutes from './routes/system';
 import statsRoutes from './routes/stats';
 import importPrimaNota from './routes/importPrimaNota';
 import stagingRoutes from './routes/staging'; // Aggiungo l'import
+import commesseWithPerformanceRoutes from './routes/commesseWithPerformance';
 
 // Import delle nuove rotte V2
 import importRouterV2 from './routes/v2/import';
@@ -59,6 +60,7 @@ app.use('/api/voci-analitiche', vociAnaliticheRoutes);
 app.use('/api/regole-ripartizione', regoleRipartizioneRoutes);
 app.use('/api/conti', contiRoutes);
 app.use('/api/commesse', commesseRoutes);
+app.use('/api/commesse-performance', commesseWithPerformanceRoutes);
 app.use('/api/import-templates', importTemplatesRoutes);
 app.use('/api/codici-iva', codiciIvaRoutes);
 app.use('/api/condizioni-pagamento', condizioniPagamentoRoutes);

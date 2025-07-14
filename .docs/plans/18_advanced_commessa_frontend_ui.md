@@ -2,7 +2,7 @@
 
 **ID:** `PLAN-18`
 **Data:** 13 Luglio 2025
-**Stato:** 📋 **IN PIANIFICAZIONE**
+**Stato:** 🚧 **IN IMPLEMENTAZIONE** - Fase 1 ✅ COMPLETATA, avvio Fase 2
 **Obiettivo:** Implementare la migliore UI possibile per la gestione delle commesse, trasformando le pagine `/commesse` e `/dashboard` in un sistema di controllo avanzato che integri tutti i dati contabili importati e la gerarchia commesse implementata nel Piano 17.
 
 ---
@@ -60,11 +60,11 @@ Dall'analisi del file `frontend_visualization_tips-and_other_info.md` emerge che
 
 | ID | Task | Stato | Descrizione |
 | :-- | :--- | :---: | :--- |
-| **DB-01** | **Implementare KPI Dinamici Reali** | 📋 | Sostituire i KPI mock con calcoli reali da database: Marginalità per commessa, ROI, Avanzamento lavori, Costi non allocati. |
-| **DB-02** | **Aggiungere Grafici Interattivi** | 📋 | Integrare libreria di charting (Chart.js/Recharts) per: Andamento margini nel tempo, Ripartizione costi per voce analitica, Confronto budget vs consuntivo. |
-| **DB-03** | **Vista Gerarchica Commesse** | 📋 | Implementare widget che mostra la struttura padre-figlio delle commesse con navigazione drill-down e indicatori di performance per livello. |
-| **DB-04** | **Sezione Alert e Notifiche** | 📋 | Creare sistema di alert per: Commesse con margini negativi, Budget superati, Movimenti non allocati, Scadenze commesse. |
-| **DB-05** | **Filtri e Periodo Temporale** | 📋 | Aggiungere controlli per filtrare dashboard per: Range di date, Cliente/Comune specifico, Tipo di commessa, Stato attività. |
+| **DB-01** | **Implementare KPI Dinamici Reali** | ✅ | **COMPLETATO** - Implementati 8 KPI avanzati con calcoli reali: Marginalità, Budget vs Consuntivo, Movimenti non allocati, Performance mensile con colori intelligenti e icone. |
+| **DB-02** | **Aggiungere Grafici Interattivi** | ✅ | **COMPLETATO** - Integrati grafici Recharts: Trend performance 6 mesi (combinato), Top commesse per margine, Distribuzione finanziaria con progress bar dinamica. |
+| **DB-03** | **Vista Gerarchica Commesse** | ✅ | **COMPLETATO** - Implementata vista accordion per commesse padre-figlio: Totali consolidati, drill-down attività, KPI per livello, navigazione intuitiva. |
+| **DB-04** | **Sezione Alert e Notifiche** | ✅ | **COMPLETATO** - Sistema alert intelligente: Commesse critiche, budget sforati, movimenti pending, statistiche rapide, quick actions. |
+| **DB-05** | **Filtri e Periodo Temporale** | ✅ | **COMPLETATO** - Sistema filtri avanzato: Range date con calendario, filtro clienti, stato commesse, tipo (padre/figlio), range margine, ricerca testuale con applicazione real-time. |
 
 ---
 

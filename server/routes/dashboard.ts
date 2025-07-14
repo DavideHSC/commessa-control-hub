@@ -14,10 +14,14 @@ interface CommessaDashboard {
   costi: number;
   margine: number;
   budget: number;
+  isParent: boolean;
+  parentId?: string;
+  figlie?: CommessaDashboard[];
 }
 
 interface DashboardData {
   commesse: CommessaDashboard[];
+  clienti: Array<{ id: string; nome: string; externalId?: string }>;
   kpi: {
     commesseAttive: number;
     ricaviTotali: number;
@@ -40,9 +44,19 @@ const prisma = new PrismaClient();
 
 router.get('/', async (req, res) => {
   try {
+    // Carica separatamente clienti e commesse per avere dati più puliti
+    const clienti = await prisma.cliente.findMany({
+      select: {
+        id: true,
+        nome: true,
+        externalId: true
+      }
+    });
+
     const commesse = await prisma.commessa.findMany({
       include: {
-        cliente: true,
+        parent: true,
+        children: true,
         budget: {
           include: {
             voceAnalitica: true,
@@ -72,31 +86,73 @@ router.get('/', async (req, res) => {
       }
     });
 
-    const commesseDashboard: CommessaDashboard[] = commesse.map(c => {
-      const budgetTotale = c.budget.reduce((acc, b) => acc + b.importo, 0);
-      
+    // Funzione helper per calcolare i totali di una commessa
+    const calcolaTotaliCommessa = (commessaId: string) => {
       const costi = scritture.flatMap(s => s.righe)
-        .filter(r => r.conto && r.conto.tipo === 'Costo' && r.allocazioni.some(a => a.commessaId === c.id))
+        .filter(r => r.conto && r.conto.tipo === 'Costo' && r.allocazioni.some(a => a.commessaId === commessaId))
         .reduce((acc, r) => acc + (r.dare || 0), 0);
 
       const ricavi = scritture.flatMap(s => s.righe)
-        .filter(r => r.conto && r.conto.tipo === 'Ricavo' && r.allocazioni.some(a => a.commessaId === c.id))
+        .filter(r => r.conto && r.conto.tipo === 'Ricavo' && r.allocazioni.some(a => a.commessaId === commessaId))
         .reduce((acc, r) => acc + (r.avere || 0), 0);
 
+      return { costi, ricavi };
+    };
+
+    // Crea una mappa clienti per lookup veloce
+    const clientiMap = new Map(clienti.map(cliente => [cliente.id, cliente]));
+
+    // Prima, creiamo tutte le commesse con i loro dati
+    const tutteLeCommesse: CommessaDashboard[] = commesse.map(c => {
+      const budgetTotale = c.budget.reduce((acc, b) => acc + b.importo, 0);
+      const { costi, ricavi } = calcolaTotaliCommessa(c.id);
       const margine = ricavi > 0 ? ((ricavi - costi) / ricavi) * 100 : 0;
+
+      // Trova il cliente dalla mappa
+      const cliente = clientiMap.get(c.clienteId);
+      if (!cliente) {
+        console.warn(`Cliente non trovato per commessa ${c.id} con clienteId ${c.clienteId}`);
+      }
 
       return {
         id: c.id,
         nome: c.nome,
         cliente: {
-            id: c.cliente.id,
-            nome: c.cliente.nome,
+            id: cliente?.id || c.clienteId,
+            nome: cliente?.nome || 'Cliente non trovato',
         },
         stato: 'In Corso',
         ricavi: ricavi,
         costi: costi,
         margine: margine,
-        budget: budgetTotale
+        budget: budgetTotale,
+        isParent: !c.parentId, // È padre se non ha parentId
+        parentId: c.parentId || undefined,
+        figlie: []
+      };
+    });
+
+    // Poi raggruppiamo: solo commesse padre, con le figlie annidate
+    const commessePadre = tutteLeCommesse.filter(c => c.isParent);
+    const commesseFiglie = tutteLeCommesse.filter(c => !c.isParent);
+
+    // Associamo le figlie ai padri e calcoliamo i totali consolidati
+    const commesseDashboard: CommessaDashboard[] = commessePadre.map(padre => {
+      const figlieAssociate = commesseFiglie.filter(f => f.parentId === padre.id);
+      
+      // Calcola i totali consolidati (padre + figlie)
+      const ricaviTotali = padre.ricavi + figlieAssociate.reduce((acc, f) => acc + f.ricavi, 0);
+      const costiTotali = padre.costi + figlieAssociate.reduce((acc, f) => acc + f.costi, 0);
+      const budgetTotale = padre.budget + figlieAssociate.reduce((acc, f) => acc + f.budget, 0);
+      const margineConsolidato = ricaviTotali > 0 ? ((ricaviTotali - costiTotali) / ricaviTotali) * 100 : 0;
+
+      return {
+        ...padre,
+        ricavi: ricaviTotali,
+        costi: costiTotali,
+        budget: budgetTotale,
+        margine: margineConsolidato,
+        figlie: figlieAssociate
       };
     });
 
@@ -185,6 +241,7 @@ router.get('/', async (req, res) => {
         topCommesse,
       },
       commesse: commesseDashboard,
+      clienti: clienti,
     };
 
     res.json(dashboardData);

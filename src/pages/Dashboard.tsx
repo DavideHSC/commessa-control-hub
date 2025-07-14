@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -7,10 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import type { CommessaDashboard, DashboardData } from '../../types';
 import { AlertCircle, BarChart3, Activity } from 'lucide-react';
 
-// Nuovi componenti avanzati
-import { KpiGrid } from '@/components/dashboard/KpiWidget';
-import { ChartsGrid } from '@/components/dashboard/ChartContainer';
-import { AlertsPanel } from '@/components/dashboard/AlertsPanel';
+// Nuovi componenti layout professionale
+import { CompactHeader } from '@/components/dashboard/CompactHeader';
+import { MainChartsSection } from '@/components/dashboard/MainChartsSection';
+import { SidebarPanel } from '@/components/dashboard/SidebarPanel';
+import { HierarchicalCommesseTable } from '@/components/dashboard/HierarchicalCommesseTable';
+import { type DashboardFilters } from '@/components/dashboard/FilterControls';
 
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(value);
@@ -24,6 +26,63 @@ const Dashboard: React.FC = () => {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [filters, setFilters] = useState<DashboardFilters>({
+    dateRange: {},
+  });
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+
+  // Applica i filtri alle commesse - SPOSTATO PRIMA DI useEffect
+  const filteredCommesse = useMemo(() => {
+    if (!data?.commesse) return [];
+
+    return data.commesse.filter(commessa => {
+      // Filtro per ricerca testuale
+      if (filters.searchText) {
+        const searchLower = filters.searchText.toLowerCase();
+        const matchesName = commessa.nome.toLowerCase().includes(searchLower);
+        const matchesClient = commessa.cliente.nome.toLowerCase().includes(searchLower);
+        if (!matchesName && !matchesClient) return false;
+      }
+
+      // Filtro per cliente
+      if (filters.clienteId && commessa.cliente.id !== filters.clienteId) {
+        return false;
+      }
+
+      // Filtro per stato
+      if (filters.statoCommessa && commessa.stato !== filters.statoCommessa) {
+        return false;
+      }
+
+      // Filtro per tipo (padre vs figlio)
+      if (filters.tipoCommessa) {
+        if (filters.tipoCommessa === 'Comune' && !commessa.isParent) return false;
+        if (filters.tipoCommessa === 'Attività' && commessa.isParent) return false;
+      }
+
+      // Filtro per margine
+      if (filters.margineMin !== undefined && commessa.margine < filters.margineMin) {
+        return false;
+      }
+      if (filters.margineMax !== undefined && commessa.margine > filters.margineMax) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [data?.commesse, filters]);
+
+  // Usa i clienti dall'API invece di estrarli dalle commesse
+  const clientiUnici = useMemo(() => {
+    if (!data?.clienti) return [];
+    
+    // Filtra solo i clienti che hanno commesse (esclude cliente di sistema)
+    const clientiConCommesse = data.clienti.filter(cliente => 
+      data.commesse.some(commessa => commessa.cliente.id === cliente.id)
+    );
+    
+    return clientiConCommesse.sort((a, b) => a.nome.localeCompare(b.nome));
+  }, [data?.clienti, data?.commesse]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -43,6 +102,7 @@ const Dashboard: React.FC = () => {
     fetchData();
   }, []);
 
+  // Early returns DOPO tutti gli hooks
   if (loading) {
     return <DashboardSkeleton />;
   }
@@ -59,22 +119,33 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Header />
       
-      {/* Nuova griglia KPI avanzata */}
-      <KpiGrid kpi={kpi} />
+      {/* Header compatto con KPI inline */}
+      <CompactHeader 
+        kpi={kpi} 
+        filters={filters}
+        onFiltersChange={setFilters}
+        clienti={clientiUnici}
+        isFiltersOpen={isFiltersOpen}
+        onToggleFilters={() => setIsFiltersOpen(!isFiltersOpen)}
+      />
       
-      {/* Grafici e visualizzazioni */}
-      <ChartsGrid trends={trends} kpi={kpi} />
+      {/* Panoramica Commesse - Subito sotto i KPI */}
+      <HierarchicalCommesseTable commesse={filteredCommesse} />
       
-      {/* Layout a due colonne per Alert e Tabella */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      {/* Layout principale a 2 colonne: Sidebar + Grafici */}
+      <div className="grid gap-6 lg:grid-cols-4">
+        
+        {/* Sidebar sinistra - Statistiche e Alert - 1/4 della larghezza */}
         <div className="lg:col-span-1">
-          <AlertsPanel kpi={kpi} commesse={commesse} />
+          <SidebarPanel kpi={kpi} commesse={filteredCommesse} />
         </div>
-        <div className="lg:col-span-2">
-          <CommesseTable commesse={commesse} />
+        
+        {/* Contenuto principale - Grafici - 3/4 della larghezza */}
+        <div className="lg:col-span-3">
+          <MainChartsSection trends={trends} kpi={kpi} />
         </div>
+        
       </div>
     </div>
   );
@@ -113,39 +184,89 @@ const Header = () => (
 );
 
 
-const CommesseTable = ({ commesse }: { commesse: CommessaDashboard[] }) => (
-  <Card>
-    <CardHeader>
-      <CardTitle>Elenco Commesse</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Commessa</TableHead>
-            <TableHead>Cliente</TableHead>
-            <TableHead>Stato</TableHead>
-            <TableHead className="text-right">Ricavi</TableHead>
-            <TableHead className="text-right">Costi</TableHead>
-            <TableHead className="text-right">Margine</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {commesse.map(commessa => (
-            <TableRow key={commessa.id}>
-              <TableCell className="font-medium">{commessa.nome}</TableCell>
-              <TableCell>{commessa.cliente.nome}</TableCell>
-              <TableCell>{commessa.stato}</TableCell>
-              <TableCell className="text-right">{formatCurrency(commessa.ricavi)}</TableCell>
-              <TableCell className="text-right">{formatCurrency(commessa.costi)}</TableCell>
-              <TableCell className="text-right font-medium">{formatPercent(commessa.margine)}</TableCell>
+const CommesseTable = ({ commesse }: { commesse: CommessaDashboard[] }) => {
+  const formatPercent = (value: number) => {
+    return new Intl.NumberFormat('it-IT', { style: 'percent', minimumFractionDigits: 1 }).format(value / 100);
+  };
+
+  const getMargineColor = (margine: number) => {
+    if (margine > 15) return 'text-green-700 bg-green-50';
+    if (margine > 5) return 'text-yellow-700 bg-yellow-50';
+    if (margine >= 0) return 'text-orange-700 bg-orange-50';
+    return 'text-red-700 bg-red-50';
+  };
+
+  return (
+    <Card>
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-5 w-5 text-blue-600" />
+            Panoramica Commesse
+          </CardTitle>
+          <Badge variant="outline">{commesse.length} progetti</Badge>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="font-semibold">Commessa</TableHead>
+              <TableHead className="font-semibold">Cliente</TableHead>
+              <TableHead className="font-semibold text-center">Status</TableHead>
+              <TableHead className="font-semibold text-right">Ricavi</TableHead>
+              <TableHead className="font-semibold text-right">Costi</TableHead>
+              <TableHead className="font-semibold text-right">Margine</TableHead>
+              <TableHead className="font-semibold text-right">Budget</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </CardContent>
-  </Card>
-);
+          </TableHeader>
+          <TableBody>
+            {commesse.map(commessa => (
+              <TableRow key={commessa.id} className="hover:bg-slate-50 cursor-pointer">
+                <TableCell>
+                  <div className="font-medium text-slate-900">{commessa.nome}</div>
+                </TableCell>
+                <TableCell>
+                  <div className="text-slate-600">{commessa.cliente.nome}</div>
+                </TableCell>
+                <TableCell className="text-center">
+                  <Badge 
+                    variant={commessa.margine > 0 ? 'default' : 'destructive'}
+                    className="text-xs"
+                  >
+                    {commessa.stato}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right font-medium">
+                  {formatCurrency(commessa.ricavi)}
+                </TableCell>
+                <TableCell className="text-right">
+                  {formatCurrency(commessa.costi)}
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getMargineColor(commessa.margine)}`}>
+                    {formatPercent(commessa.margine)}
+                  </div>
+                </TableCell>
+                <TableCell className="text-right text-slate-600">
+                  {formatCurrency(commessa.budget)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        
+        {commesse.length === 0 && (
+          <div className="text-center py-8 text-slate-500">
+            <Activity className="h-12 w-12 mx-auto mb-3 text-slate-300" />
+            <div className="text-lg font-medium">Nessuna commessa trovata</div>
+            <div className="text-sm">Importa i dati o crea una nuova commessa per iniziare.</div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
 const DashboardSkeleton = () => (
   <div className="space-y-6">

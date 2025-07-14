@@ -83,10 +83,14 @@ export interface CommessaDashboard {
   costi: number;
   margine: number;
   budget: number;
+  isParent: boolean;
+  parentId?: string;
+  figlie?: CommessaDashboard[];
 }
 
 export interface DashboardData {
   commesse: CommessaDashboard[];
+  clienti: Array<{ id: string; nome: string; externalId?: string }>;
   kpi: {
     commesseAttive: number;
     ricaviTotali: number;
