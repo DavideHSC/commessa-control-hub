@@ -229,4 +229,130 @@ export async function finalizeConti(prisma: PrismaClient) {
 }
 
 
-// TODO: Implementare le altre funzioni di finalizzazione con la mappatura corretta. 
+/**
+ * Finalizza le scritture contabili.
+ * Legge da StagingTestata e StagingRigaContabile e popola ScritturaContabile e RigaScrittura.
+ */
+export async function finalizeScritture(prisma: PrismaClient) {
+  const stagingTestate = await prisma.stagingTestata.findMany({
+    include: {
+      righe: true
+    }
+  });
+
+  if (stagingTestate.length === 0) {
+    console.log('[Finalize Scritture] Nessuna testata in staging. Salto il passaggio.');
+    return { count: 0 };
+  }
+
+  let scrittureFinalizzate = 0;
+
+  // Processare le scritture in batch più piccoli per evitare timeout
+  const BATCH_SIZE = 50;
+  
+  for (let i = 0; i < stagingTestate.length; i += BATCH_SIZE) {
+    const batch = stagingTestate.slice(i, i + BATCH_SIZE);
+    console.log(`[Finalize Scritture] Processando batch ${Math.floor(i/BATCH_SIZE) + 1}/${Math.ceil(stagingTestate.length/BATCH_SIZE)} (${batch.length} scritture)`);
+    
+    await prisma.$transaction(async (tx) => {
+      for (const testata of batch) {
+      // Cerca la causale basandosi sul codice
+      const causale = await tx.causaleContabile.findFirst({
+        where: { 
+          OR: [
+            { codice: testata.codiceCausale },
+            { externalId: testata.codiceCausale }
+          ]
+        },
+        select: { id: true }
+      });
+
+      // Cerca il fornitore se specificato
+      let fornitore: { id: string } | null = null;
+      if (testata.clienteFornitoreCodiceFiscale) {
+        fornitore = await tx.fornitore.findFirst({
+          where: {
+            OR: [
+              { codiceFiscale: testata.clienteFornitoreCodiceFiscale },
+              { externalId: testata.clienteFornitoreCodiceFiscale }
+            ]
+          },
+          select: { id: true }
+        });
+      }
+
+      // Parsing sicuro delle date
+      const parseDate = (dateStr: string | null) => {
+        if (!dateStr) return null;
+        try {
+          // Assumo formato YYYYMMDD
+          if (dateStr.length === 8) {
+            const year = parseInt(dateStr.substring(0, 4));
+            const month = parseInt(dateStr.substring(4, 6)) - 1; // Month is 0-indexed
+            const day = parseInt(dateStr.substring(6, 8));
+            return new Date(year, month, day);
+          }
+          return new Date(dateStr);
+        } catch {
+          return null;
+        }
+      };
+
+      // Crea la scrittura contabile
+      const scrittura = await tx.scritturaContabile.create({
+        data: {
+          externalId: testata.codiceUnivocoScaricamento,
+          data: parseDate(testata.dataRegistrazione) || new Date(),
+          descrizione: testata.descrizioneCausale || 'N/D',
+          dataDocumento: parseDate(testata.dataDocumento),
+          numeroDocumento: testata.numeroDocumento,
+          causaleId: causale?.id,
+          fornitoreId: fornitore?.id,
+          datiAggiuntivi: {
+            tipoRegistroIva: testata.tipoRegistroIva,
+            totaleDocumento: testata.totaleDocumento,
+            noteMovimento: testata.noteMovimento,
+            esercizio: testata.esercizio,
+            codiceAzienda: testata.codiceAzienda
+          }
+        }
+      });
+
+      // Crea le righe contabili
+      for (const rigaStaging of testata.righe) {
+        // Cerca il conto basandosi sul codice
+        const conto = await tx.conto.findFirst({
+          where: {
+            OR: [
+              { codice: rigaStaging.conto },
+              { externalId: { contains: rigaStaging.conto } }
+            ]
+          },
+          select: { id: true }
+        });
+
+        // Parsing sicuro degli importi
+        const importoDare = rigaStaging.importoDare ? 
+          parseFloat(rigaStaging.importoDare.replace(',', '.')) : null;
+        const importoAvere = rigaStaging.importoAvere ? 
+          parseFloat(rigaStaging.importoAvere.replace(',', '.')) : null;
+
+        await tx.rigaScrittura.create({
+          data: {
+            scritturaContabileId: scrittura.id,
+            descrizione: rigaStaging.conto || 'N/D',
+            dare: !isNaN(importoDare!) ? importoDare : null,
+            avere: !isNaN(importoAvere!) ? importoAvere : null,
+            contoId: conto?.id
+          }
+        });
+      }
+
+        scrittureFinalizzate++;
+      }
+    });
+  }
+
+  console.log(`[Finalize Scritture] Finalizzate ${scrittureFinalizzate} scritture contabili.`);
+  return { count: scrittureFinalizzate };
+} 

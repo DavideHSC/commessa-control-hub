@@ -1,170 +1,116 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { AdvancedDataTable } from '@/components/ui/advanced-data-table';
 import { ColumnDef } from '@tanstack/react-table';
-import { apiClient } from '@/api';
-import { useToast } from '@/hooks/use-toast';
-import { SortingState } from '@tanstack/react-table';
+import { useAdvancedTable } from '@/hooks/useAdvancedTable';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 
 interface StagingCondizionePagamento {
   id: string;
   codicePagamento: string;
   descrizione: string;
+  contoIncassoPagamento: string;
+  calcolaGiorniCommerciali: string;
+  consideraPeriodiChiusura: string;
+  suddivisione: string;
+  inizioScadenza: string;
   numeroRate: string;
-  ggScadenza1: string;
-  ggScadenza2: string;
-  ggScadenza3: string;
-  tipoScadenza: string;
-  fineMese: string;
-  scontoPercentuale: string;
-  scontoGiorni: string;
 }
 
 const columns: ColumnDef<StagingCondizionePagamento>[] = [
   {
     accessorKey: 'codicePagamento',
-    header: 'Codice',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Codice" />,
+    cell: ({ row }) => <Badge variant="secondary">{row.getValue("codicePagamento")}</Badge>
   },
   {
     accessorKey: 'descrizione',
-    header: 'Descrizione',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Descrizione" />,
+    enableHiding: false,
   },
   {
     accessorKey: 'numeroRate',
-    header: 'N. Rate',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="N° Rate" />,
     cell: ({ row }) => {
       const rate = row.getValue('numeroRate') as string;
-      return <span className="font-mono">{rate || '-'}</span>;
-    },
+      return rate || 'N/A';
+    }
   },
   {
-    accessorKey: 'ggScadenza1',
-    header: 'Gg Scadenza 1',
-    cell: ({ row }) => {
-      const gg = row.getValue('ggScadenza1') as string;
-      return <span className="font-mono">{gg || '-'}</span>;
-    },
+    accessorKey: 'contoIncassoPagamento',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Conto Incasso/Pagamento" />,
   },
   {
-    accessorKey: 'ggScadenza2',
-    header: 'Gg Scadenza 2',
-    cell: ({ row }) => {
-      const gg = row.getValue('ggScadenza2') as string;
-      return <span className="font-mono">{gg || '-'}</span>;
-    },
+    accessorKey: 'suddivisione',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Suddivisione" />,
   },
   {
-    accessorKey: 'tipoScadenza',
-    header: 'Tipo Scadenza',
+    accessorKey: 'inizioScadenza',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Inizio Scadenza" />,
   },
   {
-    accessorKey: 'fineMese',
-    header: 'Fine Mese',
+    accessorKey: 'calcolaGiorniCommerciali',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="GG Commerciali" />,
     cell: ({ row }) => (
-      <span className={`px-2 py-1 rounded text-xs font-medium ${
-        row.getValue('fineMese') === 'S' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'
-      }`}>
-        {row.getValue('fineMese') === 'S' ? 'Sì' : 'No'}
-      </span>
+      <Badge variant={row.getValue('calcolaGiorniCommerciali') === 'S' ? 'default' : 'secondary'}>
+        {row.getValue('calcolaGiorniCommerciali') === 'S' ? 'Sì' : 'No'}
+      </Badge>
     ),
   },
   {
-    accessorKey: 'scontoPercentuale',
-    header: 'Sconto %',
-    cell: ({ row }) => {
-      const sconto = row.getValue('scontoPercentuale') as string;
-      return sconto ? <span className="font-mono">{sconto}%</span> : '-';
-    },
+    accessorKey: 'consideraPeriodiChiusura',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Periodi Chiusura" />,
+    cell: ({ row }) => (
+      <Badge variant={row.getValue('consideraPeriodiChiusura') === 'S' ? 'default' : 'secondary'}>
+        {row.getValue('consideraPeriodiChiusura') === 'S' ? 'Sì' : 'No'}
+      </Badge>
+    ),
   },
 ];
 
 export function StagingCondizioniPagamentoTable() {
-  const { toast } = useToast();
-  const [data, setData] = useState<StagingCondizionePagamento[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [totalCount, setTotalCount] = useState(0);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
-  const [searchValue, setSearchValue] = useState("");
-  const [sorting, setSorting] = useState<SortingState>([]);
-
-  const fetchData = async (
-    currentPage: number = page,
-    currentPageSize: number = pageSize,
-    search: string = searchValue,
-    sortBy?: string,
-    sortOrder?: 'asc' | 'desc'
-  ) => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: currentPageSize.toString(),
-        ...(search && { search }),
-        ...(sortBy && { sortBy }),
-        ...(sortOrder && { sortOrder }),
-      });
-
-      const response = await apiClient.get(`/staging/condizioni-pagamento?${params}`);
-      setData(response.data.data || []);
-      setTotalCount(response.data.pagination?.total || 0);
-    } catch (error) {
-      console.error('Errore nel caricamento condizioni pagamento staging:', error);
-      toast({
-        title: 'Errore nel caricamento',
-        description: 'Impossibile caricare le condizioni di pagamento di staging.',
-        variant: 'destructive',
-      });
-      setData([]);
-      setTotalCount(0);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, [page, pageSize, searchValue, sorting]);
-
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handlePageSizeChange = (newPageSize: number) => {
-    setPageSize(newPageSize);
-    setPage(1);
-  };
-
-  const handleSearchChange = (search: string) => {
-    setSearchValue(search);
-    setPage(1);
-  };
-
-  const handleSortingChange = (newSorting: SortingState) => {
-    setSorting(newSorting);
-    setPage(1);
-  };
+  const {
+    data,
+    totalCount,
+    page,
+    pageSize,
+    search,
+    sorting,
+    loading,
+    onPageChange,
+    onPageSizeChange,
+    onSearchChange,
+    onSortingChange,
+  } = useAdvancedTable<StagingCondizionePagamento>({
+    endpoint: '/api/staging/condizioni-pagamento',
+    initialSorting: [{ id: 'descrizione', desc: false }]
+  });
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Condizioni di Pagamento di Staging</h2>
-      </div>
-      
-      <AdvancedDataTable
-        columns={columns}
-        data={data}
-        loading={loading}
-        totalCount={totalCount}
-        page={page}
-        pageSize={pageSize}
-        onPageChange={handlePageChange}
-        onPageSizeChange={handlePageSizeChange}
-        searchValue={searchValue}
-        onSearchChange={handleSearchChange}
-        sorting={sorting}
-        onSortingChange={handleSortingChange}
-        emptyMessage="Nessuna condizione di pagamento di staging trovata."
-      />
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Dati di Staging - Condizioni Pagamento</CardTitle>
+        <CardDescription>
+          Contenuto grezzo importato dai file. Usa la barra di ricerca e la gestione colonne per analizzare i dati.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <AdvancedDataTable
+          columns={columns}
+          data={data}
+          totalCount={totalCount}
+          page={page}
+          pageSize={pageSize}
+          searchValue={search}
+          sorting={sorting}
+          loading={loading}
+          onPageChange={onPageChange}
+          onPageSizeChange={onPageSizeChange}
+          onSearchChange={onSearchChange}
+          onSortingChange={onSortingChange}
+        />
+      </CardContent>
+    </Card>
   );
-} 
+}

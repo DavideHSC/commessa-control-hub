@@ -15,6 +15,7 @@ import Database from './pages/Database';
 import ImpostazioniPage from "./pages/Impostazioni";
 import RiconciliazionePage from "./pages/Riconciliazione";
 import StagingPage from "./pages/Staging"; // Importo la nuova pagina
+import AuditTrailPage from "./pages/AuditTrail";
 import ConfigurazioneContiPage from "./pages/impostazioni/ConfigurazioneConti";
 import VociAnalitichePage from "./pages/impostazioni/VociAnalitiche";
 import RegoleRipartizionePage from "./pages/impostazioni/RegoleRipartizione";
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/impostazioni/voci-analitiche" element={<VociAnalitichePage />} />
             <Route path="/impostazioni/regole-ripartizione" element={<RegoleRipartizionePage />} />
             <Route path="/riconciliazione" element={<RiconciliazionePage />} />
+            <Route path="/audit-trail" element={<AuditTrailPage />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

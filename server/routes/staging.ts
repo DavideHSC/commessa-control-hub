@@ -6,7 +6,8 @@ import {
     finalizeCausaliContabili,
     finalizeCodiciIva,
     finalizeCondizioniPagamento,
-    finalizeConti
+    finalizeConti,
+    finalizeScritture
 } from '../lib/finalization';
 
 const prisma = new PrismaClient();
@@ -63,6 +64,218 @@ router.get('/conti', async (req, res) => {
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Errore nel recupero dei conti di staging.' });
+    }
+  });
+
+  // GET all staging anagrafiche with pagination, search, and sort
+  router.get('/anagrafiche', async (req, res) => {
+    try {
+      const { 
+        page = '1', 
+        limit = '25', 
+        search = '',
+        sortBy = 'denominazione',
+        sortOrder = 'asc'
+      } = req.query;
+
+      const pageNumber = parseInt(page as string, 10);
+      const pageSize = parseInt(limit as string, 10);
+      const skip = (pageNumber - 1) * pageSize;
+      const take = pageSize;
+
+      const where: Prisma.StagingAnagraficaWhereInput = search ? {
+        OR: [
+          { denominazione: { contains: search as string, mode: 'insensitive' } },
+          { nome: { contains: search as string, mode: 'insensitive' } },
+          { cognome: { contains: search as string, mode: 'insensitive' } },
+          { codiceFiscaleClifor: { contains: search as string, mode: 'insensitive' } },
+          { partitaIva: { contains: search as string, mode: 'insensitive' } },
+          { codiceUnivoco: { contains: search as string, mode: 'insensitive' } },
+        ],
+      } : {};
+
+      const orderBy: Prisma.StagingAnagraficaOrderByWithRelationInput = {
+          [(sortBy as string) || 'denominazione']: (sortOrder as 'asc' | 'desc') || 'asc'
+      };
+
+      const [anagrafiche, totalCount] = await prisma.$transaction([
+        prisma.stagingAnagrafica.findMany({
+          where,
+          orderBy,
+          skip,
+          take,
+        }),
+        prisma.stagingAnagrafica.count({ where }),
+      ]);
+
+      res.json({
+        data: anagrafiche,
+        pagination: {
+          page: pageNumber,
+          limit: pageSize,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / pageSize),
+        }
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Errore nel recupero delle anagrafiche di staging.' });
+    }
+  });
+
+  // GET all staging causali with pagination, search, and sort
+  router.get('/causali', async (req, res) => {
+    try {
+      const { 
+        page = '1', 
+        limit = '25', 
+        search = '',
+        sortBy = 'descrizione',
+        sortOrder = 'asc'
+      } = req.query;
+
+      const pageNumber = parseInt(page as string, 10);
+      const pageSize = parseInt(limit as string, 10);
+      const skip = (pageNumber - 1) * pageSize;
+      const take = pageSize;
+
+      const where: Prisma.StagingCausaleContabileWhereInput = search ? {
+        OR: [
+          { descrizione: { contains: search as string, mode: 'insensitive' } },
+          { codiceCausale: { contains: search as string, mode: 'insensitive' } },
+        ],
+      } : {};
+
+      const orderBy: Prisma.StagingCausaleContabileOrderByWithRelationInput = {
+          [(sortBy as string) || 'descrizione']: (sortOrder as 'asc' | 'desc') || 'asc'
+      };
+
+      const [causali, totalCount] = await prisma.$transaction([
+        prisma.stagingCausaleContabile.findMany({
+          where,
+          orderBy,
+          skip,
+          take,
+        }),
+        prisma.stagingCausaleContabile.count({ where }),
+      ]);
+
+      res.json({
+        data: causali,
+        pagination: {
+          page: pageNumber,
+          limit: pageSize,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / pageSize),
+        }
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Errore nel recupero delle causali di staging.' });
+    }
+  });
+
+  // GET all staging codici IVA with pagination, search, and sort
+  router.get('/codici-iva', async (req, res) => {
+    try {
+      const { 
+        page = '1', 
+        limit = '25', 
+        search = '',
+        sortBy = 'codice',
+        sortOrder = 'asc'
+      } = req.query;
+
+      const pageNumber = parseInt(page as string, 10);
+      const pageSize = parseInt(limit as string, 10);
+      const skip = (pageNumber - 1) * pageSize;
+      const take = pageSize;
+
+      const where: Prisma.StagingCodiceIvaWhereInput = search ? {
+        OR: [
+          { codice: { contains: search as string, mode: 'insensitive' } },
+          { descrizione: { contains: search as string, mode: 'insensitive' } },
+        ],
+      } : {};
+
+      const orderBy: Prisma.StagingCodiceIvaOrderByWithRelationInput = {
+          [(sortBy as string) || 'codice']: (sortOrder as 'asc' | 'desc') || 'asc'
+      };
+
+      const [codiciIva, totalCount] = await prisma.$transaction([
+        prisma.stagingCodiceIva.findMany({
+          where,
+          orderBy,
+          skip,
+          take,
+        }),
+        prisma.stagingCodiceIva.count({ where }),
+      ]);
+
+      res.json({
+        data: codiciIva,
+        pagination: {
+          page: pageNumber,
+          limit: pageSize,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / pageSize),
+        }
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Errore nel recupero dei codici IVA di staging.' });
+    }
+  });
+
+  // GET all staging condizioni pagamento with pagination, search, and sort
+  router.get('/condizioni-pagamento', async (req, res) => {
+    try {
+      const { 
+        page = '1', 
+        limit = '25', 
+        search = '',
+        sortBy = 'descrizione',
+        sortOrder = 'asc'
+      } = req.query;
+
+      const pageNumber = parseInt(page as string, 10);
+      const pageSize = parseInt(limit as string, 10);
+      const skip = (pageNumber - 1) * pageSize;
+      const take = pageSize;
+
+      const where: Prisma.StagingCondizionePagamentoWhereInput = search ? {
+        OR: [
+          { descrizione: { contains: search as string, mode: 'insensitive' } },
+          { codicePagamento: { contains: search as string, mode: 'insensitive' } },
+        ],
+      } : {};
+
+      const orderBy: Prisma.StagingCondizionePagamentoOrderByWithRelationInput = {
+          [(sortBy as string) || 'descrizione']: (sortOrder as 'asc' | 'desc') || 'asc'
+      };
+
+      const [condizioni, totalCount] = await prisma.$transaction([
+        prisma.stagingCondizionePagamento.findMany({
+          where,
+          orderBy,
+          skip,
+          take,
+        }),
+        prisma.stagingCondizionePagamento.count({ where }),
+      ]);
+
+      res.json({
+        data: condizioni,
+        pagination: {
+          page: pageNumber,
+          limit: pageSize,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / pageSize),
+        }
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Errore nel recupero delle condizioni di pagamento di staging.' });
     }
   });
   
@@ -263,10 +476,12 @@ const runFinalizationProcess = async () => {
         const contiResult = await finalizeConti(prisma);
         sseSend({ step: 'conti', status: 'completed', message: 'Piano dei conti finalizzato.', count: contiResult.count });
 
-        // TODO: Fase 6: Finalizzazione Scritture Contabili
-        sseSend({ step: 'scritture', status: 'pending', message: 'Finalizzazione scritture contabili da implementare...' });
+        // Fase 6: Finalizzazione Scritture Contabili
+        sseSend({ step: 'scritture', status: 'running', message: 'Finalizzazione scritture contabili...' });
+        const scrittureResult = await finalizeScritture(prisma);
+        sseSend({ step: 'scritture', status: 'completed', message: 'Scritture contabili finalizzate.', count: scrittureResult.count });
 
-        sseSend({ step: 'end', message: 'Processo di finalizzazione completato.' });
+        sseSend({ step: 'end', message: 'Processo di finalizzazione completato con successo.' });
 
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
@@ -274,6 +489,32 @@ const runFinalizationProcess = async () => {
         sseEmitter.emit('message', JSON.stringify({ step: 'error', message: `Errore: ${errorMessage}` }));
     }
 };
+
+// Endpoint per resettare solo le tabelle delle scritture
+router.post('/reset-scritture', async (req, res) => {
+    console.log('[Staging Reset Scritture] Richiesta di reset scritture ricevuta.');
+    
+    try {
+        await prisma.$transaction(async (tx) => {
+            // Reset solo delle tabelle scritture, in ordine per FK
+            await tx.stagingRigaContabile.deleteMany({});
+            await tx.stagingTestata.deleteMany({});
+        });
+        
+        console.log('[Staging Reset Scritture] Tabelle scritture pulite.');
+        res.json({ 
+            message: 'Tabelle staging scritture resettate con successo.',
+            success: true 
+        });
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error('[Staging Reset Scritture] Errore durante il reset:', errorMessage);
+        res.status(500).json({ 
+            message: `Errore durante il reset delle scritture staging: ${errorMessage}`,
+            success: false 
+        });
+    }
+});
 
 router.post('/finalize', async (req, res) => {
     console.log('[Finalize] Richiesta di finalizzazione ricevuta.');

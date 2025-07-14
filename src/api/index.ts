@@ -1,5 +1,5 @@
 import { Commessa, VoceAnalitica, Conto, ScritturaContabile, CausaleContabile, Cliente, Fornitore, CodiceIva, CondizionePagamento, ImportTemplate } from '@prisma/client';
-import { TableStats, DashboardData, AllocationStats } from '../types';
+import { TableStats, DashboardData, AllocationStats } from '../../types';
 import qs from 'qs';
 import axios from 'axios';
 
@@ -97,6 +97,15 @@ export const backupDatabase = async () => {
   const response = await fetch('/api/database/backup', { method: 'POST' });
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ message: 'Errore generico durante il backup del database.' }));
+    throw new Error(errorData.message || 'Errore di rete');
+  }
+  return response.json();
+};
+
+export const resetStagingScritture = async () => {
+  const response = await fetch('/api/staging/reset-scritture', { method: 'POST' });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'Errore generico durante il reset delle scritture staging.' }));
     throw new Error(errorData.message || 'Errore di rete');
   }
   return response.json();

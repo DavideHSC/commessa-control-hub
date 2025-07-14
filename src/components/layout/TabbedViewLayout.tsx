@@ -25,6 +25,11 @@ export const TabbedViewLayout: React.FC<TabbedViewLayoutProps> = ({
   const [selectedTab, setSelectedTab] = useState<string>(defaultSelectedTab);
 
   const activeTab = tabs.find(t => t.key === selectedTab);
+  
+  // Fallback al primo tab se il tab selezionato non esiste
+  const currentTab = activeTab || tabs[0];
+  
+  console.log('TabbedViewLayout render:', { selectedTab, activeTab: activeTab?.key, currentTab: currentTab?.key, tabsCount: tabs.length });
 
   if (isLoading) {
     return (
@@ -45,8 +50,11 @@ export const TabbedViewLayout: React.FC<TabbedViewLayoutProps> = ({
               <Button
                 key={tab.key}
                 variant={selectedTab === tab.key ? "secondary" : "ghost"}
-                className="w-full justify-start"
-                onClick={() => setSelectedTab(tab.key)}
+                className={`w-full justify-start ${selectedTab === tab.key ? 'bg-blue-100 border-blue-500' : ''}`}
+                onClick={() => {
+                  console.log('Switching to tab:', tab.key);
+                  setSelectedTab(tab.key);
+                }}
               >
                 <tab.icon className="mr-2 h-4 w-4" />
                 <span>{tab.label}</span>
@@ -60,9 +68,15 @@ export const TabbedViewLayout: React.FC<TabbedViewLayoutProps> = ({
           </nav>
         </div>
       </div>
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <div className="p-4 h-full overflow-auto">
-          {activeTab ? activeTab.component : <p>Seleziona una tabella</p>}
+          <div className="overflow-x-auto w-full">
+            {isLoading ? (
+              <p>Caricamento in corso...</p>
+            ) : (
+              tabs.find(t => t.key === selectedTab)?.component
+            )}
+          </div>
         </div>
       </div>
     </div>

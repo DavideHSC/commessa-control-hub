@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, FileText, BarChart3, Settings, Building2, Upload, Database, GitCompareArrows, Layers, ChevronsUpDown, ListTree, SlidersHorizontal } from 'lucide-react'; // Importo l'icona Layers
+import { Home, FileText, BarChart3, Settings, Building2, Upload, Database, GitCompareArrows, Layers, ChevronsUpDown, ListTree, SlidersHorizontal, History } from 'lucide-react'; // Importo l'icona History
 import {
   Sidebar as SidebarPrimitive,
   SidebarContent,
@@ -52,6 +52,11 @@ const serviziItems = [
     title: "Riconciliazione",
     url: "/riconciliazione",
     icon: GitCompareArrows,
+  },
+  {
+    title: "Registro Modifiche",
+    url: "/audit-trail",
+    icon: History,
   },
   {
     title: "Database",

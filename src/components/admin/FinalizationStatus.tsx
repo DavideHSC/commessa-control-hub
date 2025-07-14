@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { CheckCircle, CircleDashed, XCircle, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
 
 interface FinalizationEvent {
   step: string;
@@ -22,6 +23,8 @@ const STEPS = [
 export const FinalizationStatus: React.FC<{ onComplete: () => void; onError: () => void; }> = ({ onComplete, onError }) => {
   const [events, setEvents] = useState<FinalizationEvent[]>([]);
   const [stepStatus, setStepStatus] = useState<Record<string, FinalizationEvent>>({});
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     const eventSource = new EventSource('/api/staging/events');
@@ -38,25 +41,33 @@ export const FinalizationStatus: React.FC<{ onComplete: () => void; onError: () 
       setStepStatus(prev => ({ ...prev, [data.step]: data }));
 
       if (data.step === 'end') {
-        onComplete();
+        setIsCompleted(true);
         eventSource.close();
       }
       if (data.step === 'error') {
-        onError();
+        setHasError(true);
         eventSource.close();
       }
     };
 
     eventSource.onerror = (err) => {
       console.error('SSE Error:', err);
-      onError();
+      setHasError(true);
       eventSource.close();
     };
 
     return () => {
       eventSource.close();
     };
-  }, [onComplete, onError]);
+  }, []);
+
+  const handleComplete = () => {
+    onComplete();
+  };
+
+  const handleError = () => {
+    onError();
+  };
 
   const getStepIcon = (status?: string) => {
     switch (status) {
@@ -73,7 +84,12 @@ export const FinalizationStatus: React.FC<{ onComplete: () => void; onError: () 
       <CardHeader>
         <CardTitle>Stato della Finalizzazione</CardTitle>
         <CardDescription>
-          Il sistema sta trasferendo i dati dalle tabelle di staging a quelle di produzione. Non chiudere questa finestra.
+          {isCompleted 
+            ? "Finalizzazione completata con successo! Puoi chiudere questa finestra."
+            : hasError 
+            ? "Si è verificato un errore durante la finalizzazione."
+            : "Il sistema sta trasferendo i dati dalle tabelle di staging a quelle di produzione."
+          }
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -95,6 +111,21 @@ export const FinalizationStatus: React.FC<{ onComplete: () => void; onError: () 
             ))}
           </ul>
         </ScrollArea>
+        
+        {(isCompleted || hasError) && (
+          <div className="flex justify-end gap-2 mt-4 pt-4 border-t">
+            {isCompleted && (
+              <Button onClick={handleComplete} className="bg-green-600 hover:bg-green-700">
+                Chiudi - Completato
+              </Button>
+            )}
+            {hasError && (
+              <Button onClick={handleError} variant="destructive">
+                Chiudi - Errore
+              </Button>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -16,10 +16,6 @@ import { FinalizationStatus } from '@/components/admin/FinalizationStatus';
 import {
   AlertDialog,
   AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogFooter,
-  AlertDialogAction,
 } from "@/components/ui/alert-dialog"
 
 
@@ -99,6 +95,7 @@ const StagingPage: React.FC = () => {
     setShowStatusDialog(false);
   };
 
+
   const stagingTabs: TabConfig[] = useMemo(() => [
     { key: 'scritture', label: 'Scritture', icon: FileText, component: <StagingScrittureTable />, count: stats?.scritture },
     { key: 'conti', label: 'Piano dei Conti', icon: Library, component: <StagingContiTable />, count: stats?.conti },
@@ -120,6 +117,7 @@ const StagingPage: React.FC = () => {
               <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
               Aggiorna Conteggi
             </Button>
+
             <Button onClick={handleFinalize} disabled={isFinalizing || loading}>
               {isFinalizing ? 'Finalizzazione in corso...' : 'Avvia Finalizzazione'}
             </Button>
@@ -133,14 +131,12 @@ const StagingPage: React.FC = () => {
         />
       </main>
 
-      <AlertDialog open={showStatusDialog}>
-        <AlertDialogContent>
-            {isFinalizing && (
-                <FinalizationStatus 
-                    onComplete={onFinalizationComplete}
-                    onError={onFinalizationError}
-                />
-            )}
+      <AlertDialog open={showStatusDialog} onOpenChange={() => {}}>
+        <AlertDialogContent className="max-w-2xl">
+            <FinalizationStatus 
+                onComplete={onFinalizationComplete}
+                onError={onFinalizationError}
+            />
         </AlertDialogContent>
       </AlertDialog>
 

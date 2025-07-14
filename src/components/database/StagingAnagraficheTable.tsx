@@ -1,156 +1,115 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { AdvancedDataTable } from '@/components/ui/advanced-data-table';
 import { ColumnDef } from '@tanstack/react-table';
-import { apiClient } from '@/api';
-import { useToast } from '@/hooks/use-toast';
-import { SortingState } from '@tanstack/react-table';
+import { useAdvancedTable } from '@/hooks/useAdvancedTable';
+import { DataTableColumnHeader } from '@/components/ui/data-table-column-header';
 
 interface StagingAnagrafica {
   id: string;
-  tipo: string;
-  ragioneSociale: string;
+  tipoSoggetto: string;
+  denominazione: string;
   nome: string;
   cognome: string;
-  codiceFiscale: string;
+  codiceFiscaleClifor: string;
   partitaIva: string;
   indirizzo: string;
   cap: string;
-  citta: string;
-  provincia: string;
-  telefono: string;
-  email: string;
+  comuneResidenza: string;
+  numeroTelefono: string;
+  codiceUnivoco: string;
+  sottocontoCliente: string;
+  sottocontoFornitore: string;
 }
 
 const columns: ColumnDef<StagingAnagrafica>[] = [
   {
-    accessorKey: 'tipo',
-    header: 'Tipo',
+    accessorKey: 'tipoSoggetto',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Tipo" />,
     cell: ({ row }) => (
-      <span className={`px-2 py-1 rounded text-xs font-medium ${
-        row.getValue('tipo') === 'C' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
-      }`}>
-        {row.getValue('tipo') === 'C' ? 'Cliente' : 'Fornitore'}
-      </span>
+      <Badge variant={row.getValue('tipoSoggetto') === 'C' ? 'default' : 'secondary'}>
+        {row.getValue('tipoSoggetto') === 'C' ? 'Cliente' : 'Fornitore'}
+      </Badge>
     ),
   },
   {
-    accessorKey: 'ragioneSociale',
-    header: 'Ragione Sociale',
+    accessorKey: 'denominazione',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Denominazione" />,
+    enableHiding: false,
   },
   {
     accessorKey: 'nome',
-    header: 'Nome',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Nome" />,
   },
   {
     accessorKey: 'cognome',
-    header: 'Cognome',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Cognome" />,
   },
   {
-    accessorKey: 'codiceFiscale',
-    header: 'Codice Fiscale',
+    accessorKey: 'codiceFiscaleClifor',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Codice Fiscale" />,
   },
   {
     accessorKey: 'partitaIva',
-    header: 'P.IVA',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="P.IVA" />,
   },
   {
-    accessorKey: 'citta',
-    header: 'Città',
+    accessorKey: 'comuneResidenza',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Comune" />,
   },
   {
-    accessorKey: 'provincia',
-    header: 'Provincia',
+    accessorKey: 'numeroTelefono',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Telefono" />,
+  },
+  {
+    accessorKey: 'codiceUnivoco',
+    header: ({ column }) => <DataTableColumnHeader column={column} title="Codice Univoco" />,
   },
 ];
 
 export function StagingAnagraficheTable() {
-  const { toast } = useToast();
-  const [data, setData] = useState<StagingAnagrafica[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [totalCount, setTotalCount] = useState(0);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
-  const [searchValue, setSearchValue] = useState("");
-  const [sorting, setSorting] = useState<SortingState>([]);
-
-  const fetchData = async (
-    currentPage: number = page,
-    currentPageSize: number = pageSize,
-    search: string = searchValue,
-    sortBy?: string,
-    sortOrder?: 'asc' | 'desc'
-  ) => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: currentPageSize.toString(),
-        ...(search && { search }),
-        ...(sortBy && { sortBy }),
-        ...(sortOrder && { sortOrder }),
-      });
-
-      const response = await apiClient.get(`/staging/anagrafiche?${params}`);
-      setData(response.data.data || []);
-      setTotalCount(response.data.pagination?.total || 0);
-    } catch (error) {
-      console.error('Errore nel caricamento anagrafiche staging:', error);
-      toast({
-        title: 'Errore nel caricamento',
-        description: 'Impossibile caricare le anagrafiche di staging.',
-        variant: 'destructive',
-      });
-      setData([]);
-      setTotalCount(0);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, [page, pageSize, searchValue, sorting]);
-
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handlePageSizeChange = (newPageSize: number) => {
-    setPageSize(newPageSize);
-    setPage(1); // Reset to first page when changing page size
-  };
-
-  const handleSearchChange = (search: string) => {
-    setSearchValue(search);
-    setPage(1); // Reset to first page when searching
-  };
-
-  const handleSortingChange = (newSorting: SortingState) => {
-    setSorting(newSorting);
-    setPage(1); // Reset to first page when sorting
-  };
+  const {
+    data,
+    totalCount,
+    page,
+    pageSize,
+    search,
+    sorting,
+    loading,
+    onPageChange,
+    onPageSizeChange,
+    onSearchChange,
+    onSortingChange,
+  } = useAdvancedTable<StagingAnagrafica>({
+    endpoint: '/api/staging/anagrafiche',
+    initialSorting: [{ id: 'denominazione', desc: false }]
+  });
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Anagrafiche di Staging</h2>
-      </div>
-      
-      <AdvancedDataTable
-        columns={columns}
-        data={data}
-        loading={loading}
-        totalCount={totalCount}
-        page={page}
-        pageSize={pageSize}
-        onPageChange={handlePageChange}
-        onPageSizeChange={handlePageSizeChange}
-        searchValue={searchValue}
-        onSearchChange={handleSearchChange}
-        sorting={sorting}
-        onSortingChange={handleSortingChange}
-        emptyMessage="Nessuna anagrafica di staging trovata."
-      />
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Dati di Staging - Anagrafiche</CardTitle>
+        <CardDescription>
+          Contenuto grezzo importato dai file. Usa la barra di ricerca e la gestione colonne per analizzare i dati.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <AdvancedDataTable
+          columns={columns}
+          data={data}
+          totalCount={totalCount}
+          page={page}
+          pageSize={pageSize}
+          searchValue={search}
+          sorting={sorting}
+          loading={loading}
+          onPageChange={onPageChange}
+          onPageSizeChange={onPageSizeChange}
+          onSearchChange={onSearchChange}
+          onSortingChange={onSortingChange}
+        />
+      </CardContent>
+    </Card>
   );
 } 

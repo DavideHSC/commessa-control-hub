@@ -28,6 +28,7 @@ import stagingRoutes from './routes/staging'; // Aggiungo l'import
 import commesseWithPerformanceRoutes from './routes/commesseWithPerformance';
 import reconciliationRoutes from './routes/reconciliation';
 import smartAllocationRoutes from './routes/smartAllocation';
+import auditTrailRoutes from './routes/auditTrail';
 
 // Import delle nuove rotte V2
 import importRouterV2 from './routes/v2/import';
@@ -71,6 +72,7 @@ app.use('/api/database/stats', statsRoutes);
 app.use('/api/staging', stagingRoutes); // Aggiungo la rotta
 app.use('/api/reconciliation', reconciliationRoutes);
 app.use('/api/smart-allocation', smartAllocationRoutes);
+app.use('/api/allocation/audit', auditTrailRoutes);
 
 // Setup delle nuove rotte V2
 app.use('/api/v2/import', importRouterV2);
