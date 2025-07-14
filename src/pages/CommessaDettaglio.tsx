@@ -13,7 +13,9 @@ import { Commessa, VoceAnalitica, ScritturaContabile } from '@prisma/client';
 import { getCommesse, getVociAnalitiche } from '@/api';
 import { getRegistrazioni } from '@/api/registrazioni';
 import { getCommesseWithPerformance, CommessaWithPerformance } from '@/api/commessePerformance';
-import { LineChart, Line, BarChart, Bar, PieChart as RechartsPieChart, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, BarChart, Bar, PieChart as RechartsPieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { StatusIndicators, MargineBadge, ProgressBadge, StatusBadge, HealthBadge } from '@/components/commesse/StatusIndicators';
+import { CommessaActionMenu } from '@/components/commesse/CommessaActionMenu';
 
 const CommessaDettaglio = () => {
   const { id } = useParams<{ id: string }>();
@@ -92,11 +94,23 @@ const CommessaDettaglio = () => {
   const prepareChartData = () => {
     if (!commessaPerformance) return { trendData: [], budgetData: [], movimentiData: [] };
 
-    const budgetData = commessa?.budget?.map(b => ({
-      name: getNomeVoceAnalitica(b.voceAnaliticaId),
-      value: b.importo,
-      color: `hsl(${Math.random() * 360}, 70%, 50%)`
-    })) || [];
+    const budgetData = [
+      {
+        name: 'Budget Totale',
+        value: commessaPerformance.budget,
+        color: `hsl(210, 70%, 50%)`
+      },
+      {
+        name: 'Costi Sostenuti',
+        value: commessaPerformance.costi,
+        color: `hsl(0, 70%, 50%)`
+      },
+      {
+        name: 'Ricavi',
+        value: commessaPerformance.ricavi,
+        color: `hsl(120, 70%, 50%)`
+      }
+    ];
 
     // Simula dati trend mensili (in un'app reale verrebbero dal backend)
     const trendData = Array.from({ length: 6 }, (_, i) => ({
@@ -120,6 +134,32 @@ const CommessaDettaglio = () => {
     return { trendData, budgetData, movimentiData };
   };
 
+  // Handlers per le azioni rapide
+  const handleAllocateMovements = () => {
+    console.log('Allocating movements for commessa:', id);
+    // TODO: Implementare logica di allocazione movimenti
+  };
+
+  const handleEditBudget = () => {
+    console.log('Editing budget for commessa:', id);
+    // TODO: Implementare logica di modifica budget
+  };
+
+  const handleExportReport = (format: 'pdf' | 'excel' | 'csv') => {
+    console.log(`Exporting ${format} report for commessa:`, id);
+    // TODO: Implementare logica di esportazione
+  };
+
+  const handleAssignUnallocatedCosts = () => {
+    console.log('Assigning unallocated costs for commessa:', id);
+    // TODO: Implementare logica di assegnazione costi non allocati
+  };
+
+  const handleQuickAnalysis = () => {
+    console.log('Quick analysis for commessa:', id);
+    // TODO: Implementare analisi rapida
+  };
+
   if (isLoading) {
     return <div className="flex justify-center items-center h-64"><p>Caricamento dettagli commessa...</p></div>;
   }
@@ -128,14 +168,14 @@ const CommessaDettaglio = () => {
     return <div className="text-center py-12"><p>Commessa non trovata.</p></div>;
   }
 
-  const totalBudget = commessa?.budget?.reduce((sum, item) => sum + (item.importo || 0), 0) || 0;
+  const totalBudget = commessaPerformance?.budget || 0;
   
   const movimentiAllocati = registrazioni
     .flatMap(r => 
-      r.righe.map(riga => ({ ...riga, dataRegistrazione: r.data, descrizioneRegistrazione: r.descrizione, idRegistrazione: r.id }))
+      (r as any).righe?.map((riga: any) => ({ ...riga, dataRegistrazione: r.data, descrizioneRegistrazione: r.descrizione, idRegistrazione: r.id })) || []
     )
-    .filter(riga => 
-      riga.allocazioni && riga.allocazioni.some(a => a.commessaId === commessa?.id)
+    .filter((riga: any) => 
+      riga.allocazioni && riga.allocazioni.some((a: any) => a.commessaId === commessa?.id)
     );
 
   const healthStatus = getHealthStatus();
@@ -161,13 +201,35 @@ const CommessaDettaglio = () => {
             <div className="flex items-center gap-3 mt-1">
               <p className="text-slate-600">Commessa #{commessa?.id}</p>
               {commessaPerformance && (
-                <div className="flex items-center gap-2">
-                  <HealthIcon className={`w-4 h-4 ${healthStatus.color}`} />
-                  <span className={`text-sm font-medium ${healthStatus.color}`}>{healthStatus.text}</span>
+                <div className="flex items-center gap-3 mt-2">
+                  <StatusIndicators 
+                    margine={commessaPerformance.margine}
+                    percentualeAvanzamento={commessaPerformance.percentualeAvanzamento}
+                    budget={commessaPerformance.budget}
+                    costi={commessaPerformance.costi}
+                    ricavi={commessaPerformance.ricavi}
+                    size="sm"
+                  />
                 </div>
               )}
             </div>
           </div>
+        </div>
+        
+        {/* Azioni Rapide */}
+        <div className="flex items-center gap-3">
+          {commessaPerformance && (
+            <CommessaActionMenu
+              commessa={commessaPerformance}
+              onAllocateMovements={handleAllocateMovements}
+              onEditBudget={handleEditBudget}
+              onExportReport={handleExportReport}
+              onAssignUnallocatedCosts={handleAssignUnallocatedCosts}
+              onQuickAnalysis={handleQuickAnalysis}
+              variant="default"
+              size="md"
+            />
+          )}
         </div>
       </div>
 
@@ -277,11 +339,11 @@ const CommessaDettaglio = () => {
                 <ResponsiveContainer width="100%" height={300}>
                   <RechartsPieChart>
                     <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                    <RechartsPieChart data={budgetData} cx="50%" cy="50%" innerRadius={60} outerRadius={100}>
+                    <Pie data={budgetData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value">
                       {budgetData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
-                    </RechartsPieChart>
+                    </Pie>
                   </RechartsPieChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -341,15 +403,15 @@ const CommessaDettaglio = () => {
             </CardHeader>
             <CardContent>
               <div className="divide-y divide-slate-200">
-                {commessa?.budget?.map((budgetItem) => (
-                  <div key={budgetItem.voceAnaliticaId} className="flex items-center justify-between p-4 hover:bg-slate-50">
+                {budgetData.map((budgetItem, index) => (
+                  <div key={index} className="flex items-center justify-between p-4 hover:bg-slate-50">
                     <div className="flex items-center gap-3">
                       <Landmark className="w-5 h-5 text-slate-400" />
-                      <span className="font-medium text-slate-800">{getNomeVoceAnalitica(budgetItem.voceAnaliticaId)}</span>
+                      <span className="font-medium text-slate-800">{budgetItem.name}</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <DollarSign className="w-5 h-5 text-green-500" />
-                      <span className="font-semibold text-slate-900 text-lg">{formatCurrency(budgetItem.importo)}</span>
+                      <span className="font-semibold text-slate-900 text-lg">{formatCurrency(budgetItem.value)}</span>
                     </div>
                   </div>
                 ))}

@@ -114,6 +114,9 @@ router.get('/', async (req, res) => {
         console.warn(`Cliente non trovato per commessa ${c.id} con clienteId ${c.clienteId}`);
       }
 
+      // Calcola percentuale avanzamento basata sui costi/budget
+      const percentualeAvanzamento = budgetTotale > 0 ? Math.min((costi / budgetTotale) * 100, 100) : 0;
+
       return {
         id: c.id,
         nome: c.nome,
@@ -126,6 +129,7 @@ router.get('/', async (req, res) => {
         costi: costi,
         margine: margine,
         budget: budgetTotale,
+        percentualeAvanzamento: percentualeAvanzamento,
         isParent: !c.parentId, // È padre se non ha parentId
         parentId: c.parentId || undefined,
         figlie: []
@@ -145,6 +149,11 @@ router.get('/', async (req, res) => {
       const costiTotali = padre.costi + figlieAssociate.reduce((acc, f) => acc + f.costi, 0);
       const budgetTotale = padre.budget + figlieAssociate.reduce((acc, f) => acc + f.budget, 0);
       const margineConsolidato = ricaviTotali > 0 ? ((ricaviTotali - costiTotali) / ricaviTotali) * 100 : 0;
+      
+      // Calcola percentuale avanzamento consolidata
+      const percentualeAvanzamentoConsolidata = budgetTotale > 0 ? 
+        ((padre.percentualeAvanzamento * padre.budget) + 
+         figlieAssociate.reduce((acc, f) => acc + (f.percentualeAvanzamento * f.budget), 0)) / budgetTotale : 0;
 
       return {
         ...padre,
@@ -152,6 +161,7 @@ router.get('/', async (req, res) => {
         costi: costiTotali,
         budget: budgetTotale,
         margine: margineConsolidato,
+        percentualeAvanzamento: percentualeAvanzamentoConsolidata,
         figlie: figlieAssociate
       };
     });

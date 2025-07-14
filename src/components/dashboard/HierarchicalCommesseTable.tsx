@@ -17,7 +17,9 @@ import {
   TrendingUp,
   TrendingDown
 } from 'lucide-react';
-import type { CommessaDashboard } from '../../types';
+import { StatusIndicators, MargineBadge, ProgressBadge, StatusBadge } from '@/components/commesse/StatusIndicators';
+import { QuickActions } from '@/components/commesse/CommessaActionMenu';
+import type { CommessaDashboard } from '../../../types';
 
 interface HierarchicalCommesseTableProps {
   commesse: CommessaDashboard[];
@@ -41,6 +43,27 @@ const getMargineColor = (margine: number) => {
 export const HierarchicalCommesseTable: React.FC<HierarchicalCommesseTableProps> = ({ commesse }) => {
   const handleViewDetails = (id: string) => {
     window.location.assign(`/commesse/${id}`);
+  };
+
+  // Handlers per le azioni rapide
+  const handleAllocateMovements = (commessa: CommessaDashboard) => {
+    console.log('Allocating movements for commessa:', commessa.id);
+    // TODO: Implementare logica di allocazione movimenti
+  };
+
+  const handleEditBudget = (commessa: CommessaDashboard) => {
+    console.log('Editing budget for commessa:', commessa.id);
+    // TODO: Implementare logica di modifica budget
+  };
+
+  const handleExportReport = (commessa: CommessaDashboard, format: 'pdf' | 'excel' | 'csv') => {
+    console.log(`Exporting ${format} report for commessa:`, commessa.id);
+    // TODO: Implementare logica di esportazione
+  };
+
+  const handleAssignUnallocatedCosts = (commessa: CommessaDashboard) => {
+    console.log('Assigning unallocated costs for commessa:', commessa.id);
+    // TODO: Implementare logica di assegnazione costi non allocati
   };
 
   // Separa le commesse padre da quelle che potrebbero non avere figlie
@@ -97,9 +120,7 @@ export const HierarchicalCommesseTable: React.FC<HierarchicalCommesseTableProps>
 
                       {/* Margine */}
                       <div className="text-center">
-                        <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getMargineColor(comune.margine)}`}>
-                          {formatPercent(comune.margine)}
-                        </div>
+                        <MargineBadge margine={comune.margine} size="sm" />
                         <div className="text-xs text-slate-500 mt-1">Margine</div>
                       </div>
 
@@ -150,6 +171,9 @@ export const HierarchicalCommesseTable: React.FC<HierarchicalCommesseTableProps>
                                     <div className="text-xs text-slate-500">
                                       {attivita.cliente.nome}
                                     </div>
+                                    <div className="flex items-center gap-1 mt-1">
+                                      <StatusBadge margine={attivita.margine} percentuale={attivita.percentualeAvanzamento || 0} size="sm" />
+                                    </div>
                                   </div>
                                 </div>
                               </TableCell>
@@ -160,22 +184,31 @@ export const HierarchicalCommesseTable: React.FC<HierarchicalCommesseTableProps>
                                 {formatCurrency(attivita.costi)}
                               </TableCell>
                               <TableCell className="text-right">
-                                <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getMargineColor(attivita.margine)}`}>
-                                  {formatPercent(attivita.margine)}
-                                </div>
+                                <MargineBadge margine={attivita.margine} size="sm" />
                               </TableCell>
                               <TableCell className="text-right text-slate-600">
                                 {formatCurrency(attivita.budget)}
                               </TableCell>
                               <TableCell className="text-center">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => handleViewDetails(attivita.id)}
-                                >
-                                  <Eye className="w-4 h-4 mr-1" />
-                                  Dettagli
-                                </Button>
+                                <div className="flex items-center justify-center gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleViewDetails(attivita.id)}
+                                  >
+                                    <Eye className="w-4 h-4 mr-1" />
+                                    Dettagli
+                                  </Button>
+                                  
+                                  <QuickActions
+                                    commessa={attivita}
+                                    onAllocateMovements={() => handleAllocateMovements(attivita)}
+                                    onEditBudget={() => handleEditBudget(attivita)}
+                                    onExportReport={(format) => handleExportReport(attivita, format)}
+                                    onAssignUnallocatedCosts={() => handleAssignUnallocatedCosts(attivita)}
+                                    size="sm"
+                                  />
+                                </div>
                               </TableCell>
                             </TableRow>
                           ))}

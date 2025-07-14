@@ -83,6 +83,7 @@ export interface CommessaDashboard {
   costi: number;
   margine: number;
   budget: number;
+  percentualeAvanzamento: number;
   isParent: boolean;
   parentId?: string;
   figlie?: CommessaDashboard[];
