@@ -89,7 +89,7 @@ export function StagingAnagraficheTable() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Dati di Staging - Anagrafiche</CardTitle>
+        <CardTitle>Dati Provvisori - Anagrafiche</CardTitle>
         <CardDescription>
           Contenuto grezzo importato dai file. Usa la barra di ricerca e la gestione colonne per analizzare i dati.
         </CardDescription>

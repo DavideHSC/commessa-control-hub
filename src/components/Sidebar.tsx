@@ -34,12 +34,7 @@ const menuItems = [
     title: "Prima Nota",
     url: "/prima-nota",
     icon: FileText,
-  },
-  {
-    title: "Report",
-    url: "/report",
-    icon: BarChart3,
-  },
+  }
 ];
 
 const serviziItems = [
@@ -64,7 +59,7 @@ const serviziItems = [
     icon: Database,
   },
   {
-    title: "Dati di Staging",
+    title: "Dati Provvisori",
     url: "/staging",
     icon: Layers, // Uso la nuova icona
   },

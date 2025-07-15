@@ -103,7 +103,7 @@ export function StagingCausaliTable() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Dati di Staging - Causali Contabili</CardTitle>
+        <CardTitle>Dati Provvisori - Causali Contabili</CardTitle>
         <CardDescription>
           Contenuto grezzo importato dai file. Usa la barra di ricerca e la gestione colonne per analizzare i dati.
         </CardDescription>

@@ -81,7 +81,7 @@ export const StagingContiTable = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Dati di Staging - Piano dei Conti</CardTitle>
+        <CardTitle>Dati Provvisori - Piano dei Conti</CardTitle>
         <CardDescription>
           Contenuto grezzo importato dai file. Usa la barra di ricerca e la gestione colonne (nel toolbar della tabella) per analizzare i dati.
         </CardDescription>

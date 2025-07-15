@@ -119,7 +119,7 @@ export const StagingScrittureTable = () => {
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Dati di Staging - Testate Scritture Contabili</CardTitle>
+          <CardTitle>Dati Provvisori - Testate Scritture Contabili</CardTitle>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" size="sm" disabled={isResetting || loading}>

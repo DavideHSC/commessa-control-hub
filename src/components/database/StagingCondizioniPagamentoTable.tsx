@@ -90,7 +90,7 @@ export function StagingCondizioniPagamentoTable() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Dati di Staging - Condizioni Pagamento</CardTitle>
+        <CardTitle>Dati Provvisori - Condizioni Pagamento</CardTitle>
         <CardDescription>
           Contenuto grezzo importato dai file. Usa la barra di ricerca e la gestione colonne per analizzare i dati.
         </CardDescription>

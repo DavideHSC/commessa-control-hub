@@ -93,7 +93,7 @@ export function StagingCodiciIvaTable() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Dati di Staging - Codici IVA</CardTitle>
+        <CardTitle>Dati Provvisori - Codici IVA</CardTitle>
         <CardDescription>
           Contenuto grezzo importato dai file. Usa la barra di ricerca e la gestione colonne per analizzare i dati.
         </CardDescription>

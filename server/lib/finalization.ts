@@ -1,6 +1,38 @@
 import { PrismaClient } from '@prisma/client';
 
 /**
+ * CLEAN SLATE APPROACH - Elimina tutto e ricrea da staging
+ * Appropriato per fase di test con dati non critici
+ */
+
+/**
+ * Elimina tutti i dati di produzione per un fresh start
+ */
+export async function cleanSlateReset(prisma: PrismaClient) {
+  console.log('[Clean Slate] Eliminando tutti i dati di produzione...');
+  
+  await prisma.$transaction(async (tx) => {
+    // Elimina in ordine CORRETTO per rispettare foreign keys
+    await tx.allocazione.deleteMany({});
+    await tx.budgetVoce.deleteMany({});
+    await tx.regolaRipartizione.deleteMany({});
+    await tx.importAllocazione.deleteMany({});
+    await tx.commessa.deleteMany({});
+    await tx.rigaIva.deleteMany({});
+    await tx.rigaScrittura.deleteMany({});
+    await tx.scritturaContabile.deleteMany({});
+    await tx.cliente.deleteMany({});
+    await tx.fornitore.deleteMany({});
+    await tx.causaleContabile.deleteMany({});
+    await tx.codiceIva.deleteMany({});
+    await tx.condizionePagamento.deleteMany({});
+    // NON eliminiamo Conto e VoceAnalitica perché sono dati di configurazione
+    
+    console.log('[Clean Slate] Tutti i dati di produzione eliminati.');
+  });
+}
+
+/**
  * Finalizza le anagrafiche, smistando i dati da StagingAnagrafica
  * verso i modelli di produzione Cliente e Fornitore.
  */
@@ -87,9 +119,8 @@ export async function finalizeCausaliContabili(prisma: PrismaClient) {
   }));
 
   await prisma.$transaction(async (tx) => {
-    const externalIds = causaliToCreate.map(c => c.externalId).filter(Boolean) as string[];
-    if (externalIds.length > 0) {
-      await tx.causaleContabile.deleteMany({ where: { externalId: { in: externalIds } } });
+    // CLEAN SLATE: Crea tutto nuovo
+    if (causaliToCreate.length > 0) {
       await tx.causaleContabile.createMany({ data: causaliToCreate, skipDuplicates: true });
     }
   });
@@ -121,9 +152,8 @@ export async function finalizeCodiciIva(prisma: PrismaClient) {
   });
 
   await prisma.$transaction(async (tx) => {
-    const externalIds = codiciToCreate.map(c => c.externalId).filter(Boolean) as string[];
-    if (externalIds.length > 0) {
-      await tx.codiceIva.deleteMany({ where: { externalId: { in: externalIds } } });
+    // CLEAN SLATE: Crea tutto nuovo
+    if (codiciToCreate.length > 0) {
       await tx.codiceIva.createMany({ data: codiciToCreate, skipDuplicates: true });
     }
   });
@@ -155,9 +185,8 @@ export async function finalizeCondizioniPagamento(prisma: PrismaClient) {
   });
 
   await prisma.$transaction(async (tx) => {
-    const externalIds = condizioniToCreate.map(c => c.externalId).filter(Boolean) as string[];
-    if (externalIds.length > 0) {
-      await tx.condizionePagamento.deleteMany({ where: { externalId: { in: externalIds } } });
+    // CLEAN SLATE: Crea tutto nuovo
+    if (condizioniToCreate.length > 0) {
       await tx.condizionePagamento.createMany({ data: condizioniToCreate, skipDuplicates: true });
     }
   });
@@ -218,13 +247,21 @@ export async function finalizeConti(prisma: PrismaClient) {
     };
   });
 
-  await prisma.$transaction(async (tx) => {
-    const externalIds = contiToCreate.map(c => c.externalId).filter(Boolean) as string[];
-    if (externalIds.length > 0) {
-      await tx.conto.deleteMany({ where: { externalId: { in: externalIds } } });
-      await tx.conto.createMany({ data: contiToCreate, skipDuplicates: true });
-    }
-  });
+  // CLEAN SLATE: Per i conti facciamo UPSERT in batch più piccoli
+  const BATCH_SIZE = 50;
+  for (let i = 0; i < contiToCreate.length; i += BATCH_SIZE) {
+    const batch = contiToCreate.slice(i, i + BATCH_SIZE);
+    
+    await prisma.$transaction(async (tx) => {
+      for (const conto of batch) {
+        await tx.conto.upsert({
+          where: { externalId: conto.externalId },
+          update: conto,
+          create: conto
+        });
+      }
+    });
+  }
 
   return { count: contiToCreate.length };
 }

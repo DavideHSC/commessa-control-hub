@@ -78,7 +78,7 @@ const StagingPage: React.FC = () => {
   const onFinalizationComplete = () => {
     toast({
         title: "Finalizzazione Completata!",
-        description: "Tutti i dati di staging sono stati trasferiti con successo.",
+        description: "Tutti i Dati Provvisori sono stati trasferiti con successo.",
     });
     setIsFinalizing(false);
     setShowStatusDialog(false);
@@ -110,7 +110,7 @@ const StagingPage: React.FC = () => {
       <header className="flex items-center justify-between p-4 border-b">
         <div className='flex items-center'>
           <DatabaseIcon className="h-6 w-6 mr-2" />
-          <h1 className="text-2xl font-bold">Dati di Staging</h1>
+          <h1 className="text-2xl font-bold">Dati Provvisori</h1>
         </div>
         <div className="flex items-center gap-4">
             <Button onClick={() => fetchCounts()} disabled={loading || isFinalizing}>

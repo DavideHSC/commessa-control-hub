@@ -2,6 +2,7 @@ import express from 'express';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { EventEmitter } from 'events';
 import {
+    cleanSlateReset,
     finalizeAnagrafiche,
     finalizeCausaliContabili,
     finalizeCodiciIva,
@@ -452,6 +453,11 @@ const runFinalizationProcess = async () => {
 
     try {
         sseSend({ step: 'start', message: 'Avvio del processo di finalizzazione...' });
+
+        // Fase 0: CLEAN SLATE - Elimina tutti i dati di produzione
+        sseSend({ step: 'clean_slate', status: 'running', message: 'Eliminazione dati esistenti (clean slate)...' });
+        await cleanSlateReset(prisma);
+        sseSend({ step: 'clean_slate', status: 'completed', message: 'Dati di produzione eliminati.' });
 
         // Fase 1: Finalizzazione Anagrafiche
         sseSend({ step: 'anagrafiche', status: 'running', message: 'Finalizzazione anagrafiche...' });
