@@ -7,7 +7,9 @@ import {
     finalizeCodiciIva,
     finalizeCondizioniPagamento,
     finalizeConti,
-    finalizeScritture
+    finalizeScritture,
+    finalizeRigaIva,
+    finalizeAllocazioni
 } from '../lib/finalization';
 
 const prisma = new PrismaClient();
@@ -480,6 +482,16 @@ const runFinalizationProcess = async () => {
         sseSend({ step: 'scritture', status: 'running', message: 'Finalizzazione scritture contabili...' });
         const scrittureResult = await finalizeScritture(prisma);
         sseSend({ step: 'scritture', status: 'completed', message: 'Scritture contabili finalizzate.', count: scrittureResult.count });
+
+        // Fase 7: Finalizzazione Righe IVA
+        sseSend({ step: 'righe_iva', status: 'running', message: 'Finalizzazione righe IVA...' });
+        const righeIvaResult = await finalizeRigaIva(prisma);
+        sseSend({ step: 'righe_iva', status: 'completed', message: 'Righe IVA finalizzate.', count: righeIvaResult.count });
+
+        // Fase 8: Finalizzazione Allocazioni
+        sseSend({ step: 'allocazioni', status: 'running', message: 'Finalizzazione allocazioni...' });
+        const allocazioniResult = await finalizeAllocazioni(prisma);
+        sseSend({ step: 'allocazioni', status: 'completed', message: 'Allocazioni finalizzate.', count: allocazioniResult.count });
 
         sseSend({ step: 'end', message: 'Processo di finalizzazione completato con successo.' });
 

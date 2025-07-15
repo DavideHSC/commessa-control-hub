@@ -18,6 +18,8 @@ const STEPS = [
   { key: 'condizioni_pagamento', label: 'Condizioni di Pagamento' },
   { key: 'conti', label: 'Piano dei Conti' },
   { key: 'scritture', label: 'Scritture Contabili' },
+  { key: 'righe_iva', label: 'Righe IVA' },
+  { key: 'allocazioni', label: 'Allocazioni' },
 ];
 
 export const FinalizationStatus: React.FC<{ onComplete: () => void; onError: () => void; }> = ({ onComplete, onError }) => {

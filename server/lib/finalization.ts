@@ -16,13 +16,14 @@ export async function finalizeAnagrafiche(prisma: PrismaClient) {
   const fornitoriToCreate: any[] = [];
 
   for (const sa of stagingData) {
-    // Determina se è un cliente o fornitore. 'C' -> Cliente, 'F' -> Fornitore
+    // Determina se è un cliente o fornitore
+    // Supporta sia 'C'/'F' che '0'/'1' (0=Cliente, 1=Fornitore)
     const tipoSoggetto = sa.tipoSoggetto?.toUpperCase();
     
     // Costruiamo un externalId basato sul codice univoco fornito
     const externalId = sa.codiceUnivoco;
 
-    if (tipoSoggetto === 'C') {
+    if (tipoSoggetto === 'C' || tipoSoggetto === '0') {
       clientiToCreate.push({
         externalId: externalId,
         nome: sa.denominazione || `${sa.cognome || ''} ${sa.nome || ''}`.trim(),
@@ -32,7 +33,7 @@ export async function finalizeAnagrafiche(prisma: PrismaClient) {
         codiceAnagrafica: sa.codiceAnagrafica,
         // ... altri campi mappati per Cliente
       });
-    } else if (tipoSoggetto === 'F') {
+    } else if (tipoSoggetto === 'F' || tipoSoggetto === '1') {
       fornitoriToCreate.push({
         externalId: externalId,
         nome: sa.denominazione || `${sa.cognome || ''} ${sa.nome || ''}`.trim(),
@@ -355,4 +356,196 @@ export async function finalizeScritture(prisma: PrismaClient) {
 
   console.log(`[Finalize Scritture] Finalizzate ${scrittureFinalizzate} scritture contabili.`);
   return { count: scrittureFinalizzate };
-} 
+}
+
+/**
+ * Finalizza le righe IVA.
+ * Legge da StagingRigaIva e popola RigaIva.
+ */
+export async function finalizeRigaIva(prisma: PrismaClient) {
+  const stagingData = await prisma.stagingRigaIva.findMany();
+
+  if (stagingData.length === 0) {
+    console.log('[Finalize RigaIva] Nessuna riga IVA in staging. Salto il passaggio.');
+    return { count: 0 };
+  }
+
+  const righeIvaToCreate: any[] = [];
+  let rilevateCorrelazioni = 0;
+
+  for (const stagingRiga of stagingData) {
+    // Trova la scrittura contabile corrispondente
+    const scrittura = await prisma.scritturaContabile.findFirst({
+      where: { externalId: stagingRiga.codiceUnivocoScaricamento },
+      select: { id: true }
+    });
+
+    if (!scrittura) {
+      console.warn(`[Finalize RigaIva] Scrittura non trovata per ${stagingRiga.codiceUnivocoScaricamento}`);
+      continue;
+    }
+
+    // Trova il codice IVA
+    const codiceIva = await prisma.codiceIva.findFirst({
+      where: { 
+        OR: [
+          { codice: stagingRiga.codiceIva },
+          { externalId: stagingRiga.codiceIva }
+        ]
+      },
+      select: { id: true }
+    });
+
+    if (!codiceIva) {
+      console.warn(`[Finalize RigaIva] Codice IVA non trovato: ${stagingRiga.codiceIva}`);
+      continue;
+    }
+
+    // Trova la riga scrittura associata (se esiste)
+    const rigaScrittura = await prisma.rigaScrittura.findFirst({
+      where: { scritturaContabileId: scrittura.id },
+      select: { id: true }
+    });
+
+    // Parsing sicuro degli importi
+    const imponibile = stagingRiga.imponibile ? 
+      parseFloat(stagingRiga.imponibile.replace(',', '.')) : 0;
+    const imposta = stagingRiga.imposta ? 
+      parseFloat(stagingRiga.imposta.replace(',', '.')) : 0;
+
+    righeIvaToCreate.push({
+      imponibile: !isNaN(imponibile) ? imponibile : 0,
+      imposta: !isNaN(imposta) ? imposta : 0,
+      codiceIvaId: codiceIva.id,
+      rigaScritturaId: rigaScrittura?.id || null
+    });
+    
+    rilevateCorrelazioni++;
+  }
+
+  // Processare in batch per evitare timeout
+  const BATCH_SIZE = 100;
+  let righeIvaFinalizzate = 0;
+
+  for (let i = 0; i < righeIvaToCreate.length; i += BATCH_SIZE) {
+    const batch = righeIvaToCreate.slice(i, i + BATCH_SIZE);
+    console.log(`[Finalize RigaIva] Processando batch ${Math.floor(i/BATCH_SIZE) + 1}/${Math.ceil(righeIvaToCreate.length/BATCH_SIZE)} (${batch.length} righe)`);
+    
+    await prisma.$transaction(async (tx) => {
+      // Crea le nuove righe IVA
+      for (const riga of batch) {
+        await tx.rigaIva.create({ data: riga });
+        righeIvaFinalizzate++;
+      }
+    });
+  }
+
+  console.log(`[Finalize RigaIva] Finalizzate ${righeIvaFinalizzate} righe IVA (${rilevateCorrelazioni} correlazioni rilevate).`);
+  return { count: righeIvaFinalizzate };
+}
+
+/**
+ * Finalizza le allocazioni.
+ * Legge da StagingAllocazione e popola Allocazione.
+ */
+export async function finalizeAllocazioni(prisma: PrismaClient) {
+  const stagingData = await prisma.stagingAllocazione.findMany();
+
+  if (stagingData.length === 0) {
+    console.log('[Finalize Allocazioni] Nessuna allocazione in staging. Salto il passaggio.');
+    return { count: 0 };
+  }
+
+  const allocazioniToCreate: any[] = [];
+  let rilevateCorrelazioni = 0;
+
+  for (const stagingAllocazione of stagingData) {
+    // Trova la scrittura contabile corrispondente
+    const scrittura = await prisma.scritturaContabile.findFirst({
+      where: { externalId: stagingAllocazione.codiceUnivocoScaricamento },
+      select: { id: true }
+    });
+
+    if (!scrittura) {
+      console.warn(`[Finalize Allocazioni] Scrittura non trovata per ${stagingAllocazione.codiceUnivocoScaricamento}`);
+      continue;
+    }
+
+    // Trova la riga scrittura 
+    const rigaScrittura = await prisma.rigaScrittura.findFirst({
+      where: { scritturaContabileId: scrittura.id },
+      select: { id: true }
+    });
+
+    if (!rigaScrittura) {
+      console.warn(`[Finalize Allocazioni] Riga scrittura non trovata per ${stagingAllocazione.codiceUnivocoScaricamento}`);
+      continue;
+    }
+
+    // Trova la commessa (se specificata)
+    let commessa: { id: string } | null = null;
+    if (stagingAllocazione.centroDiCosto) {
+      commessa = await prisma.commessa.findFirst({
+        where: { 
+          OR: [
+            { externalId: stagingAllocazione.centroDiCosto },
+            { nome: stagingAllocazione.centroDiCosto }
+          ]
+        },
+        select: { id: true }
+      });
+    }
+
+    // Trova una voce analitica di default (per ora, meglio creare una logica più specifica)
+    const voceAnalitica = await prisma.voceAnalitica.findFirst({
+      select: { id: true }
+    });
+
+    if (!voceAnalitica) {
+      console.warn(`[Finalize Allocazioni] Nessuna voce analitica trovata - skip allocazione`);
+      continue;
+    }
+
+    // Parsing sicuro dell'importo
+    const importo = stagingAllocazione.parametro ? 
+      parseFloat(stagingAllocazione.parametro.replace(',', '.')) : 0;
+
+    if (commessa) {
+      allocazioniToCreate.push({
+        importo: !isNaN(importo) ? importo : 0,
+        rigaScritturaId: rigaScrittura.id,
+        commessaId: commessa.id,
+        voceAnaliticaId: voceAnalitica.id,
+        dataMovimento: new Date(),
+        tipoMovimento: 'COSTO_EFFETTIVO' as const, // Default, potrebbe essere determinato dinamicamente
+        note: `Allocazione automatica da staging - Centro: ${stagingAllocazione.centroDiCosto}`
+      });
+      
+      rilevateCorrelazioni++;
+    }
+  }
+
+  // Processare in batch per evitare timeout
+  const BATCH_SIZE = 50;
+  let allocazioniFinalizzate = 0;
+
+  for (let i = 0; i < allocazioniToCreate.length; i += BATCH_SIZE) {
+    const batch = allocazioniToCreate.slice(i, i + BATCH_SIZE);
+    console.log(`[Finalize Allocazioni] Processando batch ${Math.floor(i/BATCH_SIZE) + 1}/${Math.ceil(allocazioniToCreate.length/BATCH_SIZE)} (${batch.length} allocazioni)`);
+    
+    await prisma.$transaction(async (tx) => {
+      // Crea le nuove allocazioni
+      for (const allocazione of batch) {
+        try {
+          await tx.allocazione.create({ data: allocazione });
+          allocazioniFinalizzate++;
+        } catch (error) {
+          console.warn(`[Finalize Allocazioni] Errore creazione allocazione: ${error}`);
+        }
+      }
+    });
+  }
+
+  console.log(`[Finalize Allocazioni] Finalizzate ${allocazioniFinalizzate} allocazioni (${rilevateCorrelazioni} correlazioni rilevate).`);
+  return { count: allocazioniFinalizzate };
+}

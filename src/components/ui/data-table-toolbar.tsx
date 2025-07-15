@@ -10,14 +10,14 @@ import React from "react";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
-  searchValue: string
-  onSearchChange: (value: string) => void
+  searchValue?: string
+  onSearchChange?: (value: string) => void
   toolbarButtons?: React.ReactNode
 }
 
 export function DataTableToolbar<TData>({
   table,
-  searchValue,
+  searchValue = '',
   onSearchChange,
   toolbarButtons
 }: DataTableToolbarProps<TData>) {
@@ -26,7 +26,9 @@ export function DataTableToolbar<TData>({
   const [debouncedSearch] = useDebounce(localSearch, 300);
 
   useEffect(() => {
-    onSearchChange(debouncedSearch);
+    if (onSearchChange) {
+      onSearchChange(debouncedSearch);
+    }
   }, [debouncedSearch, onSearchChange]);
 
   useEffect(() => {
@@ -34,7 +36,9 @@ export function DataTableToolbar<TData>({
   }, [searchValue]);
 
   const handleReset = () => {
-    onSearchChange("");
+    if (onSearchChange) {
+      onSearchChange("");
+    }
     table.resetColumnFilters();
   }
 

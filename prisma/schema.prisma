@@ -8,61 +8,51 @@ datasource db {
 }
 
 model Cliente {
-  id              String     @id @default(cuid())
-  externalId      String?    @unique
-  nome            String
-  piva            String?
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
-  codiceFiscale   String?
-  cap             String?
-  codicePagamento String?
-  codiceValuta    String?
-  cognome         String?
-  comune          String?
-  comuneNascita   String?
-  dataNascita     DateTime?
-  indirizzo       String?
-  nazione         String?
-  nomeAnagrafico  String?
-  provincia       String?
-  sesso           String?
-  telefono        String?
-  tipoAnagrafica  String?
-  commesse        Commessa[]
-  righeScrittura  RigaScrittura[]
-  
-  // === ESTENSIONI FASE 1 - PARSER PYTHON ===
-  codiceAnagrafica             String?
-  tipoConto                    String?
-  tipoContoDesc                String?
-  tipoSoggetto                 String?
-  tipoSoggettoDesc             String?
-  denominazione                String?
-  sessoDesc                    String?
-  prefissoTelefono             String?
-  codiceIso                    String?
-  idFiscaleEstero              String?
-  
-  // Sottoconti
-  sottocontoAttivo             String?
-  sottocontoCliente            String?              @unique
-  sottocontoPassivo           String?
-  sottocontoCosto             String?
-  condizionePagamentoId       String?
-  
-  // Codici Pagamento Specifici
-  codiceIncassoCliente         String?
-  codicePagamentoFornitore     String?
-  
-  // Flags Calcolati
-  ePersonaFisica               Boolean?
-  eCliente                     Boolean?
-  eFornitore                   Boolean?
-  haPartitaIva                 Boolean?
-  
-  // Per Cliente - Descrizioni aggiuntive
-  codiceDestinatario          String?
+  id                       String          @id @default(cuid())
+  externalId               String?         @unique
+  nome                     String
+  piva                     String?
+  createdAt                DateTime        @default(now())
+  updatedAt                DateTime        @updatedAt
+  codiceFiscale            String?
+  cap                      String?
+  codicePagamento          String?
+  codiceValuta             String?
+  cognome                  String?
+  comune                   String?
+  comuneNascita            String?
+  dataNascita              DateTime?
+  indirizzo                String?
+  nazione                  String?
+  nomeAnagrafico           String?
+  provincia                String?
+  sesso                    String?
+  telefono                 String?
+  tipoAnagrafica           String?
+  codiceAnagrafica         String?
+  codiceIncassoCliente     String?
+  codiceIso                String?
+  codicePagamentoFornitore String?
+  denominazione            String?
+  eCliente                 Boolean?
+  eFornitore               Boolean?
+  ePersonaFisica           Boolean?
+  haPartitaIva             Boolean?
+  idFiscaleEstero          String?
+  prefissoTelefono         String?
+  sessoDesc                String?
+  sottocontoAttivo         String?
+  sottocontoCliente        String?         @unique
+  tipoConto                String?
+  tipoContoDesc            String?
+  tipoSoggetto             String?
+  tipoSoggettoDesc         String?
+  codiceDestinatario       String?
+  condizionePagamentoId    String?
+  sottocontoCosto          String?
+  sottocontoPassivo        String?
+  commesse                 Commessa[]
+  righeScrittura           RigaScrittura[]
 }
 
 model Fornitore {
@@ -99,185 +89,134 @@ model Fornitore {
   telefono                    String?
   tipoAnagrafica              String?
   tipoRitenuta                String?
-  scritture                   ScritturaContabile[]
-  righeScrittura              RigaScrittura[]
-  
-  // === ESTENSIONI FASE 1 - PARSER PYTHON ===
-  codiceAnagrafica             String?
-  tipoConto                    String?
-  tipoContoDesc                String?
-  tipoSoggetto                 String?
-  tipoSoggettoDesc             String?
-  denominazione                String?
-  sessoDesc                    String?
-  prefissoTelefono             String?
-  codiceIso                    String?
-  idFiscaleEstero              String?
-  
-  // Sottoconti
-  sottocontoAttivo             String?
-  sottocontoPassivo           String?
-  sottocontoFornitore         String?              @unique
-  sottocontoCosto             String?
-  condizionePagamentoId       String?
-  
-  // Codici Pagamento Specifici
-  codiceIncassoCliente         String?
-  codicePagamentoFornitore     String?
-  
-  // Flags Calcolati
-  ePersonaFisica               Boolean?
-  eCliente                     Boolean?
-  eFornitore                   Boolean?
-  haPartitaIva                 Boolean?
-  
-  // Per Fornitore - Descrizioni aggiuntive
+  codiceAnagrafica            String?
+  codiceIncassoCliente        String?
+  codiceIso                   String?
+  codicePagamentoFornitore    String?
+  contributoPrevid335Desc     String?
+  denominazione               String?
+  eCliente                    Boolean?
+  eFornitore                  Boolean?
+  ePersonaFisica              Boolean?
+  haPartitaIva                Boolean?
+  idFiscaleEstero             String?
+  prefissoTelefono            String?
   quadro770Desc               String?
-  tipoRitenuraDesc             String?
-  contributoPrevid335Desc      String?
-  
-  // Per Fornitore - Descrizioni aggiuntive
+  sessoDesc                   String?
+  sottocontoAttivo            String?
+  sottocontoFornitore         String?              @unique
+  tipoConto                   String?
+  tipoContoDesc               String?
+  tipoRitenuraDesc            String?
+  tipoSoggetto                String?
+  tipoSoggettoDesc            String?
   codiceDestinatario          String?
+  condizionePagamentoId       String?
+  sottocontoCosto             String?
+  sottocontoPassivo           String?
+  righeScrittura              RigaScrittura[]
+  scritture                   ScritturaContabile[]
 }
 
-// =================================================================
-// MODELLI PER LA GESTIONE ANALITICA E LA RICONCILIAZIONE
-// =================================================================
-
 model VoceAnalitica {
-  id          String        @id @default(cuid())
-  nome        String        @unique
-  descrizione String?
-  tipo        String // "Costo" o "Ricavo"
-  
-  // Relazioni
-  conti                Conto[]
-  allocazioni          Allocazione[]
-  budgetItems          BudgetVoce[]
-  regoleRipartizione   RegolaRipartizione[]
+  id                 String               @id @default(cuid())
+  nome               String               @unique
+  descrizione        String?
+  tipo               String
+  allocazioni        Allocazione[]
+  budgetItems        BudgetVoce[]
+  regoleRipartizione RegolaRipartizione[]
+  conti              Conto[]              @relation("ContoToVoceAnalitica")
 }
 
 model RegolaRipartizione {
-  id              String   @id @default(cuid())
+  id              String        @id @default(cuid())
   descrizione     String
-  percentuale     Float
-  contoId         String
   commessaId      String
+  percentuale     Float
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  contoId         String
   voceAnaliticaId String
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  conto         Conto         @relation(fields: [contoId], references: [id], onDelete: Cascade)
-  commessa      Commessa      @relation(fields: [commessaId], references: [id], onDelete: Cascade)
-  voceAnalitica VoceAnalitica @relation(fields: [voceAnaliticaId], references: [id], onDelete: Cascade)
+  commessa        Commessa      @relation(fields: [commessaId], references: [id], onDelete: Cascade)
+  conto           Conto         @relation(fields: [contoId], references: [id], onDelete: Cascade)
+  voceAnalitica   VoceAnalitica @relation(fields: [voceAnaliticaId], references: [id], onDelete: Cascade)
 
   @@unique([contoId, commessaId, voceAnaliticaId])
 }
 
-// =================================================================
-// MODELLI CORE
-// =================================================================
-
 model Conto {
-  id                         String          @id @default(cuid())
-  codice                     String?
-  nome                       String
-  tipo                       TipoConto
-  richiedeVoceAnalitica      Boolean         @default(false)
-  
-  // CAMPO CHIAVE PER IL FILTRO DI RICONCILIAZIONE
-  isRilevantePerCommesse     Boolean         @default(false)
-
-  // RELAZIONE MOLTI-A-MOLTI CON VOCI ANALITICHE
-  vociAnalitiche             VoceAnalitica[]
-
-  contropartiteSuggeriteIds  String[]
-  externalId                 String?         @unique
-  righeScrittura             RigaScrittura[]
-  regoleRipartizione         RegolaRipartizione[]
-  
-  // === ESTENSIONI PER CONTIAZI (Piano dei Conti Aziendale) ===
-  codiceFiscaleAzienda         String  @default("") // Identifica l'azienda per la personalizzazione. "" = generico.
-  subcodiceAzienda             String? // Sub-codice per sedi/divisioni
-  utilizzaDescrizioneLocale    Boolean? // Flag per usare la descrizione locale
-  descrizioneLocale            String? // Descrizione personalizzata per l'azienda
-  consideraBilancioSemplificato Boolean? // Flag per bilancio semplificato
-  
-  // === ESTENSIONI FASE 1 - PARSER PYTHON ===
-  // Gerarchia e Classificazione
-  livello                      String?
-  livelloDesc                  String?
-  sigla                        String?
-  gruppo                       String?
-  gruppoDesc                   String?
-  controlloSegno               String?
-  controlloSegnoDesc           String?
-  codificaFormattata           String?
-  
-  // Validità per Tipo Contabilità
-  validoImpresaOrdinaria       Boolean?
-  validoImpresaSemplificata    Boolean?
-  validoProfessionistaOrdinario Boolean?
+  id                               String               @id @default(cuid())
+  codice                           String?
+  nome                             String
+  tipo                             TipoConto
+  richiedeVoceAnalitica            Boolean              @default(false)
+  contropartiteSuggeriteIds        String[]
+  externalId                       String?              @unique
+  classeDatiExtracontabili         String?
+  classeIrap                       String?
+  classeIrapProfessionista         String?
+  classeIrpefIres                  String?
+  classeIva                        String?
+  classeProfessionista             String?
+  codificaFormattata               String?
+  colonnaRegistroCronologico       String?
+  colonnaRegistroIncassiPagamenti  String?
+  contoAvereCee                    String?
+  contoCostiRicavi                 String?
+  contoDareCee                     String?
+  controlloSegno                   String?
+  controlloSegnoDesc               String?
+  descrizioneBilancioAvere         String?
+  descrizioneBilancioDare          String?
+  dettaglioClienteFornitore        String?
+  gestioneBeniAmmortizzabili       String?
+  gruppo                           String?
+  gruppoDesc                       String?
+  livello                          String?
+  livelloDesc                      String?
+  naturaConto                      String?
+  percDeduzioneManutenzione        Float?
+  sigla                            String?
+  validoImpresaOrdinaria           Boolean?
+  validoImpresaSemplificata        Boolean?
+  validoProfessionistaOrdinario    Boolean?
   validoProfessionistaSemplificato Boolean?
-  
-  // Validità per Dichiarazioni Fiscali (NUOVI DA PARSER)
-  validoUnicoPf                Boolean?
-  validoUnicoSp                Boolean?
-  validoUnicoSc                Boolean?
-  validoUnicoEnc               Boolean?
+  validoUnicoEnc                   Boolean?
+  validoUnicoPf                    Boolean?
+  validoUnicoSc                    Boolean?
+  validoUnicoSp                    Boolean?
+  tabellaItalstudio                String?
+  codiceFiscaleAzienda             String               @default("")
+  consideraBilancioSemplificato    Boolean?
+  descrizioneLocale                String?
+  subcodiceAzienda                 String?
+  utilizzaDescrizioneLocale        Boolean?
+  isRilevantePerCommesse           Boolean              @default(false)
+  regoleRipartizione               RegolaRipartizione[]
+  righeScrittura                   RigaScrittura[]
+  vociAnalitiche                   VoceAnalitica[]      @relation("ContoToVoceAnalitica")
 
-  // Identificativo software di origine (NUOVO DA PARSER)
-  tabellaItalstudio            String?
-  
-  // Classi Fiscali
-  classeIrpefIres              String?
-  classeIrap                   String?
-  classeProfessionista         String?
-  classeIrapProfessionista     String?
-  classeIva                    String?
-  
-  // Conti Collegati
-  contoCostiRicavi             String?
-  contoDareCee                 String?
-  contoAvereCee                String?
-  
-  // Gestione Speciale
-  naturaConto                  String?
-  gestioneBeniAmmortizzabili   String?
-  percDeduzioneManutenzione    Float?
-  dettaglioClienteFornitore    String?
-  
-  // Descrizioni Bilancio
-  descrizioneBilancioDare      String?
-  descrizioneBilancioAvere     String?
-  
-  // Dati Extracontabili
-  classeDatiExtracontabili     String?
-  
-  // Registri Professionisti
-  colonnaRegistroCronologico   String?
-  colonnaRegistroIncassiPagamenti String?
-  
   @@unique([codice, codiceFiscaleAzienda])
 }
 
 model Commessa {
-  id          String        @id @default(cuid())
-  externalId  String?       @unique
-  nome        String
-  descrizione String?
-  dataFine    DateTime?
-  dataInizio  DateTime?
-  stato       String?
-  clienteId   String
-  parentId    String?
-  allocazioni Allocazione[]
-  importAllocazioni ImportAllocazione[]
-  budget      BudgetVoce[]
-  cliente     Cliente       @relation(fields: [clienteId], references: [id])
-  parent      Commessa?     @relation("CommessaHierarchy", fields: [parentId], references: [id])
-  children    Commessa[]    @relation("CommessaHierarchy")
+  id                 String               @id @default(cuid())
+  nome               String
+  clienteId          String
+  descrizione        String?
+  externalId         String?              @unique
+  dataFine           DateTime?
+  dataInizio         DateTime?
+  stato              String?
+  parentId           String?
+  allocazioni        Allocazione[]
+  budget             BudgetVoce[]
+  cliente            Cliente              @relation(fields: [clienteId], references: [id])
+  parent             Commessa?            @relation("CommessaHierarchy", fields: [parentId], references: [id])
+  children           Commessa[]           @relation("CommessaHierarchy")
   regoleRipartizione RegolaRipartizione[]
+  importAllocazioni  ImportAllocazione[]
 }
 
 model BudgetVoce {
@@ -313,153 +252,117 @@ model RigaScrittura {
   avere                Float?
   contoId              String?
   scritturaContabileId String
+  clienteId            String?
+  fornitoreId          String?
   allocazioni          Allocazione[]
   righeIva             RigaIva[]
-  conto                Conto?             @relation(fields: [contoId], references: [id])
-  scritturaContabile   ScritturaContabile @relation(fields: [scritturaContabileId], references: [id], onDelete: Cascade)
-
-  // Relazioni dirette a Cliente/Fornitore
-  clienteId            String?
   cliente              Cliente?           @relation(fields: [clienteId], references: [id])
-  fornitoreId          String?
+  conto                Conto?             @relation(fields: [contoId], references: [id])
   fornitore            Fornitore?         @relation(fields: [fornitoreId], references: [id])
+  scritturaContabile   ScritturaContabile @relation(fields: [scritturaContabileId], references: [id], onDelete: Cascade)
 }
 
-// QUESTA È LA TABELLA DI DESTINAZIONE FINALE POST-RICONCILIAZIONE
 model Allocazione {
-  id              String  @id @default(cuid())
+  id              String                 @id @default(cuid())
   importo         Float
-  
-  tipoMovimento   TipoMovimentoAnalitico
-
   rigaScritturaId String
-  rigaScrittura   RigaScrittura @relation(fields: [rigaScritturaId], references: [id], onDelete: Cascade)
-
   commessaId      String
-  commessa        Commessa      @relation(fields: [commessaId], references: [id], onDelete: Cascade)
-
   voceAnaliticaId String
-  voceAnalitica   VoceAnalitica @relation(fields: [voceAnaliticaId], references: [id], onDelete: Cascade)
-
+  createdAt       DateTime               @default(now())
   dataMovimento   DateTime
   note            String?
-
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  updatedAt       DateTime               @updatedAt
+  tipoMovimento   TipoMovimentoAnalitico
+  commessa        Commessa               @relation(fields: [commessaId], references: [id], onDelete: Cascade)
+  rigaScrittura   RigaScrittura          @relation(fields: [rigaScritturaId], references: [id], onDelete: Cascade)
+  voceAnalitica   VoceAnalitica          @relation(fields: [voceAnaliticaId], references: [id], onDelete: Cascade)
 }
 
 model CodiceIva {
-  id                    String    @id @default(cuid())
-  externalId            String?   @unique
-  descrizione           String
-  aliquota              Float?
-  percentuale           Float?    // Campo allineato al parser Python
-  natura                String?
-  codiceExport          String?
-  inUso                 Boolean?
-  dataAggiornamento     DateTime?
-  note                  String?
-  indetraibilita        Float?
-  codice                String?
-  tipoCalcolo           String?
-  tipoCalcoloDesc       String?
-  dataInizio            DateTime?
-  dataFine              DateTime?
-  validitaInizio        DateTime? // Campo allineato al parser Python
-  validitaFine          DateTime? // Campo allineato al parser Python
-  splitPayment          Boolean?
-  nonImponibile         Boolean?
-  imponibile            Boolean?
-  esente                Boolean?
-  nonImponibileConPlafond Boolean?
-  inSospensione         Boolean?
-  esclusoDaIva          Boolean?
-  reverseCharge         Boolean?
-  fuoriCampoIva         Boolean?
-  
-  righeIva              RigaIva[]
-  
-  // === ESTENSIONI FASE 1 - PARSER PYTHON ===
-  // Gestione Plafond
-  plafondAcquisti              String?
-  plafondAcquistiDesc          String?
-  monteAcquisti                Boolean?
-  plafondVendite               String?
-  plafondVenditeDesc           String?
-  noVolumeAffariPlafond        Boolean?
-  
-  // Pro-rata e Compensazioni
-  gestioneProRata              String?
-  gestioneProRataDesc          String?
-  percentualeCompensazione     Float?
-  
-  // Reverse Charge e Operazioni Speciali
-  autofatturaReverseCharge     Boolean?
-  operazioneEsenteOccasionale  Boolean?
-  cesArt38QuaterStornoIva      Boolean?
-  agevolazioniSubforniture     Boolean?
-  
-  // Territorialità
-  indicatoreTerritorialeVendite     String?
-  indicatoreTerritorialeVenditeDesc String?
-  indicatoreTerritorialeAcquisti    String?
+  id                                 String    @id @default(cuid())
+  externalId                         String?   @unique
+  descrizione                        String
+  aliquota                           Float?
+  indetraibilita                     Float?
+  note                               String?
+  tipoCalcolo                        String?
+  acqOperazImponibiliOccasionali     Boolean?
+  acquistiCessioni                   String?
+  acquistiCessioniDesc               String?
+  acquistiIntracomunitari            Boolean?
+  agevolazioniSubforniture           Boolean?
+  aliquotaDiversa                    Float?
+  analiticoBeniAmmortizzabili        Boolean?
+  autofatturaReverseCharge           Boolean?
+  beniAmmortizzabili                 Boolean?
+  cesArt38QuaterStornoIva            Boolean?
+  cessioneProdottiEditoriali         Boolean?
+  comunicazioneDatiIvaAcquisti       String?
+  comunicazioneDatiIvaAcquistiDesc   String?
+  comunicazioneDatiIvaVendite        String?
+  comunicazioneDatiIvaVenditeDesc    String?
+  gestioneProRata                    String?
+  gestioneProRataDesc                String?
+  imponibile50Corrispettivi          Boolean?
+  imposteIntrattenimenti             String?
+  imposteIntrattenimentiDesc         String?
+  indicatoreTerritorialeAcquisti     String?
   indicatoreTerritorialeAcquistiDesc String?
-  
-  // Beni Ammortizzabili
-  beniAmmortizzabili           Boolean?
-  analiticoBeniAmmortizzabili  Boolean?
-  
-  // Comunicazioni Dati IVA
-  comunicazioneDatiIvaVendite     String?
-  comunicazioneDatiIvaVenditeDesc String?
-  comunicazioneDatiIvaAcquisti    String?
-  comunicazioneDatiIvaAcquistiDesc String?
-  
-  // Altri Campi Fiscali
-  imponibile50Corrispettivi    Boolean?
-  imposteIntrattenimenti       String?
-  imposteIntrattenimentiDesc   String?
-  ventilazione                 Boolean?
-  aliquotaDiversa              Float?
-  percDetrarreExport           Float?
-  acquistiCessioni             String?
-  acquistiCessioniDesc         String?
-  metodoDaApplicare            String?
-  metodoDaApplicareDesc        String?
-  percentualeForfetaria        String?
-  percentualeForfetariaDesc    String?
-  quotaForfetaria              String?
-  quotaForfetariaDesc          String?
-  acquistiIntracomunitari      Boolean?
-  cessioneProdottiEditoriali   Boolean?
-  provvigioniDm34099           Boolean?
-  acqOperazImponibiliOccasionali Boolean?
-}
-
-enum TipoMovimentoAnalitico {
-  COSTO_EFFETTIVO
-  RICAVO_EFFETTIVO
-  COSTO_STIMATO
-  RICAVO_STIMATO
-  COSTO_BUDGET
-  RICAVO_BUDGET
+  indicatoreTerritorialeVendite      String?
+  indicatoreTerritorialeVenditeDesc  String?
+  metodoDaApplicare                  String?
+  metodoDaApplicareDesc              String?
+  monteAcquisti                      Boolean?
+  noVolumeAffariPlafond              Boolean?
+  operazioneEsenteOccasionale        Boolean?
+  percDetrarreExport                 Float?
+  percentualeCompensazione           Float?
+  percentualeForfetaria              String?
+  percentualeForfetariaDesc          String?
+  plafondAcquisti                    String?
+  plafondAcquistiDesc                String?
+  plafondVendite                     String?
+  plafondVenditeDesc                 String?
+  provvigioniDm34099                 Boolean?
+  quotaForfetaria                    String?
+  quotaForfetariaDesc                String?
+  ventilazione                       Boolean?
+  codice                             String?
+  codiceExport                       String?
+  dataAggiornamento                  DateTime?
+  esclusoDaIva                       Boolean?
+  esente                             Boolean?
+  fuoriCampoIva                      Boolean?
+  imponibile                         Boolean?
+  inSospensione                      Boolean?
+  inUso                              Boolean?
+  natura                             String?
+  nonImponibile                      Boolean?
+  nonImponibileConPlafond            Boolean?
+  reverseCharge                      Boolean?
+  splitPayment                       Boolean?
+  tipoCalcoloDesc                    String?
+  dataFine                           DateTime?
+  dataInizio                         DateTime?
+  percentuale                        Float?
+  validitaFine                       DateTime?
+  validitaInizio                     DateTime?
+  righeIva                           RigaIva[]
 }
 
 model CondizionePagamento {
-  id                        String   @id @default(cuid())
-  externalId                String?  @unique
-  descrizione               String
-  codice                    String   @unique
-  contoIncassoPagamento     String?
-  inizioScadenza            String?
-  numeroRate                Int?
-  suddivisione              String?
-  
-  // === ESTENSIONI FASE 1 - PARSER PYTHON ===
-  calcolaGiorniCommerciali     Boolean?
-  consideraPeriodiChiusura     Boolean?
-  suddivisioneDesc             String?
-  inizioScadenzaDesc           String?
+  id                       String   @id @default(cuid())
+  externalId               String?  @unique
+  descrizione              String
+  codice                   String   @unique
+  contoIncassoPagamento    String?
+  inizioScadenza           String?
+  numeroRate               Int?
+  suddivisione             String?
+  calcolaGiorniCommerciali Boolean?
+  consideraPeriodiChiusura Boolean?
+  inizioScadenzaDesc       String?
+  suddivisioneDesc         String?
 }
 
 model RigaIva {
@@ -473,64 +376,47 @@ model RigaIva {
 }
 
 model CausaleContabile {
-  id                               String                  @id @default(cuid())
-  codice                           String?                 @unique
-  descrizione                      String
-  externalId                       String?                 @unique
-  nome                             String?
-  dataFine                           DateTime?
-  dataInizio                         DateTime?
-  noteMovimento                      String?
-  tipoAggiornamento                  String?
-  tipoMovimento                      String?
-  tipoRegistroIva                     String?
-  scritture                           ScritturaContabile[]
-  
-  // === ESTENSIONI FASE 1 - PARSER PYTHON ===
-  // Descrizioni Decodificate
-  tipoMovimentoDesc                     String?
-  tipoAggiornamentoDesc                 String?
-  tipoRegistroIvaDesc                   String?
-  
-  // Gestione IVA
-  segnoMovimentoIva                       String?
-  segnoMovimentoIvaDesc                 String?
-  contoIva                                String?
-  contoIvaVendite                         String?
-  
-  // Autofatture
-  generazioneAutofattura                  Boolean?
-  tipoAutofatturaGenerata                 String?
-  tipoAutofatturaDesc                     String?
-  
-  // Gestione Fatture
-  fatturaImporto0                           Boolean?
-  fatturaValutaEstera                       Boolean?
-  nonConsiderareLiquidazioneIva              Boolean?
-  fatturaEmessaRegCorrispettivi             Boolean?
-  
-  // IVA Esigibilità
-  ivaEsigibilitaDifferita                    String?
-  ivaEsigibilitaDifferitaDesc                String?
-  
-  // Gestioni Speciali
-  gestionePartite                             String?
-  gestionePartiteDesc                         String?
-  gestioneIntrastat                           Boolean?
-  gestioneRitenuteEnasarco                    String?
-  gestioneRitenuteEnasarcoDesc                String?
-  versamentoRitenute                          Boolean?
-  
-  // Documenti e Registrazioni
-  descrizioneDocumento                          String?
-  identificativoEsteroClifor                  Boolean?
-  scritturaRettificaAssestamento               Boolean?
-  nonStampareRegCronologico                    Boolean?
-  movimentoRegIvaNonRilevante                  Boolean?
-  
-  // Contabilità Semplificata
-  tipoMovimentoSemplificata                    String?
-  tipoMovimentoSemplificataDesc                String?
+  id                             String               @id @default(cuid())
+  descrizione                    String
+  externalId                     String?              @unique
+  nome                           String?
+  dataFine                       DateTime?
+  dataInizio                     DateTime?
+  noteMovimento                  String?
+  tipoAggiornamento              String?
+  tipoMovimento                  String?
+  tipoRegistroIva                String?
+  contoIva                       String?
+  contoIvaVendite                String?
+  descrizioneDocumento           String?
+  fatturaEmessaRegCorrispettivi  Boolean?
+  fatturaImporto0                Boolean?
+  fatturaValutaEstera            Boolean?
+  generazioneAutofattura         Boolean?
+  gestioneIntrastat              Boolean?
+  gestionePartite                String?
+  gestionePartiteDesc            String?
+  gestioneRitenuteEnasarco       String?
+  gestioneRitenuteEnasarcoDesc   String?
+  identificativoEsteroClifor     Boolean?
+  ivaEsigibilitaDifferita        String?
+  ivaEsigibilitaDifferitaDesc    String?
+  movimentoRegIvaNonRilevante    Boolean?
+  nonConsiderareLiquidazioneIva  Boolean?
+  nonStampareRegCronologico      Boolean?
+  scritturaRettificaAssestamento Boolean?
+  segnoMovimentoIva              String?
+  segnoMovimentoIvaDesc          String?
+  tipoAggiornamentoDesc          String?
+  tipoAutofatturaDesc            String?
+  tipoAutofatturaGenerata        String?
+  tipoMovimentoDesc              String?
+  tipoMovimentoSemplificata      String?
+  tipoMovimentoSemplificataDesc  String?
+  tipoRegistroIvaDesc            String?
+  versamentoRitenute             Boolean?
+  codice                         String?              @unique
+  scritture                      ScritturaContabile[]
 }
 
 model CampoDatiPrimari {
@@ -566,11 +452,11 @@ model FieldDefinition {
   id             String         @id @default(cuid())
   start          Int
   length         Int
-  end            Int
   templateId     String
   fileIdentifier String?
   fieldName      String?
   format         String?
+  end            Int
   template       ImportTemplate @relation(fields: [templateId], references: [id])
 }
 
@@ -586,16 +472,16 @@ model ImportLog {
 
 model WizardState {
   id        String   @id @default(cuid())
-  userId    String   @unique
   step      String
   completed Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  userId    String   @unique
 }
 
 model ImportScritturaTestata {
-  id                             String                         @id @default(cuid())
-  codiceUnivocoScaricamento      String                         @unique
+  id                            String                         @id @default(cuid())
+  codiceUnivocoScaricamento     String                         @unique
   codiceCausale                 String
   descrizioneCausale            String
   dataRegistrazione             DateTime?
@@ -607,55 +493,339 @@ model ImportScritturaTestata {
   protocolloNumero              String?
   totaleDocumento               Float?
   noteMovimento                 String?
-  righe                          ImportScritturaRigaContabile[]
-  righeIva                       ImportScritturaRigaIva[]
+  righe                         ImportScritturaRigaContabile[]
+  righeIva                      ImportScritturaRigaIva[]
 
   @@map("import_scritture_testate")
 }
 
 model ImportScritturaRigaContabile {
-  id                             String              @id @default(cuid())
-  codiceUnivocoScaricamento      String
-  riga                           Int
-  codiceConto                    String
-  tipoConto                      String?
-  descrizioneConto               String
-  importoDare                    Float?
-  importoAvere                   Float?
-  note                           String?
-  insDatiMovimentiAnalitici      Boolean
-  testata                        ImportScritturaTestata @relation(fields: [codiceUnivocoScaricamento], references: [codiceUnivocoScaricamento], onDelete: Cascade)
-  allocazioni                    ImportAllocazione[]
+  id                        String                 @id @default(cuid())
+  codiceUnivocoScaricamento String
+  codiceConto               String
+  descrizioneConto          String
+  importoDare               Float?
+  importoAvere              Float?
+  note                      String?
+  insDatiMovimentiAnalitici Boolean
+  riga                      Int
+  tipoConto                 String?
+  testata                   ImportScritturaTestata @relation(fields: [codiceUnivocoScaricamento], references: [codiceUnivocoScaricamento], onDelete: Cascade)
+  allocazioni               ImportAllocazione[]
 
   @@unique([codiceUnivocoScaricamento, riga])
 }
 
 model ImportAllocazione {
-  id                             String                      @id @default(cuid())
+  id                             String                       @id @default(cuid())
   importo                        Float
   percentuale                    Float?
-  suggerimentoAutomatico         Boolean                     @default(false)
+  suggerimentoAutomatico         Boolean                      @default(false)
   commessaId                     String
   importScritturaRigaContabileId String
-  
-  rigaContabile ImportScritturaRigaContabile @relation(fields: [importScritturaRigaContabileId], references: [id], onDelete: Cascade)
-  commessa      Commessa                     @relation(fields: [commessaId], references: [id])
+  commessa                       Commessa                     @relation(fields: [commessaId], references: [id])
+  rigaContabile                  ImportScritturaRigaContabile @relation(fields: [importScritturaRigaContabileId], references: [id], onDelete: Cascade)
 
   @@map("import_allocazioni")
 }
 
 model ImportScritturaRigaIva {
-  id                             String                 @id @default(cuid())
-  codiceUnivocoScaricamento      String
-  codiceIva                       String
-  imponibile                      Float
-  imposta                         Float
-  codiceConto                     String?
-  indetraibilita                  Float?
-  riga                             Int
-  testata                         ImportScritturaTestata @relation(fields: [codiceUnivocoScaricamento], references: [codiceUnivocoScaricamento], onDelete: Cascade)
+  id                        String                 @id @default(cuid())
+  codiceUnivocoScaricamento String
+  codiceIva                 String
+  imponibile                Float
+  imposta                   Float
+  codiceConto               String?
+  indetraibilita            Float?
+  riga                      Int
+  testata                   ImportScritturaTestata @relation(fields: [codiceUnivocoScaricamento], references: [codiceUnivocoScaricamento], onDelete: Cascade)
 
   @@unique([codiceUnivocoScaricamento, riga])
+}
+
+model StagingConto {
+  id                               String   @id @default(cuid())
+  codice                           String?
+  codiceFiscaleAzienda             String?
+  descrizione                      String?
+  descrizioneLocale                String?
+  sigla                            String?
+  livello                          String?
+  tipo                             String?
+  gruppo                           String?
+  naturaConto                      String?
+  controlloSegno                   String?
+  validoImpresaOrdinaria           String?
+  validoImpresaSemplificata        String?
+  validoProfessionistaOrdinario    String?
+  validoProfessionistaSemplificato String?
+  validoUnicoPf                    String?
+  validoUnicoSp                    String?
+  validoUnicoSc                    String?
+  validoUnicoEnc                   String?
+  codiceClasseIrpefIres            String?
+  codiceClasseIrap                 String?
+  codiceClasseProfessionista       String?
+  codiceClasseIrapProfessionista   String?
+  codiceClasseIva                  String?
+  codiceClasseDatiStudiSettore     String?
+  contoDareCee                     String?
+  contoAvereCee                    String?
+  contoCostiRicaviCollegato        String?
+  gestioneBeniAmmortizzabili       String?
+  percDeduzioneManutenzione        String?
+  dettaglioClienteFornitore        String?
+  numeroColonnaRegCronologico      String?
+  numeroColonnaRegIncassiPag       String?
+  descrizioneBilancioDare          String?
+  descrizioneBilancioAvere         String?
+  subcodiceAzienda                 String?
+  utilizzaDescrizioneLocale        String?
+  consideraNelBilancioSemplificato String?
+  tabellaItalstudio                String?
+  sourceFileName                   String?
+  importedAt                       DateTime @default(now())
+
+  @@unique([codice, codiceFiscaleAzienda])
+  @@map("staging_conti")
+}
+
+model StagingTestata {
+  id                            String                 @id @default(cuid())
+  importJobId                   String
+  codiceUnivocoScaricamento     String                 @unique
+  esercizio                     String
+  codiceAzienda                 String
+  codiceCausale                 String
+  descrizioneCausale            String
+  dataRegistrazione             String?
+  tipoRegistroIva               String?
+  clienteFornitoreCodiceFiscale String?
+  clienteFornitoreSigla         String?
+  dataDocumento                 String?
+  numeroDocumento               String?
+  totaleDocumento               String?
+  noteMovimento                 String?
+  dataRegistroIva               String?
+  dataCompetenzaLiquidIva       String?
+  dataCompetenzaContabile       String?
+  dataPlafond                   String?
+  annoProRata                   String?
+  ritenute                      String?
+  esigibilitaIva                String?
+  protocolloRegistroIva         String?
+  flagQuadrSchedaContabile      String?
+  flagStampaRegIva              String?
+  createdAt                     DateTime               @default(now())
+  updatedAt                     DateTime               @updatedAt
+  righe                         StagingRigaContabile[]
+
+  @@map("staging_testate")
+}
+
+model StagingRigaContabile {
+  id                            String         @id @default(cuid())
+  codiceUnivocoScaricamento     String
+  tipoConto                     String
+  clienteFornitoreCodiceFiscale String
+  clienteFornitoreSubcodice     String
+  clienteFornitoreSigla         String
+  conto                         String
+  importoDare                   String
+  importoAvere                  String
+  note                          String
+  insDatiCompetenzaContabile    String
+  externalId                    String
+  progressivoRigo               String
+  createdAt                     DateTime       @default(now())
+  dataFineCompetenza            String
+  dataFineCompetenzaAnalit      String
+  dataInizioCompetenza          String
+  dataInizioCompetenzaAnalit    String
+  dataRegistrazioneApertura     String
+  updatedAt                     DateTime       @updatedAt
+  testata                       StagingTestata @relation(fields: [codiceUnivocoScaricamento], references: [codiceUnivocoScaricamento], onDelete: Cascade)
+
+  @@map("staging_righe_contabili")
+}
+
+model StagingRigaIva {
+  id                        String   @id @default(cuid())
+  codiceUnivocoScaricamento String
+  rigaIdentifier            String   @unique
+  codiceIva                 String
+  contropartita             String
+  imponibile                String
+  imposta                   String
+  impostaNonConsiderata     String
+  importoLordo              String
+  note                      String
+  siglaContropartita        String?
+  riga                      String
+  createdAt                 DateTime @default(now())
+  importJobId               String
+  updatedAt                 DateTime @updatedAt
+
+  @@map("staging_righe_iva")
+}
+
+model StagingAllocazione {
+  id                        String  @id @default(cuid())
+  codiceUnivocoScaricamento String?
+  progressivoNumeroRigoCont String?
+  allocazioneIdentifier     String? @unique
+  centroDiCosto             String?
+  parametro                 String?
+  externalId                String?
+  progressivoRigoContabile  String?
+
+  @@map("staging_allocazioni")
+}
+
+model StagingCodiceIva {
+  id                             String  @id @default(cuid())
+  codice                         String?
+  descrizione                    String?
+  aliquota                       String?
+  ventilazione                   String?
+  validitaInizio                 String?
+  validitaFine                   String?
+  indetraibilita                 String?
+  note                           String?
+  tipoCalcolo                    String?
+  acqOperazImponibiliOccasionali String?
+  acquistiCessioni               String?
+  acquistiIntracomunitari        String?
+  agevolazioniSubforniture       String?
+  aliquotaDiversa                String?
+  analiticoBeniAmmortizzabili    String?
+  autofatturaReverseCharge       String?
+  beniAmmortizzabili             String?
+  cesArt38QuaterStornoIva        String?
+  cessioneProdottiEditoriali     String?
+  comunicazioneDatiIvaAcquisti   String?
+  comunicazioneDatiIvaVendite    String?
+  gestioneProRata                String?
+  imponibile50Corrispettivi      String?
+  imposteIntrattenimenti         String?
+  indicatoreTerritorialeAcquisti String?
+  indicatoreTerritorialeVendite  String?
+  metodoDaApplicare              String?
+  monteAcquisti                  String?
+  noVolumeAffariPlafond          String?
+  operazioneEsenteOccasionale    String?
+  percDetrarreExport             String?
+  percentualeCompensazione       String?
+  percentualeForfetaria          String?
+  plafondAcquisti                String?
+  plafondVendite                 String?
+  provvigioniDm34099             String?
+  quotaForfetaria                String?
+
+  @@map("staging_codici_iva")
+}
+
+model StagingCausaleContabile {
+  id                             String  @id @default(cuid())
+  descrizione                    String?
+  codiceCausale                  String?
+  contoIva                       String?
+  contoIvaVendite                String?
+  dataFine                       String?
+  dataInizio                     String?
+  descrizioneDocumento           String?
+  fatturaEmessaRegCorrispettivi  String?
+  fatturaImporto0                String?
+  fatturaValutaEstera            String?
+  generazioneAutofattura         String?
+  gestioneIntrastat              String?
+  gestionePartite                String?
+  gestioneRitenuteEnasarco       String?
+  identificativoEsteroClifor     String?
+  ivaEsigibilitaDifferita        String?
+  movimentoRegIvaNonRilevante    String?
+  nonConsiderareLiquidazioneIva  String?
+  nonStampareRegCronologico      String?
+  noteMovimento                  String?
+  scritturaRettificaAssestamento String?
+  segnoMovimentoIva              String?
+  tipoAggiornamento              String?
+  tipoAutofatturaGenerata        String?
+  tipoMovimento                  String?
+  tipoMovimentoSemplificata      String?
+  tipoRegistroIva                String?
+  versamentoRitenute             String?
+
+  @@map("staging_causali_contabili")
+}
+
+model StagingCondizionePagamento {
+  id                       String  @id @default(cuid())
+  descrizione              String?
+  calcolaGiorniCommerciali String?
+  codicePagamento          String?
+  consideraPeriodiChiusura String?
+  contoIncassoPagamento    String?
+  inizioScadenza           String?
+  numeroRate               String?
+  suddivisione             String?
+
+  @@map("staging_condizioni_pagamento")
+}
+
+model StagingAnagrafica {
+  id                       String  @id @default(cuid())
+  aliquota                 String?
+  attivitaMensilizzazione  String?
+  cap                      String?
+  codiceIncassoCliente     String?
+  codiceIncassoPagamento   String?
+  codiceIso                String?
+  codicePagamentoFornitore String?
+  codiceRitenuta           String?
+  codiceValuta             String?
+  cognome                  String?
+  comuneNascita            String?
+  comuneResidenza          String?
+  contributoPrevid335      String?
+  contributoPrevidenziale  String?
+  dataNascita              String?
+  enasarco                 String?
+  gestioneDati770          String?
+  idFiscaleEstero          String?
+  indirizzo                String?
+  nome                     String?
+  numeroTelefono           String?
+  percContributoCassa      String?
+  prefissoTelefono         String?
+  quadro770                String?
+  sesso                    String?
+  soggettoARitenuta        String?
+  soggettoInail            String?
+  tipoRitenuta             String?
+  codiceAnagrafica         String?
+  codiceFiscaleAzienda     String?
+  codiceFiscaleClifor      String?
+  codiceUnivoco            String?
+  denominazione            String?
+  partitaIva               String?
+  sottocontoCliente        String?
+  sottocontoFornitore      String?
+  subcodiceAzienda         String?
+  subcodiceClifor          String?
+  tipoConto                String?
+  tipoSoggetto             String?
+
+  @@map("staging_anagrafiche")
+}
+
+enum TipoMovimentoAnalitico {
+  COSTO_EFFETTIVO
+  RICAVO_EFFETTIVO
+  COSTO_STIMATO
+  RICAVO_STIMATO
+  COSTO_BUDGET
+  RICAVO_BUDGET
 }
 
 enum TipoConto {
@@ -686,173 +856,6 @@ enum FormulaImporto {
   totale
 }
 
-model StagingConto {
-  id                                String    @id @default(cuid())
-
-  // Identificativi di base e chiavi
-  codice                           String?   // CODIFICA
-  codiceFiscaleAzienda             String?   // Da CONTIAZI, default '' per CONTIGEN
-
-  // Campi descrittivi e di classificazione
-  descrizione                      String?
-  descrizioneLocale                String?   // Da CONTIAZI
-  sigla                            String?
-  livello                          String?
-  tipo                             String?
-  gruppo                           String?
-  naturaConto                      String?
-  controlloSegno                   String?
-  
-  // Flag di validità per regimi e dichiarazioni
-  validoImpresaOrdinaria           String?
-  validoImpresaSemplificata        String?
-  validoProfessionistaOrdinario    String?
-  validoProfessionistaSemplificato String?
-  validoUnicoPf                    String?
-  validoUnicoSp                    String?
-  validoUnicoSc                    String?
-  validoUnicoEnc                   String?
-  
-  // Raccordi fiscali e CEE
-  codiceClasseIrpefIres            String?
-  codiceClasseIrap                 String?
-  codiceClasseProfessionista       String?
-  codiceClasseIrapProfessionista   String?
-  codiceClasseIva                  String?
-  codiceClasseDatiStudiSettore     String?
-  contoDareCee                     String?
-  contoAvereCee                    String?
-
-  // Campi per gestioni specifiche
-  contoCostiRicaviCollegato        String?
-  gestioneBeniAmmortizzabili       String?
-  percDeduzioneManutenzione        String?
-  dettaglioClienteFornitore        String?
-  numeroColonnaRegCronologico      String?
-  numeroColonnaRegIncassiPag       String?
-
-  // Descrizioni per bilanci
-  descrizioneBilancioDare          String?
-  descrizioneBilancioAvere         String?
-
-  // Campi specifici di CONTIAZI
-  subcodiceAzienda                 String?
-  utilizzaDescrizioneLocale        String?
-  consideraNelBilancioSemplificato String?
-
-  // Campo riservato e metadati
-  tabellaItalstudio                String?
-  sourceFileName                   String?
-  importedAt                       DateTime  @default(now())
-
-  @@unique([codice, codiceFiscaleAzienda])
-  @@map("staging_conti")
-}
-
-// === TABELLE DI STAGING PER IMPORTAZIONE MOVIMENTI CONTABILI ===
-
-model StagingTestata {
-  id String @id @default(cuid())
-  importJobId String
-
-  // Campi dal tracciato PNTESTA.TXT
-  codiceUnivocoScaricamento  String @unique
-  esercizio                  String
-  codiceAzienda              String
-  codiceCausale              String
-  descrizioneCausale         String
-  dataRegistrazione          String?
-  tipoRegistroIva            String?
-  clienteFornitoreCodiceFiscale String?
-  clienteFornitoreSigla      String?
-  dataDocumento              String?
-  numeroDocumento            String?
-  totaleDocumento            String?
-  noteMovimento              String?
-  dataRegistroIva            String?
-  dataCompetenzaLiquidIva    String?
-  dataCompetenzaContabile    String?
-  dataPlafond                String?
-  annoProRata                String?
-  ritenute                   String?
-  esigibilitaIva             String?
-  protocolloRegistroIva      String?
-  flagQuadrSchedaContabile   String?
-  flagStampaRegIva           String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  righe     StagingRigaContabile[]
-
-  @@map("staging_testate")
-}
-
-model StagingRigaContabile {
-  id String @id @default(cuid())
-  externalId            String
-  progressivoRigo       String
-  tipoConto             String
-  conto                 String
-  importoDare           String
-  importoAvere          String
-  note                  String
-  codiceUnivocoScaricamento String
-
-  testata               StagingTestata @relation(fields: [codiceUnivocoScaricamento], references: [codiceUnivocoScaricamento], onDelete: Cascade, onUpdate: Cascade)
-
-  // Campi mancanti aggiunti
-  clienteFornitoreCodiceFiscale String
-  clienteFornitoreSubcodice     String
-  clienteFornitoreSigla         String
-  insDatiCompetenzaContabile    String
-  dataInizioCompetenza          String
-  dataFineCompetenza            String
-  dataRegistrazioneApertura     String
-  dataInizioCompetenzaAnalit    String
-  dataFineCompetenzaAnalit      String
-
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-
-  @@map("staging_righe_contabili")
-}
-
-model StagingRigaIva {
-  id                        String   @id @default(cuid())
-  importJobId               String
-  rigaIdentifier            String   @unique
-
-  codiceUnivocoScaricamento String
-  codiceIva                 String
-  contropartita             String
-  imponibile                String
-  imposta                   String
-  importoLordo              String
-  impostaNonConsiderata     String
-  riga                      String
-  note                      String
-  siglaContropartita        String? // Nuovo campo del tracciato esteso
-
-  createdAt                 DateTime @default(now())
-  updatedAt                 DateTime @updatedAt
-
-  @@map("staging_righe_iva")
-}
-
-model StagingAllocazione {
-  id String @id @default(cuid())
-  externalId                  String?
-  progressivoRigoContabile    String?
-  centroDiCosto               String?
-  parametro                   String?
-  codiceUnivocoScaricamento   String?
-  progressivoNumeroRigoCont   String?
-  allocazioneIdentifier       String?   @unique
-
-  @@map("staging_allocazioni")
-}
-
 /// The different file types that can be imported
 enum FileType {
   CSV
@@ -861,141 +864,4 @@ enum FileType {
   TXT
   JSON
   XML
-}
-
-model StagingCodiceIva {
-  id                                String   @id @default(cuid())
-  codice                            String?
-  descrizione                       String?
-  tipoCalcolo                       String?
-  aliquota                          String?
-  indetraibilita                    String?
-  note                              String?
-  validitaInizio                    String?
-  validitaFine                      String?
-  imponibile50Corrispettivi         String?
-  imposteIntrattenimenti            String?
-  ventilazione                      String?
-  aliquotaDiversa                   String?
-  plafondAcquisti                   String?
-  monteAcquisti                     String?
-  plafondVendite                    String?
-  noVolumeAffariPlafond             String?
-  gestioneProRata                   String?
-  acqOperazImponibiliOccasionali    String?
-  comunicazioneDatiIvaVendite       String?
-  agevolazioniSubforniture          String?
-  comunicazioneDatiIvaAcquisti      String?
-  autofatturaReverseCharge          String?
-  operazioneEsenteOccasionale       String?
-  cesArt38QuaterStornoIva           String?
-  percDetrarreExport                String?
-  acquistiCessioni                  String?
-  percentualeCompensazione          String?
-  beniAmmortizzabili                String?
-  indicatoreTerritorialeVendite     String?
-  provvigioniDm34099                String?
-  indicatoreTerritorialeAcquisti    String?
-  metodoDaApplicare                 String?
-  percentualeForfetaria             String?
-  analiticoBeniAmmortizzabili       String?
-  quotaForfetaria                   String?
-  acquistiIntracomunitari           String?
-  cessioneProdottiEditoriali        String?
-
-  @@map("staging_codici_iva")
-}
-
-model StagingCausaleContabile {
-    id                                String   @id @default(cuid())
-    codiceCausale                     String?
-    descrizione                       String?
-    tipoMovimento                     String?
-    tipoAggiornamento                 String?
-    dataInizio                        String?
-    dataFine                          String?
-    tipoRegistroIva                   String?
-    segnoMovimentoIva                 String?
-    contoIva                          String?
-    generazioneAutofattura            String?
-    tipoAutofatturaGenerata           String?
-    contoIvaVendite                   String?
-    fatturaImporto0                   String?
-    fatturaValutaEstera               String?
-    nonConsiderareLiquidazioneIva     String?
-    ivaEsigibilitaDifferita           String?
-    fatturaEmessaRegCorrispettivi     String?
-    gestionePartite                   String?
-    gestioneIntrastat                 String?
-    gestioneRitenuteEnasarco          String?
-    versamentoRitenute                String?
-    noteMovimento                     String?
-    descrizioneDocumento              String?
-    identificativoEsteroClifor        String?
-    scritturaRettificaAssestamento    String?
-    nonStampareRegCronologico         String?
-    movimentoRegIvaNonRilevante       String?
-    tipoMovimentoSemplificata         String?
-    
-    @@map("staging_causali_contabili")
-}
-
-model StagingCondizionePagamento {
-    id                        String   @id @default(cuid())
-    codicePagamento           String?
-    descrizione               String?
-    contoIncassoPagamento     String?
-    calcolaGiorniCommerciali  String?
-    consideraPeriodiChiusura  String?
-    suddivisione              String?
-    inizioScadenza            String?
-    numeroRate                String?
-    
-    @@map("staging_condizioni_pagamento")
-}
-
-model StagingAnagrafica {
-  id                        String   @id @default(cuid())
-  codiceFiscaleAzienda      String?
-  subcodiceAzienda          String?
-  codiceUnivoco             String?
-  codiceFiscaleClifor       String?
-  subcodiceClifor           String?
-  tipoConto                 String?
-  sottocontoCliente         String?
-  sottocontoFornitore       String?
-  codiceAnagrafica          String?
-  partitaIva                String?
-  tipoSoggetto              String?
-  denominazione             String?
-  cognome                   String?
-  nome                      String?
-  sesso                     String?
-  dataNascita               String?
-  comuneNascita             String?
-  comuneResidenza           String?
-  cap                       String?
-  indirizzo                 String?
-  prefissoTelefono          String?
-  numeroTelefono            String?
-  idFiscaleEstero           String?
-  codiceIso                 String?
-  codiceIncassoPagamento    String?
-  codiceIncassoCliente      String?
-  codicePagamentoFornitore  String?
-  codiceValuta              String?
-  gestioneDati770           String?
-  soggettoARitenuta         String?
-  quadro770                 String?
-  contributoPrevidenziale   String?
-  codiceRitenuta            String?
-  enasarco                  String?
-  tipoRitenuta              String?
-  soggettoInail             String?
-  contributoPrevid335       String?
-  aliquota                  String?
-  percContributoCassa       String?
-  attivitaMensilizzazione   String?
-
-  @@map("staging_anagrafiche")
 }

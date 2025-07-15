@@ -138,10 +138,15 @@ export default function Riconciliazione() {
     } : null;
 
     return (
-        <div className="container mx-auto p-4">
-            <h1 className="text-2xl font-bold mb-4">Riconciliazione Scritture</h1>
+        <div className="flex flex-col h-full">
+            <header className="flex items-center justify-between p-4 border-b">
+                <div className='flex items-center'>
+                    <h1 className="text-2xl font-bold">Riconciliazione Scritture</h1>
+                </div>
+            </header>
+            <main className="flex-grow p-4 overflow-auto space-y-4">
             
-            <Card className="mb-4">
+            <Card>
                  <CardHeader>
                     <CardTitle>Avvia Processo di Riconciliazione</CardTitle>
                     <CardDescription>
@@ -157,7 +162,7 @@ export default function Riconciliazione() {
             </Card>
 
             {summaryWithLiveCount && (
-                 <Card className="mb-4">
+                 <Card>
                     <CardHeader>
                         <CardTitle>Riepilogo Analisi</CardTitle>
                     </CardHeader>
@@ -243,6 +248,7 @@ export default function Riconciliazione() {
                     </div>
                 </div>
             )}
+            </main>
         </div>
     );
 } 

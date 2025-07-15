@@ -12,8 +12,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { ScritturaContabile, Conto } from '@prisma/client';
-import { getRegistrazioni, deleteRegistrazione } from '@/api/registrazioni';
+import { Conto } from '@prisma/client';
+import { getRegistrazioni, deleteRegistrazione, ScritturaContabileWithRighe } from '@/api/registrazioni';
 import { getPianoDeiConti } from '@/api';
 import {
   AlertDialog,
@@ -30,10 +30,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 const PrimaNota: React.FC = () => {
   const navigate = useNavigate();
-  const [registrazioni, setRegistrazioni] = useState<ScritturaContabile[]>([]);
+  const [registrazioni, setRegistrazioni] = useState<ScritturaContabileWithRighe[]>([]);
   const [conti, setConti] = useState<Conto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [registrazioneDaEliminare, setRegistrazioneDaEliminare] = useState<ScritturaContabile | null>(null);
+  const [registrazioneDaEliminare, setRegistrazioneDaEliminare] = useState<ScritturaContabileWithRighe | null>(null);
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -69,14 +69,14 @@ const PrimaNota: React.FC = () => {
     }
   };
 
-  const getTotaliScrittura = (scrittura: ScritturaContabile) => {
+  const getTotaliScrittura = (scrittura: ScritturaContabileWithRighe) => {
     const totaleDare = scrittura.righe.reduce((sum, riga) => sum + riga.dare, 0);
     const totaleAvere = scrittura.righe.reduce((sum, riga) => sum + riga.avere, 0);
     const sbilancio = Math.abs(totaleDare - totaleAvere);
     return { totale: totaleDare || totaleAvere, sbilancio };
   };
 
-  const checkAllocazioneMancante = (scrittura: ScritturaContabile): boolean => {
+  const checkAllocazioneMancante = (scrittura: ScritturaContabileWithRighe): boolean => {
     return scrittura.righe.some(riga => {
       const conto = conti.find(c => c.id === riga.contoId);
       const richiedeAllocazione = conto && (conto.tipo === 'Costo' || conto.tipo === 'Ricavo');
@@ -89,18 +89,24 @@ const PrimaNota: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <div>
+    <div className="flex flex-col h-full">
+      <header className="flex items-center justify-between p-4 border-b">
+        <div className='flex items-center'>
           <h1 className="text-2xl font-bold">Prima Nota</h1>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button onClick={() => navigate('/prima-nota/nuovo')} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Nuova Registrazione
+          </Button>
+        </div>
+      </header>
+      <main className="flex-grow p-4 overflow-auto">
+        <div className="space-y-6">
           <p className="text-muted-foreground">
             Visualizza le registrazioni contabili e crea nuovi movimenti.
           </p>
         </div>
-        <Button onClick={() => navigate('/prima-nota/nuova')}>
-          <Plus className="mr-2 h-4 w-4" /> Nuova Registrazione
-        </Button>
-      </div>
       <Card>
         <CardHeader>
           <CardTitle>Elenco Scritture Contabili</CardTitle>
@@ -199,6 +205,7 @@ const PrimaNota: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      </main>
     </div>
   );
 };

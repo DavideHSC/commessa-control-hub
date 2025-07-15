@@ -20,7 +20,9 @@ const ContiRelevanceForm = () => {
   const { toast } = useToast();
   const [tipo, setTipo] = useState('');
 
-  const filters = useMemo(() => ({ tipo }), [tipo]);
+  const filters = useMemo(() => ({ 
+    tipo: tipo === 'all' || tipo === '' ? undefined : tipo 
+  }), [tipo]);
 
   const {
     data,

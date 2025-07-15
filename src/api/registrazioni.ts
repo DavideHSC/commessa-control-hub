@@ -1,18 +1,25 @@
-import { ScritturaContabile } from "@prisma/client";
+import { ScritturaContabile, RigaScrittura, Allocazione } from "@prisma/client";
 import { PaginatedResponse } from ".";
 
 const API_BASE_URL = '/api';
+
+// Tipo per ScritturaContabile con relazioni (come restituito dall'API)
+export type ScritturaContabileWithRighe = ScritturaContabile & {
+  righe: (RigaScrittura & {
+    allocazioni: Allocazione[];
+  })[];
+};
 
 /**
  * Recupera tutte le scritture contabili dal server.
  * @returns Una Promise che si risolve con l'array di tutte le scritture.
  */
-export const getRegistrazioni = async (): Promise<ScritturaContabile[]> => {
+export const getRegistrazioni = async (): Promise<ScritturaContabileWithRighe[]> => {
   const response = await fetch(`${API_BASE_URL}/registrazioni`);
   if (!response.ok) {
     throw new Error('Errore nel recupero delle registrazioni');
   }
-  const result: PaginatedResponse<ScritturaContabile> = await response.json();
+  const result: PaginatedResponse<ScritturaContabileWithRighe> = await response.json();
   return result.data;
 };
 

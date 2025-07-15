@@ -52,8 +52,13 @@ const Impostazioni = () => {
   };
 
   return (
-    <div className="container mx-auto p-4 space-y-6">
-      <h1 className="text-2xl font-bold">Operazioni di Sistema</h1>
+    <div className="flex flex-col h-full">
+      <header className="flex items-center justify-between p-4 border-b">
+        <div className='flex items-center'>
+          <h1 className="text-2xl font-bold">Operazioni di Sistema</h1>
+        </div>
+      </header>
+      <main className="flex-grow p-4 overflow-auto space-y-6">
 
       <Card>
         <CardHeader>
@@ -90,6 +95,7 @@ const Impostazioni = () => {
           </Button>
         </CardContent>
       </Card>
+      </main>
     </div>
   );
 };

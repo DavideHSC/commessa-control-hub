@@ -151,6 +151,20 @@ async function getRigheDaRiconciliare(whereContiFilter: any): Promise<RigaDaRico
     const righeDaRiconciliare: RigaDaRiconciliare[] = [];
 
     for (const riga of righeStaging) {
+        // Verifica se questa riga è già stata processata automaticamente
+        const esisteAllocazione = await prisma.allocazione.findFirst({
+            where: {
+                rigaScrittura: {
+                    scritturaContabile: {
+                        numeroDocumento: riga.externalId
+                    }
+                }
+            }
+        });
+
+        // Se esiste già un'allocazione, salta questa riga
+        if (esisteAllocazione) continue;
+
         // Trova il conto corrispondente
         const conto = await prisma.conto.findFirst({
             where: {
