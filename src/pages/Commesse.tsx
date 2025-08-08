@@ -9,6 +9,7 @@ import { getCommesse } from '@/api';
 import { getCommesseWithPerformance, CommessaWithPerformance } from '@/api/commessePerformance';
 import { StatusIndicators, MargineBadge, ProgressBadge, StatusBadge, getMarginColor } from '@/components/commesse/StatusIndicators';
 import { CommessaActionMenu, QuickActions } from '@/components/commesse/CommessaActionMenu';
+import { EditBudgetDialog } from '@/components/dialogs/EditBudgetDialog';
 import {
   Accordion,
   AccordionContent,
@@ -19,6 +20,8 @@ import {
 const Commesse: React.FC = () => {
   const [commesseWithPerformance, setCommesseWithPerformance] = useState<CommessaWithPerformance[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [editBudgetOpen, setEditBudgetOpen] = useState(false);
+  const [selectedCommessa, setSelectedCommessa] = useState<CommessaWithPerformance | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -56,33 +59,70 @@ const Commesse: React.FC = () => {
 
   // Handlers per le azioni rapide
   const handleAllocateMovements = (commessa: CommessaWithPerformance) => {
-    console.log('Allocating movements for commessa:', commessa.id);
-    // TODO: Implementare logica di allocazione movimenti
-    // Potrebbe aprire un dialog o navigare a una pagina specifica
+    // Naviga alla pagina di riconciliazione con filtro per commessa
+    navigate(`/riconciliazione?commessa=${commessa.id}&focus=allocazione`);
   };
 
   const handleEditBudget = (commessa: CommessaWithPerformance) => {
-    console.log('Editing budget for commessa:', commessa.id);
-    // TODO: Implementare logica di modifica budget
-    // Potrebbe aprire un dialog con form di modifica
+    setSelectedCommessa(commessa);
+    setEditBudgetOpen(true);
+  };
+
+  const handleSaveBudget = async (budgetData: any[]) => {
+    if (!selectedCommessa) return;
+    
+    try {
+      // Chiamata API per salvare il budget
+      const response = await fetch(`/api/commesse/${selectedCommessa.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          budget: budgetData.map(item => ({
+            voceAnaliticaId: item.voceAnaliticaId,
+            importo: item.importo,
+            note: item.note
+          }))
+        })
+      });
+
+      if (response.ok) {
+        // Ricarica i dati delle commesse
+        const data = await getCommesseWithPerformance();
+        setCommesseWithPerformance(data.commesse);
+        console.log('Budget salvato con successo');
+      } else {
+        console.error('Errore nel salvataggio del budget');
+      }
+    } catch (error) {
+      console.error('Errore nel salvataggio del budget:', error);
+    }
   };
 
   const handleExportReport = (commessa: CommessaWithPerformance, format: 'pdf' | 'excel' | 'csv') => {
-    console.log(`Exporting ${format} report for commessa:`, commessa.id);
-    // TODO: Implementare logica di esportazione
-    // Potrebbe generare e scaricare il report
+    // Crea URL per l'export
+    const exportUrl = `/api/commesse/${commessa.id}/export?format=${format}`;
+    
+    // Crea link temporaneo per il download
+    const link = document.createElement('a');
+    link.href = exportUrl;
+    link.download = `commessa_${commessa.nome}_${format}.${format}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    console.log(`Esportato report ${format} per commessa:`, commessa.nome);
   };
 
   const handleAssignUnallocatedCosts = (commessa: CommessaWithPerformance) => {
-    console.log('Assigning unallocated costs for commessa:', commessa.id);
-    // TODO: Implementare logica di assegnazione costi non allocati
-    // Potrebbe aprire un dialog di assegnazione
+    // Naviga alla pagina di smart allocation con filtro per commessa
+    navigate(`/riconciliazione?commessa=${commessa.id}&focus=smart-allocation&filter=unallocated`);
   };
 
   const handleQuickAnalysis = (commessa: CommessaWithPerformance) => {
-    console.log('Quick analysis for commessa:', commessa.id);
-    // TODO: Implementare analisi rapida
-    // Potrebbe aprire un modal con grafici e statistiche
+    // Naviga alla pagina di analisi comparative focalizzata su questa commessa
+    navigate(`/analisi-comparative?commessa=${commessa.id}&mode=quick`);
   };
 
   if (isLoading) {
@@ -259,6 +299,16 @@ const Commesse: React.FC = () => {
           );
         })}
       </Accordion>
+
+      {/* Dialog di Modifica Budget */}
+      {selectedCommessa && (
+        <EditBudgetDialog
+          open={editBudgetOpen}
+          onOpenChange={setEditBudgetOpen}
+          commessa={selectedCommessa}
+          onSave={handleSaveBudget}
+        />
+      )}
     </div>
   );
 };

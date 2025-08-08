@@ -12,6 +12,11 @@ import {
     finalizeRigaIva,
     finalizeAllocazioni
 } from '../lib/finalization';
+import {
+    optimizedCleanSlate,
+    optimizedFinalizeAnagrafiche,
+    optimizedFinalizeScritture
+} from '../lib/finalization_optimized';
 
 const prisma = new PrismaClient();
 const router = express.Router();
@@ -454,14 +459,14 @@ const runFinalizationProcess = async () => {
     try {
         sseSend({ step: 'start', message: 'Avvio del processo di finalizzazione...' });
 
-        // Fase 0: CLEAN SLATE - Elimina tutti i dati di produzione
-        sseSend({ step: 'clean_slate', status: 'running', message: 'Eliminazione dati esistenti (clean slate)...' });
-        await cleanSlateReset(prisma);
-        sseSend({ step: 'clean_slate', status: 'completed', message: 'Dati di produzione eliminati.' });
+        // Fase 0: CLEAN SLATE OTTIMIZZATO - Elimina tutti i dati di produzione
+        sseSend({ step: 'clean_slate', status: 'running', message: 'Eliminazione dati esistenti (ottimizzata)...' });
+        await optimizedCleanSlate(prisma);
+        sseSend({ step: 'clean_slate', status: 'completed', message: 'Dati di produzione eliminati con successo.' });
 
-        // Fase 1: Finalizzazione Anagrafiche
-        sseSend({ step: 'anagrafiche', status: 'running', message: 'Finalizzazione anagrafiche...' });
-        const anagraficheResult = await finalizeAnagrafiche(prisma);
+        // Fase 1: Finalizzazione Anagrafiche OTTIMIZZATA
+        sseSend({ step: 'anagrafiche', status: 'running', message: 'Finalizzazione anagrafiche (ottimizzata)...' });
+        const anagraficheResult = await optimizedFinalizeAnagrafiche(prisma);
         sseSend({ step: 'anagrafiche', status: 'completed', message: `Anagrafiche finalizzate.`, count: anagraficheResult.count });
 
         // Fase 2: Finalizzazione Causali Contabili
@@ -484,9 +489,9 @@ const runFinalizationProcess = async () => {
         const contiResult = await finalizeConti(prisma);
         sseSend({ step: 'conti', status: 'completed', message: 'Piano dei conti finalizzato.', count: contiResult.count });
 
-        // Fase 6: Finalizzazione Scritture Contabili
-        sseSend({ step: 'scritture', status: 'running', message: 'Finalizzazione scritture contabili...' });
-        const scrittureResult = await finalizeScritture(prisma);
+        // Fase 6: Finalizzazione Scritture Contabili OTTIMIZZATA
+        sseSend({ step: 'scritture', status: 'running', message: 'Finalizzazione scritture contabili (ottimizzata)...' });
+        const scrittureResult = await optimizedFinalizeScritture(prisma);
         sseSend({ step: 'scritture', status: 'completed', message: 'Scritture contabili finalizzate.', count: scrittureResult.count });
 
         // Fase 7: Finalizzazione Righe IVA
@@ -534,8 +539,30 @@ router.post('/reset-scritture', async (req, res) => {
     }
 });
 
+// Track running processes to prevent multiple executions
+let isFinalizationRunning = false;
+
+// Export function to reset the flag (for emergency use)
+export const resetFinalizationFlag = () => {
+    console.log('[Reset] Finalization flag reset manually');
+    isFinalizationRunning = false;
+};
+
+// Reset the flag on server startup
+(() => {
+    console.log('[Startup] Resetting finalization flag on server restart');
+    isFinalizationRunning = false;
+})();
+
 router.post('/finalize', async (req, res) => {
     console.log('[Finalize] Richiesta di finalizzazione ricevuta.');
+
+    // Prevent multiple simultaneous runs
+    if (isFinalizationRunning) {
+        const message = "Un processo di finalizzazione è già in corso. Attendi il completamento.";
+        console.warn(`[Finalize] ${message}`);
+        return res.status(409).json({ message });
+    }
 
     // Pre-check
     const requiredTables = [
@@ -556,9 +583,38 @@ router.post('/finalize', async (req, res) => {
       }
     }
 
+    // Set running flag
+    isFinalizationRunning = true;
     res.status(202).json({ message: "Processo di finalizzazione avviato." });
 
-    runFinalizationProcess();
+    // Run with proper cleanup
+    try {
+        await runFinalizationProcess();
+    } finally {
+        isFinalizationRunning = false;
+    }
+});
+
+// Endpoint per resettare il flag di finalizzazione manualmente (emergency)
+router.post('/reset-finalization-flag', async (req, res) => {
+    console.log('[Emergency Reset] Richiesta di reset flag finalizzazione ricevuta.');
+    
+    try {
+        isFinalizationRunning = false;
+        console.log('[Emergency Reset] Flag finalizzazione resettato con successo.');
+        res.json({ 
+            message: 'Flag di finalizzazione resettato con successo.',
+            success: true,
+            wasRunning: isFinalizationRunning
+        });
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error('[Emergency Reset] Errore durante il reset:', errorMessage);
+        res.status(500).json({ 
+            message: `Errore durante il reset del flag: ${errorMessage}`,
+            success: false 
+        });
+    }
 });
 
 

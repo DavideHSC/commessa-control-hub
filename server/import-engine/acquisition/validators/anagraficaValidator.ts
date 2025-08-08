@@ -56,6 +56,7 @@ export const rawAnagraficaSchema = z.object({
 // Zod gestisce già la coercizione e la validazione in un unico passaggio.
 // Manteniamo il tipo per chiarezza
 export type ValidatedAnagrafica = z.infer<typeof rawAnagraficaSchema>;
+export type RawAnagrafica = z.infer<typeof rawAnagraficaSchema>;
 
 /**
  * Valida e pulisce i dati grezzi dall'anagrafica.

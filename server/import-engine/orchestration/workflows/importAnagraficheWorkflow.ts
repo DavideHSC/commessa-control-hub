@@ -19,6 +19,14 @@ export interface AnagraficheImportResult {
       totalRecords: number;
       successfulRecords: number;
       errorRecords: number;
+      createdRecords: number;
+      updatedRecords: number;
+      warnings: Array<{ row: number; message: string }>;
+  };
+  anagraficheStats: {
+      totalRecords: number;
+      successfulRecords: number;
+      errorRecords: number;
   };
   errors: Array<{ row: number; error: string; data: unknown }>;
 }
@@ -52,6 +60,14 @@ export async function executeAnagraficheImportWorkflow(
             totalRecords: stats.totalRecords,
             successfulRecords: 0,
             errorRecords: stats.errorRecords,
+            createdRecords: 0,
+            updatedRecords: 0,
+            warnings: [],
+        },
+        anagraficheStats: {
+            totalRecords: stats.totalRecords,
+            successfulRecords: 0,
+            errorRecords: stats.errorRecords,
         },
         errors: [],
       };
@@ -81,6 +97,14 @@ export async function executeAnagraficheImportWorkflow(
         success: false,
         message: 'Nessun record ha superato la validazione.',
         stats: {
+          totalRecords: stats.totalRecords,
+          successfulRecords: 0,
+          errorRecords: stats.totalRecords,
+          createdRecords: 0,
+          updatedRecords: 0,
+          warnings: [],
+        },
+        anagraficheStats: {
           totalRecords: stats.totalRecords,
           successfulRecords: 0,
           errorRecords: stats.totalRecords,
@@ -119,6 +143,14 @@ export async function executeAnagraficheImportWorkflow(
           totalRecords: stats.totalRecords,
           successfulRecords: result.count,
           errorRecords: errors.length + (validRecords.length - result.count),
+          createdRecords: result.count,
+          updatedRecords: 0,
+          warnings: [],
+      },
+      anagraficheStats: {
+          totalRecords: stats.totalRecords,
+          successfulRecords: result.count,
+          errorRecords: errors.length + (validRecords.length - result.count),
       },
       errors,
     };
@@ -131,6 +163,14 @@ export async function executeAnagraficheImportWorkflow(
       success: false,
       message: errorMessage,
       stats: {
+        totalRecords: 0,
+        successfulRecords: 0,
+        errorRecords: 0,
+        createdRecords: 0,
+        updatedRecords: 0,
+        warnings: [],
+      },
+      anagraficheStats: {
         totalRecords: 0,
         successfulRecords: 0,
         errorRecords: 0,

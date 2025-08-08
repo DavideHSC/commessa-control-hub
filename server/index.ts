@@ -25,6 +25,7 @@ import systemRoutes from './routes/system';
 import statsRoutes from './routes/stats';
 import importPrimaNota from './routes/importPrimaNota';
 import stagingRoutes from './routes/staging'; // Aggiungo l'import
+import resetRoutes from './routes/reset-finalization';
 import commesseWithPerformanceRoutes from './routes/commesseWithPerformance';
 import reconciliationRoutes from './routes/reconciliation';
 import smartAllocationRoutes from './routes/smartAllocation';
@@ -70,6 +71,7 @@ app.use('/api/condizioni-pagamento', condizioniPagamentoRoutes);
 app.use('/api/system', systemRoutes);
 app.use('/api/database/stats', statsRoutes);
 app.use('/api/staging', stagingRoutes); // Aggiungo la rotta
+app.use('/api/admin', resetRoutes); // Emergency reset routes
 app.use('/api/reconciliation', reconciliationRoutes);
 app.use('/api/smart-allocation', smartAllocationRoutes);
 app.use('/api/allocation/audit', auditTrailRoutes);

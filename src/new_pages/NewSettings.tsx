@@ -1,0 +1,336 @@
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { Settings, Plus, Edit, Trash2, Database, Target, ListTree, RefreshCw } from 'lucide-react';
+import { Button } from '../new_components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '../new_components/ui/Card';
+import { UnifiedTable } from '../new_components/tables/UnifiedTable';
+import { Alert, AlertDescription } from '../new_components/ui/Alert';
+
+interface VoceAnalitica {
+  id: string;
+  nome: string;
+  descrizione?: string;
+  tipo: 'costo' | 'ricavo';
+  isAttiva: boolean;
+  createdAt: string;
+}
+
+interface RegolaRipartizione {
+  id: string;
+  nome: string;
+  descrizione?: string;
+  isAttiva: boolean;
+  condizioni: unknown;
+  createdAt: string;
+}
+
+type SettingSection = 'voci-analitiche' | 'regole-ripartizione' | 'sistema';
+
+export const NewSettings = () => {
+  const [activeSection, setActiveSection] = useState<SettingSection>('voci-analitiche');
+  const [vociAnalitiche, setVociAnalitiche] = useState<VoceAnalitica[]>([]);
+  const [regoleRipartizione, setRegoleRipartizione] = useState<RegolaRipartizione[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const settingSections = [
+    {
+      key: 'voci-analitiche' as const,
+      title: 'Voci Analitiche',
+      description: 'Gestisci le voci analitiche per l\'allocazione dei costi',
+      icon: ListTree,
+      count: vociAnalitiche.length
+    },
+    {
+      key: 'regole-ripartizione' as const,
+      title: 'Regole di Ripartizione',
+      description: 'Configura regole automatiche per l\'allocazione',
+      icon: Target,
+      count: regoleRipartizione.length
+    },
+    {
+      key: 'sistema' as const,
+      title: 'Operazioni Sistema',
+      description: 'Operazioni di manutenzione del database',
+      icon: Database,
+      count: null
+    }
+  ];
+
+  // Fetch data based on active section
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      if (activeSection === 'voci-analitiche') {
+        const response = await fetch('/api/voci-analitiche');
+        if (response.ok) {
+          const data = await response.json();
+          setVociAnalitiche(Array.isArray(data) ? data : data.data || []);
+        }
+      } else if (activeSection === 'regole-ripartizione') {
+        const response = await fetch('/api/regole-ripartizione');
+        if (response.ok) {
+          const data = await response.json();
+          setRegoleRipartizione(Array.isArray(data) ? data : data.data || []);
+        }
+      }
+    } catch (err) {
+      setError(`Errore nel caricamento dati: ${err instanceof Error ? err.message : 'Errore sconosciuto'}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [activeSection]);
+
+  // Load data when section changes
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Handle section change
+  const handleSectionChange = useCallback((section: SettingSection) => {
+    setActiveSection(section);
+  }, []);
+
+  // Handle CRUD operations
+  const handleCreate = useCallback(() => {
+    console.log(`Create new ${activeSection}`);
+    // TODO: Implement create dialog
+  }, [activeSection]);
+
+  const handleEdit = useCallback((item: unknown) => {
+    console.log(`Edit ${activeSection}:`, item);
+    // TODO: Implement edit dialog
+  }, [activeSection]);
+
+  const handleDelete = useCallback(async (id: string) => {
+    if (!confirm('Sei sicuro di voler eliminare questo elemento?')) return;
+
+    try {
+      const endpoint = activeSection === 'voci-analitiche' ? '/api/voci-analitiche' : '/api/regole-ripartizione';
+      const response = await fetch(`${endpoint}/${id}`, { method: 'DELETE' });
+      
+      if (response.ok) {
+        fetchData(); // Refresh data
+      } else {
+        alert('Errore durante l\'eliminazione');
+      }
+    } catch (err) {
+      console.error('Delete error:', err);
+      alert('Errore di connessione durante l\'eliminazione');
+    }
+  }, [activeSection, fetchData]);
+
+  // Table columns for voci analitiche
+  const vociAnaliticheColumns = useMemo(() => [
+    { key: 'nome', label: 'Nome', sortable: true },
+    { key: 'descrizione', label: 'Descrizione', sortable: true },
+    { 
+      key: 'tipo', 
+      label: 'Tipo',
+      render: (tipo: unknown) => (
+        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+          tipo === 'costo' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+        }`}>
+          {String(tipo).charAt(0).toUpperCase() + String(tipo).slice(1)}
+        </span>
+      )
+    },
+    { 
+      key: 'isAttiva', 
+      label: 'Stato',
+      render: (isAttiva: unknown) => (
+        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+          isAttiva ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+        }`}>
+          {isAttiva ? 'Attiva' : 'Inattiva'}
+        </span>
+      )
+    },
+    { 
+      key: 'createdAt', 
+      label: 'Creata',
+      render: (value: unknown) => {
+        try {
+          return new Date(String(value)).toLocaleDateString('it-IT');
+        } catch {
+          return '-';
+        }
+      }
+    }
+  ], []);
+
+  // Table columns for regole ripartizione
+  const regoleRipartizioneColumns = useMemo(() => [
+    { key: 'nome', label: 'Nome', sortable: true },
+    { key: 'descrizione', label: 'Descrizione', sortable: true },
+    { 
+      key: 'isAttiva', 
+      label: 'Stato',
+      render: (isAttiva: unknown) => (
+        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+          isAttiva ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+        }`}>
+          {isAttiva ? 'Attiva' : 'Inattiva'}
+        </span>
+      )
+    },
+    { 
+      key: 'createdAt', 
+      label: 'Creata',
+      render: (value: unknown) => {
+        try {
+          return new Date(String(value)).toLocaleDateString('it-IT');
+        } catch {
+          return '-';
+        }
+      }
+    }
+  ], []);
+
+  const currentSection = settingSections.find(s => s.key === activeSection);
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Impostazioni</h1>
+          <p className="text-gray-500">Configurazioni di sistema e parametri business</p>
+        </div>
+        <div className="flex space-x-3">
+          <Button variant="outline" onClick={fetchData} disabled={loading}>
+            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Aggiorna
+          </Button>
+          {activeSection !== 'sistema' && (
+            <Button onClick={handleCreate}>
+              <Plus className="w-4 h-4 mr-2" />
+              Nuovo
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Settings Menu */}
+        <div className="space-y-2">
+          {settingSections.map((section) => (
+            <div
+              key={section.key}
+              className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                activeSection === section.key
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+              }`}
+              onClick={() => handleSectionChange(section.key)}
+            >
+              <div className="flex items-center space-x-3">
+                <section.icon className="w-6 h-6 text-blue-600" />
+                <div>
+                  <h3 className="font-semibold text-gray-900">{section.title}</h3>
+                  {section.count !== null && (
+                    <p className="text-sm text-gray-500">{section.count} elementi</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {/* Active Section Content */}
+        <div className="lg:col-span-3">
+          {error && (
+            <Alert className="mb-4">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center space-x-3">
+                {currentSection && <currentSection.icon className="w-6 h-6 text-blue-600" />}
+                <div>
+                  <CardTitle>{currentSection?.title}</CardTitle>
+                  <p className="text-sm text-gray-500">{currentSection?.description}</p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {activeSection === 'voci-analitiche' && (
+                <UnifiedTable
+                  data={vociAnalitiche as unknown as Record<string, unknown>[]}
+                  columns={vociAnaliticheColumns}
+                  onEdit={(row) => handleEdit(row as any)}
+                  onDelete={(id) => handleDelete(id)}
+                  loading={loading}
+                  searchable={true}
+                  paginated={true}
+                  emptyMessage="Nessuna voce analitica configurata"
+                  showActions={true}
+                />
+              )}
+
+              {activeSection === 'regole-ripartizione' && (
+                <UnifiedTable
+                  data={regoleRipartizione as unknown as Record<string, unknown>[]}
+                  columns={regoleRipartizioneColumns}
+                  onEdit={(row) => handleEdit(row as any)}
+                  onDelete={(id) => handleDelete(id)}
+                  loading={loading}
+                  searchable={true}
+                  paginated={true}
+                  emptyMessage="Nessuna regola di ripartizione configurata"
+                  showActions={true}
+                />
+              )}
+
+              {activeSection === 'sistema' && (
+                <div className="space-y-4">
+                  <Alert>
+                    <Database className="h-4 w-4" />
+                    <AlertDescription>
+                      <strong>Operazioni Sistema</strong><br/>
+                      Funzionalità di manutenzione del database e operazioni di sistema.
+                      Attenzione: queste operazioni possono influire sui dati esistenti.
+                    </AlertDescription>
+                  </Alert>
+                  
+                  <div className="grid gap-4">
+                    <Card>
+                      <CardContent className="pt-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium">Reset Database</h4>
+                            <p className="text-sm text-gray-500">Pulisce tutte le tabelle e ripopola con dati di test</p>
+                          </div>
+                          <Button variant="outline" disabled>
+                            Reset DB
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardContent className="pt-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium">Cleanup Staging</h4>
+                            <p className="text-sm text-gray-500">Elimina tutti i dati nelle tabelle di staging</p>
+                          </div>
+                          <Button variant="outline" disabled>
+                            Cleanup
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+};

@@ -45,8 +45,8 @@ export async function handleCodiceIvaImport(req: Request, res: Response): Promis
       success: true,
       message: 'Importazione codici IVA completata con successo',
       fileName: req.file.originalname,
-      totalRecords: result.totalRecords,
-      createdCount: result.successfulRecords,
+      totalRecords: result.stats.totalRecords,
+      createdCount: result.stats.successfulRecords,
       updatedCount: 0, // Per ora non distinguiamo tra create e update
       errors: result.errors,
       warnings: []

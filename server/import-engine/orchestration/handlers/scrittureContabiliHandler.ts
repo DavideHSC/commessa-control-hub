@@ -131,8 +131,8 @@ export class ScrittureContabiliHandler {
           ...result.stats,
           processingTime: duration,
           performanceMetrics: {
-            recordsPerSecond: Math.round((result.stats.scrittureImportate / duration) * 1000),
-            averageTimePerRecord: Math.round(duration / (result.stats.scrittureImportate || 1)),
+            recordsPerSecond: Math.round((result.stats.testateStaging / duration) * 1000),
+            averageTimePerRecord: Math.round(duration / (result.stats.testateStaging || 1)),
           },
         },
         endpoints: {

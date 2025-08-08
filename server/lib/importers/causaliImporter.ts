@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { PrismaClient, Prisma } from '@prisma/client';
 import * as decoders from '../businessDecoders';
 import { z } from 'zod';
-import { transformCausaleContabile } from '../../import-engine/transformation/transformers/causaleContabileTransformer';
+// import { transformCausaleContabile } from '../../import-engine/transformation/transformers/causaleContabileTransformer';
 import { causaleContabileValidator } from '../../import-engine/acquisition/validators/causaleContabileValidator';
 import { parseDecimalString, parseBooleanFlag, convertDateString } from '../importUtils';
 import { ImportStats } from '../fixedWidthParser';

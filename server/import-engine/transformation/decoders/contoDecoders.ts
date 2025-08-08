@@ -28,15 +28,25 @@ export function formatCodificaGerarchica(codifica?: string | null, livello?: str
 /**
  * Determina il TipoConto enum in base alla logica di business.
  * @param tipoChar Il carattere che identifica il tipo (P, E, C, F, O).
- * @param codice Il codice del conto, usato per distinguere Costo/Ricavo.
+ * @param codice Il codice del conto, usato per distinguere Costo/Ricavo (fallback).
+ * @param gruppo Il campo GRUPPO dal tracciato CONTIGEN (A, C, P, R) - prioritario per conti economici.
  * @returns L'enum TipoConto corrispondente.
  */
-export function determineTipoConto(tipoChar?: string | null, codice?: string | null): TipoConto {
+export function determineTipoConto(tipoChar?: string | null, codice?: string | null, gruppo?: string | null): TipoConto {
     const tipo = tipoChar?.trim().toUpperCase();
+    const gruppoNorm = gruppo?.trim().toUpperCase();
     
     switch (tipo) {
         case 'P': return TipoConto.Patrimoniale;
         case 'E': 
+            // Usa il campo GRUPPO per distinguere Costo/Ricavo (logica corretta dal tracciato)
+            if (gruppoNorm === 'C') {
+                return TipoConto.Costo;
+            }
+            if (gruppoNorm === 'R') {
+                return TipoConto.Ricavo;
+            }
+            // Fallback alla logica precedente basata sui prefissi del codice
             if (codice?.startsWith('6')) { // I costi iniziano per 6
                 return TipoConto.Costo;
             }

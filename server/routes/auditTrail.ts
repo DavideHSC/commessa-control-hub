@@ -143,6 +143,11 @@ router.get('/', async (req, res) => {
             const aValue = a[sortBy as keyof typeof a];
             const bValue = b[sortBy as keyof typeof b];
             
+            // Gestisce valori null/undefined
+            if (aValue == null && bValue == null) return 0;
+            if (aValue == null) return 1;
+            if (bValue == null) return -1;
+            
             if (sortOrder === 'desc') {
                 return aValue > bValue ? -1 : 1;
             } else {

@@ -13,22 +13,32 @@ export async function cleanSlateReset(prisma: PrismaClient) {
   
   await prisma.$transaction(async (tx) => {
     // Elimina in ordine CORRETTO per rispettare foreign keys
+    console.log('[Clean Slate] Eliminando allocazioni e budget...');
     await tx.allocazione.deleteMany({});
     await tx.budgetVoce.deleteMany({});
     await tx.regolaRipartizione.deleteMany({});
     await tx.importAllocazione.deleteMany({});
-    await tx.commessa.deleteMany({});
+    
+    console.log('[Clean Slate] Eliminando righe IVA e scritture...');
     await tx.rigaIva.deleteMany({});
     await tx.rigaScrittura.deleteMany({});
     await tx.scritturaContabile.deleteMany({});
+    
+    console.log('[Clean Slate] Eliminando commesse...');
+    await tx.commessa.deleteMany({});
+    
+    console.log('[Clean Slate] Eliminando anagrafiche...');
     await tx.cliente.deleteMany({});
     await tx.fornitore.deleteMany({});
+    
+    console.log('[Clean Slate] Eliminando dati ausiliari...');
     await tx.causaleContabile.deleteMany({});
     await tx.codiceIva.deleteMany({});
     await tx.condizionePagamento.deleteMany({});
-    // NON eliminiamo Conto e VoceAnalitica perché sono dati di configurazione
     
-    console.log('[Clean Slate] Tutti i dati di produzione eliminati.');
+    console.log('[Clean Slate] Clean slate completato. Preservati: Conto, VoceAnalitica.');
+  }, {
+    timeout: 60000 // 60 secondi invece di 5
   });
 }
 
@@ -78,21 +88,20 @@ export async function finalizeAnagrafiche(prisma: PrismaClient) {
     }
   }
 
-  await prisma.$transaction(async (tx) => {
-    // Pulisci i clienti esistenti
-    const clientiIds = clientiToCreate.map(c => c.externalId).filter(Boolean);
-    if (clientiIds.length > 0) {
-      await tx.cliente.deleteMany({ where: { externalId: { in: clientiIds } } });
-      await tx.cliente.createMany({ data: clientiToCreate, skipDuplicates: true });
-    }
+  // Processare in batch per evitare deadlock
+  console.log(`[Finalize Anagrafiche] Creando ${clientiToCreate.length} clienti e ${fornitoriToCreate.length} fornitori...`);
+  
+  // Clienti in batch
+  if (clientiToCreate.length > 0) {
+    await prisma.cliente.createMany({ data: clientiToCreate, skipDuplicates: true });
+    console.log(`[Finalize Anagrafiche] Creati ${clientiToCreate.length} clienti.`);
+  }
 
-    // Pulisci i fornitori esistenti
-    const fornitoriIds = fornitoriToCreate.map(f => f.externalId).filter(Boolean);
-    if (fornitoriIds.length > 0) {
-      await tx.fornitore.deleteMany({ where: { externalId: { in: fornitoriIds } } });
-      await tx.fornitore.createMany({ data: fornitoriToCreate, skipDuplicates: true });
-    }
-  });
+  // Fornitori in batch
+  if (fornitoriToCreate.length > 0) {
+    await prisma.fornitore.createMany({ data: fornitoriToCreate, skipDuplicates: true });
+    console.log(`[Finalize Anagrafiche] Creati ${fornitoriToCreate.length} fornitori.`);
+  }
 
   return { count: clientiToCreate.length + fornitoriToCreate.length };
 }
@@ -208,13 +217,23 @@ export async function finalizeConti(prisma: PrismaClient) {
 
   const contiToCreate = stagingData.map(sc => {
     let tipoConto: any; // Usiamo 'any' per flessibilità, ma sarebbe meglio l'enum
+    
+    // Logica corretta basata sul tracciato CONTIGEN.md
     switch (sc.tipo) {
-        case 'C': tipoConto = 'Costo'; break;
-        case 'R': tipoConto = 'Ricavo'; break;
         case 'P': tipoConto = 'Patrimoniale'; break;
+        case 'C': tipoConto = 'Cliente'; break; // Corretto: C = Cliente
         case 'F': tipoConto = 'Fornitore'; break;
-        case 'L': tipoConto = 'Cliente'; break;
-        case 'E': tipoConto = 'Economico'; break;
+        case 'O': tipoConto = 'Ordine'; break;
+        case 'E': 
+            // Per conti economici, usa il campo GRUPPO per distinguere Costo/Ricavo
+            if (sc.gruppo === 'C') {
+                tipoConto = 'Costo';
+            } else if (sc.gruppo === 'R') {
+                tipoConto = 'Ricavo';
+            } else {
+                tipoConto = 'Economico'; // Default per conti economici non specificati
+            }
+            break;
         default: tipoConto = 'Economico';
     }
 

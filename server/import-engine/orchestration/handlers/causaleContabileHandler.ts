@@ -17,8 +17,10 @@ export async function handleCausaleContabileImport(req: Request, res: Response):
     const stats = await runImportCausaliContabiliWorkflow(fileContent);
 
     res.status(200).json({
+      success: true,
       message: 'Importazione Causali Contabili completata.',
-      ...stats,
+      stats: stats.stats,
+      errors: stats.errors,
     });
   } catch (error: unknown) {
     console.error("Errore durante l'importazione delle Causali Contabili:", error);

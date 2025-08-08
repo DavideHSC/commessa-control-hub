@@ -19,6 +19,7 @@
 - Always use TodoWrite tool for tracking multi-step tasks
 - Follow established layout patterns for UI consistency
 - Document significant changes and solutions
+- **Testing Environment**: User must execute local curl/API tests (Claude runs on WSL, project runs on Windows)
 
 ## AI Assistant Instructions
 - **Proactively ask** about saving session summaries during natural breakpoints

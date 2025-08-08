@@ -22,6 +22,8 @@ router.get('/', async (req, res) => {
       causali,
       codiciIva,
       condizioniPagamento,
+      righeScrittura,
+      righeIva,
     ] = await prisma.$transaction([
       prisma.scritturaContabile.findMany({
         include: {
@@ -39,6 +41,8 @@ router.get('/', async (req, res) => {
       prisma.causaleContabile.findMany({ orderBy: { nome: 'asc' } }),
       prisma.codiceIva.findMany({ orderBy: { id: 'asc' } }),
       prisma.condizionePagamento.findMany({ orderBy: { id: 'asc' } }),
+      prisma.rigaScrittura.findMany({ orderBy: { id: 'asc' } }),
+      prisma.rigaIva.findMany({ orderBy: { id: 'asc' } }),
     ]);
 
     const stats = {
@@ -51,6 +55,8 @@ router.get('/', async (req, res) => {
       totaleCausali: causali.length,
       totaleCodiciIva: codiciIva.length,
       totaleCondizioniPagamento: condizioniPagamento.length,
+      totaleRigheScrittura: righeScrittura.length,
+      totaleRigheIva: righeIva.length,
     };
 
     res.json({
@@ -63,6 +69,8 @@ router.get('/', async (req, res) => {
       causali,
       codiciIva,
       condizioniPagamento,
+      righeScrittura,
+      righeIva,
       stats,
     });
   } catch (error) {
@@ -103,6 +111,26 @@ router.delete('/condizioni-pagamento', async (req, res) => {
   } catch (error) {
     console.error("Errore durante lo svuotamento della tabella Condizioni di Pagamento:", error);
     res.status(500).json({ error: 'Errore interno del server durante la pulizia delle condizioni di pagamento.' });
+  }
+});
+
+router.delete('/righe-scrittura', async (req, res) => {
+  try {
+    await prisma.rigaScrittura.deleteMany({});
+    res.status(200).json({ message: 'Tabella Righe Scrittura svuotata con successo.' });
+  } catch (error) {
+    console.error("Errore durante lo svuotamento della tabella Righe Scrittura:", error);
+    res.status(500).json({ error: 'Errore interno del server durante la pulizia delle righe scrittura.' });
+  }
+});
+
+router.delete('/righe-iva', async (req, res) => {
+  try {
+    await prisma.rigaIva.deleteMany({});
+    res.status(200).json({ message: 'Tabella Righe IVA svuotata con successo.' });
+  } catch (error) {
+    console.error("Errore durante lo svuotamento della tabella Righe IVA:", error);
+    res.status(500).json({ error: 'Errore interno del server durante la pulizia delle righe IVA.' });
   }
 });
 

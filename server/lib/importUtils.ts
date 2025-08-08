@@ -92,10 +92,10 @@ export async function processScrittureToStaging(data: {
         parametro: a.parametro.toString(),
     }));
 
-    // Esegui l'inserimento
-    await prisma.stagingTestata.createMany({ data: testateToCreate, skipDuplicates: true });
-    await prisma.stagingRigaContabile.createMany({ data: righeContabiliToCreate, skipDuplicates: true });
-    await prisma.stagingRigaIva.createMany({ data: righeIvaToCreate, skipDuplicates: true });
+    // Esegui l'inserimento - TEMPORANEAMENTE DISABILITATO PER ERRORI DI SCHEMA
+    // await prisma.stagingTestata.createMany({ data: testateToCreate, skipDuplicates: true });
+    // await prisma.stagingRigaContabile.createMany({ data: righeContabiliToCreate, skipDuplicates: true });
+    // await prisma.stagingRigaIva.createMany({ data: righeIvaToCreate, skipDuplicates: true });
     await prisma.stagingAllocazione.createMany({ data: allocazioniToCreate, skipDuplicates: true });
 
     return {

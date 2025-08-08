@@ -73,11 +73,12 @@ export const resetDatabase = async () => {
 };
 
 export const getDatabaseStats = async (): Promise<TableStats> => {
-  const response = await fetch(`${API_BASE_URL}/database/stats`);
+  const response = await fetch(`${API_BASE_URL}/database/`);
   if (!response.ok) {
     throw new Error('Errore nel recupero delle statistiche del database');
   }
-  return response.json();
+  const data = await response.json();
+  return data.stats;
 };
 
 // In futuro aggiungeremo qui le funzioni per recuperare e salvare le scritture contabili. 
