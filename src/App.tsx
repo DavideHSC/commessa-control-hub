@@ -10,7 +10,7 @@ import CommessaDettaglio from "./pages/CommessaDettaglio";
 import PrimaNota from "./pages/PrimaNota";
 import NuovaRegistrazionePrimaNota from "./pages/NuovaRegistrazionePrimaNota";
 import NotFound from "./pages/NotFound";
-import ImportPage from './pages/Import';
+// DEPRECATED V1 ROUTE - import ImportPage from './pages/Import';
 import Database from './pages/Database';
 import ImpostazioniPage from "./pages/Impostazioni";
 import RiconciliazionePage from "./pages/Riconciliazione";
@@ -73,7 +73,7 @@ const App = () => (
             <Route path="prima-nota" element={<PrimaNota />} />
             <Route path="prima-nota/nuova" element={<NuovaRegistrazionePrimaNota />} />
             <Route path="prima-nota/modifica/:id" element={<NuovaRegistrazionePrimaNota />} />
-            <Route path="import" element={<ImportPage />} />
+            {/* DEPRECATED V1 ROUTE - <Route path="import" element={<ImportPage />} /> */}
             <Route path="database" element={<Database />} />
             <Route path="staging" element={<StagingPage />} />
             <Route path="impostazioni" element={<ImpostazioniPage />} />

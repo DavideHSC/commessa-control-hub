@@ -36,6 +36,7 @@ interface JobStatusResponse {
   jobId: string;
   status: 'running' | 'completed' | 'failed';
   events: ImportEvent[];
+  report?: any;
 }
 
 interface JobErrorsResponse {
@@ -51,6 +52,7 @@ interface ImportState {
   progress: ImportEvent[];
   error: string | null;
   validationErrors: ValidationError[];
+  report: any | null;
 }
 
 export const useImportScritture = () => {
@@ -59,7 +61,8 @@ export const useImportScritture = () => {
     jobId: null,
     progress: [],
     error: null,
-    validationErrors: []
+    validationErrors: [],
+    report: null
   });
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -102,6 +105,8 @@ export const useImportScritture = () => {
         // Aggiorna lo stato solo se è ancora 'polling' per evitare race conditions
         status: prev.status === 'polling' ? (result.status === 'running' ? 'polling' : result.status) : prev.status,
         progress: result.events || [],
+        // Salva il report se il job è completato
+        report: result.status === 'completed' ? result.report || null : prev.report,
       }));
 
       // La logica per fermare il polling e fetchare gli errori rimane, ma usa il nuovo 'result.status'
@@ -135,7 +140,8 @@ export const useImportScritture = () => {
       jobId: null,
       progress: [],
       error: null,
-      validationErrors: []
+      validationErrors: [],
+      report: null
     });
 
     // Clear any existing interval
@@ -203,7 +209,8 @@ export const useImportScritture = () => {
       jobId: null,
       progress: [],
       error: null,
-      validationErrors: []
+      validationErrors: [],
+      report: null
     });
   }, []);
 
@@ -212,6 +219,7 @@ export const useImportScritture = () => {
     progress: state.progress,
     error: state.error,
     validationErrors: state.validationErrors,
+    report: state.report,
     startImport,
     reset
   };

@@ -1,299 +1,293 @@
-import { useState } from 'react';
-import { useImportScritture } from '../new_hooks/useImportScritture';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import { Progress } from '../components/ui/progress';
-import { Alert, AlertDescription } from '../components/ui/alert';
-import { Separator } from '../components/ui/separator';
-import { ScrollArea } from '../components/ui/scroll-area';
-import { Badge } from '../components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
+// Percorso: src/new_pages/NewImport.tsx (o dove si trova ora)
+// VERSIONE DEFINITIVA - 2025-08-09
 
-interface ImportFiles {
+import { useState, useMemo } from 'react';
+import { Upload, FileText, AlertCircle, CheckCircle, X, Loader2 } from 'lucide-react';
+import { useImportScritture } from '../new_hooks/useImportScritture';
+import { useImportPianoDeiConti } from '../new_hooks/useImportPianoDeiConti';
+
+// Componenti UI
+import { Button } from '../new_components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../new_components/ui/Card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../new_components/ui/Select';
+import { Alert, AlertDescription } from '../new_components/ui/Alert';
+import { FileUploader } from '../new_components/ui/file-uploader';
+import { ScrollArea } from '../components/ui/scroll-area';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from '../components/ui/table';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../components/ui/accordion';
+
+// Tipi
+interface ScrittureImportFiles {
   pntesta: File;
   pnrigcon: File;
   pnrigiva?: File;
   movanac?: File;
 }
 
-export default function NewImport() {
-  const { status, progress, error, validationErrors, startImport, reset } = useImportScritture();
-  const [files, setFiles] = useState<ImportFiles | null>(null);
+const IMPORT_TYPES = [
+  { value: 'scritture', label: 'Scritture Contabili', disabled: false },
+  { value: 'piano-conti', label: 'Piano dei Conti', disabled: false },
+  { value: 'anagrafiche', label: 'Anagrafiche Clienti/Fornitori', disabled: true },
+];
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = event.target.files;
-    if (!selectedFiles || selectedFiles.length === 0) {
-      setFiles(null);
+// Componente Principale
+export const NewImport = () => {
+  // Hook per i diversi workflow
+  const scrittureWorkflow = useImportScritture();
+  const pianoContiWorkflow = useImportPianoDeiConti();
+  
+  const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
+  const [selectedType, setSelectedType] = useState<string>('scritture');
+
+  // Determina quale workflow è attivo
+  const activeWorkflow = selectedType === 'piano-conti' ? pianoContiWorkflow : scrittureWorkflow;
+
+  const handleFilesSelected = (files: File[]) => {
+    // Scritture contabili accettano multipli file, piano dei conti solo uno
+    if (selectedType === 'piano-conti' && files.length > 1) {
+      alert('Il Piano dei Conti accetta solo un singolo file');
       return;
     }
-
-    const fileMap: { [key: string]: File } = {};
-    for (let i = 0; i < selectedFiles.length; i++) {
-      const file = selectedFiles[i];
-      const fileName = file.name.toLowerCase();
-      
-      if (fileName.includes('pntesta')) {
-        fileMap.pntesta = file;
-      } else if (fileName.includes('pnrigcon')) {
-        fileMap.pnrigcon = file;
-      } else if (fileName.includes('pnrigiva')) {
-        fileMap.pnrigiva = file;
-      } else if (fileName.includes('movanac')) {
-        fileMap.movanac = file;
-      }
-    }
-
-    if (fileMap.pntesta && fileMap.pnrigcon) {
-      setFiles({
-        pntesta: fileMap.pntesta,
-        pnrigcon: fileMap.pnrigcon,
-        pnrigiva: fileMap.pnrigiva,
-        movanac: fileMap.movanac
-      });
-    } else {
-      setFiles(null);
-    }
+    setFilesToUpload(files);
   };
 
   const handleStartImport = () => {
-    if (files) {
-      startImport(files);
+    if (filesToUpload.length === 0) return;
+
+    switch (selectedType) {
+      case 'scritture':
+        // Logica per scritture contabili (file multipli)
+        const fileMap: { [key: string]: File } = {};
+        filesToUpload.forEach(file => {
+          const fileName = file.name.toLowerCase().replace('.txt', '');
+          if (['pntesta', 'pnrigcon', 'pnrigiva', 'movanac'].includes(fileName)) {
+            fileMap[fileName] = file;
+          }
+        });
+
+        if (!fileMap.pntesta || !fileMap.pnrigcon) {
+          alert('File obbligatori mancanti: PNTESTA.TXT e PNRIGCON.TXT');
+          return;
+        }
+        scrittureWorkflow.startImport(fileMap as unknown as ScrittureImportFiles);
+        break;
+
+      case 'piano-conti':
+        // Logica per piano dei conti (singolo file)
+        if (filesToUpload.length !== 1) {
+          alert('Seleziona esattamente un file per il Piano dei Conti');
+          return;
+        }
+        pianoContiWorkflow.startImport(filesToUpload[0]);
+        break;
+
+      default:
+        alert('Tipo di importazione non ancora supportato');
     }
   };
 
-  const handleReset = () => {
-    reset();
-    setFiles(null);
-  };
+  const isOperationInProgress = activeWorkflow.status === 'uploading' || activeWorkflow.status === 'polling';
 
-  if (status === 'idle') {
-    return (
-      <div className="container mx-auto p-6 max-w-4xl">
+  const renderContent = () => {
+    // --- Stato 1: In Attesa (IDLE) ---
+    if (activeWorkflow.status === 'idle') {
+      return (
         <Card>
           <CardHeader>
-            <CardTitle>Importazione Scritture Contabili</CardTitle>
-            <CardDescription>
-              Seleziona i file necessari per l'importazione. I file PNTESTA e PNRIGCON sono obbligatori.
-            </CardDescription>
+            <CardTitle className="flex items-center space-x-2"><Upload className="w-5 h-5" /><span>Configurazione Import</span></CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="files">Seleziona File</Label>
-              <Input
-                id="files"
-                type="file"
-                multiple
-                accept=".txt,.TXT"
-                onChange={handleFileChange}
-                className="mt-2"
-              />
+          <CardContent className="space-y-6">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">Tipo di Tracciato</label>
+              <Select value={selectedType} onValueChange={(value) => {
+                setSelectedType(value);
+                setFilesToUpload([]); // Reset files when changing type
+              }}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {IMPORT_TYPES.map(type => (
+                    <SelectItem key={type.value} value={type.value} disabled={type.disabled}>
+                      {type.label} {type.disabled && "(non disponibile)"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-
-            {files && (
-              <div className="space-y-2">
-                <h4 className="font-medium">File selezionati:</h4>
-                <ul className="space-y-1">
-                  <li className="flex items-center gap-2">
-                    <Badge variant="default">PNTESTA</Badge>
-                    <span className="text-sm">{files.pntesta.name}</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Badge variant="default">PNRIGCON</Badge>
-                    <span className="text-sm">{files.pnrigcon.name}</span>
-                  </li>
-                  {files.pnrigiva && (
-                    <li className="flex items-center gap-2">
-                      <Badge variant="secondary">PNRIGIVA</Badge>
-                      <span className="text-sm">{files.pnrigiva.name}</span>
-                    </li>
-                  )}
-                  {files.movanac && (
-                    <li className="flex items-center gap-2">
-                      <Badge variant="secondary">MOVANAC</Badge>
-                      <span className="text-sm">{files.movanac.name}</span>
-                    </li>
-                  )}
-                </ul>
-              </div>
-            )}
-
-            <Button
-              onClick={handleStartImport}
-              disabled={!files}
-              className="w-full"
-            >
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">File di Tracciato</label>
+              <FileUploader onFilesUploaded={handleFilesSelected} accept=".txt,.TXT" multiple={selectedType === 'scritture'} disabled={false} className="min-h-32">
+                <div className="text-center p-4">
+                  <FileText className="w-12 h-12 mx-auto text-gray-400 mb-2" />
+                  <h3 className="text-base font-semibold text-gray-900">Carica File</h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {selectedType === 'scritture' 
+                      ? 'Trascina qui i file .txt o clicca per selezionare (multipli file)'
+                      : 'Trascina qui il file .txt o clicca per selezionare (un singolo file)'
+                    }
+                  </p>
+                </div>
+              </FileUploader>
+              {filesToUpload.length > 0 && (
+                 <div className="text-sm text-gray-600 pt-2">
+                   <strong>File selezionati:</strong> {filesToUpload.map(f => f.name).join(', ')}
+                 </div>
+              )}
+            </div>
+            <Button onClick={handleStartImport} disabled={filesToUpload.length === 0 || (selectedType === 'scritture' && filesToUpload.length < 2)} className="w-full">
               Avvia Importazione
             </Button>
           </CardContent>
         </Card>
-      </div>
-    );
-  }
-
-  if (status === 'uploading' || status === 'polling') {
-    return (
-      <div className="container mx-auto p-6 max-w-4xl">
+      );
+    }
+    
+    // --- Stato 2: In Corso (UPLOADING / POLLING) ---
+    if (isOperationInProgress) {
+      return (
         <Card>
           <CardHeader>
-            <CardTitle>Importazione in corso...</CardTitle>
-            <CardDescription>
-              L'importazione è in corso. Monitora il progresso qui sotto.
-            </CardDescription>
+            <CardTitle className="flex items-center space-x-2">
+              <Loader2 className="animate-spin" />
+              <span>Importazione in corso...</span>
+            </CardTitle>
+            <CardDescription>Il sistema sta elaborando i file. Monitora il progresso qui sotto.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-              <span className="text-sm">
-                {status === 'uploading' ? 'Caricamento file...' : 'Elaborazione in corso...'}
-              </span>
-            </div>
-
-            <Progress value={status === 'uploading' ? 25 : 75} className="w-full" />
-
-            <Separator />
-
-            <div>
-              <h4 className="font-medium mb-2">Log dell'importazione:</h4>
-              <ScrollArea className="h-64 w-full border rounded-md p-4">
-                {progress.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">In attesa di eventi...</p>
-                ) : (
-                  <div className="space-y-2">
-                    {progress.map((event, index) => (
-                      <div key={index} className="text-sm">
-                        <span className="text-muted-foreground">[{event.timestamp}]</span>
-                        <span className={`ml-2 ${
-                          event.level === 'error' ? 'text-destructive' :
-                          event.level === 'warning' ? 'text-yellow-600' :
-                          'text-foreground'
-                        }`}>
-                          {event.message}
-                        </span>
+          <CardContent>
+            <ScrollArea className="h-72 w-full border rounded-md p-4">
+              {selectedType === 'scritture' ? (
+                // Per scritture mostra gli eventi di progress
+                'progress' in activeWorkflow && activeWorkflow.progress.length === 0 
+                  ? <p className="text-sm text-muted-foreground">In attesa di eventi dal server...</p>
+                  : 'progress' in activeWorkflow && activeWorkflow.progress.map((event, index) => (
+                      <div key={index} className="text-sm flex items-center gap-2">
+                        <span className="text-muted-foreground">[{new Date(event.timestamp).toLocaleTimeString()}]</span>
+                        <span>{event.message}</span>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </ScrollArea>
-            </div>
+                    ))
+              ) : (
+                // Per piano dei conti mostra solo un messaggio generico
+                <p className="text-sm text-muted-foreground">Elaborazione in corso...</p>
+              )}
+            </ScrollArea>
           </CardContent>
         </Card>
-      </div>
-    );
-  }
+      );
+    }
 
-  if (status === 'completed') {
+    // --- Stato 3: Finito (COMPLETED / FAILED) ---
     return (
-      <div className="container mx-auto p-6 max-w-4xl">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-green-600">Importazione completata con successo!</CardTitle>
-            <CardDescription>
-              L'importazione delle scritture contabili è stata completata senza errori.
-            </CardDescription>
+           <CardHeader>
+            <CardTitle className={`flex items-center gap-2 ${activeWorkflow.status === 'completed' ? 'text-green-600' : 'text-destructive'}`}>
+              {activeWorkflow.status === 'completed' ? <CheckCircle /> : <AlertCircle />}
+              {activeWorkflow.status === 'completed' ? 'Importazione Completata' : 'Importazione Fallita'}
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Alert>
-              <AlertDescription>
-                Tutti i dati sono stati importati correttamente nel sistema.
-              </AlertDescription>
-            </Alert>
-
-            <div>
-              <h4 className="font-medium mb-2">Log finale:</h4>
-              <ScrollArea className="h-32 w-full border rounded-md p-4">
-                <div className="space-y-2">
-                  {progress.map((event, index) => (
-                    <div key={index} className="text-sm">
-                      <span className="text-muted-foreground">[{event.timestamp}]</span>
-                      <span className="ml-2">{event.message}</span>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </div>
-
-            <Button onClick={handleReset} className="w-full">
-              Inizia una nuova importazione
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (status === 'failed') {
-    return (
-      <div className="container mx-auto p-6 max-w-4xl">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-destructive">Importazione fallita</CardTitle>
-            <CardDescription>
-              Si è verificato un errore durante l'importazione. Controlla i dettagli qui sotto.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            {validationErrors.length > 0 && (
-              <div>
-                <h4 className="font-medium mb-2">Errori di validazione:</h4>
-                <div className="border rounded-md">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Campo</TableHead>
-                        <TableHead>Riga</TableHead>
-                        <TableHead>Messaggio</TableHead>
-                      </TableRow>
-                    </TableHeader>
+            {activeWorkflow.error && <Alert variant="destructive"><AlertDescription>{activeWorkflow.error}</AlertDescription></Alert>}
+            
+            {'validationErrors' in activeWorkflow && activeWorkflow.validationErrors.length > 0 && (
+               <div className="space-y-2">
+                <h4 className="font-medium">Errori di Validazione Dettagliati:</h4>
+                <div className="border rounded-md max-h-60 overflow-y-auto">
+                  <Table><TableHeader><TableRow><TableHead>Campo/Riga</TableHead><TableHead>Messaggio</TableHead></TableRow></TableHeader>
                     <TableBody>
-                      {validationErrors.map((validationError, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium">{validationError.field}</TableCell>
-                          <TableCell>{validationError.row || '-'}</TableCell>
-                          <TableCell>{validationError.message}</TableCell>
-                        </TableRow>
-                      ))}
+                      {'validationErrors' in activeWorkflow && activeWorkflow.validationErrors.map((err, i) => <TableRow key={i}><TableCell>{err.row ? `Riga ${err.row}`:err.field}</TableCell><TableCell>{err.message}</TableCell></TableRow>)}
                     </TableBody>
                   </Table>
                 </div>
               </div>
             )}
+            
+            {activeWorkflow.status === 'completed' && activeWorkflow.report && (
+              <div className="space-y-2">
+                <h4 className="font-medium">Report Dettagliato:</h4>
+                <Accordion type="multiple" className="w-full">
+                  <AccordionItem value="stats"><AccordionTrigger>Statistiche</AccordionTrigger>
+                    <AccordionContent>
+                      <ul className="list-disc pl-5 text-sm">
+                        {selectedType === 'piano-conti' ? (
+                          // Piano dei Conti - report semplice
+                          Object.entries(activeWorkflow.report).map(([key, value]) => <li key={key}>{key}: <strong>{String(value)}</strong></li>)
+                        ) : (
+                          // Scritture Contabili - report complesso
+                          'stats' in activeWorkflow.report && Object.entries(activeWorkflow.report.stats || {}).map(([key, value]) => <li key={key}>{key}: <strong>{String(value)}</strong></li>)
+                        )}
+                      </ul>
+                    </AccordionContent>
+                  </AccordionItem>
+                  
+                  {/* Sezioni specifiche per Scritture Contabili */}
+                  {selectedType === 'scritture' && 'entitiesCreated' in activeWorkflow.report && activeWorkflow.report.entitiesCreated?.contiCreati?.count > 0 && (
+                    <AccordionItem value="conti"><AccordionTrigger>Conti Trovati ({activeWorkflow.report.entitiesCreated.contiCreati.count})</AccordionTrigger>
+                      <AccordionContent>
+                        <Table><TableHeader><TableRow><TableHead>Codice</TableHead><TableHead>Nome</TableHead></TableRow></TableHeader>
+                          <TableBody>{activeWorkflow.report.entitiesCreated.contiCreati.sample?.map((item:any, i:number) => <TableRow key={i}><TableCell>{item.codice}</TableCell><TableCell>{item.nome}</TableCell></TableRow>)}</TableBody>
+                        </Table>
+                      </AccordionContent>
+                    </AccordionItem>
+                  )}
 
-            {progress.length > 0 && (
-              <div>
-                <h4 className="font-medium mb-2">Log dell'importazione:</h4>
-                <ScrollArea className="h-32 w-full border rounded-md p-4">
-                  <div className="space-y-2">
-                    {progress.map((event, index) => (
-                      <div key={index} className="text-sm">
-                        <span className="text-muted-foreground">[{event.timestamp}]</span>
-                        <span className={`ml-2 ${
-                          event.level === 'error' ? 'text-destructive' : 'text-foreground'
-                        }`}>
-                          {event.message}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
+                  {selectedType === 'scritture' && 'entitiesCreated' in activeWorkflow.report && activeWorkflow.report.entitiesCreated?.anagraficheCreati?.count > 0 && (
+                    <AccordionItem value="anagrafiche"><AccordionTrigger>Anagrafiche Trovate ({activeWorkflow.report.entitiesCreated.anagraficheCreati.count})</AccordionTrigger>
+                      <AccordionContent>
+                        <Table><TableHeader><TableRow><TableHead>Codice</TableHead><TableHead>Nome</TableHead></TableRow></TableHeader>
+                          <TableBody>{activeWorkflow.report.entitiesCreated.anagraficheCreati.sample?.map((item:any, i:number) => <TableRow key={i}><TableCell>{item.codice}</TableCell><TableCell>{item.nome}</TableCell></TableRow>)}</TableBody>
+                        </Table>
+                      </AccordionContent>
+                    </AccordionItem>
+                  )}
+                </Accordion>
               </div>
             )}
-
-            <Button onClick={handleReset} variant="destructive" className="w-full">
-              Riprova
-            </Button>
+            
+             <div className="space-y-2">
+              <h4 className="font-medium">Log Finale:</h4>
+              <ScrollArea className="h-40 w-full border rounded-md p-4">
+                {selectedType === 'scritture' && 'progress' in activeWorkflow ? (
+                  activeWorkflow.progress.map((event, index) => (
+                    <div key={index} className="text-sm flex items-center gap-2">
+                      <span className="text-muted-foreground">[{new Date(event.timestamp).toLocaleTimeString()}]</span>
+                      <span className={`${event.level === 'ERROR' ? 'text-destructive font-semibold' : ''}`}>{event.message}</span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {activeWorkflow.status === 'completed' 
+                      ? 'Importazione completata con successo' 
+                      : 'Importazione terminata con errori'
+                    }
+                  </p>
+                )}
+              </ScrollArea>
+            </div>
           </CardContent>
         </Card>
-      </div>
-    );
-  }
+      );
+  };
 
-  return null;
-}
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Importazione Dati</h1>
+          <p className="text-sm text-gray-500">Importa i dati dai tracciati del gestionale.</p>
+        </div>
+        {(activeWorkflow.status === 'completed' || activeWorkflow.status === 'failed') && (
+          <Button variant="outline" onClick={() => {
+            activeWorkflow.reset();
+            setFilesToUpload([]);
+          }}>
+            <X className="w-4 h-4 mr-2" />
+            Esegui un altro import
+          </Button>
+        )}
+      </div>
+      
+      {renderContent()}
+
+    </div>
+  );
+};
+
+export default NewImport;

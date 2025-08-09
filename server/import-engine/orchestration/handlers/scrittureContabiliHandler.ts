@@ -177,12 +177,14 @@ export class ScrittureContabiliHandler {
       const startEvent = events.find(e => e.message.includes('started'));
       const endEvent = events.find(e => e.message.includes('completed') || e.message.includes('failed'));
 
-      res.status(200).json({
+      const isCompleted = endEvent && endEvent.message.includes('completed');
+      const isFailed = endEvent && endEvent.message.includes('failed');
+
+      // Costruisci response base
+      const response: any = {
         success: true,
         jobId,
-        status: endEvent 
-          ? (endEvent.message.includes('completed') ? 'completed' : 'failed')
-          : 'running',
+        status: isCompleted ? 'completed' : (isFailed ? 'failed' : 'running'),
         startTime: startEvent?.timestamp,
         endTime: endEvent?.timestamp,
         duration: endEvent && startEvent 
@@ -194,13 +196,91 @@ export class ScrittureContabiliHandler {
           message: event.message,
           metadata: event.metadata,
         })),
-      });
+      };
+
+      // Se il job è completato, aggiungi il report dettagliato
+      if (isCompleted) {
+        const report = await this.generateCompletionReport(jobId);
+        response.report = report;
+      }
+
+      res.status(200).json(response);
 
     } catch (error) {
       res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : 'Errore interno del server',
       });
+    }
+  }
+
+  /**
+   * Genera un report dettagliato per un job completato
+   */
+  private async generateCompletionReport(jobId: string) {
+    try {
+      // Recupera statistiche dalle tabelle di staging
+      const [
+        testateCount,
+        righeContabiliCount,
+        righeIvaCount,
+        allocazioniCount,
+        stagingConti,
+        stagingAnagrafiche
+      ] = await Promise.all([
+        this.prisma.stagingTestata.count(),
+        this.prisma.stagingRigaContabile.count(),
+        this.prisma.stagingRigaIva.count(),
+        this.prisma.stagingAllocazione.count(),
+        this.prisma.stagingConto.findMany({
+          take: 10,
+          select: { id: true, codice: true, descrizione: true }
+        }),
+        this.prisma.stagingAnagrafica.findMany({
+          take: 10,
+          select: { id: true, codiceAnagrafica: true, nome: true, cognome: true }
+        })
+      ]);
+
+      // Mostra tutte le entità create (non abbiamo più il flag isPlaceholder nelle tabelle staging)
+      const contiRecenti = stagingConti;
+      const anagraficheRecenti = stagingAnagrafiche;
+
+      return {
+        stats: {
+          filesProcessed: 4, // Sempre 4 per scritture contabili
+          testateImportate: testateCount,
+          righeContabiliImportate: righeContabiliCount,
+          righeIvaImportate: righeIvaCount,
+          allocazioniImportate: allocazioniCount,
+          totalRecords: testateCount + righeContabiliCount + righeIvaCount + allocazioniCount,
+        },
+        entitiesCreated: {
+          contiCreati: {
+            count: contiRecenti.length,
+            sample: contiRecenti.slice(0, 5).map(c => ({
+              id: c.id,
+              codice: c.codice || 'N/A',
+              nome: c.descrizione || 'Senza descrizione'
+            }))
+          },
+          anagraficheCreati: {
+            count: anagraficheRecenti.length,
+            sample: anagraficheRecenti.slice(0, 5).map(a => ({
+              id: a.id,
+              codice: a.codiceAnagrafica || 'N/A',
+              nome: `${a.nome || ''} ${a.cognome || ''}`.trim() || 'Senza nome'
+            }))
+          }
+        }
+      };
+
+    } catch (error) {
+      console.error('Errore nella generazione del report:', error);
+      return {
+        stats: { error: 'Impossibile recuperare le statistiche' },
+        entitiesCreated: {}
+      };
     }
   }
 
