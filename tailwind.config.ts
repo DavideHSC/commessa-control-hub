@@ -3,10 +3,8 @@ import type { Config } from "tailwindcss";
 export default {
 	darkMode: ["class"],
 	content: [
-		"./pages/**/*.{ts,tsx}",
-		"./components/**/*.{ts,tsx}",
-		"./app/**/*.{ts,tsx}",
-		"./src/**/*.{ts,tsx}",
+		// Scansiona solo la cartella /src per i file del frontend
+		"./src/**/*.{js,ts,jsx,tsx}",
 	],
 	prefix: "",
 	theme: {
@@ -18,6 +16,7 @@ export default {
 			}
 		},
 		extend: {
+			// ... il resto della tua configurazione theme rimane invariato
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',

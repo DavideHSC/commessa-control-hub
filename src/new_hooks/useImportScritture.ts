@@ -20,6 +20,12 @@ interface ValidationError {
   row?: number;
 }
 
+interface ImportWarning {
+  field: string;
+  message: string;
+  row?: number;
+}
+
 // API Response Types
 interface StartImportResponse {
   success: boolean;
@@ -52,6 +58,7 @@ interface ImportState {
   progress: ImportEvent[];
   error: string | null;
   validationErrors: ValidationError[];
+  warnings: ImportWarning[];
   report: any | null;
 }
 
@@ -62,6 +69,7 @@ export const useImportScritture = () => {
     progress: [],
     error: null,
     validationErrors: [],
+    warnings: [],
     report: null
   });
 
@@ -78,7 +86,7 @@ export const useImportScritture = () => {
 
   const fetchErrors = useCallback(async (jobId: string) => {
     try {
-      const response = await fetch(`/api/v2/import/scritture-contabili/errors/${jobId}`);
+      const response = await fetch(`/api/import/scritture-contabili/errors/${jobId}`);
       if (response.ok) {
         const result = await response.json() as JobErrorsResponse;
         setState(prev => ({
@@ -93,7 +101,7 @@ export const useImportScritture = () => {
 
   const pollStatus = useCallback(async (jobId: string) => {
     try {
-      const response = await fetch(`/api/v2/import/scritture-contabili/job/${jobId}`);
+      const response = await fetch(`/api/import/scritture-contabili/job/${jobId}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -141,6 +149,7 @@ export const useImportScritture = () => {
       progress: [],
       error: null,
       validationErrors: [],
+      warnings: [],
       report: null
     });
 
@@ -163,7 +172,7 @@ export const useImportScritture = () => {
         formData.append('movanac', files.movanac);
       }
 
-      const response = await fetch('/api/v2/import/scritture-contabili', {
+      const response = await fetch('/api/import/scritture-contabili', {
         method: 'POST',
         body: formData
       });
@@ -210,6 +219,7 @@ export const useImportScritture = () => {
       progress: [],
       error: null,
       validationErrors: [],
+      warnings: [],
       report: null
     });
   }, []);
@@ -219,6 +229,7 @@ export const useImportScritture = () => {
     progress: state.progress,
     error: state.error,
     validationErrors: state.validationErrors,
+    warnings: state.warnings,
     report: state.report,
     startImport,
     reset

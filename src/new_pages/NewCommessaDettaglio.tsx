@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Edit, BarChart3, TrendingUp, DollarSign, Calendar, User, Target } from 'lucide-react';
+import { ArrowLeft, Edit, BarChart3, TrendingUp, DollarSign, Calendar, User, Target, Eye } from 'lucide-react';
 import { Button } from '../new_components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../new_components/ui/Card';
 import { Progress } from '../new_components/ui/Progress';
@@ -9,12 +9,13 @@ import { UnifiedTable } from '../new_components/tables/UnifiedTable';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../new_components/ui/Dialog';
 import { CommessaForm } from '../new_components/forms/CommessaForm';
 import { useCommessaContext } from '../new_context/CommessaContext';
+import { prepareCommessaForForm } from '../utils/commessaFormUtils';
 
 interface CommessaDettaglio {
   id: string;
   nome: string;
   descrizione?: string;
-  cliente: { nome: string; codice: string } | null;
+  cliente: { nome: string; codice?: string; id?: string } | null;
   clienteId: string;
   budget: number;
   costi: number;
@@ -26,8 +27,11 @@ interface CommessaDettaglio {
   dataInizio: string;
   dataFine?: string;
   isAttiva: boolean;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
+  figlie?: CommessaDettaglio[]; // 🔧 AGGIUNTO: Support sottoconti
+  parentId?: string;           // 🔧 AGGIUNTO: Parent reference  
+  isMastro?: boolean;          // 🔧 AGGIUNTO: Flag per distinguere mastri
 }
 
 interface Allocazione {
@@ -70,16 +74,59 @@ export const NewCommessaDettaglio = () => {
       
       setLoading(true);
       try {
-        // Fetch commessa details
+        // Fetch commessa details con logica Mastri/Sottoconti
         const commessaResponse = await fetch(`/api/commesse-performance`);
         if (commessaResponse.ok) {
           const commessaResult = await commessaResponse.json();
           const commesseArray = Array.isArray(commessaResult) ? commessaResult : commessaResult.commesse || [];
-          const foundCommessa = commesseArray.find((c: {id: string}) => c.id === id);
+          
+          // 🔧 RICERCA INTELLIGENTE: Cerca prima nei mastri, poi nelle figlie
+          let foundCommessa = null;
+          let isMastro = false;
+          let parentInfo = null;
+          
+          // 1. Cerca tra i mastri (commesse padre)
+          foundCommessa = commesseArray.find((c: any) => c.id === id);
           if (foundCommessa) {
-            // Apply any updates from context
-            const updatedCommessa = getCommessa(id!, foundCommessa);
+            isMastro = true;
+          } else {
+            // 2. Cerca tra le figlie (sottoconti)
+            for (const mastro of commesseArray) {
+              if (mastro.figlie && Array.isArray(mastro.figlie)) {
+                const figlia = mastro.figlie.find((f: any) => f.id === id);
+                if (figlia) {
+                  foundCommessa = figlia;
+                  isMastro = false;
+                  parentInfo = mastro;
+                  break;
+                }
+              }
+            }
+          }
+          
+          if (foundCommessa) {
+            // 🏛️ VALIDAZIONE MASTRI: Permetti accesso solo ai mastri per dettaglio completo
+            if (!isMastro) {
+              // Se è un sottoconto, redireziona al mastro padre
+              console.warn(`Accesso a sottoconto ${id}, reindirizzamento al mastro ${parentInfo?.id}`);
+              navigate(`/new/commesse/${parentInfo?.id}`, { 
+                replace: true,
+                state: { highlightSottoconto: id }
+              });
+              return;
+            }
+            
+            // Apply updates dal context mantenendo struttura completa
+            const updatedCommessa = getCommessa(id!, {
+              ...foundCommessa,
+              isMastro: true,
+              // Mantieni figlie per breakdown
+              figlie: foundCommessa.figlie || []
+            });
             setCommessa(updatedCommessa);
+          } else {
+            console.error(`Commessa ${id} non trovata`);
+            navigate('/new/commesse', { replace: true });
           }
         }
 
@@ -385,6 +432,126 @@ export const NewCommessaDettaglio = () => {
         ))}
       </div>
 
+      {/* 🔧 BREAKDOWN SOTTOCONTI (Solo per Mastri) */}
+      {commessa.figlie && commessa.figlie.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-blue-600" />
+              Breakdown Sottoconti Analitici ({commessa.figlie.length})
+            </CardTitle>
+            <p className="text-sm text-gray-500">
+              Dettaglio delle sotto-commesse per analisi specifica del mastro
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {commessa.figlie.map((sottoconto) => (
+                <div 
+                  key={sottoconto.id}
+                  className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3">
+                        <div className="w-1 h-8 bg-blue-500 rounded"></div>
+                        <div>
+                          <h4 className="font-semibold text-lg">{sottoconto.nome}</h4>
+                          <p className="text-sm text-gray-600">{sottoconto.descrizione}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* KPI Sottoconto */}
+                    <div className="flex items-center gap-6">
+                      <div className="text-center">
+                        <div className="text-sm font-medium text-blue-600">
+                          {formatCurrency(sottoconto.budget)}
+                        </div>
+                        <div className="text-xs text-gray-500">Budget</div>
+                      </div>
+                      
+                      <div className="text-center">
+                        <div className="text-sm font-medium text-red-600">
+                          {formatCurrency(sottoconto.costi)}
+                        </div>
+                        <div className="text-xs text-gray-500">Costi</div>
+                      </div>
+                      
+                      <div className="text-center">
+                        <div className="text-sm font-medium text-green-600">
+                          {formatCurrency(sottoconto.ricavi)}
+                        </div>
+                        <div className="text-xs text-gray-500">Ricavi</div>
+                      </div>
+                      
+                      <div className="text-center min-w-[80px]">
+                        <Progress 
+                          value={sottoconto.percentualeAvanzamento} 
+                          className="h-2 mb-1" 
+                        />
+                        <div className="text-xs text-gray-600">
+                          {sottoconto.percentualeAvanzamento.toFixed(0)}%
+                        </div>
+                      </div>
+                      
+                      <Badge 
+                        variant={sottoconto.margine > 15 ? 'default' : sottoconto.margine > 5 ? 'secondary' : 'destructive'}
+                        className="min-w-[60px] justify-center"
+                      >
+                        {sottoconto.margine.toFixed(1)}%
+                      </Badge>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate(`/new/commesse/${sottoconto.id}`)}
+                        title="Visualizza dettagli"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              {/* Riepilogo Consolidato */}
+              <div className="border-t pt-4 mt-6">
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <h5 className="font-semibold text-blue-900 mb-2">Totali Consolidati</h5>
+                  <div className="grid grid-cols-4 gap-4 text-center">
+                    <div>
+                      <div className="text-lg font-bold text-blue-700">
+                        {formatCurrency(commessa.budget)}
+                      </div>
+                      <div className="text-sm text-blue-600">Budget Totale</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-red-700">
+                        {formatCurrency(commessa.costi)}
+                      </div>
+                      <div className="text-sm text-red-600">Costi Totali</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-green-700">
+                        {formatCurrency(commessa.ricavi)}
+                      </div>
+                      <div className="text-sm text-green-600">Ricavi Totali</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-purple-700">
+                        {commessa.margine.toFixed(1)}%
+                      </div>
+                      <div className="text-sm text-purple-600">Margine Medio</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Progress Section */}
       <Card>
         <CardHeader>
@@ -447,11 +614,7 @@ export const NewCommessaDettaglio = () => {
             <p className="text-sm text-gray-500">Aggiorna i dettagli della commessa selezionata</p>
           </DialogHeader>
           <CommessaForm
-            commessa={{
-              ...commessa,
-              // Assicuriamoci che il clienteId sia presente
-              clienteId: commessa.clienteId || (commessa.cliente && 'id' in commessa.cliente ? commessa.cliente.id : '') || ''
-            }}
+            commessa={prepareCommessaForForm(commessa)}
             onSubmit={handleEditCommessa}
             onCancel={() => setIsEditDialogOpen(false)}
             clientiOptions={clientiOptions}

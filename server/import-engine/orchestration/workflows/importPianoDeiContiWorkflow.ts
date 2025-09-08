@@ -1,104 +1,132 @@
 import { PrismaClient } from '@prisma/client';
-import { parseFixedWidth } from '../../acquisition/parsers/typeSafeFixedWidthParser';
-import { validatedPianoDeiContiSchema, ValidatedPianoDeiConti } from '../../acquisition/validators/pianoDeiContiValidator';
-import { RawPianoDeiConti } from '../../core/types/generated';
+import { parseFixedWidth } from '../../acquisition/parsers/typeSafeFixedWidthParser.js';
+import { validatedPianoDeiContiSchema, ValidatedPianoDeiConti } from '../../acquisition/validators/pianoDeiContiValidator.js';
+import { RawPianoDeiConti } from '../../core/types/generated.js';
 
 const prisma = new PrismaClient();
 
 interface WorkflowResult {
+  success: boolean;
+  message: string;
   totalRecords: number;
   successfulRecords: number;
+  createdRecords: number;
+  updatedRecords: number;
   errorRecords: number;
   errors: { row: number; message: string; data: unknown }[];
 }
 
 export async function importPianoDeiContiWorkflow(fileContent: string): Promise<WorkflowResult> {
-  console.log('[Workflow Staging] Avvio importazione Piano dei Conti Standard.');
+  console.log('[Workflow Staging] Avvio importazione Piano dei Conti STANDARD (Read-then-Write in Batch).');
   
   const stats: WorkflowResult = {
+    success: true, // Default to success, will be updated if errors occur
+    message: 'Importazione piano dei conti standard completata',
     totalRecords: 0,
     successfulRecords: 0,
+    createdRecords: 0,
+    updatedRecords: 0,
     errorRecords: 0,
     errors: [],
   };
 
+  // FASE 1: Parsing & Validazione
   const parseResult = await parseFixedWidth<RawPianoDeiConti>(fileContent, 'piano_dei_conti');
   const rawRecords = parseResult.data;
   stats.totalRecords = rawRecords.length;
   console.log(`[Workflow Staging] Parsati ${stats.totalRecords} record.`);
 
-  // Fase di validazione
   const validRecords: ValidatedPianoDeiConti[] = [];
-  for (const [index, rawRecord] of rawRecords.entries()) {
+  for (let index = 0; index < rawRecords.length; index++) {
+    const rawRecord = rawRecords[index];
     const validationResult = validatedPianoDeiContiSchema.safeParse(rawRecord);
     if (validationResult.success) {
       validRecords.push(validationResult.data);
     } else {
       stats.errorRecords++;
-      const flatError = validationResult.error.flatten();
-      stats.errors.push({
-        row: index + 1,
-        message: JSON.stringify(flatError.fieldErrors),
-        data: rawRecord,
-      });
+      stats.errors.push({ row: index + 1, message: JSON.stringify(validationResult.error.flatten().fieldErrors), data: rawRecord });
     }
   }
 
-  // Fase di mappatura esplicita
-  const toString = (val: string | undefined): string => val ?? '';
+  if (validRecords.length === 0) {
+    console.log('[Workflow Staging] Nessun record valido da processare.');
+    stats.success = stats.errorRecords === 0; // Success if no errors occurred
+    stats.message = stats.errorRecords > 0 
+      ? 'Importazione fallita: tutti i record contengono errori di validazione'
+      : 'Importazione completata: file vuoto o senza record validi';
+    return stats;
+  }
   
-  const recordsToCreate = validRecords.map(r => ({
-    codice: toString(r.codice),
-    descrizione: toString(r.descrizione),
-    tipo: toString(r.tipo),
-    livello: toString(r.livello),
-    sigla: toString(r.sigla),
-    gruppo: toString(r.gruppo),
-    controlloSegno: toString(r.controlloSegno),
-    validoImpresaOrdinaria: toString(r.validoImpresaOrdinaria),
-    validoImpresaSemplificata: toString(r.validoImpresaSemplificata),
-    validoProfessionistaOrdinario: toString(r.validoProfessionistaOrdinario),
-    validoProfessionistaSemplificato: toString(r.validoProfessionistaSemplificato),
-    validoUnicoPf: toString(r.validoUnicoPf),
-    validoUnicoSp: toString(r.validoUnicoSp),
-    validoUnicoSc: toString(r.validoUnicoSc),
-    validoUnicoEnc: toString(r.validoUnicoEnc),
-    codiceClasseIrpefIres: toString(r.codiceClasseIrpefIres),
-    codiceClasseIrap: toString(r.codiceClasseIrap),
-    codiceClasseProfessionista: toString(r.codiceClasseProfessionista),
-    codiceClasseIrapProfessionista: toString(r.codiceClasseIrapProfessionista),
-    codiceClasseIva: toString(r.codiceClasseIva),
-    contoCostiRicaviCollegato: toString(r.contoCostiRicaviCollegato),
-    contoDareCee: toString(r.contoDareCee),
-    contoAvereCee: toString(r.contoAvereCee),
-    naturaConto: toString(r.naturaConto),
-    gestioneBeniAmmortizzabili: toString(r.gestioneBeniAmmortizzabili),
-    percDeduzioneManutenzione: toString(r.percDeduzioneManutenzione),
-    dettaglioClienteFornitore: toString(r.dettaglioClienteFornitore),
-    descrizioneBilancioDare: toString(r.descrizioneBilancioDare),
-    descrizioneBilancioAvere: toString(r.descrizioneBilancioAvere),
-    codiceClasseDatiStudiSettore: toString(r.codiceClasseDatiStudiSettore),
-    numeroColonnaRegCronologico: toString(r.numeroColonnaRegCronologico),
-    numeroColonnaRegIncassiPag: toString(r.numeroColonnaRegIncassiPag),
-  }));
-  
-  if (recordsToCreate.length > 0) {
-    try {
-      await prisma.stagingConto.deleteMany({ where: { codiceFiscaleAzienda: '' } });
-      const result = await prisma.stagingConto.createMany({
-        data: recordsToCreate,
-        skipDuplicates: true,
-      });
-      stats.successfulRecords = result.count;
-      console.log(`[Workflow Staging] Salvati ${result.count} record nella tabella di staging.`);
-    } catch (e) {
-      const error = e as Error;
-      stats.errorRecords = recordsToCreate.length;
-      stats.errors.push({ row: 0, message: `Errore di massa durante il salvataggio ottimizzato: ${error.message}`, data: {} });
-      console.error(`[Workflow Staging] Errore durante il salvataggio in staging:`, error);
+  // FASE 2: READ
+  const codiciFromFile = validRecords.map(r => r.codice);
+  const existingConti = await prisma.stagingConto.findMany({
+    where: {
+      codice: { in: codiciFromFile },
+      codiceFiscaleAzienda: ''
+    },
+    select: { codice: true }
+  });
+
+  // FASE 3: COMPARE
+  const existingContiSet = new Set(existingConti.map(c => c.codice));
+  const contiToCreate: ValidatedPianoDeiConti[] = [];
+  const contiToUpdate: ValidatedPianoDeiConti[] = [];
+
+  for (const record of validRecords) {
+    if (existingContiSet.has(record.codice)) {
+      contiToUpdate.push(record);
+    } else {
+      contiToCreate.push(record);
     }
   }
   
-  console.log('[Workflow Staging] Importazione Piano dei Conti Standard terminata.');
+  console.log(`[Workflow Staging] Confronto completato. Da creare: ${contiToCreate.length}. Da aggiornare: ${contiToUpdate.length}.`);
+
+  try {
+    // FASE 4: WRITE - Approccio batch ottimizzato
+    await prisma.$transaction(async (tx) => {
+      if (contiToCreate.length > 0) {
+        const dataToCreate = contiToCreate.map(r => ({ ...r, codiceFiscaleAzienda: '' }));
+        const result = await tx.stagingConto.createMany({
+          data: dataToCreate,
+          skipDuplicates: true,
+        });
+        stats.createdRecords = result.count;
+      }
+
+      if (contiToUpdate.length > 0) {
+        // Usa deleteMany + createMany invece di loop di update per evitare timeout transazione
+        const codiciToUpdate = contiToUpdate.map(r => r.codice);
+        
+        // Prima elimina i record esistenti
+        await tx.stagingConto.deleteMany({
+          where: {
+            codice: { in: codiciToUpdate },
+            codiceFiscaleAzienda: ''
+          }
+        });
+        
+        // Poi ricrea con i nuovi dati
+        const dataToUpdate = contiToUpdate.map(r => ({ ...r, codiceFiscaleAzienda: '' }));
+        const result = await tx.stagingConto.createMany({
+          data: dataToUpdate,
+          skipDuplicates: true,
+        });
+        
+        stats.updatedRecords = result.count;
+      }
+    });
+
+    stats.successfulRecords = stats.createdRecords + stats.updatedRecords;
+    console.log(`[Workflow Staging] Salvataggio completato. Creati: ${stats.createdRecords}, Aggiornati: ${stats.updatedRecords}.`);
+  } catch(e) {
+      const error = e as Error;
+      stats.errorRecords = validRecords.length - (stats.createdRecords + stats.updatedRecords);
+      stats.errors.push({ row: 0, message: `Errore DB in batch: ${error.message}`, data: {} });
+      stats.success = false;
+      stats.message = 'Importazione fallita: errore durante il salvataggio nel database';
+      console.error(`[Workflow Staging] Errore durante il salvataggio in staging:`, error);
+  }
+  
   return stats;
-} 
+}

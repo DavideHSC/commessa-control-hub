@@ -9,10 +9,13 @@ interface CommessaWithPerformance {
     id: string;
     nome: string;
   };
+  clienteId: string;
   parentId?: string;
   stato: string;
+  priorita: string;
   dataInizio?: Date;
   dataFine?: Date;
+  isAttiva: boolean;
   ricavi: number;
   costi: number;
   budget: number;
@@ -112,10 +115,13 @@ router.get('/', async (req, res) => {
           id: cliente?.id || c.clienteId,
           nome: cliente?.nome || 'Cliente non trovato',
         },
+        clienteId: c.clienteId, // Aggiunto per il form
         parentId: c.parentId || undefined,
-        stato: 'In Corso', // TODO: logica stato basata su date/avanzamento
+        stato: c.stato || 'Non Definito', // Usa stato dal database o fallback
+        priorita: c.priorita || 'media', // Aggiunto campo priorita
         dataInizio: c.dataInizio || undefined,
         dataFine: c.dataFine || undefined,
+        isAttiva: c.isAttiva !== undefined ? c.isAttiva : true, // Aggiunto campo isAttiva
         ricavi,
         costi,
         budget: budgetTotale,

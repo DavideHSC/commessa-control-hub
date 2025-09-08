@@ -1,32 +1,11 @@
 import { Router } from 'express';
-import { PrismaClient, Prisma } from '@prisma/client';
-import express, { Request, Response, NextFunction } from 'express';
-import { exec } from 'child_process';
+import { PrismaClient } from '@prisma/client';
 import { promisify } from 'util';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { FieldDefinition, parseFixedWidth } from '../lib/fixedWidthParser';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { exec } from 'child_process';
 
 const router = Router();
 const prisma = new PrismaClient();
 const execAsync = promisify(exec);
-
-// Il tipo per le scritture di staging verrà inferito direttamente dalla query
-// per garantire la massima corrispondenza con lo schema Prisma attuale.
-
-// Tipi inferiti e dati assemblati manualmente per robustezza
-type RigaContabileConAllocazioni = Prisma.ImportScritturaRigaContabileGetPayload<{
-  include: { allocazioni: true }
-}>;
-type ScritturaStagingCompleta = Prisma.ImportScritturaTestataGetPayload<{
-  include: { righeIva: true }
-}> & {
-  righeContabili: RigaContabileConAllocazioni[];
-};
 
 router.get('/status', async (c, res) => {
   try {
@@ -133,578 +112,133 @@ router.get('/import-logs/:templateName?', async (req, res) => {
   }
 });
 
+/**
+ * Elimina SOLO le tabelle di produzione (NON le tabelle staging)
+ * Ordine rispetta le foreign key constraints
+ */
+async function deleteProductionTablesOnly(prisma: PrismaClient) {
+  console.log('[Reset Database] 🔄 Eliminazione SOLO tabelle produzione...');
+  
+  const result = await prisma.$transaction(async (tx) => {
+    // Ordine di eliminazione: prima figlie, poi parent (per FK)
+    console.log('[Reset Database] Step 1/5 - Eliminando dati dipendenti...');
+    await tx.allocazione.deleteMany({});
+    await tx.budgetVoce.deleteMany({});
+    
+    console.log('[Reset Database] Step 2/5 - Eliminando scritture contabili...');
+    await tx.rigaIva.deleteMany({});
+    await tx.rigaScrittura.deleteMany({});
+    await tx.scritturaContabile.deleteMany({});
+    
+    console.log('[Reset Database] Step 3/5 - Eliminando commesse...');
+    await tx.commessa.deleteMany({});
+    
+    console.log('[Reset Database] Step 4/5 - Eliminando anagrafiche...');
+    await tx.cliente.deleteMany({});
+    await tx.fornitore.deleteMany({});
+    
+    console.log('[Reset Database] Step 5/5 - Eliminando configurazioni...');
+    await tx.conto.deleteMany({});
+    await tx.voceAnalitica.deleteMany({});
+    await tx.causaleContabile.deleteMany({});
+    await tx.codiceIva.deleteMany({});
+    await tx.condizionePagamento.deleteMany({});
+    await tx.regolaRipartizione.deleteMany({});
+    
+    return { success: true };
+  }, {
+    timeout: 30000 // 30 secondi timeout per operazioni massive
+  });
+  
+  console.log('[Reset Database] ✅ Eliminazione tabelle produzione completata.');
+  return result;
+}
+
+/**
+ * Esegue il seed per ripopolare i dati iniziali
+ */
+async function runSeedData() {
+  console.log('[Reset Database] 🌱 Esecuzione seed per ripopolamento...');
+  
+  try {
+    await execAsync('npx prisma db seed');
+    console.log('[Reset Database] ✅ Seed completato con successo.');
+  } catch (error) {
+    console.error('[Reset Database] ❌ Errore durante seed:', error);
+    throw error;
+  }
+}
+
 router.post('/reset-database', async (req, res) => {
-  console.log("Avvio reset del database con ripopolamento...");
+  console.log("[Reset Database] 🔄 Avvio reset SOLO tabelle produzione + ripopolamento...");
+  
   try {
-    console.log("Esecuzione di 'prisma migrate reset --force'...");
+    // Step 1: Elimina SOLO tabelle produzione (staging intatte)
+    await deleteProductionTablesOnly(prisma);
     
-    // Esegui il comando di reset che svuota e riesegue il seed
-    await execAsync('npx prisma migrate reset --force');
+    // Step 2: Ripopola con dati seed
+    await runSeedData();
     
-    console.log("Database resettato e ripopolato con successo tramite lo script di seed.");
-    res.status(200).json({ message: 'Database resettato e ripopolato con successo.' });
+    console.log("[Reset Database] ✅ Reset selettivo completato con successo.");
+    res.status(200).json({ 
+      message: 'Reset database completato: tabelle produzione eliminate e ripopolate, staging preservato.',
+      success: true,
+      operation: 'selective_reset'
+    });
 
   } catch (error) {
-    console.error("Errore durante il reset del database:", error);
+    console.error("[Reset Database] ❌ Errore durante reset:", error);
     res.status(500).json({
-      message: 'Errore durante il reset del database.',
-      error: error instanceof Error ? error.message : String(error)
+      message: 'Errore durante il reset selettivo del database.',
+      error: error instanceof Error ? error.message : String(error),
+      success: false
     });
   }
 });
 
-// Rotta per consolidare le scritture importate
-router.post('/consolidate-scritture', async (req, res) => {
-  console.log('[Consolidate] Avvio del processo di consolidamento...');
-
-  // 1. Lettura dati con query separate per evitare problemi con il client Prisma
-  const testate = await prisma.importScritturaTestata.findMany({ include: { righeIva: true } });
-  const righeContabili = await prisma.importScritturaRigaContabile.findMany({ include: { allocazioni: true } });
-
-  // 2. Assemblaggio manuale dei dati
-  const scrittureDaImportare = testate.map(testata => ({
-    ...testata,
-    righeContabili: righeContabili.filter(riga => riga.codiceUnivocoScaricamento === testata.codiceUnivocoScaricamento),
-  }));
-
-  if (scrittureDaImportare.length === 0) {
-    console.log('[Consolidate] Nessuna scrittura da importare.');
-    return res.json({ message: 'Nessuna nuova scrittura da consolidare.' });
-  }
-
-  console.log(`[Consolidate] Trovate ${scrittureDaImportare.length} scritture da consolidare.`);
-  let importateConSuccesso = 0;
-  const errori: { id: string, errore: string }[] = [];
-
-  for (const scritturaStaging of scrittureDaImportare) {
-    try {
-      await prisma.$transaction(async (tx) => {
-        // Creazione Testata
-        const scritturaFinale = await tx.scritturaContabile.create({
-          data: {
-            externalId: scritturaStaging.codiceUnivocoScaricamento,
-            data: scritturaStaging.dataRegistrazione,
-            dataDocumento: scritturaStaging.dataDocumento,
-            numeroDocumento: scritturaStaging.numeroDocumento,
-            descrizione: scritturaStaging.descrizioneCausale || scritturaStaging.noteMovimento || 'Scrittura importata',
-          },
-        });
-
-        const progressivoToRigaIdMap: Record<number, string> = {};
-
-        // Creazione Righe Scrittura e Allocazioni
-        for (const rigaStaging of scritturaStaging.righeContabili) {
-          if (!rigaStaging.codiceConto) continue;
-          
-          const conto = await tx.conto.findFirst({ 
-            where: { codice: rigaStaging.codiceConto },
-            include: { vociAnalitiche: true } // Includo le voci analitiche associate
-          });
-          if (!conto) throw new Error(`Conto ${rigaStaging.codiceConto} non trovato.`);
-
-          const rigaFinale = await tx.rigaScrittura.create({
-            data: {
-              scritturaContabileId: scritturaFinale.id,
-              contoId: conto.id,
-              descrizione: rigaStaging.note || 'Riga importata',
-              dare: rigaStaging.importoDare || 0,
-              avere: rigaStaging.importoAvere || 0,
-            },
-          });
-
-          progressivoToRigaIdMap[rigaStaging.riga] = rigaFinale.id;
-
-          // Logica di Allocazione Corretta
-          const primaVoceAnalitica = conto.vociAnalitiche[0];
-
-          if (primaVoceAnalitica && rigaStaging.allocazioni.length > 0) {
-            for (const allocazioneStaging of rigaStaging.allocazioni) {
-              if (!allocazioneStaging.commessaId) continue;
-
-              // Aggiungo un controllo per la data di registrazione
-              if (!scritturaStaging.dataRegistrazione) {
-                throw new Error(`Data di registrazione mancante per la scrittura ${scritturaStaging.codiceUnivocoScaricamento}`);
-              }
-
-              const commessa = await tx.commessa.findFirst({ where: { id: allocazioneStaging.commessaId } });
-              if (commessa) {
-                await tx.allocazione.create({
-                  data: {
-                    rigaScritturaId: rigaFinale.id,
-                    commessaId: commessa.id,
-                    voceAnaliticaId: primaVoceAnalitica.id,
-                    importo: allocazioneStaging.importo,
-                    dataMovimento: scritturaStaging.dataRegistrazione,
-                    tipoMovimento: conto.tipo === 'Costo' ? 'COSTO_EFFETTIVO' : 'RICAVO_EFFETTIVO'
-                  },
-                });
-              }
-            }
-          }
-        }
-        
-        // Creazione Righe IVA
-        for (const rigaIvaStaging of scritturaStaging.righeIva) {
-          if (!rigaIvaStaging.codiceIva || !rigaIvaStaging.riga) continue;
-          
-          let codiceIva = await tx.codiceIva.findUnique({ where: { id: rigaIvaStaging.codiceIva } });
-          if (!codiceIva) {
-            codiceIva = await tx.codiceIva.create({ data: { id: rigaIvaStaging.codiceIva, descrizione: `Auto-creata: ${rigaIvaStaging.codiceIva}`, aliquota: 0 } });
-          }
-
-          const rigaContabileId = progressivoToRigaIdMap[rigaIvaStaging.riga];
-          if (rigaContabileId) {
-            await tx.rigaIva.create({
-              data: {
-                rigaScritturaId: rigaContabileId,
-                codiceIvaId: codiceIva.id,
-                imponibile: rigaIvaStaging.imponibile || 0,
-                imposta: rigaIvaStaging.imposta || 0,
-              },
-            });
-          }
-        }
-      });
-
-      // Cancellazione record di staging post-transazione
-      await prisma.importScritturaTestata.delete({ where: { id: scritturaStaging.id } });
-      importateConSuccesso++;
-    } catch (error) {
-      console.error(`[Consolidate] Fallito per scrittura ID ${scritturaStaging.codiceUnivocoScaricamento}:`, error);
-      errori.push({ id: scritturaStaging.codiceUnivocoScaricamento, errore: (error as Error).message });
-    }
-  }
-
-  const message = `Consolidamento terminato. ${importateConSuccesso} scritture importate, ${errori.length} fallite.`;
-  console.log(`[Consolidate] ${message}`);
-
-  res.status(errori.length > 0 ? 500 : 200).json({ message, errori });
-});
-
-// Endpoint per svuotare le tabelle di staging delle scritture
-router.post(
-  '/clear-staging-scritture',
-  async (req: Request, res: Response) => {
-    console.log(
-      'Ricevuta richiesta di svuotamento tabelle di staging scritture'
-    );
-    try {
-      await prisma.$transaction([
-        prisma.importScritturaRigaContabile.deleteMany(),
-        prisma.importScritturaRigaIva.deleteMany(),
-        prisma.importScritturaTestata.deleteMany(),
-      ]);
-      console.log('Tabelle di staging delle scritture svuotate con successo');
-      res
-        .status(200)
-        .json({ message: 'Tabelle di staging svuotate con successo' });
-    } catch (error) {
-      console.error(
-        "Errore durante lo svuotamento delle tabelle di staging:",
-        error
-      );
-      res
-        .status(500)
-        .json({ message: 'Errore durante lo svuotamento delle tabelle' });
-    }
-  }
-);
-
-// Endpoint per svuotare la tabella Conti
-router.post('/clear-conti', async (req: Request, res: Response) => {
-  console.log('Ricevuta richiesta di svuotamento tabella Conti');
+// LOGICA SPOSTATA DA stats.ts
+router.get('/db-stats', async (req, res) => {
   try {
-    await prisma.conto.deleteMany();
-    console.log('Tabella Conti svuotata con successo');
-    res.status(200).json({ message: 'Tabella Conti svuotata con successo' });
+    const [
+      scrittureCount,
+      commesseCount,
+      clientiCount,
+      fornitoriCount,
+      contiCount,
+      vociAnaliticheCount,
+      causaliCount,
+      codiciIvaCount,
+      condizioniPagamentoCount,
+    ] = await prisma.$transaction([
+      prisma.scritturaContabile.count(),
+      prisma.commessa.count(),
+      prisma.cliente.count(),
+      prisma.fornitore.count(),
+      prisma.conto.count(),
+      prisma.voceAnalitica.count(),
+      prisma.causaleContabile.count(),
+      prisma.codiceIva.count(),
+      prisma.condizionePagamento.count(),
+    ]);
+
+    const stats = {
+      totaleScrittureContabili: scrittureCount,
+      totaleCommesse: commesseCount,
+      totaleClienti: clientiCount,
+      totaleFornitori: fornitoriCount,
+      totaleConti: contiCount,
+      totaleVociAnalitiche: vociAnaliticheCount,
+      totaleCausali: causaliCount,
+      totaleCodiciIva: codiciIvaCount,
+      totaleCondizioniPagamento: condizioniPagamentoCount,
+    };
+
+    res.json(stats);
   } catch (error) {
-    console.error("Errore durante lo svuotamento della tabella Conti:", error);
-    res.status(500).json({ message: 'Errore durante lo svuotamento della tabella Conti' });
+    console.error('Errore nel recupero delle statistiche del database:', error);
+    res.status(500).json({ error: 'Errore interno del server' });
   }
 });
 
-// Funzione helper per leggere i file di dati
-const readDataFile = (fileName: string) => {
-    const filePath = path.join(__dirname, `../../.docs/dati_cliente/${fileName}`);
-    return fs.readFileSync(filePath, 'latin1');
-};
 
-const readPrimaNotaFile = (fileName: string) => {
-    const filePath = path.join(__dirname, `../../.docs/dati_cliente/prima_nota/${fileName}`);
-    return fs.readFileSync(filePath, 'latin1');
-}
-
-// ====================================================================
-// DEFINIZIONE DEGLI SCHEMI DI PARSING - Fonte: .docs/tracciati_definitivi.md
-// ====================================================================
-
-const pntestaSchema: FieldDefinition[] = [
-    { fieldName: 'codiceFiscaleAzienda', start: 4, length: 16, end: 19, type: 'string' },
-    { fieldName: 'codiceUnivocoScaricamento', start: 21, length: 12, end: 32, type: 'string' },
-    { fieldName: 'codiceCausale', start: 40, length: 6, end: 45, type: 'string' },
-    { fieldName: 'descrizioneCausale', start: 46, length: 40, end: 85, type: 'string' },
-    { fieldName: 'dataRegistrazione', start: 86, length: 8, end: 93, type: 'date' },
-    { fieldName: 'tipoRegistroIva', start: 96, length: 1, end: 96, type: 'string' },
-    { fieldName: 'codiceFiscaleClienteFornitore', start: 100, length: 16, end: 115, type: 'string' },
-    { fieldName: 'siglaClienteFornitore', start: 117, length: 12, end: 128, type: 'string' },
-    { fieldName: 'dataDocumento', start: 129, length: 8, end: 136, type: 'date' },
-    { fieldName: 'numeroDocumento', start: 137, length: 12, end: 148, type: 'string' },
-    { fieldName: 'totaleDocumento', start: 173, length: 12, end: 184, type: 'number' },
-    { fieldName: 'noteMovimento', start: 193, length: 60, end: 252, type: 'string' },
-];
-
-const pnrigconSchema: FieldDefinition[] = [
-    { fieldName: 'codiceUnivocoScaricamento', start: 4, length: 12, end: 15, type: 'string' },
-    { fieldName: 'progressivoNumeroRigo', start: 16, length: 3, end: 18, type: 'number' },
-    { fieldName: 'tipoConto', start: 19, length: 1, end: 19, type: 'string' },
-    { fieldName: 'codiceFiscaleClienteFornitore', start: 20, length: 16, end: 35, type: 'string' },
-    { fieldName: 'siglaClienteFornitore', start: 37, length: 12, end: 48, type: 'string' },
-    { fieldName: 'conto', start: 49, length: 10, end: 58, type: 'string' },
-    { fieldName: 'importoDare', start: 59, length: 12, end: 70, type: 'number' },
-    { fieldName: 'importoAvere', start: 71, length: 12, end: 82, type: 'number' },
-    { fieldName: 'note', start: 83, length: 60, end: 142, type: 'string' },
-    { fieldName: 'flagMovimentiAnalitici', start: 248, length: 1, end: 248, type: 'number' },
-];
-
-const pnrigivaSchema: FieldDefinition[] = [
-    { fieldName: 'codiceUnivocoScaricamento', start: 4, length: 12, end: 15, type: 'string' },
-    { fieldName: 'codiceIva', start: 16, length: 4, end: 19, type: 'string' },
-    { fieldName: 'contropartita', start: 20, length: 10, end: 29, type: 'string' },
-    { fieldName: 'imponibile', start: 30, length: 12, end: 41, type: 'number' },
-    { fieldName: 'imposta', start: 42, length: 12, end: 53, type: 'number' },
-    { fieldName: 'importoLordo', start: 90, length: 12, end: 101, type: 'number' },
-    { fieldName: 'siglaContropartita', start: 162, length: 12, end: 173, type: 'string' },
-];
-
-const movanacSchema: FieldDefinition[] = [
-    { fieldName: 'codiceUnivocoScaricamento', start: 4, length: 12, end: 15, type: 'string' },
-    { fieldName: 'progressivoRigaContabile', start: 16, length: 3, end: 18, type: 'number' },
-    { fieldName: 'centroDiCosto', start: 19, length: 4, end: 22, type: 'string' },
-    { fieldName: 'importo', start: 23, length: 12, end: 34, type: 'number' },
-];
-
-const clienteFornitoreSchema: FieldDefinition[] = [
-    { fieldName: 'codiceUnivocoScaricamento', start: 21, length: 12, end: 32, type: 'string' },
-    { fieldName: 'codiceFiscale', start: 33, length: 16, end: 48, type: 'string' },
-    { fieldName: 'tipo', start: 50, length: 1, end: 50, type: 'string' },
-    { fieldName: 'externalId', start: 71, length: 12, end: 82, type: 'string' },
-    { fieldName: 'partitaIva', start: 83, length: 11, end: 93, type: 'string' },
-    { fieldName: 'ragioneSociale', start: 95, length: 60, end: 154, type: 'string' },
-    { fieldName: 'cognome', start: 155, length: 20, end: 174, type: 'string' },
-    { fieldName: 'nome', start: 175, length: 20, end: 194, type: 'string' },
-];
-
-const contiGenSchema: FieldDefinition[] = [
-    { fieldName: 'codice', start: 0, length: 10, end: 9, type: 'string' },
-    { fieldName: 'descrizione', start: 10, length: 40, end: 49, type: 'string' },
-    { fieldName: 'tipo', start: 50, length: 1, end: 50, type: 'string' }, // C, R, P, F, L
-];
-
-const causaliSchema: FieldDefinition[] = [
-    { fieldName: 'externalId', start: 4, length: 6, end: 9, type: 'string' },
-    { fieldName: 'descrizione', start: 10, length: 40, end: 49, type: 'string' },
-];
-
-const codiciIvaSchema: FieldDefinition[] = [
-    { fieldName: 'externalId', start: 3, length: 5, end: 7, type: 'string' },
-    { fieldName: 'descrizione', start: 8, length: 40, end: 47, type: 'string' },
-    { fieldName: 'aliquota', start: 48, length: 2, end: 49, type: 'string' },
-];
-
-const codPagamSchema: FieldDefinition[] = [
-    { fieldName: 'externalId', start: 4, length: 8, end: 11, type: 'string' },
-    { fieldName: 'descrizione', start: 12, length: 40, end: 51, type: 'string' },
-    { fieldName: 'codice', start: 0, length: 4, end: 3, type: 'string' },
-];
-
-// ---- NUOVE INTERFACCE E SCHEMI PER PRIMA NOTA ----
-interface Pntesta {
-    codiceUnivocoScaricamento: string;
-    codiceCausale: string;
-    descrizioneCausale: string;
-    dataRegistrazione: Date;
-    dataDocumento: Date;
-    numeroDocumento: string;
-    noteMovimento: string;
-}
-interface Pnrigcon {
-    codiceUnivocoScaricamento: string;
-    progressivoRiga: number;
-    conto: string;
-    note: string;
-    importoDare: number;
-    importoAvere: number;
-}
-interface Pnrigiva {
-    codiceUnivocoScaricamento: string;
-    progressivoRiga: number;
-    codiceIva: string;
-    contropartita: string;
-    imponibile: number;
-    imposta: number;
-    importoLordo: number;
-}
-interface Movanac {
-    codiceUnivocoScaricamento: string;
-    rigaContabileRiferimento: number;
-    centroDiCosto: string;
-    importo: number;
-}
-interface ScritturaCompleta {
-    testata: Pntesta;
-    righe: (Pnrigcon & { allocazioni: Movanac[] })[];
-    righeIva: Pnrigiva[];
-}
-
-// Funzione helper per assemblare le scritture complete
-function buildScrittureComplete(
-    testate: Pntesta[], righe: Pnrigcon[], righeIva: Pnrigiva[], allocazioni: Movanac[]
-): ScritturaCompleta[] {
-    const allocazioniMap = new Map<string, Movanac[]>();
-    for (const alloc of allocazioni) {
-        const key = `${alloc.codiceUnivocoScaricamento}_${alloc.rigaContabileRiferimento}`;
-        if (!allocazioniMap.has(key)) {
-            allocazioniMap.set(key, []);
-        }
-        allocazioniMap.get(key)!.push(alloc);
-    }
-
-    const righeConAllocazioni = righe.map(riga => {
-        const key = `${riga.codiceUnivocoScaricamento}_${riga.progressivoRiga}`;
-        return { ...riga, allocazioni: allocazioniMap.get(key) || [] };
-    });
-
-    const righeMap = new Map<string, (Pnrigcon & { allocazioni: Movanac[] })[]>();
-    for (const riga of righeConAllocazioni) {
-        if (!righeMap.has(riga.codiceUnivocoScaricamento)) {
-            righeMap.set(riga.codiceUnivocoScaricamento, []);
-        }
-        righeMap.get(riga.codiceUnivocoScaricamento)!.push(riga);
-    }
-    
-    const righeIvaMap = new Map<string, Pnrigiva[]>();
-    for (const riga of righeIva) {
-        if (!righeIvaMap.has(riga.codiceUnivocoScaricamento)) {
-            righeIvaMap.set(riga.codiceUnivocoScaricamento, []);
-        }
-        righeIvaMap.get(riga.codiceUnivocoScaricamento)!.push(riga);
-    }
-
-    return testate.map(testata => ({
-        testata,
-        righe: righeMap.get(testata.codiceUnivocoScaricamento) || [],
-        righeIva: righeIvaMap.get(testata.codiceUnivocoScaricamento) || [],
-    }));
-}
-
-router.post('/seed-demo-data', async (req, res) => {
-    console.log('[System] Ricevuta richiesta di seeding con dati demo.');
-    try {
-        console.log('[System] Esecuzione di `prisma migrate reset --force`...');
-        await execAsync('npx prisma migrate reset --force');
-        console.log('[System] Reset del database completato.');
-        
-        console.log('[Seeding Demo] Avvio del popolamento con dati di esempio...');
-
-        // 1. Parsing di tutte le anagrafiche e prima nota
-        const clientiFornitoriRaw = parseFixedWidth<ClienteFornitore>(readPrimaNotaFile('A_CLIFOR.TXT'), clienteFornitoreSchema);
-        const contiRaw = parseFixedWidth<ContoGen>(readDataFile('ContiGen.txt'), contiGenSchema);
-        const causaliRaw = parseFixedWidth<Causale>(readDataFile('Causali.txt'), causaliSchema);
-        const codiciIvaRaw = parseFixedWidth<CodiceIva>(readDataFile('CodicIva.txt'), codiciIvaSchema);
-        const pagamentiRaw = parseFixedWidth<CodPagam>(readDataFile('CodPagam.txt'), codPagamSchema);
-
-        const pntesta = parseFixedWidth<Pntesta>(readPrimaNotaFile('PNTESTA.TXT'), pntestaSchema);
-        const pnrigcon = parseFixedWidth<Pnrigcon>(readPrimaNotaFile('PNRIGCON.TXT'), pnrigconSchema);
-        const pnrigiva = parseFixedWidth<Pnrigiva>(readPrimaNotaFile('PNRIGIVA.TXT'), pnrigivaSchema);
-        const movanac = parseFixedWidth<Movanac>(readPrimaNotaFile('MOVANAC.TXT'), movanacSchema);
-        
-        // --- INIZIO TRANSAZIONE ---
-        await prisma.$transaction(async (tx) => {
-            // 2. Creazione Anagrafiche
-            await tx.cliente.createMany({
-                data: clientiFornitoriRaw
-                    .filter(cf => cf.tipo === 'C')
-                    .map(cf => ({
-                        id: cf.externalId.trim(),
-                        externalId: cf.externalId.trim(),
-                        nome: cf.ragioneSociale.trim() || `${cf.cognome.trim()} ${cf.nome.trim()}`,
-                        piva: cf.partitaIva.trim() || cf.codiceFiscale.trim(),
-                    })),
-                skipDuplicates: true,
-            });
-
-            await tx.fornitore.createMany({
-                data: clientiFornitoriRaw
-                    .filter(cf => cf.tipo === 'F')
-                    .map(cf => ({
-                        id: cf.externalId.trim(),
-                        externalId: cf.externalId.trim(),
-                        nome: cf.ragioneSociale.trim() || `${cf.cognome.trim()} ${cf.nome.trim()}`,
-                        piva: cf.partitaIva.trim() || cf.codiceFiscale.trim(),
-                    })),
-                skipDuplicates: true,
-            });
-
-            await tx.conto.createMany({
-                data: contiRaw.map(c => ({
-                    id: c.codice.trim(),
-                    externalId: c.codice.trim(),
-                    nome: c.descrizione.trim(),
-                    tipo: c.tipo === 'C' ? 'Costo' : c.tipo === 'R' ? 'Ricavo' : 'Patrimoniale',
-                })),
-                skipDuplicates: true,
-            });
-
-            await tx.causaleContabile.createMany({
-                data: causaliRaw.map(c => ({
-                    id: c.externalId.trim(),
-                    externalId: c.externalId.trim(),
-                    descrizione: c.descrizione.trim(),
-                })),
-                skipDuplicates: true,
-            });
-            
-            await tx.codiceIva.createMany({
-                data: codiciIvaRaw.map(c => {
-                    const aliquotaStr = c.aliquota.replace('O', '').replace('S','').trim();
-                    return {
-                        id: c.externalId.trim(),
-                        externalId: c.externalId.trim(),
-                        descrizione: c.descrizione.trim(),
-                        aliquota: parseFloat(aliquotaStr) || 0
-                    }
-                }),
-                skipDuplicates: true,
-            });
-
-             await tx.condizionePagamento.createMany({
-                data: pagamentiRaw.map(p => ({
-                    id: p.externalId.trim(),
-                    externalId: p.externalId.trim(),
-                    descrizione: p.descrizione.trim(),
-                    codice: p.codice.trim()
-                })),
-                skipDuplicates: true,
-            });
-
-            console.log('[Seeding Demo] Anagrafiche create.');
-
-            // 3. Creazione Commesse per la Demo
-            const clienteDemo = clientiFornitoriRaw.find(cf => cf.ragioneSociale.includes('PENISOLAVERDE'));
-            const clienteDemoId = clienteDemo ? clienteDemo.externalId.trim() : 'non_trovato';
-            
-            await tx.commessa.createMany({
-                data: [
-                  { id: '1', nome: 'Commessa Servizi Generali', clienteId: clienteDemoId },
-                  { id: '2', nome: 'Commessa Manutenzione', clienteId: clienteDemoId },
-                  { id: '3', nome: 'Commessa Pulizia', clienteId: clienteDemoId }
-                ],
-                skipDuplicates: true,
-            });
-            
-            console.log('[Seeding Demo] Commesse demo create.');
-
-            // 4. Inserimento Scritture di Staging
-            const scrittureComplete = buildScrittureComplete(pntesta, pnrigcon, pnrigiva, movanac);
-
-            for (const scrittura of scrittureComplete) {
-                const codiceUnivoco = scrittura.testata.codiceUnivocoScaricamento;
-
-                // 4.1 Creazione Testata
-                await tx.importScritturaTestata.create({
-                    data: {
-                        codiceUnivocoScaricamento: codiceUnivoco,
-                        codiceCausale: scrittura.testata.codiceCausale.trim(),
-                        descrizioneCausale: scrittura.testata.descrizioneCausale.trim(),
-                        dataRegistrazione: scrittura.testata.dataRegistrazione,
-                        dataDocumento: scrittura.testata.dataDocumento,
-                        numeroDocumento: scrittura.testata.numeroDocumento.trim(),
-                        noteMovimento: scrittura.testata.noteMovimento.trim(),
-                    },
-                });
-
-                // 4.2 Creazione Righe Contabili e Allocazioni
-                for (const [index, rigaContabile] of scrittura.righe.entries()) {
-                    const createdRiga = await tx.importScritturaRigaContabile.create({
-                        data: {
-                            codiceUnivocoScaricamento: codiceUnivoco,
-                            riga: index + 1,
-                            codiceConto: rigaContabile.conto.trim(),
-                            descrizioneConto: rigaContabile.note.trim() || `Conto ${rigaContabile.conto.trim()}`,
-                            importoDare: rigaContabile.importoDare,
-                            importoAvere: rigaContabile.importoAvere,
-                            note: rigaContabile.note.trim(),
-                            insDatiMovimentiAnalitici: false,
-                        }
-                    });
-
-                    if (rigaContabile.allocazioni && rigaContabile.allocazioni.length > 0) {
-                        await tx.importAllocazione.createMany({
-                            data: rigaContabile.allocazioni.map(alloc => ({
-                                importScritturaRigaContabileId: createdRiga.id,
-                                commessaId: alloc.centroDiCosto.trim(),
-                                importo: alloc.importo,
-                                suggerimentoAutomatico: true,
-                            })),
-                        });
-                    }
-                }
-
-                // 4.3 Creazione Righe IVA
-                if (scrittura.righeIva.length > 0) {
-                    await tx.importScritturaRigaIva.createMany({
-                        data: scrittura.righeIva.map((riga, index) => ({
-                            codiceUnivocoScaricamento: codiceUnivoco,
-                            riga: index + 1,
-                            codiceIva: riga.codiceIva.trim(),
-                            codiceConto: riga.contropartita.trim(),
-                            imponibile: riga.imponibile,
-                            imposta: riga.imposta,
-                        }))
-                    });
-                }
-            }
-        });
-        // --- FINE TRANSAZIONE ---
-
-        console.log('[Seeding Demo] Popolamento completato con successo.');
-        res.status(200).json({ message: 'Database resettato e popolato con dati demo.' });
-
-    } catch (error) {
-        console.error("Errore durante la preparazione dei dati demo:", error);
-        const e = error as Error;
-        res.status(500).json({ message: 'Errore durante la preparazione dei dati demo.', details: e.message, stack: e.stack });
-    }
-});
-
-// ---- INTERFACCE PER I TIPI PARSATI ----
-interface ClienteFornitore {
-    codiceFiscale: string;
-    tipo: 'C' | 'F';
-    partitaIva: string;
-    externalId: string;
-    ragioneSociale: string;
-    cognome: string;
-    nome: string;
-}
-interface ContoGen {
-    codice: string;
-    descrizione: string;
-    tipo: 'C' | 'R' | 'P' | 'F' | 'L';
-}
-interface Causale {
-    externalId: string;
-    descrizione: string;
-}
-interface CodiceIva {
-    externalId: string;
-    descrizione: string;
-    aliquota: string;
-}
-interface CodPagam {
-    externalId: string;
-    descrizione: string;
-    codice: string;
-}
-
-export default router; 
+export default router;

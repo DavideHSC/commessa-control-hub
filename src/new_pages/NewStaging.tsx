@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { UnifiedTable } from '../new_components/tables/UnifiedTable';
 import { Alert, AlertDescription } from '../new_components/ui/Alert';
 import { ConfirmDialog } from '../new_components/dialogs/ConfirmDialog';
-import { ProgressDialog } from '../new_components/dialogs/ProgressDialog';
+
 import { FinalizationMonitor } from '../new_components/dialogs/FinalizationMonitor';
 
 interface StagingStats {
@@ -46,12 +46,9 @@ export const NewStaging = () => {
   
   // Dialog states
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [showProgressDialog, setShowProgressDialog] = useState(false);
   const [showFinalizationMonitor, setShowFinalizationMonitor] = useState(false);
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
   const [confirmMessage, setConfirmMessage] = useState({ title: '', description: '' });
-  const [progressSteps, setProgressSteps] = useState<Array<{id: string; label: string; status: 'pending' | 'running' | 'completed' | 'error'; description: string}>>([]);
-  const [currentProgress, setCurrentProgress] = useState(0);
 
   // Fetch staging statistics
   const fetchStagingStats = useCallback(async () => {
@@ -218,14 +215,24 @@ export const NewStaging = () => {
     if (!tableName) {
       // Show "Finalize All" confirmation dialog
       setConfirmMessage({
-        title: 'ATTENZIONE: Finalizzazione Completa',
-        description: `Finalizzare TUTTI i dati comporta:
+        title: '⚠️ ATTENZIONE: Finalizzazione Intelligente',
+        description: `🔄 IL SISTEMA RILEVERÀ AUTOMATICAMENTE LA MODALITÀ OPERATIVA:
 
-1. Eliminazione di TUTTI i dati di produzione esistenti
-2. Trasferimento di TUTTI i dati da staging a produzione
-3. Processo irreversibile che può richiedere diversi minuti
+🔧 SETUP INIZIALE (se primo utilizzo):
+   • Reset completo del database di produzione
+   • Trasferimento completo dati da staging
+   • Operazione sicura per inizializzazione
 
-Sei ASSOLUTAMENTE sicuro di voler procedere?`
+🔄 OPERATIVITÀ CICLICA (se dati utente esistenti):
+   • ✅ PRESERVA commesse create manualmente
+   • ✅ PRESERVA allocazioni e budget configurati
+   • ❌ Aggiorna SOLO dati da importazioni periodiche
+   • Protezione automatica dati critici utente
+
+⏱️ Durata stimata: 2-5 minuti
+🔒 Processo completamente automatizzato e sicuro
+
+Procedere con la finalizzazione intelligente?`
       });
       setConfirmAction(() => () => {
         setShowFinalizationMonitor(true);
@@ -245,205 +252,13 @@ Sei ASSOLUTAMENTE sicuro di voler procedere?`
 
   // Complex finalize all with proper progress dialog
   const handleFinalizeAll = useCallback(async () => {
-    try {
-      // Start the finalization process
-      const response = await fetch('/api/staging/finalize', { method: 'POST' });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        setConfirmMessage({
-          title: '❌ Errore Avvio Processo',
-          description: `Errore nell'avvio del processo: ${errorText}`
-        });
-        setConfirmAction(null);
-        setShowConfirmDialog(true);
-        return;
-      }
-
-      // Setup progress dialog with all finalization steps
-      const steps = [
-        { id: 'clean_slate', label: 'Eliminazione dati esistenti', status: 'pending' as const, description: 'Pulizia dati di produzione' },
-        { id: 'anagrafiche', label: 'Finalizzazione Anagrafiche', status: 'pending' as const, description: 'Clienti e Fornitori' },
-        { id: 'causali', label: 'Finalizzazione Causali', status: 'pending' as const, description: 'Causali Contabili' },
-        { id: 'codici_iva', label: 'Finalizzazione Codici IVA', status: 'pending' as const, description: 'Codici e aliquote IVA' },
-        { id: 'condizioni_pagamento', label: 'Finalizzazione Pagamenti', status: 'pending' as const, description: 'Condizioni di Pagamento' },
-        { id: 'conti', label: 'Finalizzazione Piano dei Conti', status: 'pending' as const, description: 'Struttura contabile' },
-        { id: 'scritture', label: 'Finalizzazione Scritture', status: 'pending' as const, description: 'Movimenti contabili' },
-        { id: 'righe_iva', label: 'Finalizzazione Righe IVA', status: 'pending' as const, description: 'Dettagli IVA' },
-        { id: 'allocazioni', label: 'Finalizzazione Allocazioni', status: 'pending' as const, description: 'Allocazioni costi' },
-      ];
-      
-      setProgressSteps(steps);
-      setCurrentProgress(0);
-      setShowProgressDialog(true);
-
-      // Start polling for progress
-      startProgressPolling();
-      
-    } catch (err) {
-      console.error('Finalization error:', err);
-      setConfirmMessage({
-        title: '❌ Errore di Connessione',
-        description: 'Errore di connessione durante l\'avvio del processo di finalizzazione'
-      });
-      setConfirmAction(null);
-      setShowConfirmDialog(true);
-    }
+    // Just open the FinalizationMonitor - it will handle starting the process
+    // This eliminates the race condition where both components try to start finalization
+    setShowFinalizationMonitor(true);
   }, []);
 
-  // Enhanced polling with real-time step tracking via SSE
-  const startProgressPolling = useCallback(() => {
-    const attempts = 0;
-    const maxAttempts = 60; // 5 minutes max
-    let eventSource: EventSource | null = null;
-    
-    // Setup Server-Sent Events for real-time updates
-    try {
-      eventSource = new EventSource('/api/staging/events');
-      
-      eventSource.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          console.log('🔄 Finalizzazione SSE:', data);
-          
-          // Update progress steps based on server events
-          setProgressSteps(current => 
-            current.map(step => {
-              if (step.id === data.step) {
-                return {
-                  ...step,
-                  status: data.status || 'running',
-                  description: data.message || step.description
-                };
-              }
-              return step;
-            })
-          );
-          
-          // Update progress percentage
-          if (data.progress !== undefined) {
-            setCurrentProgress(data.progress);
-          }
-          
-          // Handle completion
-          if (data.step === 'end') {
-            setCurrentProgress(100);
-            setShowProgressDialog(false);
-            eventSource?.close();
-            
-            setConfirmMessage({
-              title: '✅ Finalizzazione Completata',
-              description: 'Tutti i dati sono stati trasferiti con successo dalle tabelle di staging a quelle di produzione.'
-            });
-            setConfirmAction(null);
-            setShowConfirmDialog(true);
-            
-            fetchStagingStats();
-            setSelectedTable('');
-            setTableData([]);
-            return;
-          }
-          
-          // Handle errors
-          if (data.step === 'error') {
-            setShowProgressDialog(false);
-            eventSource?.close();
-            
-            setConfirmMessage({
-              title: 'Errore Finalizzazione',
-              description: `Errore durante il processo: ${data.message}`
-            });
-            setConfirmAction(null);
-            setShowConfirmDialog(true);
-            return;
-          }
-          
-        } catch (parseError) {
-          console.error('Error parsing SSE data:', parseError);
-        }
-      };
-      
-      eventSource.onerror = (error) => {
-        console.error('SSE Error:', error);
-        eventSource?.close();
-        
-        // Fallback to simple polling
-        startFallbackPolling();
-      };
-      
-    } catch (sseError) {
-      console.error('SSE Setup Error:', sseError);
-      // Fallback to simple polling
-      startFallbackPolling();
-    }
-    
-    // Cleanup function
-    return () => {
-      eventSource?.close();
-    };
-  }, [fetchStagingStats]);
-
-  // Fallback polling function when SSE fails - declared before use
-  const startFallbackPolling = useCallback(() => {
-    const poll = async () => {
-      let attempts = 0;
-      try {
-        const statsResponse = await fetch('/api/staging/stats');
-        if (statsResponse.ok) {
-          const stats = await statsResponse.json();
-          const totalRecords = Object.values(stats).reduce((sum: number, count: unknown) => sum + Number(count || 0), 0);
-          
-          // Update progress based on remaining records
-          const progressPercentage = Math.min(95, Math.max(10, 100 - (Number(totalRecords) / 100)));
-          setCurrentProgress(progressPercentage);
-          
-          if (totalRecords === 0) {
-            setCurrentProgress(100);
-            setProgressSteps(current => 
-              current.map(step => ({ ...step, status: 'completed' as const }))
-            );
-            
-            setTimeout(() => {
-              setShowProgressDialog(false);
-              setConfirmMessage({
-                title: '✅ Finalizzazione Completata',
-                description: 'Tutti i dati di staging sono stati finalizzati con successo nella banca dati di produzione.'
-              });
-              setConfirmAction(null);
-              setShowConfirmDialog(true);
-              
-              fetchStagingStats();
-              setSelectedTable('');
-              setTableData([]);
-            }, 1000);
-            return;
-          }
-        }
-        
-        if (attempts < 60) { // Max 5 minutes
-          setTimeout(poll, 5000);
-        } else {
-          setShowProgressDialog(false);
-          setConfirmMessage({
-            title: '⏰ Timeout Finalizzazione',
-            description: 'Il processo di finalizzazione sta impiegando più tempo del previsto. Controlla manualmente lo stato.'
-          });
-          setConfirmAction(null);
-          setShowConfirmDialog(true);
-        }
-        
-      } catch (error) {
-        console.error('Error polling finalization:', error);
-        if (attempts < 60) {
-          setTimeout(poll, 5000);
-        }
-      }
-      attempts++;
-    };
-    
-    // Start polling
-    poll();
-  }, [fetchStagingStats]);
+  // Note: Enhanced polling logic moved to FinalizationMonitor component
+  // This eliminates race conditions and duplicate SSE connections
 
   // Emergency reset function
   const handleEmergencyReset = useCallback(async () => {
@@ -841,26 +656,7 @@ Sei ASSOLUTAMENTE sicuro di voler procedere?`
         onCancel={() => setConfirmAction(null)}
       />
 
-      {/* Progress Dialog with Real-time Updates */}
-      <ProgressDialog
-        open={showProgressDialog}
-        title="🔄 Finalizzazione in Corso"
-        description={`Il processo di finalizzazione è in esecuzione e viene monitorato in tempo reale.\n\nProgresso: ${currentProgress}% - Questo può richiedere diversi minuti.\n\n📊 Controlla anche i log del server per dettagli tecnici.`}
-        steps={progressSteps}
-        progress={currentProgress}
-        canClose={false}
-      >
-        <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-          <div className="flex items-center space-x-2 text-blue-700">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-            <span className="text-sm font-medium">Monitoraggio Real-time Attivo</span>
-          </div>
-          <p className="text-xs text-blue-600 mt-1">
-            Gli aggiornamenti vengono ricevuti direttamente dal server.
-            In caso di interruzione, il sistema passerà automaticamente al polling.
-          </p>
-        </div>
-      </ProgressDialog>
+
 
       {/* Advanced Finalization Monitor */}
       <FinalizationMonitor

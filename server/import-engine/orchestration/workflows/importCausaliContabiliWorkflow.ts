@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
-import { parseFixedWidth } from '../../acquisition/parsers/typeSafeFixedWidthParser';
-import { causaleContabileValidator } from '../../acquisition/validators/causaleContabileValidator';
+import { parseFixedWidth } from '../../acquisition/parsers/typeSafeFixedWidthParser.js';
+import { causaleContabileValidator } from '../../acquisition/validators/causaleContabileValidator.js';
 import { z } from 'zod';
 
 const prisma = new PrismaClient();
@@ -36,7 +36,9 @@ export async function runImportCausaliContabiliWorkflow(fileContent: string): Pr
 
     // 2. Validazione
     const validRecords: z.infer<typeof causaleContabileValidator>[] = [];
-    for (const [index, record] of rawRecords.entries()) {
+    // MODIFICA: Sostituito il loop for...of con un for...i per compatibilità
+    for (let index = 0; index < rawRecords.length; index++) {
+      const record = rawRecords[index];
       const validationResult = causaleContabileValidator.safeParse(record);
       if (validationResult.success) {
         validRecords.push(validationResult.data);
@@ -112,4 +114,4 @@ export async function runImportCausaliContabiliWorkflow(fileContent: string): Pr
         errors: [{ row: 0, error: errorMessage, data: {} }]
     };
   }
-} 
+}

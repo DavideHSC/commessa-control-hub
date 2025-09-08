@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, TrendingUp, TrendingDown, Target, Plus } from 'lucide-react';
-import { Button } from '../new_components/ui/Button';
+import { Building2, TrendingUp, TrendingDown, Target } from 'lucide-react';
+
 import { Card, CardContent, CardHeader, CardTitle } from '../new_components/ui/Card';
 import { Progress } from '../new_components/ui/Progress';
 import { UnifiedTable } from '../new_components/tables/UnifiedTable';
@@ -89,18 +89,20 @@ export const NewDashboard = () => {
       try {
         setLoading(true);
         
-        // Fetch commesse with performance data
-        const commesseResponse = await fetch('/api/commesse-performance');
-        if (commesseResponse.ok) {
-          const commesseData = await commesseResponse.json();
-          setCommesse(commesseData.commesse || []);
-        }
-
-        // Fetch dashboard stats
+        // Fetch dashboard data (contiene già commesse padre con totali consolidati)
         const dashboardResponse = await fetch('/api/dashboard');
         if (dashboardResponse.ok) {
-          const dashboardStats = await dashboardResponse.json();
-          setDashboardData(dashboardStats);
+          const dashboardData = await dashboardResponse.json();
+          
+          // 🏛️ LOGICA MASTRI: Mostra solo commesse principali (padre) con totali consolidati
+          // Le sotto-commesse sono già incluse nei totali dei padri
+          setCommesse(dashboardData.commesse || []); // Sono già solo i padri
+          setDashboardData({
+            commesseAttive: dashboardData.kpi?.commesseAttive || 0,
+            ricaviTotali: dashboardData.kpi?.ricaviTotali || 0,
+            costiTotali: dashboardData.kpi?.costiTotali || 0,
+            margineComplessivo: dashboardData.kpi?.margineLordoMedio || 0,
+          });
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Errore nel caricamento dati');
@@ -159,6 +161,24 @@ export const NewDashboard = () => {
       render: (cliente: unknown) => (cliente as { nome: string } | null)?.nome || 'N/A'
     },
     { 
+      key: 'stato' as const, 
+      label: 'Stato',
+      render: (stato: unknown) => (
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+          stato === 'In Corso' 
+            ? 'bg-green-100 text-green-800' 
+            : stato === 'Completata'
+            ? 'bg-blue-100 text-blue-800'
+            : stato === 'Sospesa'
+            ? 'bg-yellow-100 text-yellow-800'
+            : 'bg-gray-100 text-gray-800'
+        }`}>
+          {stato as string || 'Non Definito'}
+        </span>
+      ),
+      sortable: true,
+    },
+    { 
       key: 'budget' as const, 
       label: 'Budget',
       render: (budget: unknown) => formatCurrency(budget as number),
@@ -214,15 +234,9 @@ export const NewDashboard = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-500">Panoramica performance commesse</p>
-        </div>
-        <Button onClick={() => navigate('/new/commesse')}>
-          <Plus className="w-4 h-4 mr-2" />
-          Nuova Commessa
-        </Button>
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-500">Panoramica performance commesse</p>
       </div>
       
       {/* KPI Cards */}

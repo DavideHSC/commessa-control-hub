@@ -6,21 +6,22 @@ const router = express.Router();
 
 // GET all voci analitiche con paginazione, ricerca e ordinamento
 router.get('/', async (req, res) => {
-  const { page = 1, limit = 5, sortBy = 'nome', sortOrder = 'asc', search } = req.query;
+  const { page = 1, limit = 5, sortBy = 'nome', sortOrder = 'asc', search, active } = req.query;
 
   const pageNumber = parseInt(page as string, 10);
   const limitNumber = parseInt(limit as string, 10);
   const offset = (pageNumber - 1) * limitNumber;
 
-  const where: Prisma.VoceAnaliticaWhereInput = search
-    ? {
-        OR: [
-          { nome: { contains: search as string, mode: 'insensitive' } },
-          { descrizione: { contains: search as string, mode: 'insensitive' } },
-          { tipo: { contains: search as string, mode: 'insensitive' } },
-        ],
-      }
-    : {};
+  const where: Prisma.VoceAnaliticaWhereInput = {
+    ...(search ? {
+      OR: [
+        { nome: { contains: search as string, mode: 'insensitive' } },
+        { descrizione: { contains: search as string, mode: 'insensitive' } },
+        { tipo: { contains: search as string, mode: 'insensitive' } },
+      ],
+    } : {}),
+    ...(active === 'true' ? { isAttiva: true } : {}),
+  };
 
   try {
     const [voci, total] = await prisma.$transaction([

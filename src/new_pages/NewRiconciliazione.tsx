@@ -15,7 +15,7 @@ interface MovimentoContabile {
   dataDocumento: string;
   descrizione: string;
   importo: number;
-  conto: { codice: string; denominazione: string } | null;
+  conto: { codice: string; nome: string } | null;
   cliente: { nome: string } | null;
   fornitore: { nome: string } | null;
   causale: { descrizione: string } | null;
@@ -126,11 +126,11 @@ export const NewRiconciliazione = () => {
           setMovimenti(movimentiArray);
         }
 
-        // Fetch commesse attive
-        const commesseResponse = await fetch('/api/commesse?active=true');
+        // Fetch commesse attive using the select endpoint
+        const commesseResponse = await fetch('/api/commesse/select?active=true');
         if (commesseResponse.ok) {
           const commesseData = await commesseResponse.json();
-          setCommesse(Array.isArray(commesseData) ? commesseData : commesseData.data || []);
+          setCommesse(Array.isArray(commesseData) ? commesseData : []);
         }
 
         // Fetch voci analitiche attive
@@ -159,7 +159,7 @@ export const NewRiconciliazione = () => {
       const matchesSearch = !searchTerm || 
         movimento.numeroDocumento?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         movimento.descrizione?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        movimento.conto?.denominazione?.toLowerCase().includes(searchTerm.toLowerCase());
+        movimento.conto?.nome?.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesStato = statoFilter === 'all' || movimento.stato === statoFilter;
       const matchesConto = contoFilter === 'all' || movimento.conto?.codice === contoFilter;
@@ -181,7 +181,15 @@ export const NewRiconciliazione = () => {
     if (!dateString) return '-';
     try {
       const date = new Date(dateString);
-      return isNaN(date.getTime()) ? '-' : date.toLocaleDateString('it-IT');
+      // Check if date is valid and not Unix epoch (01/01/1970)
+      if (isNaN(date.getTime()) || date.getFullYear() < 2000) {
+        return '-';
+      }
+      return date.toLocaleDateString('it-IT', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
     } catch {
       return '-';
     }
@@ -204,7 +212,7 @@ export const NewRiconciliazione = () => {
         return (
           <div>
             <div className="font-medium">{numero as string}</div>
-            <div className="text-sm text-gray-500">{formatDate(movimento.dataDocumento)}</div>
+            <div className="text-sm text-gray-500 whitespace-nowrap">{formatDate(movimento.dataDocumento)}</div>
           </div>
         );
       }
@@ -219,7 +227,7 @@ export const NewRiconciliazione = () => {
             <div className="font-medium truncate max-w-xs">{descrizione as string}</div>
             {movimento.conto && (
               <div className="text-sm text-gray-500">
-                {movimento.conto.codice} - {movimento.conto.denominazione}
+                {movimento.conto.codice} - {movimento.conto.nome}
               </div>
             )}
           </div>
@@ -333,7 +341,7 @@ export const NewRiconciliazione = () => {
   const contiOptions = useMemo(() => {
     const conti = movimenti
       .filter(m => m.conto)
-      .map(m => ({ codice: m.conto!.codice, denominazione: m.conto!.denominazione }))
+      .map(m => ({ codice: m.conto!.codice, nome: m.conto!.nome }))
       .filter((value, index, self) => 
         self.findIndex(v => v.codice === value.codice) === index
       );
@@ -428,7 +436,7 @@ export const NewRiconciliazione = () => {
                 <SelectItem value="all">Tutti i conti</SelectItem>
                 {contiOptions.map(conto => (
                   <SelectItem key={conto.codice} value={conto.codice}>
-                    {conto.codice} - {conto.denominazione}
+                    {conto.codice} - {conto.nome}
                   </SelectItem>
                 ))}
               </SelectContent>

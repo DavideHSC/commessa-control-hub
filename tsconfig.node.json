@@ -2,15 +2,16 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist/server",
-    "module": "CommonJS",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true
-  },
-  "ts-node": {
-    "compilerOptions": {
-      "module": "CommonJS"
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "@shared-types/*": ["./types/*"]
     }
   },
-  "include": ["server/**/*.ts", "prisma/**/*.ts"],
+  "include": ["server/**/*.ts", "prisma/**/*.ts", "types/**/*.ts", "server/scripts/seed_anagrafica_template.cjs"],
   "exclude": ["node_modules", "src"]
 }

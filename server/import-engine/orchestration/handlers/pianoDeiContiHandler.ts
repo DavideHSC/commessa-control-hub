@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
-import { importPianoDeiContiWorkflow } from '../workflows/importPianoDeiContiWorkflow';
-import { importPianoDeiContiAziendaleWorkflow } from '../workflows/importPianoDeiContiAziendaleWorkflow';
+import { importPianoDeiContiWorkflow } from '../workflows/importPianoDeiContiWorkflow.js';
+import { importPianoDeiContiAziendaleWorkflow } from '../workflows/importPianoDeiContiAziendaleWorkflow.js';
+import { formatImportResult } from '../../core/utils/resultFormatter.js';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -29,7 +30,10 @@ function determineFileType(fileName: string): 'aziendale' | 'standard' {
 
 export async function handlePianoDeiContiImportV2(req: Request, res: Response) {
   if (!req.file) {
-    return res.status(400).json({ message: 'Nessun file caricato.' });
+    return res.status(400).json({ 
+      success: false, 
+      message: 'Nessun file caricato.' 
+    });
   }
 
   // Modern Pattern: Il file viene gestito in memoria.
@@ -41,26 +45,43 @@ export async function handlePianoDeiContiImportV2(req: Request, res: Response) {
 
   try {
     const fileType = determineFileType(fileName);
-    let result;
+    const startTime = Date.now();
+    let workflowResult;
 
     if (fileType === 'aziendale') {
-      result = await importPianoDeiContiAziendaleWorkflow(fileContent);
+      workflowResult = await importPianoDeiContiAziendaleWorkflow(fileContent);
     } else {
-      result = await importPianoDeiContiWorkflow(fileContent);
+      workflowResult = await importPianoDeiContiWorkflow(fileContent);
     }
 
+    const processingTime = Date.now() - startTime;
     console.log('[API V2] Workflow completato. Invio risposta...');
     
-    res.status(200).json({
-      message: `Importazione con nuovo motore (tipo: ${fileType}) completata!`,
-      ...result,
-    });
+    // DEBUG: Controlliamo cosa restituisce il workflow
+    console.log('[DEBUG] workflowResult ricevuto:', JSON.stringify(workflowResult, null, 2));
+    
+    // Usa il formato standardizzato
+    const standardResult = formatImportResult(
+      workflowResult,
+      'piano-conti',
+      fileName,
+      req.file.size,
+      processingTime,
+      { fileType }
+    );
+    
+    res.status(200).json(standardResult);
   } catch (error: unknown) {
     console.error('[API V2] Errore critico durante il workflow:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Errore sconosciuto';
-    res.status(500).json({ 
-      message: 'Errore interno del server durante l\'importazione.',
-      error: errorMessage,
-    });
+    const errorMessage = error instanceof Error ? error.message : 'Errore interno del server durante l\'importazione';
+    
+    const standardResult = formatImportResult(
+      { success: false, message: errorMessage },
+      'piano-conti',
+      req.file?.originalname,
+      req.file?.size
+    );
+    
+    res.status(500).json(standardResult);
   }
 } 

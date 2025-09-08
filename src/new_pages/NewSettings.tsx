@@ -4,6 +4,11 @@ import { Button } from '../new_components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../new_components/ui/Card';
 import { UnifiedTable } from '../new_components/tables/UnifiedTable';
 import { Alert, AlertDescription } from '../new_components/ui/Alert';
+import { ConfirmDialog } from '../new_components/dialogs/ConfirmDialog';
+import { useToast } from '../hooks/use-toast';
+import { resetDatabase, cleanupStaging } from '../api';
+import { VoceAnaliticaDialog } from '../new_components/dialogs/VoceAnaliticaDialog';
+import { RegolaRipartizioneDialog } from '../new_components/dialogs/RegolaRipartizioneDialog';
 
 interface VoceAnalitica {
   id: string;
@@ -11,16 +16,31 @@ interface VoceAnalitica {
   descrizione?: string;
   tipo: 'costo' | 'ricavo';
   isAttiva: boolean;
-  createdAt: string;
+  // Nota: createdAt non esiste nel modello del database per VoceAnalitica
 }
 
 interface RegolaRipartizione {
   id: string;
-  nome: string;
-  descrizione?: string;
-  isAttiva: boolean;
-  condizioni: unknown;
+  descrizione: string;
+  commessaId: string;
+  percentuale: number;
+  contoId: string;
+  voceAnaliticaId: string;
   createdAt: string;
+  updatedAt: string;
+  // Relations
+  commessa?: {
+    id: string;
+    nome: string;
+  };
+  conto?: {
+    id: string;
+    nome: string;
+  };
+  voceAnalitica?: {
+    id: string;
+    nome: string;
+  };
 }
 
 type SettingSection = 'voci-analitiche' | 'regole-ripartizione' | 'sistema';
@@ -31,6 +51,20 @@ export const NewSettings = () => {
   const [regoleRipartizione, setRegoleRipartizione] = useState<RegolaRipartizione[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isResettingDatabase, setIsResettingDatabase] = useState(false);
+  const [isCleaningStaging, setIsCleaningStaging] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showCleanupConfirm, setShowCleanupConfirm] = useState(false);
+  const [showVoceAnaliticaDialog, setShowVoceAnaliticaDialog] = useState(false);
+  const [editingVoceAnalitica, setEditingVoceAnalitica] = useState<VoceAnalitica | undefined>(undefined);
+  const [isSavingVoceAnalitica, setIsSavingVoceAnalitica] = useState(false);
+  const [showRegolaRipartizioneDialog, setShowRegolaRipartizioneDialog] = useState(false);
+  const [editingRegolaRipartizione, setEditingRegolaRipartizione] = useState<RegolaRipartizione | undefined>(undefined);
+  const [isSavingRegolaRipartizione, setIsSavingRegolaRipartizione] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
+  const [deletingItemName, setDeletingItemName] = useState<string>('');
+  const { toast } = useToast();
 
   const settingSections = [
     {
@@ -66,7 +100,8 @@ export const NewSettings = () => {
         const response = await fetch('/api/voci-analitiche');
         if (response.ok) {
           const data = await response.json();
-          setVociAnalitiche(Array.isArray(data) ? data : data.data || []);
+          const voci = Array.isArray(data) ? data : data.data || [];
+          setVociAnalitiche(voci);
         }
       } else if (activeSection === 'regole-ripartizione') {
         const response = await fetch('/api/regole-ripartizione');
@@ -92,34 +127,252 @@ export const NewSettings = () => {
     setActiveSection(section);
   }, []);
 
+  // Handle system operations
+  const confirmResetDatabase = useCallback(() => {
+    setShowResetConfirm(true);
+  }, []);
+
+  const handleResetDatabase = useCallback(async () => {
+    setIsResettingDatabase(true);
+    setError(null);
+
+    try {
+      const result = await resetDatabase();
+      toast({
+        title: "Successo",
+        description: result.message,
+      });
+      
+      // Refresh data after reset
+      if (activeSection !== 'sistema') {
+        fetchData();
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Impossibile resettare il database.";
+      setError(`Errore Reset Database: ${errorMessage}`);
+      toast({
+        title: "Errore",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsResettingDatabase(false);
+    }
+  }, [activeSection, fetchData, toast]);
+
+  const confirmCleanupStaging = useCallback(() => {
+    setShowCleanupConfirm(true);
+  }, []);
+
+  const handleCleanupStaging = useCallback(async () => {
+    setIsCleaningStaging(true);
+    setError(null);
+
+    try {
+      const result = await cleanupStaging();
+      toast({
+        title: "Successo",
+        description: result.message,
+      });
+      
+      // Refresh data after cleanup if needed
+      if (activeSection !== 'sistema') {
+        fetchData();
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Impossibile pulire le tabelle staging.";
+      setError(`Errore Cleanup Staging: ${errorMessage}`);
+      toast({
+        title: "Errore",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsCleaningStaging(false);
+    }
+  }, [activeSection, fetchData, toast]);
+
   // Handle CRUD operations
   const handleCreate = useCallback(() => {
     console.log(`Create new ${activeSection}`);
-    // TODO: Implement create dialog
+    if (activeSection === 'voci-analitiche') {
+      setEditingVoceAnalitica(undefined);
+      setShowVoceAnaliticaDialog(true);
+    } else if (activeSection === 'regole-ripartizione') {
+      setEditingRegolaRipartizione(undefined);
+      setShowRegolaRipartizioneDialog(true);
+    } else {
+      console.log(`Create dialog not implemented for ${activeSection}`);
+    }
   }, [activeSection]);
 
   const handleEdit = useCallback((item: unknown) => {
-    console.log(`Edit ${activeSection}:`, item);
-    // TODO: Implement edit dialog
+    if (activeSection === 'voci-analitiche') {
+      const voceAnalitica = item as VoceAnalitica;
+      setEditingVoceAnalitica(voceAnalitica);
+      setShowVoceAnaliticaDialog(true);
+    } else if (activeSection === 'regole-ripartizione') {
+      const regolaRipartizione = item as RegolaRipartizione;
+      setEditingRegolaRipartizione(regolaRipartizione);
+      setShowRegolaRipartizioneDialog(true);
+    } else {
+      console.log(`Edit dialog not implemented for ${activeSection}`);
+    }
   }, [activeSection]);
 
-  const handleDelete = useCallback(async (id: string) => {
-    if (!confirm('Sei sicuro di voler eliminare questo elemento?')) return;
+  const handleDelete = useCallback((id: string) => {
+    // Find the item by id based on current section
+    let item: any = null;
+    let itemName = `elemento con ID ${id}`;
+    
+    if (activeSection === 'voci-analitiche') {
+      item = vociAnalitiche.find(v => v.id === id);
+      itemName = item?.nome || itemName;
+    } else if (activeSection === 'regole-ripartizione') {
+      item = regoleRipartizione.find(r => r.id === id);
+      itemName = item?.descrizione || itemName;
+    }
+    
+    setDeletingItemId(id);
+    setDeletingItemName(itemName);
+    setShowDeleteConfirm(true);
+  }, [activeSection, vociAnalitiche, regoleRipartizione]);
+
+  const confirmDelete = useCallback(async () => {
+    if (!deletingItemId) return;
 
     try {
       const endpoint = activeSection === 'voci-analitiche' ? '/api/voci-analitiche' : '/api/regole-ripartizione';
-      const response = await fetch(`${endpoint}/${id}`, { method: 'DELETE' });
+      const response = await fetch(`${endpoint}/${deletingItemId}`, { method: 'DELETE' });
       
       if (response.ok) {
+        toast({
+          title: "Successo",
+          description: `${deletingItemName} è stato eliminato con successo.`,
+        });
         fetchData(); // Refresh data
       } else {
-        alert('Errore durante l\'eliminazione');
+        const errorData = await response.json().catch(() => ({ error: 'Errore sconosciuto' }));
+        throw new Error(errorData.error || 'Errore durante l\'eliminazione');
       }
     } catch (err) {
       console.error('Delete error:', err);
-      alert('Errore di connessione durante l\'eliminazione');
+      const errorMessage = err instanceof Error ? err.message : 'Errore di connessione durante l\'eliminazione';
+      toast({
+        title: "Errore",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setShowDeleteConfirm(false);
+      setDeletingItemId(null);
+      setDeletingItemName('');
     }
-  }, [activeSection, fetchData]);
+  }, [activeSection, deletingItemId, deletingItemName, fetchData, toast]);
+
+  // Handle save voce analitica
+  const handleSaveVoceAnalitica = useCallback(async (data: { nome: string; descrizione?: string; tipo: 'costo' | 'ricavo' }) => {
+    setIsSavingVoceAnalitica(true);
+    setError(null);
+
+    try {
+      const url = editingVoceAnalitica 
+        ? `/api/voci-analitiche/${editingVoceAnalitica.id}`
+        : '/api/voci-analitiche';
+      
+      const method = editingVoceAnalitica ? 'PUT' : 'POST';
+      
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        toast({
+          title: "Successo",
+          description: editingVoceAnalitica 
+            ? "Voce analitica modificata con successo."
+            : "Voce analitica creata con successo.",
+        });
+        
+        setShowVoceAnaliticaDialog(false);
+        setEditingVoceAnalitica(undefined);
+        fetchData(); // Refresh data
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Errore sconosciuto' }));
+        throw new Error(errorData.error || 'Errore durante il salvataggio');
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Impossibile salvare la voce analitica.";
+      setError(`Errore Salvataggio: ${errorMessage}`);
+      toast({
+        title: "Errore",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingVoceAnalitica(false);
+    }
+  }, [editingVoceAnalitica, fetchData, toast]);
+
+  // Handle save regola ripartizione
+  const handleSaveRegolaRipartizione = useCallback(async (data: { 
+    descrizione: string; 
+    commessaId: string; 
+    percentuale: number; 
+    contoId: string; 
+    voceAnaliticaId: string 
+  }) => {
+    setIsSavingRegolaRipartizione(true);
+    setError(null);
+
+    try {
+      const url = editingRegolaRipartizione 
+        ? `/api/regole-ripartizione/${editingRegolaRipartizione.id}`
+        : '/api/regole-ripartizione';
+      
+      const method = editingRegolaRipartizione ? 'PUT' : 'POST';
+      
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        toast({
+          title: "Successo",
+          description: editingRegolaRipartizione 
+            ? "Regola di ripartizione modificata con successo."
+            : "Regola di ripartizione creata con successo.",
+        });
+        
+        setShowRegolaRipartizioneDialog(false);
+        setEditingRegolaRipartizione(undefined);
+        fetchData(); // Refresh data
+      } else {
+        const errorData = await response.json().catch(() => ({ error: 'Errore sconosciuto' }));
+        throw new Error(errorData.error || 'Errore durante il salvataggio');
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Impossibile salvare la regola di ripartizione.";
+      setError(`Errore Salvataggio: ${errorMessage}`);
+      toast({
+        title: "Errore",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    } finally {
+      setIsSavingRegolaRipartizione(false);
+    }
+  }, [editingRegolaRipartizione, fetchData, toast]);
 
   // Table columns for voci analitiche
   const vociAnaliticheColumns = useMemo(() => [
@@ -146,44 +399,43 @@ export const NewSettings = () => {
           {isAttiva ? 'Attiva' : 'Inattiva'}
         </span>
       )
-    },
-    { 
-      key: 'createdAt', 
-      label: 'Creata',
-      render: (value: unknown) => {
-        try {
-          return new Date(String(value)).toLocaleDateString('it-IT');
-        } catch {
-          return '-';
-        }
-      }
     }
+    // Nota: createdAt rimosso perché non esiste nel modello VoceAnalitica
   ], []);
 
   // Table columns for regole ripartizione
   const regoleRipartizioneColumns = useMemo(() => [
-    { key: 'nome', label: 'Nome', sortable: true },
     { key: 'descrizione', label: 'Descrizione', sortable: true },
     { 
-      key: 'isAttiva', 
-      label: 'Stato',
-      render: (isAttiva: unknown) => (
-        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-          isAttiva ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-        }`}>
-          {isAttiva ? 'Attiva' : 'Inattiva'}
-        </span>
-      )
+      key: 'commessa', 
+      label: 'Commessa',
+      render: (commessa: any) => commessa?.nome || '-'
+    },
+    { 
+      key: 'conto', 
+      label: 'Conto',
+      render: (conto: any) => conto?.nome || '-'
+    },
+    { 
+      key: 'voceAnalitica', 
+      label: 'Voce Analitica',
+      render: (voceAnalitica: any) => voceAnalitica?.nome || '-'
+    },
+    { 
+      key: 'percentuale', 
+      label: 'Percentuale',
+      render: (percentuale: unknown) => `${Number(percentuale)}%`
     },
     { 
       key: 'createdAt', 
       label: 'Creata',
       render: (value: unknown) => {
-        try {
-          return new Date(String(value)).toLocaleDateString('it-IT');
-        } catch {
-          return '-';
-        }
+        if (!value) return '-';
+        
+        const date = new Date(String(value));
+        if (isNaN(date.getTime())) return '-';
+        
+        return date.toLocaleDateString('it-IT');
       }
     }
   ], []);
@@ -197,18 +449,6 @@ export const NewSettings = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Impostazioni</h1>
           <p className="text-gray-500">Configurazioni di sistema e parametri business</p>
-        </div>
-        <div className="flex space-x-3">
-          <Button variant="outline" onClick={fetchData} disabled={loading}>
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Aggiorna
-          </Button>
-          {activeSection !== 'sistema' && (
-            <Button onClick={handleCreate}>
-              <Plus className="w-4 h-4 mr-2" />
-              Nuovo
-            </Button>
-          )}
         </div>
       </div>
 
@@ -248,12 +488,28 @@ export const NewSettings = () => {
 
           <Card>
             <CardHeader>
-              <div className="flex items-center space-x-3">
-                {currentSection && <currentSection.icon className="w-6 h-6 text-blue-600" />}
-                <div>
-                  <CardTitle>{currentSection?.title}</CardTitle>
-                  <p className="text-sm text-gray-500">{currentSection?.description}</p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  {currentSection && <currentSection.icon className="w-6 h-6 text-blue-600" />}
+                  <div>
+                    <CardTitle>{currentSection?.title}</CardTitle>
+                    <p className="text-sm text-gray-500">{currentSection?.description}</p>
+                  </div>
                 </div>
+                
+                {/* Pulsanti specifici per sezione */}
+                {(activeSection === 'voci-analitiche' || activeSection === 'regole-ripartizione') && (
+                  <div className="flex space-x-3">
+                    <Button variant="outline" onClick={fetchData} disabled={loading}>
+                      <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                      Aggiorna
+                    </Button>
+                    <Button onClick={handleCreate}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Nuovo
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardHeader>
             <CardContent>
@@ -302,10 +558,15 @@ export const NewSettings = () => {
                         <div className="flex items-center justify-between">
                           <div>
                             <h4 className="font-medium">Reset Database</h4>
-                            <p className="text-sm text-gray-500">Pulisce tutte le tabelle e ripopola con dati di test</p>
+                            <p className="text-sm text-gray-500">Cancella TUTTO il database e ripopola SOLO i dati di produzione</p>
                           </div>
-                          <Button variant="outline" disabled>
-                            Reset DB
+                          <Button 
+                            variant="outline" 
+                            onClick={confirmResetDatabase}
+                            disabled={isResettingDatabase}
+                            className="bg-red-50 border-red-200 hover:bg-red-100 text-red-700"
+                          >
+                            {isResettingDatabase ? 'Reset in corso...' : 'Reset DB'}
                           </Button>
                         </div>
                       </CardContent>
@@ -316,10 +577,15 @@ export const NewSettings = () => {
                         <div className="flex items-center justify-between">
                           <div>
                             <h4 className="font-medium">Cleanup Staging</h4>
-                            <p className="text-sm text-gray-500">Elimina tutti i dati nelle tabelle di staging</p>
+                            <p className="text-sm text-gray-500">Cancella SOLO le tabelle staging (mantiene intatti i dati di produzione)</p>
                           </div>
-                          <Button variant="outline" disabled>
-                            Cleanup
+                          <Button 
+                            variant="outline" 
+                            onClick={confirmCleanupStaging}
+                            disabled={isCleaningStaging}
+                            className="bg-orange-50 border-orange-200 hover:bg-orange-100 text-orange-700"
+                          >
+                            {isCleaningStaging ? 'Cleanup in corso...' : 'Cleanup'}
                           </Button>
                         </div>
                       </CardContent>
@@ -331,6 +597,59 @@ export const NewSettings = () => {
           </Card>
         </div>
       </div>
+
+      {/* Dialoghi di Conferma */}
+      <ConfirmDialog
+        open={showResetConfirm}
+        onOpenChange={setShowResetConfirm}
+        title="Reset Database"
+        description="⚠️ ATTENZIONE: Questa operazione cancellerà TUTTO il database e ripopolerà SOLO i dati di produzione.\n\nQuesta azione è irreversibile. Sei sicuro di voler continuare?"
+        type="warning"
+        confirmText="Sì, procedi con il reset"
+        confirmVariant="destructive"
+        onConfirm={handleResetDatabase}
+      />
+
+      <ConfirmDialog
+        open={showCleanupConfirm}
+        onOpenChange={setShowCleanupConfirm}
+        title="Cleanup Staging"
+        description="⚠️ ATTENZIONE: Questa operazione cancellerà SOLO le tabelle staging (i dati di produzione rimarranno intatti).\n\nQuesta azione è irreversibile. Sei sicuro di voler continuare?"
+        type="warning"
+        confirmText="Sì, procedi con il cleanup"
+        confirmVariant="destructive"
+        onConfirm={handleCleanupStaging}
+      />
+
+      {/* Dialog Voce Analitica */}
+      <VoceAnaliticaDialog
+        open={showVoceAnaliticaDialog}
+        onOpenChange={setShowVoceAnaliticaDialog}
+        voce={editingVoceAnalitica}
+        onSave={handleSaveVoceAnalitica}
+        loading={isSavingVoceAnalitica}
+      />
+
+      {/* Dialog Regola Ripartizione */}
+      <RegolaRipartizioneDialog
+        open={showRegolaRipartizioneDialog}
+        onOpenChange={setShowRegolaRipartizioneDialog}
+        regola={editingRegolaRipartizione}
+        onSave={handleSaveRegolaRipartizione}
+        loading={isSavingRegolaRipartizione}
+      />
+
+      {/* Dialog Conferma Eliminazione */}
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        onOpenChange={setShowDeleteConfirm}
+        title="Conferma Eliminazione"
+        description={`Sei sicuro di voler eliminare "${deletingItemName}"?\n\nQuesta azione è irreversibile.`}
+        type="warning"
+        confirmText="Sì, elimina"
+        confirmVariant="destructive"
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 };

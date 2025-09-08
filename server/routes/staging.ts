@@ -1,8 +1,12 @@
 import express from 'express';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { EventEmitter } from 'events';
+// highlight-start
+// MODIFICA: Rimosso import da /lib/finalization e /lib/finalization_optimized.
+// Ora c'è un unico import dalla posizione corretta dentro l'Import Engine.
 import {
-    cleanSlateReset,
+    smartCleanSlate,
+    isFirstTimeSetup,
     finalizeAnagrafiche,
     finalizeCausaliContabili,
     finalizeCodiciIva,
@@ -11,17 +15,22 @@ import {
     finalizeScritture,
     finalizeRigaIva,
     finalizeAllocazioni
-} from '../lib/finalization';
-import {
-    optimizedCleanSlate,
-    optimizedFinalizeAnagrafiche,
-    optimizedFinalizeScritture
-} from '../lib/finalization_optimized';
+} from '../import-engine/finalization.js';
+import { 
+    auditStart, 
+    auditSuccess, 
+    auditError, 
+    auditInfo,
+    generateAuditReport,
+    clearAuditLog 
+} from '../import-engine/core/utils/auditLogger.js';
+// highlight-end
 
 const prisma = new PrismaClient();
 const router = express.Router();
 const sseEmitter = new EventEmitter();
 
+// ... (tutto il codice delle rotte GET /conti, /anagrafiche, etc. rimane INVARIATO) ...
 // GET all staging conti with pagination, search, and sort
 router.get('/conti', async (req, res) => {
     try {
@@ -436,18 +445,35 @@ router.get('/allocation-stats', async (req, res) => {
 });
 
 router.get('/events', (req, res) => {
+    // Set SSE headers
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Cache-Control');
     res.flushHeaders();
 
+    // Send initial connection confirmation
+    res.write(`data: ${JSON.stringify({ step: 'connected', message: 'SSE connection established' })}\n\n`);
+
     const listener = (data: any) => {
-        res.write(`data: ${data}\n\n`);
+        try {
+            res.write(`data: ${data}\n\n`);
+        } catch (writeError) {
+            console.error('[SSE] Error writing to response:', writeError);
+            sseEmitter.off('message', listener);
+        }
     };
 
     sseEmitter.on('message', listener);
 
     req.on('close', () => {
+        console.log('[SSE] Client disconnected');
+        sseEmitter.off('message', listener);
+    });
+
+    req.on('error', (error) => {
+        console.error('[SSE] Request error:', error);
         sseEmitter.off('message', listener);
     });
 });
@@ -455,64 +481,94 @@ router.get('/events', (req, res) => {
 
 const runFinalizationProcess = async () => {
     const sseSend = (data: any) => sseEmitter.emit('message', JSON.stringify(data));
+    
+    // Inizio audit log per sessione completa
+    clearAuditLog();
+    const sessionStart = auditStart('FinalizationProcess', { source: 'UI_Button' });
 
     try {
         sseSend({ step: 'start', message: 'Avvio del processo di finalizzazione...' });
 
-        // Fase 0: CLEAN SLATE OTTIMIZZATO - Elimina tutti i dati di produzione
-        sseSend({ step: 'clean_slate', status: 'running', message: 'Eliminazione dati esistenti (ottimizzata)...' });
-        await optimizedCleanSlate(prisma);
-        sseSend({ step: 'clean_slate', status: 'completed', message: 'Dati di produzione eliminati con successo.' });
+        // highlight-start  
+        // MODIFICA: Utilizzo smartCleanSlate per rilevamento automatico modalità
+        sseSend({ step: 'clean_slate', status: 'running', message: 'Rilevamento modalità operativa e reset sicuro...' });
+        
+        // Rileva modalità operativa per logging dettagliato
+        const isFirstTime = await isFirstTimeSetup(prisma);
+        const modalita = isFirstTime ? 'SETUP INIZIALE' : 'OPERATIVITÀ CICLICA';
+        
+        sseSend({ 
+            step: 'clean_slate', 
+            status: 'running', 
+            message: `Modalità ${modalita} rilevata - Esecuzione reset appropriato...`,
+            metadata: { modalita, isFirstTime }
+        });
+        
+        await smartCleanSlate(prisma);
+        
+        sseSend({ 
+            step: 'clean_slate', 
+            status: 'completed', 
+            message: `Reset ${modalita.toLowerCase()} completato con successo.`,
+            metadata: { modalita, isFirstTime }
+        });
 
-        // Fase 1: Finalizzazione Anagrafiche OTTIMIZZATA
-        sseSend({ step: 'anagrafiche', status: 'running', message: 'Finalizzazione anagrafiche (ottimizzata)...' });
-        const anagraficheResult = await optimizedFinalizeAnagrafiche(prisma);
+        sseSend({ step: 'anagrafiche', status: 'running', message: 'Finalizzazione anagrafiche...' });
+        const anagraficheResult = await finalizeAnagrafiche(prisma);
         sseSend({ step: 'anagrafiche', status: 'completed', message: `Anagrafiche finalizzate.`, count: anagraficheResult.count });
 
-        // Fase 2: Finalizzazione Causali Contabili
         sseSend({ step: 'causali', status: 'running', message: 'Finalizzazione causali...' });
         const causaliResult = await finalizeCausaliContabili(prisma);
         sseSend({ step: 'causali', status: 'completed', message: `Causali finalizzate.`, count: causaliResult.count });
 
-        // Fase 3: Finalizzazione Codici IVA
         sseSend({ step: 'codici_iva', status: 'running', message: 'Finalizzazione codici IVA...' });
         const ivaResult = await finalizeCodiciIva(prisma);
         sseSend({ step: 'codici_iva', status: 'completed', message: `Codici IVA finalizzati.`, count: ivaResult.count });
 
-        // Fase 4: Finalizzazione Condizioni di Pagamento
         sseSend({ step: 'condizioni_pagamento', status: 'running', message: 'Finalizzazione condizioni di pagamento...' });
         const pagamentiResult = await finalizeCondizioniPagamento(prisma);
         sseSend({ step: 'condizioni_pagamento', status: 'completed', message: `Condizioni di pagamento finalizzate.`, count: pagamentiResult.count });
 
-        // Fase 5: Finalizzazione Piano dei Conti
         sseSend({ step: 'conti', status: 'running', message: 'Finalizzazione piano dei conti...' });
         const contiResult = await finalizeConti(prisma);
         sseSend({ step: 'conti', status: 'completed', message: 'Piano dei conti finalizzato.', count: contiResult.count });
 
-        // Fase 6: Finalizzazione Scritture Contabili OTTIMIZZATA
-        sseSend({ step: 'scritture', status: 'running', message: 'Finalizzazione scritture contabili (ottimizzata)...' });
-        const scrittureResult = await optimizedFinalizeScritture(prisma);
+        sseSend({ step: 'scritture', status: 'running', message: 'Finalizzazione scritture contabili...' });
+        const scrittureResult = await finalizeScritture(prisma);
         sseSend({ step: 'scritture', status: 'completed', message: 'Scritture contabili finalizzate.', count: scrittureResult.count });
 
-        // Fase 7: Finalizzazione Righe IVA
         sseSend({ step: 'righe_iva', status: 'running', message: 'Finalizzazione righe IVA...' });
         const righeIvaResult = await finalizeRigaIva(prisma);
         sseSend({ step: 'righe_iva', status: 'completed', message: 'Righe IVA finalizzate.', count: righeIvaResult.count });
 
-        // Fase 8: Finalizzazione Allocazioni
         sseSend({ step: 'allocazioni', status: 'running', message: 'Finalizzazione allocazioni...' });
         const allocazioniResult = await finalizeAllocazioni(prisma);
         sseSend({ step: 'allocazioni', status: 'completed', message: 'Allocazioni finalizzate.', count: allocazioniResult.count });
+        // highlight-end
 
         sseSend({ step: 'end', message: 'Processo di finalizzazione completato con successo.' });
+
+        // Completa audit con successo
+        auditSuccess('FinalizationProcess', sessionStart, { 
+            allStepsCompleted: true,
+            auditReport: generateAuditReport().summary 
+        });
 
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         console.error('[Finalize] Errore durante il processo di finalizzazione:', errorMessage);
+        
+        // Audit errore con report completo
+        auditError('FinalizationProcess', sessionStart, error, { 
+            partialCompletion: true,
+            auditReport: generateAuditReport().summary 
+        });
+        
         sseEmitter.emit('message', JSON.stringify({ step: 'error', message: `Errore: ${errorMessage}` }));
     }
 };
 
+// ... (il resto del file, inclusa la logica del flag isFinalizationRunning, rimane INVARIATO) ...
 // Endpoint per resettare solo le tabelle delle scritture
 router.post('/reset-scritture', async (req, res) => {
     console.log('[Staging Reset Scritture] Richiesta di reset scritture ricevuta.');
@@ -564,7 +620,7 @@ router.post('/finalize', async (req, res) => {
         return res.status(409).json({ message });
     }
 
-    // Pre-check
+    // Pre-check: Verifica dati necessari e entità di sistema
     const requiredTables = [
       { name: 'Anagrafiche', count: () => prisma.stagingAnagrafica.count() },
       { name: 'Causali Contabili', count: () => prisma.stagingCausaleContabile.count() },
@@ -577,9 +633,30 @@ router.post('/finalize', async (req, res) => {
     for (const table of requiredTables) {
       const count = await table.count();
       if (count === 0) {
-        const message = `La tabella di staging "${table.name}" è vuota. Impossibile procedere.`;
+        const message = `La tabella di staging "${table.name}" è vuota. Impossibile procedere con la finalizzazione.`;
         console.error(`[Finalize Pre-check] ${message}`);
         return res.status(400).json({ message });
+      }
+    }
+    
+    // Verifica che esista o possa essere creato il cliente di sistema
+    const sistemaCliente = await prisma.cliente.findFirst({
+      where: { externalId: 'SYS-CUST' }
+    });
+    
+    if (!sistemaCliente) {
+      console.log('[Finalize Pre-check] Cliente di sistema non trovato, verrà creato durante la finalizzazione.');
+    }
+    
+    // Verifica coerenza dei dati di staging per allocazioni
+    const allocazioniCount = await prisma.stagingAllocazione.count();
+    if (allocazioniCount > 0) {
+      const allocazioniWithoutCentro = await prisma.stagingAllocazione.count({
+        where: { OR: [{ centroDiCosto: null }, { centroDiCosto: '' }] }
+      });
+      
+      if (allocazioniWithoutCentro > 0) {
+        console.warn(`[Finalize Pre-check] Trovate ${allocazioniWithoutCentro} allocazioni senza centro di costo. Verranno saltate.`);
       }
     }
 
@@ -617,5 +694,65 @@ router.post('/reset-finalization-flag', async (req, res) => {
     }
 });
 
+// POST /api/staging/cleanup-all - Svuota SOLO le tabelle staging
+router.post('/cleanup-all', async (req, res) => {
+  console.log('[Staging Cleanup] Richiesta cleanup completo SOLO tabelle staging...');
+  
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      // Svuota SOLO le 9 tabelle staging in ordine sicuro per FK
+      console.log('[Staging Cleanup] Eliminazione in corso...');
+      
+      const deletions = await Promise.all([
+        tx.stagingRigaContabile.deleteMany({}),
+        tx.stagingRigaIva.deleteMany({}), 
+        tx.stagingAllocazione.deleteMany({}),
+        tx.stagingTestata.deleteMany({}),
+        tx.stagingConto.deleteMany({}),
+        tx.stagingCodiceIva.deleteMany({}),
+        tx.stagingCausaleContabile.deleteMany({}),
+        tx.stagingCondizionePagamento.deleteMany({}),
+        tx.stagingAnagrafica.deleteMany({})
+      ]);
 
-export default router; 
+      const totalDeleted = deletions.reduce((sum, del) => sum + del.count, 0);
+      return { totalDeleted, tablesCleared: 9 };
+    }, {
+      timeout: 30000 // 30 secondi timeout per operazioni massive
+    });
+
+    console.log(`[Staging Cleanup] ${result.totalDeleted} record eliminati da ${result.tablesCleared} tabelle staging.`);
+    res.json({ 
+      message: `Cleanup staging completato: ${result.totalDeleted} record eliminati da ${result.tablesCleared} tabelle.`,
+      success: true,
+      ...result
+    });
+  } catch (error) {
+    console.error('[Staging Cleanup] Errore durante cleanup:', error);
+    res.status(500).json({
+      message: 'Errore durante il cleanup delle tabelle staging.',
+      error: error instanceof Error ? error.message : String(error),
+      success: false
+    });
+  }
+});
+
+
+// Endpoint per ottenere report audit dettagliato
+router.get('/audit-report', (_req, res) => {
+    try {
+        const report = generateAuditReport();
+        res.json({
+            success: true,
+            report
+        });
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        res.status(500).json({
+            success: false,
+            message: `Errore generazione report audit: ${errorMessage}`
+        });
+    }
+});
+
+export default router;

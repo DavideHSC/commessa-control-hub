@@ -1,5 +1,11 @@
 import express from 'express';
 import { PrismaClient, Prisma } from '@prisma/client';
+import { 
+  validateCommessaHierarchy, 
+  validateBudgetVsAllocazioni,
+  validateCommessaDeletion,
+  validateCommessaUpdate
+} from '../import-engine/core/validations/businessValidations.js';
 
 const prisma = new PrismaClient();
 const router = express.Router();
@@ -12,7 +18,8 @@ router.get('/', async (req, res) => {
       limit = '25', 
       search = '',
       sortBy = 'nome',
-      sortOrder = 'asc'
+      sortOrder = 'asc',
+      active
     } = req.query;
 
     const pageNumber = parseInt(page as string, 10);
@@ -20,14 +27,17 @@ router.get('/', async (req, res) => {
     const skip = (pageNumber - 1) * pageSize;
     const take = pageSize;
 
-    const where: Prisma.CommessaWhereInput = search ? {
-      OR: [
-        { nome: { contains: search as string, mode: 'insensitive' } },
-        { descrizione: { contains: search as string, mode: 'insensitive' } },
-        { cliente: { nome: { contains: search as string, mode: 'insensitive' } } },
-        { parent: { nome: { contains: search as string, mode: 'insensitive' } } },
-      ],
-    } : {};
+    const where: Prisma.CommessaWhereInput = {
+      ...(search ? {
+        OR: [
+          { nome: { contains: search as string, mode: 'insensitive' } },
+          { descrizione: { contains: search as string, mode: 'insensitive' } },
+          { cliente: { nome: { contains: search as string, mode: 'insensitive' } } },
+          { parent: { nome: { contains: search as string, mode: 'insensitive' } } },
+        ],
+      } : {}),
+      ...(active === 'true' ? { isAttiva: true } : {}),
+    };
 
     const orderBy: Prisma.CommessaOrderByWithRelationInput = {
         [(sortBy as string) || 'nome']: (sortOrder as 'asc' | 'desc') || 'asc'
@@ -66,10 +76,28 @@ router.get('/', async (req, res) => {
 // POST a new commessa
 router.post('/', async (req, res) => {
   try {
-    const { budget, ...commessaData } = req.body;
+    const { budget, parentId, ...commessaData } = req.body;
+    
+    // Per le nuove commesse, la validazione gerarchia è più semplice
+    // Basta verificare che il parent esista (se specificato)
+    if (parentId) {
+      const parentExists = await prisma.commessa.findUnique({
+        where: { id: parentId },
+        select: { id: true }
+      });
+      
+      if (!parentExists) {
+        return res.status(400).json({ 
+          error: 'Commessa parent non trovata',
+          validationErrors: ['Parent ID non valido'] 
+        });
+      }
+    }
+
     const nuovaCommessa = await prisma.commessa.create({
       data: {
         ...commessaData,
+        parentId,
         budget: {
           create: budget || [], // budget è un array di BudgetVoce
         }
@@ -81,6 +109,7 @@ router.post('/', async (req, res) => {
         budget: true,
       }
     });
+    
     res.status(201).json(nuovaCommessa);
   } catch (error: unknown) {
     console.error(error);
@@ -93,6 +122,32 @@ router.put('/:id', async (req, res) => {
   const { id } = req.params;
   try {
     const { budget, cliente, ...commessaData } = req.body;
+    
+    // VALIDAZIONI BUSINESS CRITICHE
+    console.log(`[Commesse API] Validating update for commessa ${id}...`);
+    
+    const validationData = {
+      parentId: commessaData.parentId,
+      budget: budget ? budget.map((b: any) => ({
+        voceAnaliticaId: b.voceAnaliticaId,
+        budgetPrevisto: b.budgetPrevisto || 0
+      })) : undefined
+    };
+    
+    const validationResult = await validateCommessaUpdate(prisma, id, validationData);
+    
+    if (!validationResult.isValid) {
+      console.log(`[Commesse API] Validation failed: ${validationResult.error}`);
+      return res.status(400).json({ 
+        error: validationResult.error,
+        validationErrors: [validationResult.error]
+      });
+    }
+    
+    // Log warnings se presenti
+    if (validationResult.warnings && validationResult.warnings.length > 0) {
+      console.warn(`[Commesse API] Validation warnings:`, validationResult.warnings);
+    }
     
     // Iniziamo una transazione per aggiornare la commessa e il suo budget
     const result = await prisma.$transaction(async (tx) => {
@@ -124,9 +179,16 @@ router.put('/:id', async (req, res) => {
       return commessaAggiornata;
     });
 
-    res.json(result);
+    // Includi warnings nella response se presenti
+    const response = {
+      ...result,
+      validationWarnings: validationResult.warnings
+    };
+
+    console.log(`[Commesse API] Update successful for commessa ${id}`);
+    res.json(response);
   } catch (error: unknown) {
-    console.error(error);
+    console.error(`[Commesse API] Update error for commessa ${id}:`, error);
     res.status(500).json({ error: `Errore nell'aggiornamento della commessa ${id}.` });
   }
 });
@@ -135,12 +197,28 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
   try {
+    // VALIDAZIONI BUSINESS per eliminazione
+    console.log(`[Commesse API] Validating deletion for commessa ${id}...`);
+    
+    const validationResult = await validateCommessaDeletion(prisma, id);
+    
+    if (!validationResult.isValid) {
+      console.log(`[Commesse API] Deletion validation failed: ${validationResult.error}`);
+      return res.status(400).json({ 
+        error: validationResult.error,
+        validationErrors: [validationResult.error]
+      });
+    }
+    
     // La cancellazione a cascata dovrebbe gestire il budget associato
     await prisma.commessa.delete({
       where: { id },
     });
+    
+    console.log(`[Commesse API] Deletion successful for commessa ${id}`);
     res.status(204).send();
   } catch (error: unknown) {
+    console.error(`[Commesse API] Deletion error for commessa ${id}:`, error);
     res.status(500).json({ error: `Errore nell'eliminazione della commessa ${id}.` });
   }
 });
@@ -148,10 +226,20 @@ router.delete('/:id', async (req, res) => {
 // GET all commesse for select inputs
 router.get('/select', async (req, res) => {
   try {
+    const { active } = req.query;
+    
     const commesse = await prisma.commessa.findMany({
+      where: active === 'true' ? { isAttiva: true } : {},
       select: {
         id: true,
         nome: true,
+        isAttiva: true,
+        cliente: {
+          select: {
+            nome: true,
+          },
+        },
+        stato: true,
       },
       orderBy: {
         nome: 'asc',

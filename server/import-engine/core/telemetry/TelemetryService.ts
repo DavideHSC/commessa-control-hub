@@ -1,4 +1,4 @@
-import { ImportJob, ImportJobMetrics } from '../jobs/ImportJob';
+import { ImportJob, ImportJobMetrics } from '../jobs/ImportJob.js';
 
 // =============================================================================
 // TELEMETRY SERVICE

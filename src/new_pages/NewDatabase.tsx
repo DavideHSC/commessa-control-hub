@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { RefreshCw, CheckCircle, AlertTriangle, Database, Trash2, Users, Building, FileText, Landmark, Library, DollarSign, CreditCard } from 'lucide-react';
 import { Button } from '../new_components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../new_components/ui/Card';
@@ -36,6 +37,7 @@ const DATABASE_TABLES = [
 ];
 
 export const NewDatabase = () => {
+  const navigate = useNavigate();
   const [databaseStats, setDatabaseStats] = useState<DatabaseStats[]>([]);
   const [selectedTable, setSelectedTable] = useState<string>('');
   const [tableData, setTableData] = useState<DatabaseRecord[]>([]);
@@ -233,43 +235,24 @@ export const NewDatabase = () => {
     if (!tableInfo) return;
 
     try {
-      // Use specific API endpoints for clearing each table
-      let apiUrl = '';
+      // ✅ FIX: Use unified endpoint for all table deletions
+      const apiUrl = `/api/database/clear-table/${tableName}`;
       const method = 'DELETE';
       
-      switch(tableInfo.endpoint) {
-        case 'scritture':
-          apiUrl = `/api/database/scritture`;
-          break;
-        case 'codici-iva':
-          apiUrl = `/api/database/codici-iva`;
-          break;
-        case 'condizioni-pagamento':
-          apiUrl = `/api/database/condizioni-pagamento`;
-          break;
-        case 'righe-scrittura':
-          apiUrl = `/api/database/righe-scrittura`;
-          break;
-        case 'righe-iva':
-          apiUrl = `/api/database/righe-iva`;
-          break;
-        default:
-          // For tables not yet implemented in database.ts, show not implemented message
-          setConfirmMessage({
-            title: '⚠️ Funzionalità Non Implementata',
-            description: `La funzionalità di eliminazione per la tabella "${tableInfo.label}" non è ancora implementata nel backend.`
-          });
-          setConfirmAction(null);
-          setShowConfirmDialog(true);
-          return;
-      }
+      console.log(`🗑️ [Database] Eliminazione tabella ${tableName} via ${apiUrl}`);
       
       const response = await fetch(apiUrl, { method });
+      
       if (response.ok) {
+        const result = await response.json();
+        const recordCount = result.count || 0;
+        
         setConfirmMessage({
           title: '✅ Eliminazione Completata',
-          description: `Tutti i record della tabella "${tableInfo.label}" sono stati eliminati con successo.`
+          description: `Eliminati ${recordCount.toLocaleString()} record dalla tabella "${tableInfo.label}".`
         });
+        
+        console.log(`✅ [Database] Eliminati ${recordCount} record da ${tableName}`);
         
         // Refresh stats and clear table view
         fetchDatabaseStats();
@@ -277,17 +260,18 @@ export const NewDatabase = () => {
           setTableData([]);
         }
       } else {
-        const errorText = await response.text();
+        const errorData = await response.json().catch(() => ({ message: 'Errore sconosciuto' }));
         setConfirmMessage({
           title: '❌ Errore Eliminazione',
-          description: `Errore durante l'eliminazione: ${errorText}`
+          description: errorData.message || `Errore HTTP ${response.status}: ${response.statusText}`
         });
+        console.error(`❌ [Database] Errore eliminazione ${tableName}:`, errorData.message);
       }
     } catch (err) {
       console.error('Clear table error:', err);
       setConfirmMessage({
         title: '❌ Errore di Connessione',
-        description: 'Errore di connessione durante l\'eliminazione.'
+        description: 'Errore di connessione durante l\'eliminazione. Verifica che il backend sia in esecuzione.'
       });
     }
     
@@ -312,10 +296,169 @@ export const NewDatabase = () => {
   const tableColumns = useCallback(() => {
     if (!selectedTable || !tableData.length) return [];
 
+    // ✅ PROFESSIONAL FIX: Table-specific column configurations
+    if (selectedTable === 'commesse') {
+      return [
+        {
+          key: 'nome' as const,
+          label: 'Nome Commessa',
+          render: (value: unknown) => (
+            <span className="font-medium text-gray-900 whitespace-normal break-words">
+              {String(value || '-')}
+            </span>
+          )
+        },
+        {
+          key: 'descrizione' as const,
+          label: 'Descrizione',
+          render: (value: unknown) => {
+            const str = String(value || '-');
+            return (
+              <span className="whitespace-normal break-words" title={str}>
+                {str}
+              </span>
+            );
+          }
+        },
+
+        {
+          key: 'stato' as const,
+          label: 'Stato',
+          render: (value: unknown) => {
+            const stato = String(value || '-');
+            const colorClass = stato === 'In Corso' ? 'bg-green-100 text-green-800' : 
+                              stato === 'Completato' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800';
+            return (
+              <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${colorClass}`}>
+                {stato}
+              </span>
+            );
+          }
+        },
+        {
+          key: 'priorita' as const,
+          label: 'Priorità',
+          render: (value: unknown) => {
+            const priorita = String(value || '-');
+            const colorClass = priorita === 'alta' ? 'bg-red-100 text-red-800' : 
+                              priorita === 'media' ? 'bg-yellow-100 text-yellow-800' :
+                              priorita === 'bassa' ? 'bg-green-100 text-green-800' :
+                              'bg-gray-100 text-gray-800';
+            return (
+              <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${colorClass}`}>
+                {priorita.charAt(0).toUpperCase() + priorita.slice(1)}
+              </span>
+            );
+          }
+        },
+        {
+          key: 'dataInizio' as const,
+          label: 'Data Inizio',
+          render: (value: unknown) => {
+            if (!value) return '-';
+            try {
+              const date = new Date(String(value));
+              if (!isNaN(date.getTime())) {
+                return date.toLocaleDateString('it-IT');
+              }
+            } catch {}
+            return String(value);
+          }
+        },
+        {
+          key: 'isAttiva' as const,
+          label: 'Attiva',
+          render: (value: unknown) => (
+            <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${
+              value === true ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            }`}>
+              {value === true ? 'Sì' : 'No'}
+            </span>
+          )
+        },
+        {
+          key: 'cliente' as const,
+          label: 'Cliente',
+          render: (value: unknown) => {
+            if (typeof value === 'object' && value !== null && 'nome' in value) {
+              return (
+                <span className="whitespace-normal break-words">
+                  {String((value as any).nome)}
+                </span>
+              );
+            }
+            return '-';
+          }
+        },
+        {
+          key: 'budget' as const,
+          label: 'Budget',
+          render: (value: unknown) => {
+            if (Array.isArray(value)) {
+              const count = value.length;
+              if (count === 0) return '-';
+              return (
+                <span className="text-sm text-blue-600">
+                  {count} voce{count !== 1 ? 'i' : ''}
+                </span>
+              );
+            }
+            return '-';
+          }
+        },
+        {
+          key: 'children' as const,
+          label: 'Sotto-commesse',
+          render: (value: unknown) => {
+            if (Array.isArray(value)) {
+              const count = value.length;
+              if (count === 0) return (
+                <span className="text-gray-400 text-sm">Nessuna</span>
+              );
+              
+              // Se ci sono poche sotto-commesse, mostra i loro nomi cliccabili
+              if (count <= 2) {
+                const children = value
+                  .filter(child => child && typeof child === 'object' && 'nome' in child && 'id' in child)
+                  .filter(Boolean);
+                
+                if (children.length > 0) {
+                  return (
+                    <div className="text-sm space-y-1">
+                      {children.map((child, idx) => (
+                        <div 
+                          key={idx} 
+                          className="text-blue-600 hover:text-blue-800 cursor-pointer hover:underline whitespace-normal break-words" 
+                          title={`Clicca per visualizzare: ${(child as any).nome}`}
+                          onClick={() => navigate(`/new/commesse/${(child as any).id}`)}
+                        >
+                          {(child as any).nome}
+                        </div>
+                      ))}
+                    </div>
+                  );
+                }
+              }
+              
+              // Se sono molte, mostra solo il conteggio
+              return (
+                <span className="text-sm text-green-600">
+                  {count} sotto-commess{count === 1 ? 'a' : 'e'}
+                </span>
+              );
+            }
+            return <span className="text-gray-400 text-sm">Nessuna</span>;
+          }
+        }
+      ];
+    }
+
+    // ✅ Default dynamic columns for other tables
     const sampleRecord = tableData[0];
     const columns = [];
 
-    // Add ID column
+    // Add ID column for other tables
     columns.push({
       key: 'id' as const,
       label: 'ID',
@@ -326,27 +469,73 @@ export const NewDatabase = () => {
       )
     });
 
-    // Add dynamic columns based on data
+    // Common field mappings
+    const fieldLabels: Record<string, string> = {
+      nome: 'Nome',
+      descrizione: 'Descrizione',
+      codice: 'Codice',
+      tipo: 'Tipo',
+      externalId: 'ID Esterno',
+      createdAt: 'Creato il',
+      updatedAt: 'Aggiornato il',
+      isAttiva: 'Attivo',
+      piva: 'P.IVA',
+      codiceFiscale: 'Codice Fiscale',
+      aliquota: 'Aliquota',
+      dataInizio: 'Data Inizio',
+      dataFine: 'Data Fine'
+    };
+
+    // Add dynamic columns for other tables
     Object.keys(sampleRecord).forEach(key => {
       if (!['id'].includes(key) && sampleRecord[key] !== null) {
+        const label = fieldLabels[key] || key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1');
+        
         columns.push({
           key: key,
-          label: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
+          label,
           render: (value: unknown) => {
             if (value === null || value === undefined || value === '') return '-';
             
-            // Format dates
-            if (key.includes('At') || key.includes('Date') || key.toLowerCase().includes('data')) {
-              try {
-                return new Date(String(value)).toLocaleString('it-IT');
-              } catch {
-                return String(value);
-              }
+            // Handle booleans
+            if (typeof value === 'boolean') {
+              return (
+                <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${
+                  value ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                }`}>
+                  {value ? 'Sì' : 'No'}
+                </span>
+              );
             }
             
-            // Format long text
+            // Handle objects
+            if (typeof value === 'object' && value !== null) {
+              if ('nome' in value) {
+                return String((value as any).nome);
+              }
+              if (Array.isArray(value)) {
+                return `${value.length} elementi`;
+              }
+              return '[Oggetto]';
+            }
+            
+            // Handle dates
+            if (key.includes('At') || key.includes('Date') || key.toLowerCase().includes('data')) {
+              try {
+                const dateValue = new Date(String(value));
+                if (!isNaN(dateValue.getTime())) {
+                  return dateValue.toLocaleDateString('it-IT');
+                }
+              } catch {}
+            }
+            
+            // Format long text with wrapping
             const str = String(value);
-            return str.length > 50 ? str.substring(0, 50) + '...' : str;
+            return (
+              <span className="whitespace-normal break-words" title={str}>
+                {str}
+              </span>
+            );
           }
         });
       }

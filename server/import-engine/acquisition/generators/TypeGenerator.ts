@@ -1,7 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import fs from 'fs/promises';
 import path from 'path';
-import { fileURLToPath } from 'url';
 
 const prisma = new PrismaClient();
 
@@ -56,8 +55,7 @@ async function generateTypes() {
     content += `}\n\n`;
   }
 
-  // Definisce il percorso di output relativo allo script corrente
-  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  // MODIFICA: Utilizzo di __dirname (CommonJS) invece di import.meta.url (ESM)
   const outputPath = path.resolve(__dirname, '../../core/types/generated.ts');
   
   console.log(`✍️  Scrittura dei tipi nel file: ${outputPath}`);
@@ -72,4 +70,4 @@ generateTypes().catch((e) => {
   console.error('❌ Errore durante la generazione dei tipi:', e);
   prisma.$disconnect();
   process.exit(1);
-}); 
+});

@@ -1,14 +1,9 @@
 /**
  * TYPE-SAFE FIXED WIDTH PARSER
- * Wrapper type-safe del parser legacy esistente
- * 
- * Utilizza il parseFixedWidth legacy ma con tipizzazione migliorata
+ * Wrapper type-safe del parser core.
  */
-
-import { parseFixedWidth as legacyParseBasic, parseFixedWidthRobust } from '../../../lib/fixedWidthParser';
-import type { ImportStats, ParseResult } from '../../../lib/fixedWidthParser';
-import { writeFile } from 'fs/promises';
-import path from 'path';
+import { parseFixedWidth as parseFixedWidthCore } from '../../core/utils/fixedWidthParser.js';
+import type { ImportStats, ParseResult } from '../../core/utils/fixedWidthParser.js';
 
 export interface TypeSafeParseResult<T = Record<string, unknown>> {
   data: T[];
@@ -16,33 +11,20 @@ export interface TypeSafeParseResult<T = Record<string, unknown>> {
 }
 
 /**
- * Parser type-safe per file a larghezza fissa
- * Wrapper del parser legacy esistente
+ * Parser type-safe per file a larghezza fissa.
+ * Chiama il parser core passando il nome del template e l'eventuale fileIdentifier.
  */
 export async function parseFixedWidth<T = Record<string, unknown>>(
   fileContent: string,
-  templateName: string
+  templateName: string,
+  fileIdentifier?: string // Aggiunto il parametro opzionale
 ): Promise<TypeSafeParseResult<T>> {
   
-  // Crea un file temporaneo per il parser legacy che richiede un file path
-  const tempFilePath = path.join(process.cwd(), 'uploads', `temp_${Date.now()}.txt`);
+  // Chiama il parser core, passando tutti i parametri
+  const result: ParseResult<T> = await parseFixedWidthCore(fileContent, templateName, fileIdentifier);
   
-  try {
-    await writeFile(tempFilePath, fileContent, 'utf-8');
-    
-    // Utilizza il parser legacy robusto che accetta templateName
-    const result: ParseResult<T> = await parseFixedWidthRobust(tempFilePath, [], templateName);
-    
-    return {
-      data: result.data,
-      stats: result.stats
-    };
-  } finally {
-    // Cleanup del file temporaneo
-    try {
-      await import('fs/promises').then(fs => fs.unlink(tempFilePath));
-    } catch (error) {
-      console.warn(`Impossibile eliminare file temporaneo: ${tempFilePath}`);
-    }
-  }
-} 
+  return {
+    data: result.data,
+    stats: result.stats
+  };
+}

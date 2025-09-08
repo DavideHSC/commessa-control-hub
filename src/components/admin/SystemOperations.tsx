@@ -53,7 +53,7 @@ export const SystemOperations = () => {
     return (
         <Card className="mb-6">
             <CardHeader>
-                <CardTitle>Operazioni di Sistema</CardTitle>
+                <CardTitle>Operazioni di Sistemacon quello che abbiamo ideato e quello che abbiamo realizzato, aggiorna anche l'adr</CardTitle>
                 <CardDescription>
                     Azioni pericolose che modificano lo stato del sistema in modo irreversibile. Usare con la massima cautela.
                 </CardDescription>

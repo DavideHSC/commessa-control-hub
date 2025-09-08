@@ -48,126 +48,14 @@ export const FinalizationMonitor = ({
   const [totalRecords, setTotalRecords] = useState({ processed: 0, total: 0 });
   const [estimatedTime, setEstimatedTime] = useState<string>('');
 
-  // Initialize SSE connection and start monitoring
-  const startMonitoring = useCallback(async () => {
-    if (!open) return;
-
-    setStartTime(new Date());
-    setIsConnected(false);
-    
-    try {
-      // Start finalization process
-      const response = await fetch('/api/staging/finalize', { method: 'POST' });
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        onError?.(`Errore nell'avvio del processo: ${errorText}`);
-        return;
-      }
-
-      // Setup SSE for real-time updates
-      const eventSource = new EventSource('/api/staging/events');
-      setIsConnected(true);
-
-      eventSource.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          console.log('📊 Finalization Monitor SSE:', data);
-          
-          // Update current step
-          setCurrentStep(data.step);
-          
-          // Update steps status
-          setSteps(current => 
-            current.map(step => {
-              if (step.id === data.step) {
-                const updatedStep: FinalizationStep = {
-                  ...step,
-                  status: data.status || 'running',
-                  description: data.message || step.description,
-                  count: data.count,
-                };
-                
-                // Add timing information
-                if (data.status === 'running' && !step.startTime) {
-                  updatedStep.startTime = new Date().toISOString();
-                } else if (data.status === 'completed' && step.startTime && !step.endTime) {
-                  updatedStep.endTime = new Date().toISOString();
-                  updatedStep.duration = new Date().getTime() - new Date(step.startTime).getTime();
-                }
-                
-                return updatedStep;
-              }
-              return step;
-            })
-          );
-
-          // Calculate progress
-          const completedSteps = steps.filter(s => s.status === 'completed').length;
-          const totalSteps = steps.length;
-          const progressPercent = Math.round((completedSteps / totalSteps) * 100);
-          setProgress(progressPercent);
-          
-          // Update estimated time
-          if (startTime && completedSteps > 0) {
-            const elapsed = new Date().getTime() - startTime.getTime();
-            const avgTimePerStep = elapsed / completedSteps;
-            const remainingSteps = totalSteps - completedSteps;
-            const estimatedRemaining = (remainingSteps * avgTimePerStep) / 1000 / 60; // in minutes
-            setEstimatedTime(estimatedRemaining > 1 ? `~${Math.ceil(estimatedRemaining)} min` : '<1 min');
-          }
-
-          // Handle completion
-          if (data.step === 'end') {
-            setProgress(100);
-            setIsConnected(false);
-            eventSource.close();
-            
-            setTimeout(() => {
-              onComplete?.();
-            }, 2000); // Show completed state for 2 seconds
-            return;
-          }
-
-          // Handle errors
-          if (data.step === 'error') {
-            setIsConnected(false);
-            eventSource.close();
-            onError?.(data.message);
-            return;
-          }
-
-        } catch (parseError) {
-          console.error('Error parsing SSE data:', parseError);
-        }
-      };
-
-      eventSource.onerror = (error) => {
-        console.error('SSE Connection Error:', error);
-        setIsConnected(false);
-        eventSource.close();
-        
-        // Fallback to polling
-        startFallbackPolling();
-      };
-
-      // Cleanup on dialog close
-      const cleanup = () => {
-        eventSource.close();
-        setIsConnected(false);
-      };
-
-      // Store cleanup function
-      (window as any).__finalizationCleanup = cleanup;
-
-    } catch (error) {
-      console.error('Error starting monitoring:', error);
-      onError?.('Errore nell\'avvio del monitoraggio');
-    }
-  }, [open, onComplete, onError, startTime, steps]);
+  // (Removed startMonitoring function - logic moved to useEffect to prevent race conditions)
 
   // Fallback polling when SSE fails
   const startFallbackPolling = useCallback(() => {
+    console.log('🔄 Attivazione polling di fallback per monitoraggio...');
+    let pollCount = 0;
+    const maxPolls = 60; // 5 minutes max
+    
     const poll = async () => {
       try {
         const response = await fetch('/api/staging/stats');
@@ -182,34 +70,187 @@ export const FinalizationMonitor = ({
           }
           
           // Simple progress based on remaining records
-          const progressPercent = Math.max(10, 100 - (totalRecords / 100));
-          setProgress(Math.min(95, progressPercent));
+          const progressPercent = Math.max(15, Math.min(95, 100 - (totalRecords / 100)));
+          setProgress(progressPercent);
+          
+          // Continue polling if not max attempts
+          pollCount++;
+          if (pollCount < maxPolls) {
+            setTimeout(poll, 3000);
+          } else {
+            console.warn('🔄 Polling timeout raggiunto, processo potrebbe essere completato.');
+            onError?.('Timeout monitoraggio: controlla manualmente lo stato della finalizzazione.');
+          }
         }
       } catch (error) {
         console.error('Fallback polling error:', error);
+        if (pollCount < maxPolls) {
+          setTimeout(poll, 5000); // Retry on error
+        }
       }
-      
-      // Continue polling
-      setTimeout(poll, 5000);
     };
 
-    setTimeout(poll, 5000);
-  }, [onComplete]);
+    poll(); // Start immediately
+  }, [onComplete, onError]);
 
-  // Start monitoring when dialog opens
+  // Start monitoring when dialog opens - NO startMonitoring in dependencies to prevent loops
   useEffect(() => {
     if (open) {
-      startMonitoring();
+      // Use a ref to track if monitoring is already started
+      let isMonitoringStarted = false;
+      
+      const startOnce = async () => {
+        if (isMonitoringStarted) return;
+        isMonitoringStarted = true;
+        
+        setStartTime(new Date());
+        setIsConnected(false);
+        
+        try {
+          // Start finalization process
+          const response = await fetch('/api/staging/finalize', { method: 'POST' });
+          
+          if (!response.ok) {
+            const errorText = await response.text();
+            
+            // Handle specific case where finalization is already running
+            if (response.status === 409) {
+              console.log('📊 Processo di finalizzazione già in corso, attivazione monitoraggio...');
+              // Don't treat this as an error - just start monitoring the existing process
+            } else {
+              onError?.(`Errore nell'avvio del processo: ${errorText}`);
+              return;
+            }
+          }
+
+          // Setup SSE for real-time updates (regardless of whether we started the process or it was already running)
+          const eventSource = new EventSource('/api/staging/events');
+          setIsConnected(true);
+
+          eventSource.onmessage = (event) => {
+            try {
+              const data = JSON.parse(event.data);
+              console.log('📊 Finalization Monitor SSE:', data);
+              
+              // Handle connection confirmation
+              if (data.step === 'connected') {
+                console.log('✅ SSE connection confirmed');
+                return;
+              }
+
+              // 🔔 Special handling for operational mode detection
+              if (data.step === 'clean_slate' && data.metadata) {
+                const { modalita, isFirstTime } = data.metadata;
+                console.log(`🎯 Modalità operativa rilevata: ${modalita} (primo utilizzo: ${isFirstTime})`);
+                
+                // Show user-friendly notification in UI
+                if (!isFirstTime) {
+                  console.log('🔄 OPERATIVITÀ CICLICA: Dati utente esistenti verranno preservati');
+                } else {
+                  console.log('🔧 SETUP INIZIALE: Reset completo database per prima configurazione');
+                }
+              }
+              
+              // Update current step
+              setCurrentStep(data.step);
+              
+              // Update steps status
+              setSteps(current => 
+                current.map(step => {
+                  if (step.id === data.step) {
+                    const updatedStep: FinalizationStep = {
+                      ...step,
+                      status: data.status || 'running',
+                      description: data.message || step.description,
+                      count: data.count,
+                    };
+                    
+                    // Add timing information
+                    if (data.status === 'running' && !step.startTime) {
+                      updatedStep.startTime = new Date().toISOString();
+                    } else if (data.status === 'completed' && step.startTime && !step.endTime) {
+                      updatedStep.endTime = new Date().toISOString();
+                      updatedStep.duration = new Date().getTime() - new Date(step.startTime).getTime();
+                    }
+                    
+                    return updatedStep;
+                  }
+                  return step;
+                })
+              );
+
+              // Calculate progress
+              const completedSteps = steps.filter(s => s.status === 'completed').length;
+              const totalSteps = steps.length;
+              const progressPercent = Math.round((completedSteps / totalSteps) * 100);
+              setProgress(progressPercent);
+              
+              // Update estimated time
+              if (startTime && completedSteps > 0) {
+                const elapsed = new Date().getTime() - startTime.getTime();
+                const avgTimePerStep = elapsed / completedSteps;
+                const remainingSteps = totalSteps - completedSteps;
+                const estimatedRemaining = (remainingSteps * avgTimePerStep) / 1000 / 60; // in minutes
+                setEstimatedTime(estimatedRemaining > 1 ? `~${Math.ceil(estimatedRemaining)} min` : '<1 min');
+              }
+
+              // Handle completion
+              if (data.step === 'end') {
+                setProgress(100);
+                setIsConnected(false);
+                eventSource.close();
+                
+                setTimeout(() => {
+                  onComplete?.();
+                }, 2000); // Show completed state for 2 seconds
+                return;
+              }
+
+              // Handle errors
+              if (data.step === 'error') {
+                setIsConnected(false);
+                eventSource.close();
+                onError?.(data.message);
+                return;
+              }
+
+            } catch (parseError) {
+              console.error('Error parsing SSE data:', parseError);
+            }
+          };
+
+          eventSource.onerror = (error) => {
+            console.error('SSE Connection Error:', error);
+            setIsConnected(false);
+            eventSource.close();
+            
+            // Fallback to polling
+            startFallbackPolling();
+          };
+
+          // Store cleanup function
+          (window as any).__finalizationCleanup = () => {
+            eventSource.close();
+            setIsConnected(false);
+          };
+
+        } catch (error) {
+          console.error('Error starting monitoring:', error);
+          onError?.('Errore nell\'avvio del monitoraggio');
+        }
+      };
+      
+      startOnce();
     }
 
-    // Cleanup on unmount
+    // Cleanup on unmount or close
     return () => {
       if ((window as any).__finalizationCleanup) {
         (window as any).__finalizationCleanup();
         delete (window as any).__finalizationCleanup;
       }
     };
-  }, [open, startMonitoring]);
+  }, [open]); // ONLY open in dependencies, NOT startMonitoring
 
   const getStepIcon = (step: FinalizationStep) => {
     switch (step.status) {
@@ -243,7 +284,7 @@ export const FinalizationMonitor = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden" aria-describedby="finalization-description">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-3">
             <Activity className="w-6 h-6 text-blue-500" />
@@ -256,6 +297,9 @@ export const FinalizationMonitor = ({
             )}
           </DialogTitle>
         </DialogHeader>
+        <p id="finalization-description" className="sr-only">
+          Monitoraggio in tempo reale del processo di finalizzazione dati da staging a produzione
+        </p>
 
         <div className="py-4 space-y-6 max-h-[70vh] overflow-y-auto">
           {/* Progress Overview */}

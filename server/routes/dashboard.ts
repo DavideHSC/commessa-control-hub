@@ -1,43 +1,6 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
-
-// Tipi incollati da src/types/index.ts per risolvere l'errore di rootDir
-interface CommessaDashboard {
-  id: string;
-  nome: string;
-  cliente: {
-    id: string;
-    nome: string;
-  };
-  stato: string;
-  ricavi: number;
-  costi: number;
-  margine: number;
-  budget: number;
-  isParent: boolean;
-  parentId?: string;
-  figlie?: CommessaDashboard[];
-}
-
-interface DashboardData {
-  commesse: CommessaDashboard[];
-  clienti: Array<{ id: string; nome: string; externalId?: string }>;
-  kpi: {
-    commesseAttive: number;
-    ricaviTotali: number;
-    costiTotali: number;
-    margineLordoMedio: number;
-    commesseConMargineNegativo: number;
-    budgetVsConsuntivo: number;
-    movimentiNonAllocati: number;
-    ricaviMeseCorrente: number;
-    costiMeseCorrente: number;
-  };
-  trends: {
-    ricaviMensili: Array<{ mese: string; ricavi: number; costi: number; margine: number }>;
-    topCommesse: Array<{ nome: string; margine: number; ricavi: number }>;
-  };
-}
+import { CommessaDashboard, DashboardData } from '@shared-types/index.js';
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -264,4 +227,4 @@ router.get('/', async (req, res) => {
   }
 });
 
-export default router; 
+export default router;

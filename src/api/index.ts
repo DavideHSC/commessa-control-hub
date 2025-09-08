@@ -72,6 +72,15 @@ export const resetDatabase = async () => {
   return response.json();
 };
 
+export const cleanupStaging = async () => {
+  const response = await fetch('/api/staging/cleanup-all', { method: 'POST' });
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'Errore durante cleanup staging.' }));
+    throw new Error(errorData.message || 'Errore di rete');
+  }
+  return response.json();
+};
+
 export const getDatabaseStats = async (): Promise<TableStats> => {
   const response = await fetch(`${API_BASE_URL}/database/`);
   if (!response.ok) {

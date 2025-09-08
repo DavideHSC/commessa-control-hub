@@ -5,13 +5,22 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist"] },
+  // Ignora globalmente la cartella di output
+  { ignores: ["dist/"] },
+
+  // Configurazione base per tutti i file TS/TSX
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+
+  // Configurazione specifica per il FRONTEND (cartella /src)
   {
-    extends: [js.configs.recommended, ...tseslint.configs.recommended],
-    files: ["**/*.{ts,tsx}"],
+    files: ["src/**/*.{ts,tsx}"],
     languageOptions: {
       ecmaVersion: 2020,
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+        ...globals.es2020,
+      },
     },
     plugins: {
       "react-hooks": reactHooks,
@@ -23,7 +32,30 @@ export default tseslint.config(
         "warn",
         { allowConstantExport: true },
       ],
-      "@typescript-eslint/no-unused-vars": "off",
+      // Riattiva questa regola fondamentale!
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { "argsIgnorePattern": "^_" }
+      ]
     },
+  },
+
+  // Configurazione specifica per il BACKEND (cartella /server e /prisma)
+  {
+    files: ["server/**/*.ts", "prisma/**/*.ts"],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: {
+        ...globals.node,
+        ...globals.es2020,
+      },
+    },
+    rules: {
+      // Riattiva questa regola fondamentale!
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { "argsIgnorePattern": "^_" }
+      ]
+    }
   }
 );

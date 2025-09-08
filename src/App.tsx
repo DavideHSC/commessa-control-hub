@@ -34,6 +34,9 @@ import {
 } from "./new_pages";
 import { CommessaProvider } from "./new_context/CommessaContext";
 
+// Staging Analysis System
+import { StagingAnalysisPage } from "./staging-analysis/pages/StagingAnalysisPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -62,6 +65,7 @@ const App = () => (
             <Route path="database" element={<NewDatabase />} />
             <Route path="riconciliazione" element={<NewRiconciliazione />} />
             <Route path="settings" element={<NewSettings />} />
+            <Route path="staging-analysis" element={<StagingAnalysisPage />} />
             <Route index element={<Navigate to="dashboard" replace />} />
           </Route>
           

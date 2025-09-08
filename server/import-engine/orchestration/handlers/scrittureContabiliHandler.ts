@@ -1,9 +1,10 @@
 import express, { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import multer from 'multer';
-import { ImportScrittureContabiliWorkflow, ScrittureContabiliFiles } from '../workflows/importScrittureContabiliWorkflow';
-import { DLQService } from '../../persistence/dlq/DLQService';
-import { TelemetryService } from '../../core/telemetry/TelemetryService';
+import { ImportScrittureContabiliWorkflow, ScrittureContabiliFiles } from '../workflows/importScrittureContabiliWorkflow.js';
+import { DLQService } from '../../persistence/dlq/DLQService.js';
+import { TelemetryService } from '../../core/telemetry/TelemetryService.js';
+import { formatImportResult } from '../../core/utils/resultFormatter.js';
 
 // =============================================================================
 // PARSER 6: SCRITTURE CONTABILI - HTTP HANDLER
@@ -122,34 +123,54 @@ export class ScrittureContabiliHandler {
       const result = await this.workflow.execute(scrittureFiles);
       const duration = Date.now() - startTime;
 
-      // Response di successo con statistiche complete
-      res.status(200).json({
-        success: result.success,
-        jobId: result.jobId,
-        message: result.message,
-        stats: {
-          ...result.stats,
-          processingTime: duration,
-          performanceMetrics: {
-            recordsPerSecond: Math.round((result.stats.testateStaging / duration) * 1000),
-            averageTimePerRecord: Math.round(duration / (result.stats.testateStaging || 1)),
+      // Response di successo con formato standardizzato
+      const standardResult = formatImportResult(
+        {
+          ...result,
+          stats: {
+            ...result.stats,
+            processingTime: duration,
+            performanceMetrics: {
+              recordsPerSecond: Math.round((result.stats.testateStaging / duration) * 1000),
+              averageTimePerRecord: Math.round(duration / (result.stats.testateStaging || 1)),
+            },
           },
         },
+        'scritture-contabili',
+        'Multiple files', // Scritture contabili usa file multipli
+        undefined,
+        duration
+      );
+
+      // Mantieni la compatibilità con gli endpoint specifici
+      // IMPORTANTE: Il frontend si aspetta jobId a livello root per le scritture contabili
+      const responseWithEndpoints = {
+        success: true,
+        jobId: result.jobId, // ✅ jobId a livello root per compatibilità frontend
+        message: standardResult.message,
         endpoints: {
           jobStatus: `/api/v2/import/scritture-contabili/job/${result.jobId}`,
           errors: result.stats.erroriValidazione > 0 
             ? `/api/v2/import/scritture-contabili/errors/${result.jobId}` 
             : null,
         },
-      });
+        // Includi anche i dati standardizzati per completezza
+        standardResult: standardResult
+      };
+
+      res.status(200).json(responseWithEndpoints);
 
     } catch (error) {
       console.error('Errore durante importazione scritture contabili:', error);
       
+      const errorMessage = error instanceof Error ? error.message : 'Errore interno del server';
+      
+      // Per errori, restituisci formato compatibile con frontend
       res.status(500).json({
         success: false,
-        error: error instanceof Error ? error.message : 'Errore interno del server',
-        details: error instanceof Error ? error.stack : undefined,
+        message: errorMessage,
+        jobId: null,
+        endpoints: {}
       });
     }
   }

@@ -1,37 +1,6 @@
 import express from 'express';
 import { PrismaClient, Prisma } from '@prisma/client';
-
-// Tipi incollati per evitare errore rootDir
-interface ScritturaContabile {
-  id: string;
-  data: string; 
-  causaleId: string;
-  descrizione: string;
-  righe: RigaScrittura[];
-  datiAggiuntivi?: {
-    fornitoreId?: string | null;
-    clienteId?: string | null;
-    totaleFattura?: number | string;
-    aliquotaIva?: number;
-  };
-}
-
-interface RigaScrittura {
-  id: string;
-  descrizione: string;
-  dare: number;
-  avere: number;
-  contoId: string;
-  allocazioni: Allocazione[];
-}
-
-interface Allocazione {
-  id: string;
-  commessaId: string;
-  voceAnaliticaId: string;
-  importo: number;
-  descrizione?: string;
-}
+import { Allocazione, RigaScrittura, ScritturaContabile } from '@shared-types/index.js';
 
 
 const router = express.Router();
@@ -266,4 +235,4 @@ router.delete('/:id', async (req, res) => {
 });
 
 
-export default router; 
+export default router;

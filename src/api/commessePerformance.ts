@@ -6,10 +6,13 @@ interface CommessaWithPerformance {
     id: string;
     nome: string;
   };
+  clienteId: string;
   parentId?: string;
   stato: string;
+  priorita: string;
   dataInizio?: Date;
   dataFine?: Date;
+  isAttiva: boolean;
   ricavi: number;
   costi: number;
   budget: number;

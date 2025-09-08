@@ -1,12 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(grep:*)",
       "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(npx prisma migrate dev:*)",
       "Bash(mkdir:*)",
-      "Bash(cp:*)",
-      "Bash(mv:*)"
+      "Bash(npm test:*)",
+      "Bash(npm run lint)",
+      "Bash(curl:*)"
     ],
-    "deny": []
+    "deny": [],
+    "ask": []
   }
 }

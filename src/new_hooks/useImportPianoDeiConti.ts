@@ -1,28 +1,22 @@
 import { useState, useCallback } from 'react';
+import { StandardImportResult, ValidationError, ImportWarning } from '../../types/index.js';
 
-// Tipi per Piano dei Conti
-interface PianoDeiContiReport {
-  success: boolean;
-  message: string;
-  stats: {
-    totalRecords: number;
-    createdRecords: number;
-    updatedRecords: number;
-    errors: number;
-  };
-}
-
-interface PianoDeiContiState {
+// Stato standardizzato per tutti gli import hooks
+interface StandardImportState {
   status: 'idle' | 'uploading' | 'completed' | 'failed';
   error: string | null;
-  report: PianoDeiContiReport['stats'] | null;
+  report: StandardImportResult | null;
+  validationErrors: ValidationError[];
+  warnings: ImportWarning[];
 }
 
 export const useImportPianoDeiConti = () => {
-  const [state, setState] = useState<PianoDeiContiState>({
+  const [state, setState] = useState<StandardImportState>({
     status: 'idle',
     error: null,
-    report: null
+    report: null,
+    validationErrors: [],
+    warnings: []
   });
 
   const startImport = useCallback(async (file: File) => {
@@ -30,7 +24,9 @@ export const useImportPianoDeiConti = () => {
     setState({
       status: 'uploading',
       error: null,
-      report: null
+      report: null,
+      validationErrors: [],
+      warnings: []
     });
 
     try {
@@ -38,8 +34,8 @@ export const useImportPianoDeiConti = () => {
       const formData = new FormData();
       formData.append('file', file);
 
-      // Esegui la richiesta POST
-      const response = await fetch('/api/v2/import/piano-dei-conti', {
+      // Esegui la richiesta POST (Fix: endpoint corretto)
+      const response = await fetch('/api/import/piano-dei-conti', {
         method: 'POST',
         body: formData
       });
@@ -48,22 +44,26 @@ export const useImportPianoDeiConti = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Parse della risposta
-      const result = await response.json() as PianoDeiContiReport;
+      // Parse della risposta standardizzata
+      const result = await response.json() as StandardImportResult;
 
       if (result.success) {
         // Import completato con successo
         setState({
           status: 'completed',
           error: null,
-          report: result.stats
+          report: result,
+          validationErrors: result.validationErrors || [],
+          warnings: result.warnings || []
         });
       } else {
         // Import fallito ma risposta valida
         setState({
           status: 'failed',
           error: result.message || 'Import failed',
-          report: null
+          report: result,
+          validationErrors: result.validationErrors || [],
+          warnings: result.warnings || []
         });
       }
 
@@ -72,7 +72,9 @@ export const useImportPianoDeiConti = () => {
       setState({
         status: 'failed',
         error: error instanceof Error ? error.message : 'Unknown error occurred',
-        report: null
+        report: null,
+        validationErrors: [],
+        warnings: []
       });
     }
   }, []);
@@ -81,7 +83,9 @@ export const useImportPianoDeiConti = () => {
     setState({
       status: 'idle',
       error: null,
-      report: null
+      report: null,
+      validationErrors: [],
+      warnings: []
     });
   }, []);
 
@@ -89,6 +93,8 @@ export const useImportPianoDeiConti = () => {
     status: state.status,
     error: state.error,
     report: state.report,
+    validationErrors: state.validationErrors,
+    warnings: state.warnings,
     startImport,
     reset
   };

@@ -7,7 +7,8 @@
  */
 
 import { Request, Response } from 'express';
-import { executeAnagraficheImportWorkflow } from '../workflows/importAnagraficheWorkflow';
+import { executeAnagraficheImportWorkflow } from '../workflows/importAnagraficheWorkflow.js';
+import { formatImportResult } from '../../core/utils/resultFormatter.js';
 
 export interface AnagraficaImportRequest {
   templateName?: string;
@@ -64,58 +65,39 @@ export async function handleAnagraficaImport(req: Request, res: Response): Promi
     console.log(`📊 Dimensione contenuto: ${fileContent.length} caratteri`);
     
     // **ESECUZIONE WORKFLOW**
-    const result = await executeAnagraficheImportWorkflow(fileContent, templateName);
+    const startTime = Date.now();
+    const workflowResult = await executeAnagraficheImportWorkflow(fileContent, templateName);
+    const processingTime = Date.now() - startTime;
     
-    // **RESPONSE FINALE**
-    if (result.success) {
+    // **RESPONSE FINALE CON FORMATO STANDARDIZZATO**
+    const standardResult = formatImportResult(
+      workflowResult,
+      'anagrafiche',
+      req.file.originalname,
+      req.file.size,
+      processingTime
+    );
+
+    if (workflowResult.success) {
       console.log('✅ Import anagrafiche completato con successo');
-      
-      // La UI si aspetta un formato semplice con createdRecords e updatedRecords
-      res.status(200).json({
-        success: true,
-        message: 'Importazione anagrafiche completata con successo',
-        createdRecords: result.stats.createdRecords,
-        updatedRecords: result.stats.updatedRecords,
-        // Dati diagnostici estesi per il logging, non usati direttamente dalla UI base
-        details: {
-          parsing: {
-            totalRecords: result.stats.totalRecords,
-            successfulRecords: result.stats.successfulRecords,
-            errorRecords: result.stats.errorRecords
-          },
-          transformation: result.anagraficheStats,
-          validationErrors: result.errors
-        }
-      });
+      res.status(200).json(standardResult);
     } else {
-      console.error('❌ Import anagrafiche fallito:', result.message);
-      
-      res.status(422).json({
-        success: false,
-        message: result.message,
-        error: 'IMPORT_FAILED',
-        data: {
-          parsing: {
-            totalRecords: result.stats.totalRecords,
-            successfulRecords: result.stats.successfulRecords,
-            errorRecords: result.stats.errorRecords,
-            warnings: result.stats.warnings.length,
-            errors: result.stats.errors.length
-          },
-          validationErrors: result.errors
-        }
-      });
+      console.error('❌ Import anagrafiche fallito:', workflowResult.message);
+      res.status(422).json(standardResult);
     }
     
   } catch (error) {
     console.error('💥 Errore interno durante import anagrafiche:', error);
     
-    res.status(500).json({
-      success: false,
-      message: 'Errore interno del server durante l\'importazione',
-      error: 'INTERNAL_SERVER_ERROR',
-      details: error instanceof Error ? error.message : String(error)
-    });
+    const errorMessage = error instanceof Error ? error.message : 'Errore interno del server durante l\'importazione';
+    const standardResult = formatImportResult(
+      { success: false, message: errorMessage },
+      'anagrafiche',
+      req.file?.originalname,
+      req.file?.size
+    );
+    
+    res.status(500).json(standardResult);
   }
 }
 
@@ -166,4 +148,4 @@ export async function handleAnagraficaTemplateInfo(req: Request, res: Response):
       error: 'INTERNAL_SERVER_ERROR'
     });
   }
-} 
+}

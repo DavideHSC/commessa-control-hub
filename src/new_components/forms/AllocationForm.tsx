@@ -12,7 +12,7 @@ interface MovimentoContabile {
   dataDocumento: string;
   descrizione: string;
   importo: number;
-  conto: { codice: string; denominazione: string } | null;
+  conto: { codice: string; nome: string } | null;
   allocazioni: Allocazione[];
   importoAllocato: number;
 }
@@ -230,10 +230,15 @@ export const AllocationForm = ({
     }
   }, [validateForm, movimento.id, allocations, onSubmit]);
 
-  // Filter voices by type
+  // Filter voices by type and check if data is available
   const vociCosti = vociAnalitiche.filter(voce => voce.tipo === 'costo' && voce.isAttiva);
   const vociRicavi = vociAnalitiche.filter(voce => voce.tipo === 'ricavo' && voce.isAttiva);
   const vociToUse = movimento.importo < 0 ? vociCosti : vociRicavi;
+  const commesseAttive = commesse.filter(c => c.isAttiva);
+
+  // Check for empty dropdowns
+  const hasCommesse = commesseAttive.length > 0;
+  const hasVoci = vociToUse.length > 0;
 
   return (
     <div className="space-y-6">
@@ -251,7 +256,21 @@ export const AllocationForm = ({
             <div>
               <span className="text-gray-500">Data:</span>
               <div className="font-medium">
-                {new Date(movimento.dataDocumento).toLocaleDateString('it-IT')}
+                {(() => {
+                  try {
+                    const date = new Date(movimento.dataDocumento);
+                    if (isNaN(date.getTime()) || date.getFullYear() < 2000) {
+                      return 'Data non disponibile';
+                    }
+                    return date.toLocaleDateString('it-IT', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric'
+                    });
+                  } catch {
+                    return 'Data non disponibile';
+                  }
+                })()}
               </div>
             </div>
             <div>
@@ -263,7 +282,7 @@ export const AllocationForm = ({
             <div>
               <span className="text-gray-500">Conto:</span>
               <div className="font-medium">
-                {movimento.conto ? `${movimento.conto.codice} - ${movimento.conto.denominazione}` : 'N/A'}
+                {movimento.conto ? `${movimento.conto.codice} - ${movimento.conto.nome}` : 'N/A'}
               </div>
             </div>
           </div>
@@ -275,6 +294,22 @@ export const AllocationForm = ({
           )}
         </CardContent>
       </Card>
+
+      {/* Data Availability Warnings */}
+      {(!hasCommesse || !hasVoci) && (
+        <Alert>
+          <AlertDescription>
+            <div className="space-y-1">
+              {!hasCommesse && (
+                <div>⚠️ Nessuna commessa attiva disponibile. Contatta l'amministratore per attivare delle commesse.</div>
+              )}
+              {!hasVoci && (
+                <div>⚠️ Nessuna voce analitica di tipo "{movimento.importo < 0 ? 'costo' : 'ricavo'}" disponibile. Contatta l'amministratore per configurare le voci analitiche.</div>
+              )}
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Allocation Summary */}
       <Card>
@@ -318,19 +353,28 @@ export const AllocationForm = ({
                     <Select
                       value={allocation.commessaId}
                       onValueChange={(value) => updateAllocation(allocation.id, 'commessaId', value)}
+                      disabled={!hasCommesse}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Seleziona commessa..." />
+                        <SelectValue placeholder={
+                          !hasCommesse ? "Nessuna commessa disponibile" : "Seleziona commessa..."
+                        } />
                       </SelectTrigger>
                       <SelectContent>
-                        {commesse.filter(c => c.isAttiva).map(commessa => (
-                          <SelectItem key={commessa.id} value={commessa.id}>
-                            {commessa.nome}
-                            {commessa.cliente && (
-                              <span className="text-gray-500"> - {commessa.cliente.nome}</span>
-                            )}
+                        {hasCommesse ? (
+                          commesseAttive.map(commessa => (
+                            <SelectItem key={commessa.id} value={commessa.id}>
+                              {commessa.nome}
+                              {commessa.cliente && (
+                                <span className="text-gray-500"> - {commessa.cliente.nome}</span>
+                              )}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="none" disabled>
+                            Nessuna commessa attiva configurata
                           </SelectItem>
-                        ))}
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -342,21 +386,32 @@ export const AllocationForm = ({
                     <Select
                       value={allocation.voceAnaliticaId}
                       onValueChange={(value) => updateAllocation(allocation.id, 'voceAnaliticaId', value)}
+                      disabled={!hasVoci}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Seleziona voce..." />
+                        <SelectValue placeholder={
+                          !hasVoci 
+                            ? `Nessuna voce ${movimento.importo < 0 ? 'costo' : 'ricavo'} disponibile` 
+                            : "Seleziona voce..."
+                        } />
                       </SelectTrigger>
                       <SelectContent>
-                        {vociToUse.map(voce => (
-                          <SelectItem key={voce.id} value={voce.id}>
-                            {voce.nome}
-                            <span className={`ml-2 text-xs px-1 py-0.5 rounded ${
-                              voce.tipo === 'costo' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-                            }`}>
-                              {voce.tipo}
-                            </span>
+                        {hasVoci ? (
+                          vociToUse.map(voce => (
+                            <SelectItem key={voce.id} value={voce.id}>
+                              {voce.nome}
+                              <span className={`ml-2 text-xs px-1 py-0.5 rounded ${
+                                voce.tipo === 'costo' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                              }`}>
+                                {voce.tipo}
+                              </span>
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="none" disabled>
+                            Nessuna voce {movimento.importo < 0 ? 'costo' : 'ricavo'} configurata
                           </SelectItem>
-                        ))}
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -440,7 +495,10 @@ export const AllocationForm = ({
         <Button variant="outline" onClick={onCancel}>
           Annulla
         </Button>
-        <Button onClick={handleSubmit} disabled={isLoading || validationErrors.length > 0}>
+        <Button 
+          onClick={handleSubmit} 
+          disabled={isLoading || validationErrors.length > 0 || !hasCommesse || !hasVoci}
+        >
           {isLoading ? 'Salvataggio...' : 'Salva Allocazione'}
         </Button>
       </div>

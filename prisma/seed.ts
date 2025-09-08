@@ -36,29 +36,23 @@ async function main() {
   });
   console.log('Cliente e Fornitore di sistema creati/verificati.');
 
-  // 3. Popola dati specifici del cliente (PENISOLAVERDE SPA) - UPSERT
-  console.log('Creazione/aggiornamento dati cliente e commesse per PENISOLAVERDE SPA...');
+  // 3. Prepara l'utilizzo del Cliente di Sistema per le commesse di default
+  console.log('Preparazione commesse di default con Cliente di Sistema...');
+
+  // Commesse Principali (Comuni) - con dati completi
+  const dataInizioCommesse = new Date(); // Data corrente
   
-  const clientePenisolaVerde = await prisma.cliente.upsert({
-    where: { externalId: 'PENISOLAVERDE_SPA' },
-    update: { nome: 'PENISOLAVERDE SPA' },
-    create: {
-      nome: 'PENISOLAVERDE SPA',
-      externalId: 'PENISOLAVERDE_SPA',
-      piva: '01234567890', // Placeholder
-    },
-  });
-
-  console.log(`Cliente '${clientePenisolaVerde.nome}' creato/trovato con ID: ${clientePenisolaVerde.id}`);
-
-  // Commesse Principali (Comuni)
   const commessaSorrento = await prisma.commessa.create({
     data: {
       id: 'sorrento',
       externalId: '1',
       nome: 'Comune di Sorrento',
       descrizione: 'Commessa principale per il comune di Sorrento',
-      clienteId: clientePenisolaVerde.id,
+      clienteId: SYSTEM_CUSTOMER_ID,
+      dataInizio: dataInizioCommesse,
+      stato: 'In Corso',
+      priorita: 'media',
+      isAttiva: true,
     },
   });
 
@@ -68,7 +62,11 @@ async function main() {
       externalId: '2',
       nome: 'Comune di Massa Lubrense',
       descrizione: 'Commessa principale per il comune di Massa Lubrense',
-      clienteId: clientePenisolaVerde.id,
+      clienteId: SYSTEM_CUSTOMER_ID,
+      dataInizio: dataInizioCommesse,
+      stato: 'In Corso',
+      priorita: 'media',
+      isAttiva: true,
     },
   });
 
@@ -78,20 +76,28 @@ async function main() {
       externalId: '3',
       nome: 'Comune di Piano di Sorrento',
       descrizione: 'Commessa principale per il comune di Piano di Sorrento',
-      clienteId: clientePenisolaVerde.id,
+      clienteId: SYSTEM_CUSTOMER_ID,
+      dataInizio: dataInizioCommesse,
+      stato: 'In Corso',
+      priorita: 'media',
+      isAttiva: true,
     },
   });
   console.log('Commesse principali (Comuni) create.');
 
-  // Commesse Figlie (Attività / Centri di Costo) - con relazioni gerarchiche
+  // Commesse Figlie (Attività / Centri di Costo) - con relazioni gerarchiche e dati completi
   await prisma.commessa.create({
     data: {
       id: "sorrento_igiene_urbana",
       externalId: "4",
       nome: "Igiene Urbana - Sorrento",
       descrizione: "Servizio di igiene urbana per Sorrento",
-      clienteId: clientePenisolaVerde.id,
+      clienteId: SYSTEM_CUSTOMER_ID,
       parentId: "sorrento",
+      dataInizio: dataInizioCommesse,
+      stato: 'In Corso',
+      priorita: 'media',
+      isAttiva: true,
     },
   });
   await prisma.commessa.create({
@@ -100,8 +106,12 @@ async function main() {
       externalId: "5",
       nome: "Igiene Urbana - Massa Lubrense",
       descrizione: "Servizio di igiene urbana per Massa Lubrense",
-      clienteId: clientePenisolaVerde.id,
+      clienteId: SYSTEM_CUSTOMER_ID,
       parentId: "massa_lubrense",
+      dataInizio: dataInizioCommesse,
+      stato: 'In Corso',
+      priorita: 'media',
+      isAttiva: true,
     },
   });
 
@@ -137,8 +147,97 @@ async function main() {
   });
   console.log('Voci Analitiche di base create.');
 
+  // 5. Budget Realistici per Commesse (Logica Mastri/Sottoconti)
+  console.log('Creazione Budget per Commesse...');
+  
+  // Prima elimina budget esistenti per ricreazione pulita
+  await prisma.budgetVoce.deleteMany({});
+  
+  // Recupera le voci analitiche per creare budget
+  const vociAnalitiche = await prisma.voceAnalitica.findMany();
+  const vociCosto = vociAnalitiche.filter(v => v.tipo === 'Costo');
+  const vociRicavo = vociAnalitiche.filter(v => v.tipo === 'Ricavo');
+  
+  // COMMESSE PADRE (MASTRI) - Budget Complessivi Alti
+  
+  // Sorrento - Budget: €2,500,000 (Comune grande)
+  await prisma.budgetVoce.createMany({
+    data: [
+      // Ricavi
+      { commessaId: 'sorrento', voceAnaliticaId: vociRicavo[0].id, importo: 2800000 }, // Prestazioni Contrattuali
+      { commessaId: 'sorrento', voceAnaliticaId: vociRicavo[2].id, importo: 50000 },   // Ricavi Accessori
+      // Costi principali
+      { commessaId: 'sorrento', voceAnaliticaId: vociCosto[11].id, importo: 1200000 }, // Manodopera Diretta
+      { commessaId: 'sorrento', voceAnaliticaId: vociCosto[12].id, importo: 400000 },  // Oneri Manodopera
+      { commessaId: 'sorrento', voceAnaliticaId: vociCosto[1].id, importo: 180000 },   // Carburanti
+      { commessaId: 'sorrento', voceAnaliticaId: vociCosto[8].id, importo: 150000 },   // Manutenzione Mezzi
+      { commessaId: 'sorrento', voceAnaliticaId: vociCosto[4].id, importo: 280000 },   // Spese Generali
+    ]
+  });
+  
+  // Massa Lubrense - Budget: €1,800,000 (Comune medio)
+  await prisma.budgetVoce.createMany({
+    data: [
+      // Ricavi
+      { commessaId: 'massa_lubrense', voceAnaliticaId: vociRicavo[0].id, importo: 2000000 },
+      { commessaId: 'massa_lubrense', voceAnaliticaId: vociRicavo[2].id, importo: 30000 },
+      // Costi principali
+      { commessaId: 'massa_lubrense', voceAnaliticaId: vociCosto[11].id, importo: 850000 },
+      { commessaId: 'massa_lubrense', voceAnaliticaId: vociCosto[12].id, importo: 280000 },
+      { commessaId: 'massa_lubrense', voceAnaliticaId: vociCosto[1].id, importo: 120000 },
+      { commessaId: 'massa_lubrense', voceAnaliticaId: vociCosto[8].id, importo: 100000 },
+      { commessaId: 'massa_lubrense', voceAnaliticaId: vociCosto[4].id, importo: 200000 },
+    ]
+  });
+  
+  // Piano di Sorrento - Budget: €1,200,000 (Comune piccolo)
+  await prisma.budgetVoce.createMany({
+    data: [
+      // Ricavi
+      { commessaId: 'piano_di_sorrento', voceAnaliticaId: vociRicavo[0].id, importo: 1350000 },
+      { commessaId: 'piano_di_sorrento', voceAnaliticaId: vociRicavo[2].id, importo: 20000 },
+      // Costi principali
+      { commessaId: 'piano_di_sorrento', voceAnaliticaId: vociCosto[11].id, importo: 580000 },
+      { commessaId: 'piano_di_sorrento', voceAnaliticaId: vociCosto[12].id, importo: 190000 },
+      { commessaId: 'piano_di_sorrento', voceAnaliticaId: vociCosto[1].id, importo: 80000 },
+      { commessaId: 'piano_di_sorrento', voceAnaliticaId: vociCosto[8].id, importo: 70000 },
+      { commessaId: 'piano_di_sorrento', voceAnaliticaId: vociCosto[4].id, importo: 130000 },
+    ]
+  });
+  
+  // SOTTO-COMMESSE (SOTTOCONTI) - Budget Specifici Dettagliati
+  
+  // Sorrento - Igiene Urbana (Sottoconto specifico)
+  await prisma.budgetVoce.createMany({
+    data: [
+      // Budget più dettagliato per analisi specifica
+      { commessaId: 'sorrento_igiene_urbana', voceAnaliticaId: vociCosto[11].id, importo: 450000 }, // Manodopera Diretta
+      { commessaId: 'sorrento_igiene_urbana', voceAnaliticaId: vociCosto[12].id, importo: 150000 }, // Oneri Manodopera  
+      { commessaId: 'sorrento_igiene_urbana', voceAnaliticaId: vociCosto[1].id, importo: 95000 },   // Carburanti (alto per mezzi)
+      { commessaId: 'sorrento_igiene_urbana', voceAnaliticaId: vociCosto[8].id, importo: 75000 },   // Manutenzione Mezzi
+      { commessaId: 'sorrento_igiene_urbana', voceAnaliticaId: vociCosto[7].id, importo: 45000 },   // Smaltimento Rifiuti
+      { commessaId: 'sorrento_igiene_urbana', voceAnaliticaId: vociCosto[0].id, importo: 25000 },   // Materiale Consumo
+      { commessaId: 'sorrento_igiene_urbana', voceAnaliticaId: vociCosto[2].id, importo: 18000 },   // Utenze
+    ]
+  });
+  
+  // Massa Lubrense - Igiene Urbana (Sottoconto specifico)
+  await prisma.budgetVoce.createMany({
+    data: [
+      { commessaId: 'massa_lubrense_igiene_urbana', voceAnaliticaId: vociCosto[11].id, importo: 320000 },
+      { commessaId: 'massa_lubrense_igiene_urbana', voceAnaliticaId: vociCosto[12].id, importo: 105000 },
+      { commessaId: 'massa_lubrense_igiene_urbana', voceAnaliticaId: vociCosto[1].id, importo: 65000 },
+      { commessaId: 'massa_lubrense_igiene_urbana', voceAnaliticaId: vociCosto[8].id, importo: 50000 },
+      { commessaId: 'massa_lubrense_igiene_urbana', voceAnaliticaId: vociCosto[7].id, importo: 30000 },
+      { commessaId: 'massa_lubrense_igiene_urbana', voceAnaliticaId: vociCosto[0].id, importo: 15000 },
+      { commessaId: 'massa_lubrense_igiene_urbana', voceAnaliticaId: vociCosto[2].id, importo: 12000 },
+    ]
+  });
+  
+  console.log('Budget per Commesse creati (Logica Mastri/Sottoconti).');
 
-  // 5. Template di Importazione (essenziali per funzionamento) - UPSERT
+
+  // 6. Template di Importazione (essenziali per funzionamento) - UPSERT
   console.log('Creazione/Aggiornamento Template di Importazione...');
   
   // Template Causali - Prima elimina quello esistente
@@ -445,7 +544,7 @@ async function main() {
     { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'note', start: 83, length: 60, end: 142 },
     { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'movimentiAnalitici', start: 248, length: 1, end: 248 },
 
-    // PNRIGIVA.TXT - POSIZIONI CORRETTE (1-based)
+    // PNRIGIVA.TXT - POSIZIONI CORRETTE (1-based) - Formato Vecchio
     { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'externalId', start: 4, length: 12, end: 15 },
     { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'riga', start: 16, length: 3, end: 18, format: 'number' },
     { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'codiceIva', start: 19, length: 4, end: 22 },
@@ -454,6 +553,18 @@ async function main() {
     { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'imposta', start: 45, length: 12, end: 56, format: 'number' },
     { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'importoLordo', start: 90, length: 12, end: 101, format: 'number' },
     { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'note', start: 102, length: 60, end: 161 },
+
+    // PNRIGIVA_NUOVO - POSIZIONI CORRETTE (1-based) - Formato Nuovo
+    { fileIdentifier: 'PNRIGIVA_NUOVO', fieldName: 'externalId', start: 4, length: 12, end: 15 },
+    { fileIdentifier: 'PNRIGIVA_NUOVO', fieldName: 'riga', start: 16, length: 3, end: 18, format: 'number' },
+    { fileIdentifier: 'PNRIGIVA_NUOVO', fieldName: 'codiceIva', start: 19, length: 4, end: 22 },
+    { fileIdentifier: 'PNRIGIVA_NUOVO', fieldName: 'contropartita', start: 23, length: 10, end: 32 },
+    { fileIdentifier: 'PNRIGIVA_NUOVO', fieldName: 'imponibile', start: 33, length: 12, end: 44, format: 'number' },
+    { fileIdentifier: 'PNRIGIVA_NUOVO', fieldName: 'imposta', start: 45, length: 12, end: 56, format: 'number' },
+    { fileIdentifier: 'PNRIGIVA_NUOVO', fieldName: 'importoLordo', start: 90, length: 12, end: 101, format: 'number' },
+    { fileIdentifier: 'PNRIGIVA_NUOVO', fieldName: 'note', start: 102, length: 60, end: 161 },
+    // Campi aggiuntivi del formato nuovo (assumo posizioni dopo il campo note)
+    { fileIdentifier: 'PNRIGIVA_NUOVO', fieldName: 'campoAggiuntivo1', start: 162, length: 10, end: 171 },
 
     // MOVANAC.TXT - POSIZIONI CORRETTE (1-based)
     { fileIdentifier: 'MOVANAC.TXT', fieldName: 'externalId', start: 4, length: 12, end: 15 },

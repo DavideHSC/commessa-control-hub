@@ -1,5 +1,0 @@
-{
-  "name": "Parser Dati Contabili",
-  "description": "Un'applicazione per analizzare, visualizzare ed esportare file di dati contabili a larghezza fissa. Carica i tuoi file MOVANAC, PNTESTA/PNRIGCON e PNRIGIVA per elaborare e visualizzare le tue scritture contabili.",
-  "requestFramePermissions": []
-}

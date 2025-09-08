@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
-import { runImportCodiciIvaWorkflow } from '../workflows/importCodiceIvaWorkflow';
+import { runImportCodiciIvaWorkflow } from '../workflows/importCodiceIvaWorkflow.js';
+import { formatImportResult } from '../../core/utils/resultFormatter.js';
 
 /**
  * HTTP handler for importing Codici IVA.
@@ -36,30 +37,34 @@ export async function handleCodiceIvaImport(req: Request, res: Response): Promis
     console.log(`📊 Dimensione contenuto: ${fileContent.length} caratteri`);
     
     // **ESECUZIONE WORKFLOW** - Passa il contenuto del file
-    const result = await runImportCodiciIvaWorkflow(fileContent);
+    const startTime = Date.now();
+    const workflowResult = await runImportCodiciIvaWorkflow(fileContent);
+    const processingTime = Date.now() - startTime;
     
-    // **RESPONSE FINALE**
+    // **RESPONSE FINALE CON FORMATO STANDARDIZZATO**
     console.log('✅ Import codici IVA completato con successo');
     
-    res.status(200).json({
-      success: true,
-      message: 'Importazione codici IVA completata con successo',
-      fileName: req.file.originalname,
-      totalRecords: result.stats.totalRecords,
-      createdCount: result.stats.successfulRecords,
-      updatedCount: 0, // Per ora non distinguiamo tra create e update
-      errors: result.errors,
-      warnings: []
-    });
+    const standardResult = formatImportResult(
+      workflowResult,
+      'codici-iva',
+      req.file.originalname,
+      req.file.size,
+      processingTime
+    );
+    
+    res.status(200).json(standardResult);
     
   } catch (error: unknown) {
     console.error('💥 Errore interno durante import codici IVA:', error);
     
-    res.status(500).json({
-      success: false,
-      message: 'Errore interno del server durante l\'importazione',
-      error: 'INTERNAL_SERVER_ERROR',
-      details: error instanceof Error ? error.message : String(error)
-    });
+    const errorMessage = error instanceof Error ? error.message : 'Errore interno del server';
+    const standardResult = formatImportResult(
+      { success: false, message: errorMessage },
+      'codici-iva',
+      req.file?.originalname,
+      req.file?.size
+    );
+    
+    res.status(500).json(standardResult);
   }
 } 

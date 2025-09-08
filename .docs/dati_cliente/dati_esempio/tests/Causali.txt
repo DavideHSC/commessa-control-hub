@@ -1,0 +1,183 @@
+    ABB   Abbuoni e arrotondamenti passivi        CP                             A            XN N                                                                       XC
+    ABBA  Abbuoni e arrotondamenti attivi         CP                             A            XN N                                                                       XR
+   XAC20  Fattura ricevuta cellulari reverse      IP                AI1880000300XE4855000550   N C                                                               FATT      
+    ACCA  Ricevuto acconto                        CP                             A             N N                                                                         
+    ACCP  Pagato acconto                          CP                             A             N N                                                                         
+    ADDE  Nota di addebito emessa                 IP                VI4855000550 A             N C                                                               ADD       
+    ADDR  Nota di addebito ricevuta               IP                AI1880000300 A             N C                                                               ADD       
+    AEDIT Fattura ricevuta edilizia reverse       IP                AI1880000300XE4855000550   N C                                                               FATT      
+    AMMO  Ammortamenti                            CP                             A            XN N                                                                     X XC
+    AO20  Fattura ricevuta oro reverse            IP                AI1880000300XE4855000550   N C                                                               FATT X    
+   XAP20  Fattura ricevuta processori reverse     IP                AI1880000300XE4855000550   N C                                                               FATT      
+    AUTO  Autofattura                             IP                VI4855000550 A             N C                                                               AUTOF     
+    BAMM  Rilevazione plus./min. per cess. b. amm.CP                             A            XN N                                                                       XC
+    BIA   Apertura                                CI                             A             N N                                                                         
+    BIC   Chiusura                                CF                             A             N N                                                                         
+   XBOL5  Bolla doganale (per sempl. opz. c. 4/5) IP                AI1880000300 A             N C                                                               ALTROX    
+    BOLL  Bolla doganale                          IP                AI1880000300 A             N N                                                               ALTROX    
+    BOLLA Acquisto valori bollati e postali       CP                             A            XN N                                                                       XC
+    CEFT  Fattura emessa CEE                      IP                VI4855000550 A             N CX                                                              FTEM X    
+    CERE  Fattura ricevuta cee in valuta estera   IP                AI1880000300XC4855000550 X N CX                                                              FT   X    
+    CERI  Fattura ricevuta CEE                    IP                AI1880000300XC4855000550   N CX                                                              FT   X    
+   XCERR  Fattura ricevuta CEE reg. in ritardo    IP        31122020AI1880000300XC4855000550   N CX                                                              FT   X    
+    CESP  Variazione cespiti condono L. 289/2002  CP                             A             N N                                                                         
+    COMM  Interessi e commissioni bancarie        CP                             A            XN N                                                                       XC
+   XCOMP  Compensi lavoro a progetto              CP                             A            XN N                                                                       XC
+    CONT  Contributi                              CP                             A            XN N                                                                       XC
+    CORS  Corrispettivi a scorporo                IP                CI4855000625 A             N N                                                               CORR      
+    CORV  Corrispettivi ventilati                 IP                CI           A             N N                                                               CORR      
+    COSAN Costi anticipati                        CP                             A            XN N                                                                     X XC
+   XCOSP  Costi posticipati                       CP                             A            XN N                                                                     X XC
+   XCOSS  Corrispettivi oss/ioss                  IP                CI4855001160 A             N N                                                               CORR      
+   XDIC   Dichiarazione d'intento emessa          IP                VI           A          X XN N                                                               DICH.     
+   XDICH  Dichiarazione d'intento                 IP                VI           A          X XN N                                                               DICH.     
+   XDIST  Distinta AUSL                           IP                CI4855000500 A             EXC T                                                             CORR X    
+   XF17R  Fattura acquisto art.17 c.2 reg. ritardoIP        31122020AI1880000300XA4855000550   N C                                                               FT   X    
+   XFERR  Fattura emessa con ritenuta RSM         IP                VI4855000550 A             N C R                                                             FTEM      
+   XFERSM Fattura emessa e rimborso spese mediche IP                VI4855000550 A             N C R                                                             FTEM      
+   XFOSS  Fattura emessa oss/ioss                 IP                VI4855001160 A             N C                                                               FTEM      
+    FRPP  Fattura ricevuta con generazione pagam. IP                AI1880000300 A             N A                                                               F RIC     
+   XFRRC  Fattura ricevuta reverse charge         IP                AI1880000300XE4855000550   N C                                                               FATT      
+   XFRRR  Fattura ric. reverse charge reg. ritardoIP        31122020AI1880000300XE4855000550   N C                                                               FATT      
+   XFRS   Fattura ricevuta split payment Iva diff.IP                AI1880000300XE4855000500   E C                                                               FATT      
+   XFRS2  Ft. ric. Iva e.diff. art32bis DL 83/2012IP                AI1880000350 A             E C                                                               F RIC     
+   XFRSE  Fattura ricevuta ExtraCEE (opz. c. 4/5) CP                             A             N N                                                                         
+    FRSI  Fattura pagamento ft. Iva ad esig. diff.IP                AI1880000300 A             I N                                                               F RIC     
+    FRSO  Fattura ricevuta esigibilit� differita  IP                AI1880000350 A             E C                                                               F RIC     
+   XFRSP  Fatt ricevuta Iva esig.diff. DL.185/2008IP                AI1880000350 A             E C                                                               F RIC     
+    FT17  Fattura di acquisto art. 17 c.2         IP                AI1880000300XA4855000550   N C                                                               FT   X    
+    FTAU  Autofattura di acquisto                 IP                AI1880000300 A             N C                                                               AUTOF     
+   XFTCO  Fattura. em. reg. corr (st. cont. c.4/5)IP                CI4855000625 A            XNXC                                                               FTEM      
+   XFTCOR Fattura em. reg. corrisp. (storno cont.)IP                CI4855000625 A            XNXN                                                               FTEM      
+    FTD28 Fattura ricevuta RSM con IVA - NO SDI   IP01102022        AI1880000300XR4855000550   N C                                                               FT   X    
+    FTDE  Fatture da emettere                     CP                             A            XN N                                                                       XR
+    FTDR  Fatture da ricevere                     CP                             A            XN N                                                                       XC
+    FTE0  Fattura emessa importo zero             IP                VI4855000550 A          X  N N                                                               FTEM      
+   XFTEC  Fattura emessa su registro corrispettiviIP                CI4855000625 A             NXC                                                               FTEM      
+    FTEC1 Fattura emessa su registro corrispettiviIP                CI1830000200 A            XNXC                                                               FTEC      
+   XFTEC2 Fattura emessa su registro corrispettiviIP                CI1830000200 A            XNXA                                                               FTEC      
+    FTEE  Fattura emessa con enasarco e ritenuta  IP                VI4855000550 A             N C T                                                             FATT      
+    FTEM  Fattura emessa                          IP                VI4855000550 A             N C                                                               FTEM      
+    FTEM2 FATTURA EMESSA2                         IP                VI4855000550 A             N C                                                               FTEM      
+    FTEN  Fattura emessa enasarco                 IP                VI4855000550 A             N C E                                                             FTEM      
+    FTEP  Fattura emessa professionista (incasso) IP                VI4855000550 A             N A R                                                             FTEM      
+    FTER  Fattura emessa RSM                      IP                VI4855000550 A             N CX                                                              FTEM X    
+   XFTEV  Fattura emessa con importo in valuta    IP                VI4855000550 A           X N C                                                               FTEM      
+    FTEX  Fattura emessa extra CEE                IP                VI4855000550 A             N C                                                               FTEM X    
+    FTPP  Fattura emessa con generazione incasso  IP                VI4855000550 A             N A                                                               FTEM      
+    FTR   Fattura ricevuta RSM con IVA            IP                AI1880000300 A             N C                                                               F RICX    
+    FTR0  Fattura ricevuta importo zero           IP                AI1880000300 A          X  N N                                                               FTRI      
+   XFTRB  Fattura emessa con ritenuta su bonifico IP                VI4855000550 A             N C R                                                             FTEM      
+    FTRE  Fattura ricevuta Extra CEE beni         CP                             A             N C                                                                         
+    FTRI  Fattura ricevuta                        IP                AI1880000300 A             N C                                                               F RIC     
+    FTRIMCFattura ricevuta materiale di consumo   IP                AI1880000300 A             N C                                                               F RIC     
+   XFTRL  Fattura ricevuta registrata in ritardo  IP                AI1880000300 A             N C                                                               F RIC     
+    FTRR  Fattura emessa con ritenuta             IP                VI4855000550 A             N C R                                                             FTEM      
+    FTRS  Fattura ricevuta RSM senza IVA          IP                AI1880000300XR4855000550   N C                                                               FT   X    
+   XFTS   Fattura emessa con split payment        IP01012015        VI4855000550 A             N C                                                               FTEM      
+   XFTS2  Ft.. em. Iva e.diff. art.32bis DL83/2012IP                VI4855000500 A             E C                                                               FTEM      
+   XFTSE  Fattura emessa split con enasarco e rit.IP01072017        VI4855000550 A             N C T                                                             FTEM      
+   XFTSEN Fattura emessa split con enasarco       IP01012015        VI4855000550 A             N C E                                                             FTEM      
+    FTSI  Ft. incasso ft. con IVA ad esig. diff.  IP                VI4855000550 A             I N                                                               FATT      
+    FTSO  Fattura emessa con Iva ad esig.differitaIP                VI4855000500 A             E C                                                               FTEM      
+   XFTSP  Fatt. emessa Iva esig.diff. DL 185/2008 IP                VI4855000500 A             E C                                                               FTEM      
+    FTSR  Fattura con Iva es.diff. e ritenuta     IP                VI4855000500 A             E C R                                                             FTEM      
+   XFTST  Fattura emessa split payment e ritenuta IP01012015        VI4855000550 A             N C R                                                             FTEM      
+   XFTT2  Fatt.em.  IVA es.diff.DL83/2012 e riten.IP                VI4855000500 A             E C R                                                             FTEM      
+   XFTTR  Fatt.em.  IVA es.diff. DL185/08 e riten.IP                VI4855000500 A             E C R                                                             FTEM      
+   XGANT  Gestione Anticipi                       CP                             A             N N                                                                         
+    GIRA  Giroconto per ratei attivi              CP                             A            XN N                                                                       XR
+    GIRC  Giroconto per ratei passivi             CP                             A            XN N                                                                       XC
+    GIRO  Giroconto                               CP                             A             N N                                                                         
+    GRIA  Giroconto risconti attivi               CP                             A            XN N                                                                       XC
+    GRIP  Giroconto risconti passivi              CP                             A            XN N                                                                       XR
+    IMPINDIMPOSTE E SPESE  INDEDUCIBILI           CP                             A            XN N                                                                       XC
+    IMPO  Rilevazione imposte                     CP                             A            XN N                                                                       XC
+    INC   Incasso                                 CP                             A             N N                                                                         
+    INCA  Incasso su registro Iva                 CP                             A            XN N                                                                       XR
+   XINCV  Incasso corrispettivi con IVA esig.diff.IP                CI4855000550 A             IXN T                                                             CORR      
+    INS   Insoluto                                CP                             A             N N                                                                         
+    INTA  Interessi attivi                        CP                             A            XN N                                                                       XR
+    INTE  Interessi passivi                       CP                             A            XN N                                                                       XC
+    IO20  Fattura ricevuta intra oro rev. charge  IP                AI1880000300XC4855000550   N C                                                               FT   X    
+    LIBE  LIBERA                                  CP                             A             N N                                                                         
+    LIQ   Rilevazione giroconti per liquid. Iva   CP                             A             N N                                                                         
+    LIQP  Giroconto per liquid. Iva con costi/ric.CP                             A            XN N                                                                       XC
+    MAR   Giroconto margine beni usati            CP                             A             N N                                                                         
+    MARC  Margine beni usati reg. corrispettivi   IP                CI4855000625 A            XN N                                                               MARG      
+    MARG  Margine beni usati                      IP                VI4855000550 A            XN N                                                               MARG      
+    MINU  Minusvalenze su beni amm.               CP                             A            XN N                                                                       XC
+    MO20  Fattura ricevuta impor. oro reverse     IP                AI1880000300XE4855000550   N C                                                               FT   X    
+   XNC17  Nota di accredito ricevuta art. 17 c. 2 IP                AD1880000300XA4855000550   N CX                                                              NACC X    
+    NCCE  Nota di credito emessa CEE              IP                VD4855000550 A             N CX                                                              NACC X    
+    NCDE  Note di accredito da emettere           CP                             A            XN N                                                                     X XR
+    NCDR  Note di accredito da ricevere           CP                             A            XN N                                                                     X XC
+   XNCE0  Nota di accredito emessa importo zero   IP                VD4855000550 A          X  N N                                                               NACC      
+   XNCE2  Nota cred. Em. Iva e. Diff. DL .83/2012 IP                VD4855000500 A             E C                                                               NACC      
+   XNCEC  Nota credito emessa reg. corrispettivi  IP                CD4855000625 A             NXN                                                               NACC      
+   XNCED  Nota cred. Em. Iva esig. Diff. DL 185/08IP                VD4855000500 A             E C                                                               NACC      
+   XNCEE  Nota cred. emessa con enasarco e rit.   IP                VD4855000550 A             N C T                                                             NACC      
+    NCEM  Nota di accredito emessa                IP                VD4855000550 A             N C                                                               NACC      
+   XNCEN  Nota di accredito emessa con enasarco   IP                VD4855000550 A             N C E                                                             NACC      
+   XNCER  Nota di accredito emessa con ritenuta   IP                VD4855000550 A             N C R                                                             NACC      
+   XNCET  Nota di accredito emessa in ritardo     IP                VD4855000550 A             N C                                                               NACC      
+   XNCEX  Nota di accredito emessa extra Cee      IP                VD4855000550 A             N C                                                               NACC      
+   XNCR   Nota di accredito ricevuta RSM con IVA  IP                AD1880000300 A             N C                                                               NACC X    
+   XNCR2  Nota cred. Ric. Iva e. Diff. DL.83/2012 IP                AD1880000350 A             E C                                                               NACC      
+    NCRC  Nota di accredito ricevuta CEE          IP                AD1880000300XC4855000550   N CX                                                              NACC X    
+   XNCRD  Nota cred. Ric. Iva esig. Diff. DL185/08IP                AD1880000350 A             E C                                                               NACC      
+    NCRE  Nota di accredito ricevuta edil. rev. chIP                AD1880000300XE4855000550   N C                                                               NACC      
+    NCRI  Nota di accredito ricevuta              IP                AD1880000300 A             N C                                                               NACC      
+   XNCRI0 Nota di accredito ricevuta importo zero IP                AD1880000300 A          X  N C                                                               NACC      
+   XNCRL  Nota di credito registrata in ritardo   IP                AD1880000300 A             N C                                                               NACC      
+   XNCRR  Nota di accredito ricevuta rev. charge  IP                AD1880000300XE4855000550   N C                                                               NACC      
+   XNCRS  Nota di accredito ricevuta RSM no IVA   IP                AD1880000300XR4855000550   N C                                                               NACC X    
+   XNCRSP Nota di credito ric.. split p. Iva diff.IP                AD1880000300XE4855000500   E C                                                               FATT      
+   XNCRT  Nota credito emessa Iva es.diff. e rit. IP                VD4855000500 A             E C R                                                             NCEM      
+   XNCS   Nota di credito emessa con split paymentIP01012015        VD4855000550 A             N C                                                               NACC      
+   XNCSI  Nota credito pagam. n.c. a esig. differ.IP                VD4855000550 A             I N                                                               NACC      
+    NCSO  Nota credito emessa IVA ad esig. diff.  IP                VD4855000500 A             E C                                                               NACC      
+   XNCSP  Nota credito incasso n.c. a esig. diff. IP                AD1880000300 A             I N                                                               NACC      
+   XNCSR  Nota credito ricevuta IVA ad esig. diff IP                AD1880000350 A             E C                                                               NACC      
+   XNCST  Nota cred. emessa split paym. e ritenutaIP01072017        VD4855000550 A             N C R                                                             NACC      
+   XNOSS  Nota di accredito emessa oss/ioss       IP                VD4855001160 A             N C                                                               NACC      
+    NOTAS Nota spese ricevuta                     CP                             A            XN N                                                                       XC
+    PAG   Pagamento su registro Iva               CP                             A            XN C                                                                       XC
+    PAGA  Pagamento                               CP                             A             N N                                                                         
+    PAGAS Pagamento stipendi                      CP                             A             N N                                                                         
+    PAGR  Pagamento fattura con ritenuta          CP                             A             N N                                                                         
+    PASS  Premi assicurazione                     CP                             A            XN N                                                                       XC
+    PLUS  Plusvalenze su beni amm.                CP                             A            XN N                                                                       XR
+    PREL  Prelevamento                            CP                             A             N N                                                                         
+    PRES  Presentati effetti                      CP                             A             N N                                                                         
+    PROC  Prestazioni lavoro autonomo occasionale CP                             A            XN C                                                                       XC
+    RATA  Ratei attivi                            CP                             A            XN N                                                                     X XR
+    RATP  Ratei passivi                           CP                             A            XN N                                                                     X XC
+    RI20  Fattura intra rottami reverse charge    IP                AI1880000300XC4855000550   N CX                                                              FT   X    
+    RIBA  Emesse ricevute bancarie                CP                             A             N N                                                                         
+    RICAN Ricavi anticipati                       CP                             A            XN N                                                                       XR
+   XRICP  Ricavi posticipati                      CP                             A            XN N                                                                     X XR
+    RID   Emessi RID                              CP                             A             N N                                                                         
+    RIEF  Ricevuti effetti attivi                 CP                             A             N N                                                                         
+    RILE  Rilevazione ritenute effettuate         CP                             A             N N                                                                         
+    RILS  Rilevazione ritenute subite             CP                             A             N N                                                                         
+    RIMF  Rimanenze finali                        CP                             A            XN N                                                                     X XR
+    RIMI  Rimanenze iniziali                      CP                             A            XN N                                                                       XC
+    RIPA  Riporto risconti attivi                 CP                             A            XN N                                                                       XC
+    RIPP  Riporto risconti passivi                CP                             A            XN N                                                                       XR
+    RISA  Risconti attivi                         CP                             A            XN N                                                                     X XC
+    RISP  Risconti passivi                        CP                             A            XN N                                                                     X XR
+    RIV   Rivalutazione cespite                   CP                             A            XN N                                                                       XR
+    RM20  Fattura import. rottami reverse charge  IP                AI1880000300XE4855000550   N C                                                               FT   X    
+    RO20  Fattura ricevuta rottami reverse charge IP                AI1880000300XE4855000550   N C                                                               FT   X    
+    SCHED Scheda carburante                       IP                AI1880000300 A             N C                                                               FTRI      
+    SOPA  Sopravvenienze attive                   CP                             A            XN N                                                                       XR
+    SOPP  Sopravvenienze passive                  CP                             A            XN N                                                                       XC
+    SPE   Spese documentate                       CP                             A            XN N                                                                       XC
+    STIP  Stipendi                                CP                             A            XN N                                                                       XC
+    STPAR ADEG. STUDI/PARAMETRI                   CP                             A            XN C                                                                       XR
+    SVA   Svalutazione cespiti                    CP                             A            XN N                                                                       XC
+    TFR   Rilevazione TFR                         CP                             A            XN N                                                                     X XC
+    TGOV  Tasse di concessione governativa        CP                             A            XN N                                                                       XC
+    VERR  Versamenti ritenute                     CP                             A             N N  X                                                                      
+    VERS  Versamento                              CP                             A             N N                                                                         

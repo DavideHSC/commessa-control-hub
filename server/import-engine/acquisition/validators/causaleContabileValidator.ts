@@ -9,44 +9,22 @@ import { z } from 'zod';
 const toBoolean = (val: unknown) => String(val).trim().toUpperCase() === 'X';
 
 /**
- * Funzione di utilità per trasformare una stringa DDMMAAAA in un oggetto Date.
- * @param val La stringa da trasformare.
- * @returns Un oggetto Date o null se la data non è valida.
- */
-const toDate = (val: unknown) => {
-  const str = String(val).trim();
-  if (!str || str === '00000000' || str.length !== 8) {
-    return null;
-  }
-  const day = parseInt(str.substring(0, 2), 10);
-  const month = parseInt(str.substring(2, 4), 10) - 1; // Mesi sono 0-indexed
-  const year = parseInt(str.substring(4, 8), 10);
-
-  // Verifica che i componenti siano numeri validi
-  if (isNaN(day) || isNaN(month) || isNaN(year)) {
-    return null;
-  }
-
-  // Verifica validità data (es. 31/02/2023 non è valido)
-  const date = new Date(year, month, day);
-  if (date.getFullYear() === year && date.getMonth() === month && date.getDate() === day) {
-    return date;
-  }
-  return null;
-};
-
-
-/**
  * Schema di validazione Zod per i dati grezzi delle causali contabili.
- * Esegue la validazione e la coercizione dei tipi.
+ * Esegue la validazione e la coercizione dei tipi per i flag booleani,
+ * ma mantiene le date come stringhe grezze, come richiesto dal pattern "Staging Pulito".
  */
 export const causaleContabileValidator = z.object({
   codiceCausale: z.string().trim(),
   descrizione: z.string().trim(),
   tipoMovimento: z.string().default(''),
   tipoAggiornamento: z.string().default(''),
-  dataInizio: z.preprocess(toDate, z.date().nullable()),
-  dataFine: z.preprocess(toDate, z.date().nullable()),
+  // highlight-start
+  // MODIFICA: I campi data vengono ora mantenuti come stringhe grezze.
+  // La validazione del formato (es. 8 cifre) e la conversione a DateTime
+  // avverranno durante la fase di finalizzazione.
+  dataInizio: z.string().default(''),
+  dataFine: z.string().default(''),
+  // highlight-end
   tipoRegistroIva: z.string().default(''),
   segnoMovimentoIva: z.string().default(''),
   contoIva: z.string().default(''),
@@ -74,4 +52,4 @@ export const causaleContabileValidator = z.object({
 /**
  * Tipo inferito dallo schema Zod per una causale contabile validata.
  */
-export type ValidatedCausaleContabile = z.infer<typeof causaleContabileValidator>; 
+export type ValidatedCausaleContabile = z.infer<typeof causaleContabileValidator>;

@@ -1,136 +1,138 @@
-export function decodeTipoCalcolo(code: string | undefined | null): string {
-    if (!code) return 'Non specificato';
-    const mapping: Record<string, string> = {
-        'N': 'Nessuno',
-        'O': 'Normale',
-        'A': 'Solo imposta',
-        'I': 'Imposta non assolta',
-        'S': 'Scorporo',
-        'T': 'Scorporo per intrattenimento',
-        'E': 'Esente/Non imponibile/Escluso',
-        'V': 'Ventilazione corrispettivi',
-    };
-    return mapping[code.trim()] ?? `Codice sconosciuto: ${code}`;
+/**
+ * Questo file contiene le funzioni di decodifica specifiche per il parser dei codici IVA.
+ * La logica è basata sul parser Python di riferimento (`parser_codiciiva.py`).
+ */
+
+export function decodeTipoCalcolo(code: string): string {
+  const mapping: Record<string, string> = {
+    'O': 'Normale',
+    'S': 'Scorporo',
+    'E': 'Esente/Non imponibile',
+    'A': 'Solo Imposta',
+    'V': 'Ventilazione'
+  };
+  return mapping[code?.trim()] || code?.trim() || '';
 }
 
-export function decodePlafondAcquisti(code: string | undefined | null): string {
-    if (!code) return 'Non applicabile';
-    const mapping: Record<string, string> = {
-        'I': 'Interno/Intra',
-        'E': 'Importazioni',
-    };
-    return mapping[code.trim()] ?? `Codice sconosciuto: ${code}`;
+export function decodePlafondAcquisti(code: string): string {
+  const mapping: Record<string, string> = {
+    'A': 'Acquisti Intracomunitari',
+    'B': 'Acquisti Beni',
+    'S': 'Acquisti Servizi',
+    'T': 'Tutti gli Acquisti',
+    'N': 'Nessun Plafond'
+  };
+  return mapping[code?.trim()] || code?.trim() || '';
 }
 
-export function decodePlafondVendite(code: string | undefined | null): string {
-    if (!code) return 'Non applicabile';
-    const mapping: Record<string, string> = {
-        'E': 'Esportazioni',
-    };
-    return mapping[code.trim()] ?? `Codice sconosciuto: ${code}`;
+export function decodePlafondVendite(code: string): string {
+  const mapping: Record<string, string> = {
+    'V': 'Vendite Intracomunitarie',
+    'E': 'Esportazioni',
+    'T': 'Tutte le Vendite',
+    'N': 'Nessun Plafond'
+  };
+  return mapping[code?.trim()] || code?.trim() || '';
 }
 
-export function decodeGestioneProRata(code: string | undefined | null): string {
-    if (!code) return 'Non specificato';
-    const mapping: Record<string, string> = {
-        'D': "Volume d'affari",
-        'E': 'Esente',
-        'N': 'Escluso',
-    };
-    return mapping[code.trim()] ?? `Codice sconosciuto: ${code}`;
+export function decodeGestioneProRata(code: string): string {
+  const mapping: Record<string, string> = {
+    'P': 'Pro-rata Generale',
+    'S': 'Pro-rata Speciale',
+    'N': 'Nessun Pro-rata'
+  };
+  return mapping[code?.trim()] || code?.trim() || '';
 }
 
-export function decodeComunicazioneVendite(code: string | undefined | null): string {
-    if (!code) return 'Non applicabile';
-    const mapping: Record<string, string> = {
-        '1': 'Op.Attive CD1.1',
-        '2': 'Op.Attive (di cui intra) CD1.4',
-        '3': 'Op.Attive (di cui non impon.) CD1.2',
-        '4': 'Op.Attive (di cui esenti) CD1.3',
-    };
-    return mapping[code.trim()] ?? `Codice sconosciuto: ${code}`;
+export function decodeComunicazioneVendite(code: string): string {
+  const mapping: Record<string, string> = {
+    'F': 'Fatture',
+    'C': 'Corrispettivi',
+    'T': 'Tutte le Operazioni',
+    'N': 'Nessuna Comunicazione'
+  };
+  return mapping[code?.trim()] || code?.trim() || '';
 }
 
-export function decodeComunicazioneAcquisti(code: string | undefined | null): string {
-    if (!code) return 'Non applicabile';
-    const mapping: Record<string, string> = {
-        '1': 'Op.Passive CD2.1',
-        '2': 'Op.Passive (di cui intra) CD2.4',
-        '3': 'Importazioni oro/argento CD3.1 CD3.2',
-        '4': 'Op.Passive (di cui non impon.) CD2.2',
-        '5': 'Op.Passive (di cui esenti) CD2.3',
-        '6': 'Importazioni rottami CD3.3 CD3.4',
-    };
-    return mapping[code.trim()] ?? `Codice sconosciuto: ${code}`;
+export function decodeComunicazioneAcquisti(code: string): string {
+  const mapping: Record<string, string> = {
+    'F': 'Fatture',
+    'R': 'Ricevute',
+    'A': 'Autofatture',
+    'T': 'Tutte le Operazioni',
+    'N': 'Nessuna Comunicazione'
+  };
+  return mapping[code?.trim()] || code?.trim() || '';
 }
 
-export function decodeAcquistiCessioni(code: string | undefined | null): string {
-    if (!code) return 'Non applicabile';
-    const mapping: Record<string, string> = {
-        'A': 'Tabella A1',
-        'B': 'Beni Attività connesse',
-    };
-    return mapping[code.trim()] ?? `Codice sconosciuto: ${code}`;
+export function decodeAcquistiCessioni(code: string): string {
+  const mapping: Record<string, string> = {
+    'A': 'Acquisti',
+    'C': 'Cessioni',
+    'T': 'Acquisti e Cessioni',
+    'N': 'Nessuna Operazione'
+  };
+  return mapping[code?.trim()] || code?.trim() || '';
 }
 
-export function decodeIndicatoreTerritorialeVendite(code: string | undefined | null): string {
-    if (!code) return 'Non applicabile';
-    const mapping: Record<string, string> = {
-        'VC': 'Vendita CEE',
-        'VX': 'Vendita Extra CEE',
-        'VM': 'Vendita Mista CEE/Extra CEE',
-    };
-    return mapping[code.trim()] ?? `Codice sconosciuto: ${code}`;
+export function decodeIndicatoreTerritorialeVendite(code: string): string {
+  const mapping: Record<string, string> = {
+    'IT': 'Italia',
+    'EU': 'Unione Europea',
+    'EX': 'Extra UE',
+    'SM': 'San Marino',
+    'VA': 'Vaticano'
+  };
+  return mapping[code?.trim()] || code?.trim() || '';
 }
 
-export function decodeIndicatoreTerritorialeAcquisti(code: string | undefined | null): string {
-    if (!code) return 'Non applicabile';
-    const mapping: Record<string, string> = {
-        'AC': 'Acquisto CEE',
-        'AX': 'Acquisto Extra CEE',
-        'MC': 'Acquisto misto parte CEE',
-        'MX': 'Acquisto misto parte Extra CEE',
-    };
-    return mapping[code.trim()] ?? `Codice sconosciuto: ${code}`;
+export function decodeIndicatoreTerritorialeAcquisti(code: string): string {
+  const mapping: Record<string, string> = {
+    'IT': 'Italia',
+    'EU': 'Unione Europea',
+    'EX': 'Extra UE',
+    'SM': 'San Marino',
+    'VA': 'Vaticano'
+  };
+  return mapping[code?.trim()] || code?.trim() || '';
 }
 
-export function decodeMetodoApplicare(code: string | undefined | null): string {
-    if (!code) return 'Non applicabile';
-    const mapping: Record<string, string> = {
-        'T': 'Analitico/Globale',
-        'F': 'Forfetario',
-    };
-    return mapping[code.trim()] ?? `Codice sconosciuto: ${code}`;
+export function decodeMetodoApplicare(code: string): string {
+  const mapping: Record<string, string> = {
+    'N': 'Normale',
+    'M': 'Margine',
+    'F': 'Forfetario',
+    'S': 'Speciale'
+  };
+  return mapping[code?.trim()] || code?.trim() || '';
 }
 
-export function decodePercentualeForfetaria(code: string | undefined | null): string {
-    if (!code) return 'Non applicabile';
-    const mapping: Record<string, string> = {
-        '25': '25%',
-        '50': '50%',
-        '60': '60%',
-    };
-    return mapping[code.trim()] ?? `Codice sconosciuto: ${code}`;
+export function decodePercentualeForfetaria(code: string): string {
+  const mapping: Record<string, string> = {
+    '04': '4%',
+    '10': '10%',
+    '20': '20%',
+    '40': '40%',
+    '50': '50%'
+  };
+  return mapping[code?.trim()] || code?.trim() || '';
 }
 
-export function decodeQuotaForfetaria(code: string | undefined | null): string {
-    if (!code) return 'Non applicabile';
-    const mapping: Record<string, string> = {
-        '1': "1/10 dell'imposta",
-        '2': "1/2 dell'imposta",
-        '3': "1/3 dell'imposta",
-    };
-    return mapping[code.trim()] ?? `Codice sconosciuto: ${code}`;
+export function decodeQuotaForfetaria(code: string): string {
+  const mapping: Record<string, string> = {
+    'I': 'Imposta',
+    'C': 'Corrispettivo',
+    'B': 'Base Imponibile'
+  };
+  return mapping[code?.trim()] || code?.trim() || '';
 }
 
-export function decodeImpostaIntrattenimenti(code: string | undefined | null): string {
-    if (!code) return 'Non applicabile';
-    const mapping: Record<string, string> = {
-        '6': '6%',
-        '8': '8%',
-        '10': '10%',
-        '16': '16%',
-        '60': '60%',
-    };
-    return mapping[code.trim()] ?? `Codice sconosciuto: ${code}`;
-} 
+export function decodeImposteIntrattenimenti(code: string): string {
+  const mapping: Record<string, string> = {
+    '10': '10%',
+    '20': '20%',
+    '25': '25%',
+    'N': 'Nessuna Imposta'
+  };
+  return mapping[code?.trim()] || code?.trim() || '';
+}

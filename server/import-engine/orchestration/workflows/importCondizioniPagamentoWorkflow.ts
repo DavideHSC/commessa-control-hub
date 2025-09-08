@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
-import { parseFixedWidth } from '../../acquisition/parsers/typeSafeFixedWidthParser';
-import { rawCondizionePagamentoSchema, RawCondizionePagamento } from '../../acquisition/validators/condizioniPagamentoValidator';
+import { parseFixedWidth } from '../../acquisition/parsers/typeSafeFixedWidthParser.js';
+import { rawCondizionePagamentoSchema, RawCondizionePagamento } from '../../acquisition/validators/condizioniPagamentoValidator.js';
 
 const prisma = new PrismaClient();
 
@@ -27,7 +27,9 @@ export async function runImportCondizioniPagamentoWorkflow(fileContent: string):
 
     // 2. Validazione
     const validRecords: RawCondizionePagamento[] = [];
-    for (const [index, record] of rawRecords.entries()) {
+    // MODIFICA: Sostituito il loop for...of con un for...i per compatibilità
+    for (let index = 0; index < rawRecords.length; index++) {
+      const record = rawRecords[index];
       const validationResult = rawCondizionePagamentoSchema.safeParse(record);
       if (validationResult.success) {
         validRecords.push(validationResult.data);
@@ -103,4 +105,4 @@ export async function runImportCondizioniPagamentoWorkflow(fileContent: string):
         errors: [{ row: 0, error: errorMessage, data: {} }]
     };
   }
-} 
+}

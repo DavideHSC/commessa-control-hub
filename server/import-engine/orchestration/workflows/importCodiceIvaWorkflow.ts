@@ -1,9 +1,9 @@
 import { PrismaClient } from '@prisma/client';
-import { parseFixedWidth } from '../../acquisition/parsers/typeSafeFixedWidthParser';
+import { parseFixedWidth } from '../../acquisition/parsers/typeSafeFixedWidthParser.js';
 import {
   rawCodiceIvaSchema,
   type RawCodiceIva,
-} from '../../acquisition/validators/codiceIvaValidator';
+} from '../../acquisition/validators/codiceIvaValidator.js';
 
 const prisma = new PrismaClient();
 
@@ -36,7 +36,9 @@ export async function runImportCodiciIvaWorkflow(fileContent: string): Promise<C
 
     // 2. Validazione
     const validRecords: RawCodiceIva[] = [];
-    for (const [index, rawRecord] of rawRecords.entries()) {
+    // MODIFICA: Sostituito il loop for...of con un for...i per compatibilità
+    for (let index = 0; index < rawRecords.length; index++) {
+      const rawRecord = rawRecords[index];
       const validationResult = rawCodiceIvaSchema.safeParse(rawRecord);
       if (validationResult.success) {
         validRecords.push(validationResult.data);
@@ -112,4 +114,4 @@ export async function runImportCodiciIvaWorkflow(fileContent: string): Promise<C
         errors: [{ row: 0, error: errorMessage, data: {} }]
     };
   }
-} 
+}

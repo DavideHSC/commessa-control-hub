@@ -1,6 +1,6 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
-import { ReconciliationResult, ReconciliationSummaryData, RigaDaRiconciliare } from '../types/reconciliation';
+import { ReconciliationResult, ReconciliationSummaryData, RigaDaRiconciliare } from '@shared-types/index.js';
 
 const prisma = new PrismaClient();
 const router = express.Router();
@@ -137,6 +137,157 @@ router.post('/finalize', async (req, res) => {
     }
 });
 
+// GET /api/reconciliation/movimenti - Get movements with allocation status
+router.get('/movimenti', async (req, res) => {
+    try {
+        console.log('[Reconciliation] Fetching movimenti with allocation status...');
+
+        // Get finalized movimenti (from actual tables, not staging)
+        const movimenti = await prisma.rigaScrittura.findMany({
+            include: {
+                scritturaContabile: {
+                    include: {
+                        fornitore: true,
+                        causale: true
+                    }
+                },
+                conto: true,
+                allocazioni: {
+                    include: {
+                        commessa: true,
+                        voceAnalitica: true
+                    }
+                }
+            },
+            orderBy: {
+                scritturaContabile: {
+                    data: 'desc'
+                }
+            },
+            take: 100 // Limit for performance
+        });
+
+        // Transform to MovimentoContabile format
+        const movimentiTransformed = movimenti.map(riga => {
+            const importoTotale = Math.abs((riga.dare || 0) - (riga.avere || 0));
+            const importoAllocato = riga.allocazioni.reduce((sum, alloc) => sum + Math.abs(alloc.importo), 0);
+            const importoResiduo = importoTotale - importoAllocato;
+            
+            // Determine allocation status
+            let stato: 'non_allocato' | 'parzialmente_allocato' | 'completamente_allocato';
+            if (importoAllocato === 0) {
+                stato = 'non_allocato';
+            } else if (Math.abs(importoResiduo) < 0.01) {
+                stato = 'completamente_allocato';
+            } else {
+                stato = 'parzialmente_allocato';
+            }
+
+            return {
+                id: riga.id,
+                numeroDocumento: riga.scritturaContabile.numeroDocumento || riga.scritturaContabile.externalId || 'N/A',
+                dataDocumento: riga.scritturaContabile.data ? riga.scritturaContabile.data.toISOString() : new Date().toISOString(),
+                descrizione: riga.descrizione || riga.scritturaContabile.descrizione || 'Movimento contabile',
+                importo: (riga.dare || 0) - (riga.avere || 0), // Keep sign for display
+                conto: riga.conto ? {
+                    codice: riga.conto.codice,
+                    nome: riga.conto.nome
+                } : null,
+                cliente: null, // TODO: Add if needed
+                fornitore: riga.scritturaContabile.fornitore ? {
+                    nome: riga.scritturaContabile.fornitore.nome
+                } : null,
+                causale: riga.scritturaContabile.causale ? {
+                    descrizione: riga.scritturaContabile.causale.descrizione
+                } : null,
+                allocazioni: riga.allocazioni.map(alloc => ({
+                    id: alloc.id,
+                    commessaId: alloc.commessaId,
+                    voceAnaliticaId: alloc.voceAnaliticaId,
+                    importo: alloc.importo,
+                    percentuale: importoTotale > 0 ? Math.round((Math.abs(alloc.importo) / importoTotale) * 100) : 0,
+                    commessa: { nome: alloc.commessa.nome },
+                    voceAnalitica: { nome: alloc.voceAnalitica.nome }
+                })),
+                importoAllocato,
+                importoResiduo,
+                stato
+            };
+        });
+
+        res.json({
+            data: movimentiTransformed,
+            total: movimentiTransformed.length
+        });
+
+    } catch (error) {
+        console.error('[Reconciliation] Error fetching movimenti:', error);
+        res.status(500).json({ 
+            error: 'Errore durante il recupero dei movimenti',
+            details: error instanceof Error ? error.message : 'Errore sconosciuto'
+        });
+    }
+});
+
+// POST /api/reconciliation/allocate/:rigaId - Create allocation for specific movement
+router.post('/allocate/:rigaId', async (req, res) => {
+    try {
+        const { rigaId } = req.params;
+        const { allocazioni } = req.body;
+
+        console.log(`[Reconciliation] Creating allocations for riga ${rigaId}...`);
+
+        if (!allocazioni || !Array.isArray(allocazioni) || allocazioni.length === 0) {
+            return res.status(400).json({ error: 'Allocazioni richieste' });
+        }
+
+        // Verify the riga exists
+        const rigaScrittura = await prisma.rigaScrittura.findUnique({
+            where: { id: rigaId },
+            include: { scritturaContabile: true }
+        });
+
+        if (!rigaScrittura) {
+            return res.status(404).json({ error: 'Riga scrittura non trovata' });
+        }
+
+        // Delete existing allocations for this riga
+        await prisma.allocazione.deleteMany({
+            where: { rigaScritturaId: rigaId }
+        });
+
+        // Create new allocations
+        const allocazioniData = allocazioni.map((alloc: any) => ({
+            importo: Math.abs(Number(alloc.importo)),
+            tipoMovimento: (rigaScrittura.dare || 0) > 0 ? 'COSTO_EFFETTIVO' : 'RICAVO_EFFETTIVO',
+            rigaScritturaId: rigaId,
+            commessaId: alloc.commessaId,
+            voceAnaliticaId: alloc.voceAnaliticaId,
+            dataMovimento: rigaScrittura.scritturaContabile.data,
+            note: `Allocazione manuale ${alloc.percentuale || 100}%`
+        }));
+
+        const newAllocazioni = await prisma.allocazione.createMany({
+            data: allocazioniData
+        });
+
+        console.log(`[Reconciliation] Created ${newAllocazioni.count} allocations for riga ${rigaId}`);
+
+        res.json({
+            message: 'Allocazioni create con successo',
+            rigaScritturaId: rigaId,
+            allocationsCount: newAllocazioni.count
+        });
+
+    } catch (error) {
+        console.error('[Reconciliation] Error creating allocations:', error);
+        res.status(500).json({ 
+            error: 'Errore durante la creazione delle allocazioni',
+            details: error instanceof Error ? error.message : 'Errore sconosciuto'
+        });
+    }
+});
+
 // Funzione helper per ottenere le righe da riconciliare
 async function getRigheDaRiconciliare(whereContiFilter: any): Promise<RigaDaRiconciliare[]> {
     // Query per ottenere le righe contabili di staging che necessitano riconciliazione
@@ -199,10 +350,76 @@ async function getRigheDaRiconciliare(whereContiFilter: any): Promise<RigaDaRico
 
         const importo = Math.abs(parseFloat(riga.importoDare || '0') - parseFloat(riga.importoAvere || '0'));
 
+        // Fix date parsing - handle different formats from staging data
+        let dataMovimento = new Date();
+        if (riga.testata.dataRegistrazione) {
+            try {
+                // Try to parse date - could be string format like "20250101" or ISO
+                const dateStr = riga.testata.dataRegistrazione.toString().trim();
+                
+                if (dateStr.length === 8 && /^\d{8}$/.test(dateStr)) {
+                    // Format YYYYMMDD
+                    const year = parseInt(dateStr.substring(0, 4));
+                    const month = parseInt(dateStr.substring(4, 6));
+                    const day = parseInt(dateStr.substring(6, 8));
+                    
+                    // Validate date components
+                    if (year >= 2000 && year <= 2050 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+                        dataMovimento = new Date(year, month - 1, day); // Month is 0-based in JS
+                    } else {
+                        throw new Error(`Invalid date components: ${year}-${month}-${day}`);
+                    }
+                } else if (dateStr.length === 6 && /^\d{6}$/.test(dateStr)) {
+                    // Format DDMMYY or YYMMDD - assume DDMMYY
+                    const day = parseInt(dateStr.substring(0, 2));
+                    const month = parseInt(dateStr.substring(2, 4));
+                    const year = parseInt(dateStr.substring(4, 6)) + 2000; // Assume 20xx
+                    
+                    if (day >= 1 && day <= 31 && month >= 1 && month <= 12) {
+                        dataMovimento = new Date(year, month - 1, day);
+                    } else {
+                        throw new Error(`Invalid date components: ${day}-${month}-${year}`);
+                    }
+                } else if (dateStr.length === 10 && /^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+                    // Format DD/MM/YYYY 
+                    const [day, month, year] = dateStr.split('/').map(Number);
+                    if (year >= 2000 && year <= 2050 && month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+                        dataMovimento = new Date(year, month - 1, day);
+                    } else {
+                        throw new Error(`Invalid date components: ${day}/${month}/${year}`);
+                    }
+                } else {
+                    // Try normal date parsing as fallback
+                    const parsed = new Date(dateStr);
+                    if (!isNaN(parsed.getTime()) && parsed.getFullYear() >= 2000 && parsed.getFullYear() <= 2050) {
+                        dataMovimento = parsed;
+                    } else {
+                        throw new Error(`Date parsing failed for: ${dateStr}`);
+                    }
+                }
+            } catch (error) {
+                console.warn(`[Reconciliation] Invalid date format for ${riga.id}: ${riga.testata.dataRegistrazione} - ${error.message}`);
+                // Fall back to testata creation date or a reasonable default
+                if (riga.testata.createdAt) {
+                    dataMovimento = new Date(riga.testata.createdAt);
+                } else {
+                    // Use a reasonable default date instead of current date
+                    dataMovimento = new Date('2025-01-01');
+                }
+            }
+        } else {
+            // No date provided, use creation date or reasonable default
+            if (riga.testata.createdAt) {
+                dataMovimento = new Date(riga.testata.createdAt);
+            } else {
+                dataMovimento = new Date('2025-01-01');
+            }
+        }
+
         righeDaRiconciliare.push({
             id: riga.id,
             externalId: riga.externalId,
-            data: riga.testata.dataRegistrazione ? new Date(riga.testata.dataRegistrazione) : new Date(),
+            data: dataMovimento,
             descrizione: riga.note || 'Movimento contabile',
             importo,
             conto: {

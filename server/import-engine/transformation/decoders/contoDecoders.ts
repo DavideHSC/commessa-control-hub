@@ -1,11 +1,53 @@
 import { TipoConto } from '@prisma/client';
-import * as decoders from '../../../lib/businessDecoders';
 
 /**
  * @file Contiene i decodificatori di business per i dati grezzi del piano dei conti.
  * Questi decodificatori trasformano i valori stringa in tipi più significativi
  * o in descrizioni leggibili, applicando la logica di business specifica.
  */
+
+// === PIANO DEI CONTI (parser_contigen.py) ===
+
+export function decodeLivello(livello: string): string {
+  const mapping: Record<string, string> = {
+    '1': 'Mastro',
+    '2': 'Conto',
+    '3': 'Sottoconto'
+  };
+  return mapping[livello?.trim()] || livello?.trim() || '';
+}
+
+export function decodeTipoConto(tipo: string): string {
+  const mapping: Record<string, string> = {
+    'P': 'Patrimoniale',
+    'E': 'Economico',
+    'O': 'Ordine',
+    'C': 'Costi',
+    'R': 'Ricavi'
+  };
+  return mapping[tipo?.trim()] || tipo?.trim() || '';
+}
+
+export function decodeGruppo(gruppo: string): string {
+  const mapping: Record<string, string> = {
+    'A': 'Attivo',
+    'P': 'Passivo',
+    'C': 'Costi',
+    'R': 'Ricavi',
+    'O': 'Ordine'
+  };
+  return mapping[gruppo?.trim()] || gruppo?.trim() || '';
+}
+
+export function decodeControlloSegno(segno: string): string {
+  const mapping: Record<string, string> = {
+    'D': 'Solo Dare',
+    'A': 'Solo Avere',
+    'T': 'Dare e Avere',
+    'N': 'Nessun Controllo'
+  };
+  return mapping[segno?.trim()] || segno?.trim() || '';
+}
 
 /**
  * Formatta il codice del conto in base al suo livello gerarchico.
@@ -68,14 +110,9 @@ export function determineTipoConto(tipoChar?: string | null, codice?: string | n
  */
 export function getDecodedFields(record: { [key: string]: string | null }) {
     return {
-        livelloDesc: decoders.decodeLivello(record.livello ?? ''),
-        tipoDesc: decoders.decodeTipoConto(record.tipoChar ?? ''),
-        gruppoDesc: decoders.decodeGruppo(record.gruppo ?? ''),
-        controlloSegnoDesc: decoders.decodeControlloSegno(record.controlloSegno ?? ''),
+        livelloDesc: decodeLivello(record.livello ?? ''),
+        tipoDesc: decodeTipoConto(record.tipoChar ?? ''),
+        gruppoDesc: decodeGruppo(record.gruppo ?? ''),
+        controlloSegnoDesc: decodeControlloSegno(record.controlloSegno ?? ''),
     };
 }
-
-
-export const decodeLivello = decoders.decodeLivello;
-export const decodeGruppo = decoders.decodeGruppo;
-export const decodeControlloSegno = decoders.decodeControlloSegno; 

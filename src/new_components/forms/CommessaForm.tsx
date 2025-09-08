@@ -19,9 +19,10 @@ export const CommessaForm = ({
   hideTitle = false,
 }: CommessaFormProps) => {
   const defaultValues = useMemo(() => ({ 
-    stato: 'In Preparazione', 
+    stato: 'In Corso', 
     priorita: 'media', 
-    isAttiva: true 
+    isAttiva: true,
+    dataInizio: new Date().toISOString().split('T')[0] // Data corrente in formato YYYY-MM-DD
   }), []);
 
   const fields = useMemo(() => [
@@ -114,12 +115,28 @@ export const CommessaForm = ({
     onSubmit(data);
   };
 
+  // Merge corretto tra commessa esistente e valori di default
+  const initialValues = useMemo(() => {
+    if (!commessa) return defaultValues;
+    
+    // Merge: valori da commessa hanno priorità, ma i default riempiono i buchi
+    return {
+      ...defaultValues,
+      ...commessa,
+      // Gestione speciale per campi che potrebbero essere null/undefined
+      stato: commessa.stato || defaultValues.stato,
+      priorita: commessa.priorita || defaultValues.priorita,
+      isAttiva: commessa.isAttiva !== undefined ? commessa.isAttiva : defaultValues.isAttiva,
+      dataInizio: commessa.dataInizio || defaultValues.dataInizio,
+    };
+  }, [commessa, defaultValues]);
+
   return (
     <GenericForm
       fields={fields}
       onSubmit={handleSubmit}
       onCancel={onCancel}
-      initialValues={commessa || defaultValues}
+      initialValues={initialValues}
       loading={loading}
       title={hideTitle ? undefined : (commessa ? 'Modifica Commessa' : 'Nuova Commessa')}
       description={hideTitle ? undefined : (commessa ? 'Aggiorna i dettagli della commessa' : 'Crea una nuova commessa')}

@@ -1,55 +1,22 @@
 import { z } from 'zod';
-import moment from 'moment';
 
 // =============================================================================
-// PARSER 6: SCRITTURE CONTABILI - VALIDATORI ZOD
+// PARSER 6: SCRITTURE CONTABILI - VALIDATORI ZOD (REFACTORED)
 // =============================================================================
-// Questo è il parser più complesso (⭐⭐⭐⭐⭐) che gestisce 4 file interconnessi:
-// - PNTESTA.TXT: Testate delle scritture contabili
-// - PNRIGCON.TXT: Righe contabili (movimenti Dare/Avere)
-// - PNRIGIVA.TXT: Righe IVA per operazioni fiscalmente rilevanti
-// - MOVANAC.TXT: Allocazioni analitiche su centri di costo/commesse
+// In questa versione, i validatori aderiscono al principio di "Staging Fedele".
+// Il loro unico scopo è definire la struttura completa dei record letti dai
+// file sorgente. Ogni campo viene validato come stringa.
 //
-// SFIDA: Coordinare parsing, validazione e correlazione multi-file
-// mantenendo integrità referenziale assoluta
+// L'unica eccezione è la trasformazione dei campi "flag" (es. 'X', '1')
+// in valori booleani, come da specifiche.
+//
+// La conversione di tipi (es. stringa -> data, stringa -> numero) è
+// demandata alla fase di FINALIZZAZIONE.
 // =============================================================================
 
 // -----------------------------------------------------------------------------
 // UTILITY DI VALIDAZIONE CONDIVISE
-// // NUOVO: Per file con decimali espliciti (prima nota)
-const currencyTransformPrimaNota = z
-  .string()
-  .nullable()
-  .transform((val) => {
-    if (!val || val.trim() === '') return 0;
-    const cleaned = val.trim().replace(',', '.');
-    const parsed = parseFloat(cleaned);
-    return isNaN(parsed) ? 0 : parsed;
-  });
-
-// ESISTENTE: Per file con decimali impliciti (mantenuto per altri file)
-const currencyTransformGenerico = z
-  .string()
-  .nullable()
-  .transform((val) => {
-    if (!val || val.trim() === '') return 0;
-    const cleaned = val.trim().replace(',', '.');
-    if (!cleaned.includes('.')) {
-      const parsed = parseInt(cleaned, 10);
-      return isNaN(parsed) ? 0 : parsed / 100;
-    }
-    const parsed = parseFloat(cleaned);
-    return isNaN(parsed) ? 0 : parsed;
-  });
-
-const dateTransform = z
-  .string()
-  .nullable()
-  .transform((val) => {
-    if (!val || val.trim() === '00000000' || val.trim() === '') return null;
-    const parsedDate = moment(val, 'DDMMYYYY', true);
-    return parsedDate.isValid() ? parsedDate.toDate() : null;
-  });
+// -----------------------------------------------------------------------------
 
 const flagTransform = z
   .string()
@@ -57,8 +24,9 @@ const flagTransform = z
   .optional()
   .transform((val) => {
     if (!val) return false;
-    const trueValues = ['1', 's', 'y', 't'];
-    return trueValues.includes(val.trim().toLowerCase());
+    // Valori considerati 'true' secondo i tracciati e l'uso comune ('S' non è standard ma lo manteniamo per sicurezza)
+    const trueValues = ['1', 'S', 'Y', 'T', 'X'];
+    return trueValues.includes(val.trim().toUpperCase());
   });
 
 // -----------------------------------------------------------------------------
@@ -67,201 +35,180 @@ const flagTransform = z
 
 /**
  * PNTESTA.TXT - Testate delle scritture contabili
- * Rappresenta l'intestazione di ogni registrazione contabile
+ * Definisce TUTTI i campi del tracciato come stringhe.
  */
 export const rawPnTestaSchema = z.object({
-  externalId: z.string(),
-
-  // Campi dal tracciato, richiesti per il mapping
-  esercizio: z.string().optional(),
+  // Identificativi
+  externalId: z.string().optional(), // CODICE UNIVOCO DI SCARICAMENTO
   codiceFiscaleAzienda: z.string().optional(),
+  subcodiceFiscaleAzienda: z.string().optional(),
+  esercizio: z.string().optional(),
   codiceAttivita: z.string().optional(),
-  causaleId: z.string(),
-  protocolloNumero: z.string().optional(),
 
-  // Campi già presenti
-  dataRegistrazione: z.string().nullable(),
-  clienteFornitoreCodiceFiscale: z.string(),
-  dataDocumento: z.string().nullable(),
-  numeroDocumento: z.string(),
-  totaleDocumento: z.string().nullable(),
-  noteMovimento: z.string(),
-  dataRegistroIva: z.string().nullable(),
-  dataCompetenzaLiquidIva: z.string().nullable(),
-  dataCompetenzaContabile: z.string().optional(),
-  dataPlafond: z.string().optional(),
-  annoProRata: z.string().optional(),
-  ritenute: z.string().nullable(),
-  enasarco: z.string().nullable(),
-  totaleInValuta: z.string().nullable(),
-  versamentoData: z.string().nullable(),
-  documentoDataPartita: z.string().nullable(),
-  documentoOperazione: z.string().optional(),
+  // Dati Causale
+  causaleId: z.string().optional(), // CODICE CAUSALE
   descrizioneCausale: z.string().optional(),
-  clienteFornitoreSigla: z.string().optional(),
-  cliForIntraSigla: z.string().optional(),
-  tipoMovimentoIntrastat: z.string().optional(),
-  tipoRegistroIva: z.string().optional(), // Aggiunto per coerenza
-});
 
-export const validatedPnTestaSchema = z.object({
-  externalId: z.string().trim().min(1, 'External ID richiesto'),
+  // Dati Registrazione e Documento
+  dataRegistrazione: z.string().optional(),
+  dataDocumento: z.string().optional(),
+  numeroDocumento: z.string().optional(),
+  documentoBis: z.string().optional(),
+  totaleDocumento: z.string().optional(),
 
-  // Campi aggiunti per il workflow
-  esercizio: z.string().trim().optional(),
-  codiceFiscaleAzienda: z.string().trim().optional(),
-  codiceAttivita: z.string().trim().optional(),
-  protocolloNumero: z.string().trim().optional(),
-  
-  causaleId: z.string().trim().optional(),
-  descrizioneCausale: z.string().trim().optional(),
-  dataRegistrazione: dateTransform,
-  clienteFornitoreCodiceFiscale: z.string().trim().optional(),
-  dataDocumento: dateTransform,
-  numeroDocumento: z.string().trim().optional(),
-  totaleDocumento: currencyTransformPrimaNota,
-  noteMovimento: z.string().trim().optional(),
-  dataRegistroIva: dateTransform,
-  dataCompetenzaLiquidIva: dateTransform,
-  dataCompetenzaContabile: dateTransform,
-  dataPlafond: dateTransform,
-  annoProRata: z.string().nullable(),
-  ritenute: currencyTransformPrimaNota,
-  enasarco: currencyTransformPrimaNota,
-  totaleInValuta: currencyTransformPrimaNota,
-  versamentoData: dateTransform,
-  documentoDataPartita: dateTransform,
-  documentoOperazione: dateTransform,
-  clienteFornitoreSigla: z.string().trim().optional(),
-  cliForIntraSigla: z.string().trim().optional(),
-  tipoMovimentoIntrastat: z.string().trim().optional(),
-  tipoRegistroIva: z.string().trim().optional(),
-}).passthrough();
+  // Dati IVA
+  codiceAttivitaIva: z.string().optional(),
+  tipoRegistroIva: z.string().optional(),
+  codiceNumerazioneIva: z.string().optional(),
+  dataRegistroIva: z.string().optional(),
+  protocolloNumero: z.string().optional(),
+  protocolloBis: z.string().optional(),
+  dataCompetenzaLiquidIva: z.string().optional(),
 
-/**
- * PNRIGCON.TXT - Righe contabili
- * Ogni riga rappresenta un movimento Dare/Avere su un conto
- */
-export const rawPnRigConSchema = z.object({
-  externalId: z.string(),
-  progressivoRigo: z.string().optional(),
-  tipoConto: z.string().optional(),
+  // Dati Cliente/Fornitore
   clienteFornitoreCodiceFiscale: z.string().optional(),
   clienteFornitoreSubcodice: z.string().optional(),
   clienteFornitoreSigla: z.string().optional(),
-  conto: z.string().optional(),
-  importoDare: z.string().optional(),
-  importoAvere: z.string().optional(),
-  note: z.string().optional(),
-  insDatiCompetenzaContabile: z.string().optional(),
-  dataInizioCompetenza: z.string().optional(),
-  dataFineCompetenza: z.string().optional(),
-  dataRegistrazioneApertura: z.string().nullable(),
-  dataInizioCompetenzaAnalit: z.string().nullable(),
-  dataFineCompetenzaAnalit: z.string().nullable(),
-  // impostaNonConsiderata: z.string().optional(),
-  // importoLordo: z.string().optional(),
-  // siglaContropartita: z.string().optional(),
+
+  // Dati Competenza e Note
+  dataCompetenzaContabile: z.string().optional(),
+  noteMovimento: z.string().optional(),
+
+  // Altri Dati
+  dataPlafond: z.string().optional(),
+  annoProRata: z.string().optional(),
+
+  // Ritenute
+  ritenute: z.string().optional(),
+  enasarco: z.string().optional(),
+
+  // Valuta Estera
+  totaleInValuta: z.string().optional(),
+  codiceValuta: z.string().optional(),
+
+  // Autofattura
+  codiceNumerazioneIvaVendite: z.string().optional(),
+  protocolloNumeroAutofattura: z.string().optional(),
+  protocolloBisAutofattura: z.string().optional(),
+
+  // Versamento Ritenute
+  versamentoData: z.string().optional(),
+  versamentoTipo: z.string().optional(),
+  versamentoModello: z.string().optional(),
+  versamentoEstremi: z.string().optional(),
+
+  // Dati di Servizio e Partite
+  stato: z.string().optional(),
+  tipoGestionePartite: z.string().optional(),
+  codicePagamento: z.string().optional(),
+
+  // Dati Partita di Riferimento
+  codiceAttivitaIvaPartita: z.string().optional(),
+  tipoRegistroIvaPartita: z.string().optional(),
+  codiceNumerazioneIvaPartita: z.string().optional(),
+  cliForCodiceFiscalePartita: z.string().optional(),
+  cliForSubcodicePartita: z.string().optional(),
+  cliForSiglaPartita: z.string().optional(),
+  documentoDataPartita: z.string().optional(),
+  documentoNumeroPartita: z.string().optional(),
+  documentoBisPartita: z.string().optional(),
+
+  // Dati Intrastat
+  cliForIntraCodiceFiscale: z.string().optional(),
+  cliForIntraSubcodice: z.string().optional(),
+  cliForIntraSigla: z.string().optional(),
+  tipoMovimentoIntrastat: z.string().optional(),
+  documentoOperazione: z.string().optional(),
 });
 
-export const validatedPnRigConSchema = z.object({
-  externalId: z.string().trim().min(1, 'External ID richiesto'),
-  progressivoRigo: z.string().nullable().transform((val) => val ?? '0'),
-  tipoConto: z.string().trim().optional(),
-  clienteFornitoreCodiceFiscale: z.string().trim().optional(),
-  clienteFornitoreSubcodice: z.string().trim().optional(),
-  clienteFornitoreSigla: z.string().trim().optional(),
-  conto: z.string().trim().optional(),
-  importoDare: currencyTransformPrimaNota,
-  importoAvere: currencyTransformPrimaNota,
-  note: z.string().trim().optional(),
+/**
+ * PNRIGCON.TXT - Righe contabili
+ * Definisce TUTTI i campi del tracciato, applicando la trasformazione booleana ai campi flag.
+ */
+export const rawPnRigConSchema = z.object({
+  // Identificativi
+  externalId: z.string().optional(), // CODICE UNIVOCO DI SCARICAMENTO
+  progressivoRigo: z.string().optional(),
+
+  // Dati Conto
+  tipoConto: z.string().optional(),
+  conto: z.string().optional(),
+  siglaConto: z.string().optional(),
+
+  // Dati Cliente/Fornitore di Riga
+  clienteFornitoreCodiceFiscale: z.string().optional(),
+  clienteFornitoreSubcodice: z.string().optional(),
+  clienteFornitoreSigla: z.string().optional(),
+
+  // Importi
+  importoDare: z.string().optional(),
+  importoAvere: z.string().optional(),
+
+  // Note
+  note: z.string().optional(),
+  noteDiCompetenza: z.string().optional(),
+
+  // Dati Competenza Contabile
   insDatiCompetenzaContabile: flagTransform,
-  // impostaNonConsiderata: z.string().trim().optional(),
-  // importoLordo: currencyTransformPrimaNota,
-  // siglaContropartita: z.string().trim().optional(),
-}).passthrough();
+  dataInizioCompetenza: z.string().optional(),
+  dataFineCompetenza: z.string().optional(),
+  dataRegistrazioneApertura: z.string().optional(),
+
+  // Conti da Rilevare (Facoltativi)
+  contoDaRilevareMovimento1: z.string().optional(),
+  contoDaRilevareMovimento2: z.string().optional(),
+
+  // Dati Movimenti Analitici
+  insDatiMovimentiAnalitici: flagTransform,
+  dataInizioCompetenzaAnalit: z.string().optional(),
+  dataFineCompetenzaAnalit: z.string().optional(),
+
+  // Dati Studi di Settore
+  insDatiStudiDiSettore: flagTransform,
+  statoMovimentoStudi: z.string().optional(),
+  esercizioDiRilevanzaFiscale: z.string().optional(),
+
+  // Dettaglio Cliente/Fornitore
+  dettaglioCliForCodiceFiscale: z.string().optional(),
+  dettaglioCliForSubcodice: z.string().optional(),
+  dettaglioCliForSigla: z.string().optional(),
+});
 
 /**
  * PNRIGIVA.TXT - Righe IVA
- * Ogni riga rappresenta un dettaglio IVA della registrazione
+ * Definisce TUTTI i campi del tracciato come stringhe.
  */
 export const rawPnRigIvaSchema = z.object({
-  externalId: z.string(),
+  // Identificativi
+  externalId: z.string().optional(), // CODICE UNIVOCO DI SCARICAMENTO
+
+  // Dati IVA
   codiceIva: z.string().optional(),
   imponibile: z.string().optional(),
   imposta: z.string().optional(),
-  importoLordo: z.string().optional(),
+  impostaIntrattenimenti: z.string().optional(),
+  imponibile50CorrNonCons: z.string().optional(),
   impostaNonConsiderata: z.string().optional(),
-  // riga: z.string().trim(), // RIMOSSO - non esiste nel file, verrà calcolato
-  note: z.string().optional(),
+  importoLordo: z.string().optional(),
+
+  // Dati Contropartita
   contropartita: z.string().optional(),
   siglaContropartita: z.string().optional(),
-});
 
-export const validatedPnRigIvaSchema = z.object({
-  externalId: z.string().trim().min(1, 'External ID richiesto'),
-  codiceIva: z.string().trim().optional(),
-  imponibile: currencyTransformPrimaNota,
-  imposta: currencyTransformPrimaNota,
-  importoLordo: currencyTransformPrimaNota,
-  impostaNonConsiderata: currencyTransformPrimaNota,
-  note: z.string().trim().optional(),
-  contropartita: z.string().trim().optional(),
-  siglaContropartita: z.string().trim().optional(),
-}).passthrough();
+  // Note
+  note: z.string().optional(),
+});
 
 /**
  * MOVANAC.TXT - Dettagli per centri di costo/ricavo (movimenti analitici)
- * Gestisce l'allocazione dei costi/ricavi sui centri di costo (commesse)
+ * Definisce TUTTI i campi del tracciato come stringhe.
  */
 export const rawMovAnacSchema = z.object({
-  externalId: z.string(),
-  progressivoRigoContabile: z.string().nullable(),
-  centroDiCosto: z.string(),
-  parametro: z.string().nullable(),
+  // Identificativi
+  externalId: z.string().optional(), // CODICE UNIVOCO DI SCARICAMENTO
+  progressivoRigoContabile: z.string().optional(),
+
+  // Dati Allocazione
+  centroDiCosto: z.string().optional(),
+  parametro: z.string().optional(),
 });
-
-export const validatedMovAnacSchema = z.object({
-  externalId: z.string().trim().min(1, 'External ID richiesto'),
-  progressivoRigoContabile: z.string().nullable().transform((val) => val ? parseInt(val, 10) : 0),
-  centroDiCosto: z.string().trim().optional(),
-  parametro: currencyTransformPrimaNota,
-});
-
-// -----------------------------------------------------------------------------
-// TIPI ESPORTATI
-// -----------------------------------------------------------------------------
-
-export type RawPnTesta = z.infer<typeof rawPnTestaSchema>;
-export type ValidatedPnTesta = z.infer<typeof validatedPnTestaSchema>;
-export type RawPnRigCon = z.infer<typeof rawPnRigConSchema>;
-export type ValidatedPnRigCon = z.infer<typeof validatedPnRigConSchema>;
-export type RawPnRigIva = z.infer<typeof rawPnRigIvaSchema>;
-export type ValidatedPnRigIva = z.infer<typeof validatedPnRigIvaSchema>;
-export type RawMovAnac = z.infer<typeof rawMovAnacSchema>;
-export type ValidatedMovAnac = z.infer<typeof validatedMovAnacSchema>;
-
-// -----------------------------------------------------------------------------
-// STRUTTURE AGGREGATE PER COORDINAMENTO MULTI-FILE
-// -----------------------------------------------------------------------------
-
-/**
- * Rappresenta una scrittura contabile completa con tutte le sue componenti
- * Utilizzata dal transformer per gestire la correlazione multi-file
- */
-export interface ScritturaContabileCompleta {
-  testata: ValidatedPnTesta;
-  righeContabili: ValidatedPnRigCon[];
-  righeIva: ValidatedPnRigIva[];
-  allocazioni: ValidatedMovAnac[];
-}
-
-/**
- * Mappa per organizzare i dati multi-file per codice univoco
- */
-export interface ScrittureMultiFileMap {
-  testate: Map<string, ValidatedPnTesta>;
-  righeContabili: Map<string, ValidatedPnRigCon[]>;
-  righeIva: Map<string, ValidatedPnRigIva[]>;
-  allocazioni: Map<string, ValidatedMovAnac[]>;
-}

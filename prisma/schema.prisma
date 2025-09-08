@@ -7,6 +7,422 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model StagingTestata {
+  id                            String                 @id @default(cuid())
+  /// Chiave primaria del movimento, usata per collegare i file (CODICE UNIVOCO DI SCARICAMENTO)
+  codiceUnivocoScaricamento     String                 @unique
+  /// Esercizio contabile di riferimento
+  esercizio                     String
+  /// Codice Fiscale dell'azienda
+  codiceAzienda                 String
+  /// Codice della causale contabile
+  codiceCausale                 String
+  /// Descrizione (facoltativa) della causale
+  descrizioneCausale            String
+  /// Data di registrazione (formato GGMMAAAA)
+  dataRegistrazione             String?
+  /// Tipo registro IVA (A=Acquisti, C=Corrispettivi, V=Vendite)
+  tipoRegistroIva               String?
+  /// Codice Fiscale del cliente/fornitore
+  clienteFornitoreCodiceFiscale String?
+  /// Sigla/Codice interno del cliente/fornitore
+  clienteFornitoreSigla         String?
+  /// Data del documento (formato GGMMAAAA)
+  dataDocumento                 String?
+  /// Numero del documento
+  numeroDocumento               String?
+  /// Importo totale del documento
+  totaleDocumento               String?
+  /// Note generali del movimento
+  noteMovimento                 String?
+  /// Data di registrazione sul registro IVA (formato GGMMAAAA)
+  dataRegistroIva               String?
+  /// Data di competenza per la liquidazione IVA (formato GGMMAAAA)
+  dataCompetenzaLiquidIva       String?
+  /// Data di competenza economica/contabile (formato GGMMAAAA)
+  dataCompetenzaContabile       String?
+  /// Data per la gestione del Plafond IVA (formato GGMMAAAA)
+  dataPlafond                   String?
+  /// Anno per la gestione del Pro-Rata IVA
+  annoProRata                   String?
+  /// Importo delle ritenute
+  ritenute                      String?
+  /// Esigibilità IVA (valore non presente nel tracciato originale, da investigare)
+  esigibilitaIva                String?
+  /// Numero di protocollo IVA
+  protocolloRegistroIva         String?
+  /// Flag per quadratura scheda contabile (valore non presente nel tracciato originale)
+  flagQuadrSchedaContabile      String?
+  /// Flag per la stampa sul registro IVA (valore non presente nel tracciato originale)
+  flagStampaRegIva              String?
+  /// Subcodice fiscale dell'azienda
+  subcodiceAzienda              String?
+  /// Codice attività contabile
+  codiceAttivita                String?
+  /// Codice per la numerazione del registro IVA
+  codiceNumerazioneIva          String?
+  /// Subcodice del cliente/fornitore
+  clienteFornitoreSubcodice     String?
+  /// Suffisso per il numero del documento (es. 'A', 'B')
+  documentoBis                  String?
+  /// Suffisso per il numero di protocollo
+  protocolloBis                 String?
+  /// Importo dei contributi Enasarco
+  enasarco                      String?
+  /// Importo totale del documento in valuta estera
+  totaleInValuta                String?
+  /// Codice della valuta estera (es. 'USD')
+  codiceValuta                  String?
+  /// Dati autofattura: Codice numerazione IVA vendite
+  codiceNumerazioneIvaVendite   String?
+  /// Dati autofattura: Numero protocollo
+  protocolloNumeroAutofattura   String?
+  /// Dati autofattura: Suffisso protocollo
+  protocolloBisAutofattura      String?
+  /// Data del versamento delle ritenute (formato GGMMAAAA)
+  versamentoData                String?
+  /// Tipo di versamento (0=F24/F23, 1=Tesoreria)
+  versamentoTipo                String?
+  /// Modello di versamento (0=Nessuno, 1=Banca, 2=Concessione, 3=Posta)
+  versamentoModello             String?
+  /// Estremi del versamento
+  versamentoEstremi             String?
+  /// Stato della registrazione (D=Definitiva, P=Provvisoria, V=Da verificare)
+  stato                         String?
+  /// Tipo gestione partite (A=Creazione, B=Ins. rata, C=Creazione+rate, D=Automatica)
+  tipoGestionePartite           String?
+  /// Codice pagamento per la creazione automatica delle rate
+  codicePagamento               String?
+  /// Dati partita: Codice attività IVA
+  codiceAttivitaIvaPartita      String?
+  /// Dati partita: Tipo registro IVA
+  tipoRegistroIvaPartita        String?
+  /// Dati partita: Codice numerazione IVA
+  codiceNumerazioneIvaPartita   String?
+  /// Dati partita: Codice Fiscale del cliente/fornitore
+  cliForCodiceFiscalePartita     String?
+  /// Dati partita: Subcodice del cliente/fornitore
+  cliForSubcodicePartita        String?
+  /// Dati partita: Sigla del cliente/fornitore
+  cliForSiglaPartita            String?
+  /// Dati partita: Data del documento (formato GGMMAAAA)
+  documentoDataPartita          String?
+  /// Dati partita: Numero del documento
+  documentoNumeroPartita        String?
+  /// Dati partita: Suffisso del numero documento
+  documentoBisPartita           String?
+  /// Dati Intrastat: Codice Fiscale del cliente/fornitore
+  cliForIntraCodiceFiscale      String?
+  /// Dati Intrastat: Subcodice del cliente/fornitore
+  cliForIntraSubcodice          String?
+  /// Dati Intrastat: Sigla del cliente/fornitore
+  cliForIntraSigla              String?
+  /// Dati Intrastat: Tipo movimento (AA=Acquisto, AZ=Rett. Acq., etc.)
+  tipoMovimentoIntrastat        String?
+  /// Dati Intrastat: Data dell'operazione (formato GGMMAAAA)
+  documentoOperazione           String?
+  createdAt                     DateTime               @default(now())
+  updatedAt                     DateTime               @updatedAt
+  righe                         StagingRigaContabile[]  
+
+  @@map("staging_testate")
+}
+
+model StagingRigaContabile {
+  id                            String         @id @default(cuid())
+  /// Chiave esterna per collegare la riga alla sua testata
+  codiceUnivocoScaricamento     String
+  /// Tipo di conto (C=Cliente, F=Fornitore, vuoto=Conto generico)
+  tipoConto                     String
+  /// Codice Fiscale del cliente/fornitore (se tipoConto è C o F)
+  clienteFornitoreCodiceFiscale String
+  /// Subcodice del cliente/fornitore
+  clienteFornitoreSubcodice     String
+  /// Sigla del cliente/fornitore
+  clienteFornitoreSigla         String
+  /// Codice del conto dal Piano dei Conti
+  conto                         String
+  /// Importo in colonna Dare
+  importoDare                   String
+  /// Importo in colonna Avere
+  importoAvere                  String
+  /// Note descrittive della riga
+  note                          String
+  /// Flag (0/1) che indica la presenza di dati di competenza contabile
+  insDatiCompetenzaContabile    String
+  /// Usato per collegare la riga al record PNRIGCON originale (obsoleto, da valutare rimozione)
+  externalId                    String
+  /// Progressivo numerico della riga all'interno della registrazione
+  progressivoRigo               String
+  /// Data fine competenza (formato GGMMAAAA)
+  dataFineCompetenza            String
+  /// Data fine competenza analitica (formato GGMMAAAA)
+  dataFineCompetenzaAnalit      String
+  /// Data inizio competenza (formato GGMMAAAA)
+  dataInizioCompetenza          String
+  /// Data inizio competenza analitica (formato GGMMAAAA)
+  dataInizioCompetenzaAnalit    String
+  /// Data registrazione apertura (facoltativo)
+  dataRegistrazioneApertura     String
+  /// Note relative alla competenza contabile
+  noteDiCompetenza              String?
+  /// Conto facoltativo da rilevare (movimento 1)
+  contoDaRilevareMovimento1     String?
+  /// Conto facoltativo da rilevare (movimento 2)
+  contoDaRilevareMovimento2     String?
+  /// Flag (0/1) che indica la presenza di dati per movimenti analitici (collegamento a MOVANAC.TXT)
+  insDatiMovimentiAnalitici     String?
+  /// Flag (0/1) che indica la presenza di dati per Studi di Settore
+  insDatiStudiDiSettore         String?
+  /// Stato del movimento per Studi di Settore (G=Generato, M=Manuale)
+  statoMovimentoStudi           String?
+  /// Esercizio di rilevanza fiscale
+  esercizioDiRilevanzaFiscale   String?
+  /// Dettaglio cliente/fornitore: Codice Fiscale
+  dettaglioCliForCodiceFiscale  String?
+  /// Dettaglio cliente/fornitore: Subcodice
+  dettaglioCliForSubcodice      String?
+  /// Dettaglio cliente/fornitore: Sigla
+  dettaglioCliForSigla          String?
+  /// Sigla del conto, alternativa al campo 'conto'
+  siglaConto                    String?
+  createdAt                     DateTime       @default(now())  
+  updatedAt                     DateTime       @updatedAt
+  testata                       StagingTestata @relation(fields: [codiceUnivocoScaricamento], references: [codiceUnivocoScaricamento], onDelete: Cascade)
+
+  @@map("staging_righe_contabili")
+}
+
+model StagingRigaIva {
+  id                        String   @id @default(cuid())
+  /// Chiave esterna per collegare la riga alla sua testata
+  codiceUnivocoScaricamento String
+  /// Identificatore univoco della riga, calcolato come {codiceUnivoco}-{progressivo}
+  rigaIdentifier            String   @unique
+  /// Codice IVA di riferimento
+  codiceIva                 String
+  /// Conto di contropartita IVA
+  contropartita             String
+  /// Importo imponibile
+  imponibile                String
+  /// Importo dell'imposta
+  imposta                   String
+  /// Imposta non considerata per calcoli specifici
+  impostaNonConsiderata     String
+  /// Totale lordo della riga IVA
+  importoLordo              String
+  /// Note specifiche della riga
+  note                      String
+  /// Sigla della contropartita, alternativa al campo 'contropartita'
+  siglaContropartita        String?
+  /// Progressivo numerico della riga IVA all'interno della registrazione
+  riga                      String
+  /// Imposta relativa a spese di intrattenimento
+  impostaIntrattenimenti      String?
+  /// Imponibile al 50% per corrispettivi non considerati
+  imponibile50CorrNonCons     String?  
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  @@map("staging_righe_iva")
+}
+
+model StagingAllocazione {
+  id                        String  @id @default(cuid())
+  codiceUnivocoScaricamento String?
+  progressivoNumeroRigoCont String?
+  allocazioneIdentifier     String? @unique
+  centroDiCosto             String?
+  parametro                 String?
+  externalId                String?
+  progressivoRigoContabile  String?
+
+  @@map("staging_allocazioni")
+}
+
+model StagingConto {
+  id                               String    @id @default(cuid())
+  codice                           String?
+  codiceFiscaleAzienda             String?
+  descrizione                      String?
+  descrizioneLocale                String?
+  sigla                            String?
+  livello                          String?
+  tipo                             String?
+  gruppo                           String?
+  naturaConto                      String?
+  controlloSegno                   String?
+  validoImpresaOrdinaria           Boolean?
+  validoImpresaSemplificata        Boolean?
+  validoProfessionistaOrdinario    Boolean?
+  validoProfessionistaSemplificato Boolean?
+  validoUnicoPf                    Boolean?
+  validoUnicoSp                    Boolean?
+  validoUnicoSc                    Boolean?
+  validoUnicoEnc                   Boolean?
+  codiceClasseIrpefIres            String?
+  codiceClasseIrap                 String?
+  codiceClasseProfessionista       String?
+  codiceClasseIrapProfessionista   String?
+  codiceClasseIva                  String?
+  codiceClasseDatiStudiSettore     String?
+  contoDareCee                     String?
+  contoAvereCee                    String?
+  contoCostiRicaviCollegato        String?
+  gestioneBeniAmmortizzabili       String?
+  percDeduzioneManutenzione        Float?
+  dettaglioClienteFornitore        String?
+  numeroColonnaRegCronologico      Int?
+  numeroColonnaRegIncassiPag       Int?
+  descrizioneBilancioDare          String?
+  descrizioneBilancioAvere         String?
+  subcodiceAzienda                 String?
+  utilizzaDescrizioneLocale        Boolean?
+  consideraNelBilancioSemplificato Boolean?
+  tabellaItalstudio                String?
+  importedAt                       DateTime  @default(now())
+
+  @@unique([codice, codiceFiscaleAzienda])
+  @@map("staging_conti")
+}
+
+model StagingCodiceIva {
+  id                             String  @id @default(cuid())
+  codice                         String?
+  descrizione                    String?
+  aliquota                       String?
+  ventilazione                   String?
+  validitaInizio                 String?
+  validitaFine                   String?
+  indetraibilita                 String?
+  note                           String?
+  tipoCalcolo                    String?
+  acqOperazImponibiliOccasionali String?
+  acquistiCessioni               String?
+  acquistiIntracomunitari        String?
+  agevolazioniSubforniture       String?
+  aliquotaDiversa                String?
+  analiticoBeniAmmortizzabili    String?
+  autofatturaReverseCharge       String?
+  beniAmmortizzabili             String?
+  cesArt38QuaterStornoIva        String?
+  cessioneProdottiEditoriali     String?
+  comunicazioneDatiIvaAcquisti   String?
+  comunicazioneDatiIvaVendite    String?
+  gestioneProRata                String?
+  imponibile50Corrispettivi      String?
+  imposteIntrattenimenti         String?
+  indicatoreTerritorialeAcquisti String?
+  indicatoreTerritorialeVendite  String?
+  metodoDaApplicare              String?
+  monteAcquisti                  String?
+  noVolumeAffariPlafond          String?
+  operazioneEsenteOccasionale    String?
+  percDetrarreExport             String?
+  percentualeCompensazione       String?
+  percentualeForfetaria          String?
+  plafondAcquisti                String?
+  plafondVendite                 String?
+  provvigioniDm34099             String?
+  quotaForfetaria                String?
+
+  @@map("staging_codici_iva")
+}
+
+model StagingCausaleContabile {
+  id                             String  @id @default(cuid())
+  descrizione                    String?
+  codiceCausale                  String?
+  contoIva                       String?
+  contoIvaVendite                String?
+  dataFine                       String?
+  dataInizio                     String?
+  descrizioneDocumento           String?
+  fatturaEmessaRegCorrispettivi  String?
+  fatturaImporto0                String?
+  fatturaValutaEstera            String?
+  generazioneAutofattura         String?
+  gestioneIntrastat              String?
+  gestionePartite                String?
+  gestioneRitenuteEnasarco       String?
+  identificativoEsteroClifor     String?
+  ivaEsigibilitaDifferita        String?
+  movimentoRegIvaNonRilevante    String?
+  nonConsiderareLiquidazioneIva  String?
+  nonStampareRegCronologico      String?
+  noteMovimento                  String?
+  scritturaRettificaAssestamento String?
+  segnoMovimentoIva              String?
+  tipoAggiornamento              String?
+  tipoAutofatturaGenerata        String?
+  tipoMovimento                  String?
+  tipoMovimentoSemplificata      String?
+  tipoRegistroIva                String?
+  versamentoRitenute             String?
+
+  @@map("staging_causali_contabili")
+}
+
+model StagingCondizionePagamento {
+  id                       String  @id @default(cuid())
+  descrizione              String?
+  calcolaGiorniCommerciali String?
+  codicePagamento          String?
+  consideraPeriodiChiusura String?
+  contoIncassoPagamento    String?
+  inizioScadenza           String?
+  numeroRate               String?
+  suddivisione             String?
+
+  @@map("staging_condizioni_pagamento")
+}
+
+model StagingAnagrafica {
+  id                       String  @id @default(cuid())
+  aliquota                 String?
+  attivitaMensilizzazione  String?
+  cap                      String?
+  codiceIncassoCliente     String?
+  codiceIncassoPagamento   String?
+  codiceIso                String?
+  codicePagamentoFornitore String?
+  codiceRitenuta           String?
+  codiceValuta             String?
+  cognome                  String?
+  comuneNascita            String?
+  comuneResidenza          String?
+  contributoPrevid335      String?
+  contributoPrevidenziale  String?
+  dataNascita              String?
+  enasarco                 String?
+  gestioneDati770          String?
+  idFiscaleEstero          String?
+  indirizzo                String?
+  nome                     String?
+  numeroTelefono           String?
+  percContributoCassa      String?
+  prefissoTelefono         String?
+  quadro770                String?
+  sesso                    String?
+  soggettoARitenuta        String?
+  soggettoInail            String?
+  tipoRitenuta             String?
+  codiceAnagrafica         String?
+  codiceFiscaleAzienda     String?
+  codiceFiscaleClifor      String?
+  codiceUnivoco            String?
+  denominazione            String?
+  partitaIva               String?
+  sottocontoCliente        String?
+  sottocontoFornitore      String?
+  subcodiceAzienda         String?
+  subcodiceClifor          String?
+  tipoConto                String?
+  tipoSoggetto             String?
+
+  @@map("staging_anagrafiche")
+}
+
 model Cliente {
   id                       String          @id @default(cuid())
   externalId               String?         @unique
@@ -123,6 +539,7 @@ model VoceAnalitica {
   nome               String               @unique
   descrizione        String?
   tipo               String
+  isAttiva           Boolean              @default(true)
   allocazioni        Allocazione[]
   budgetItems        BudgetVoce[]
   regoleRipartizione RegolaRipartizione[]
@@ -209,6 +626,8 @@ model Commessa {
   dataFine           DateTime?
   dataInizio         DateTime?
   stato              String?
+  priorita           String?              @default("media")
+  isAttiva           Boolean              @default(true)
   parentId           String?
   allocazioni        Allocazione[]
   budget             BudgetVoce[]
@@ -541,282 +960,6 @@ model ImportScritturaRigaIva {
   testata                   ImportScritturaTestata @relation(fields: [codiceUnivocoScaricamento], references: [codiceUnivocoScaricamento], onDelete: Cascade)
 
   @@unique([codiceUnivocoScaricamento, riga])
-}
-
-model StagingConto {
-  id                               String   @id @default(cuid())
-  codice                           String?
-  codiceFiscaleAzienda             String?
-  descrizione                      String?
-  descrizioneLocale                String?
-  sigla                            String?
-  livello                          String?
-  tipo                             String?
-  gruppo                           String?
-  naturaConto                      String?
-  controlloSegno                   String?
-  validoImpresaOrdinaria           String?
-  validoImpresaSemplificata        String?
-  validoProfessionistaOrdinario    String?
-  validoProfessionistaSemplificato String?
-  validoUnicoPf                    String?
-  validoUnicoSp                    String?
-  validoUnicoSc                    String?
-  validoUnicoEnc                   String?
-  codiceClasseIrpefIres            String?
-  codiceClasseIrap                 String?
-  codiceClasseProfessionista       String?
-  codiceClasseIrapProfessionista   String?
-  codiceClasseIva                  String?
-  codiceClasseDatiStudiSettore     String?
-  contoDareCee                     String?
-  contoAvereCee                    String?
-  contoCostiRicaviCollegato        String?
-  gestioneBeniAmmortizzabili       String?
-  percDeduzioneManutenzione        String?
-  dettaglioClienteFornitore        String?
-  numeroColonnaRegCronologico      String?
-  numeroColonnaRegIncassiPag       String?
-  descrizioneBilancioDare          String?
-  descrizioneBilancioAvere         String?
-  subcodiceAzienda                 String?
-  utilizzaDescrizioneLocale        String?
-  consideraNelBilancioSemplificato String?
-  tabellaItalstudio                String?
-  sourceFileName                   String?
-  importedAt                       DateTime @default(now())
-
-  @@unique([codice, codiceFiscaleAzienda])
-  @@map("staging_conti")
-}
-
-model StagingTestata {
-  id                            String                 @id @default(cuid())
-  importJobId                   String
-  codiceUnivocoScaricamento     String                 @unique
-  esercizio                     String
-  codiceAzienda                 String
-  codiceCausale                 String
-  descrizioneCausale            String
-  dataRegistrazione             String?
-  tipoRegistroIva               String?
-  clienteFornitoreCodiceFiscale String?
-  clienteFornitoreSigla         String?
-  dataDocumento                 String?
-  numeroDocumento               String?
-  totaleDocumento               String?
-  noteMovimento                 String?
-  dataRegistroIva               String?
-  dataCompetenzaLiquidIva       String?
-  dataCompetenzaContabile       String?
-  dataPlafond                   String?
-  annoProRata                   String?
-  ritenute                      String?
-  esigibilitaIva                String?
-  protocolloRegistroIva         String?
-  flagQuadrSchedaContabile      String?
-  flagStampaRegIva              String?
-  createdAt                     DateTime               @default(now())
-  updatedAt                     DateTime               @updatedAt
-  righe                         StagingRigaContabile[]
-
-  @@map("staging_testate")
-}
-
-model StagingRigaContabile {
-  id                            String         @id @default(cuid())
-  codiceUnivocoScaricamento     String
-  tipoConto                     String
-  clienteFornitoreCodiceFiscale String
-  clienteFornitoreSubcodice     String
-  clienteFornitoreSigla         String
-  conto                         String
-  importoDare                   String
-  importoAvere                  String
-  note                          String
-  insDatiCompetenzaContabile    String
-  externalId                    String
-  progressivoRigo               String
-  createdAt                     DateTime       @default(now())
-  dataFineCompetenza            String
-  dataFineCompetenzaAnalit      String
-  dataInizioCompetenza          String
-  dataInizioCompetenzaAnalit    String
-  dataRegistrazioneApertura     String
-  updatedAt                     DateTime       @updatedAt
-  testata                       StagingTestata @relation(fields: [codiceUnivocoScaricamento], references: [codiceUnivocoScaricamento], onDelete: Cascade)
-
-  @@map("staging_righe_contabili")
-}
-
-model StagingRigaIva {
-  id                        String   @id @default(cuid())
-  codiceUnivocoScaricamento String
-  rigaIdentifier            String   @unique
-  codiceIva                 String
-  contropartita             String
-  imponibile                String
-  imposta                   String
-  impostaNonConsiderata     String
-  importoLordo              String
-  note                      String
-  siglaContropartita        String?
-  riga                      String
-  createdAt                 DateTime @default(now())
-  importJobId               String
-  updatedAt                 DateTime @updatedAt
-
-  @@map("staging_righe_iva")
-}
-
-model StagingAllocazione {
-  id                        String  @id @default(cuid())
-  codiceUnivocoScaricamento String?
-  progressivoNumeroRigoCont String?
-  allocazioneIdentifier     String? @unique
-  centroDiCosto             String?
-  parametro                 String?
-  externalId                String?
-  progressivoRigoContabile  String?
-
-  @@map("staging_allocazioni")
-}
-
-model StagingCodiceIva {
-  id                             String  @id @default(cuid())
-  codice                         String?
-  descrizione                    String?
-  aliquota                       String?
-  ventilazione                   String?
-  validitaInizio                 String?
-  validitaFine                   String?
-  indetraibilita                 String?
-  note                           String?
-  tipoCalcolo                    String?
-  acqOperazImponibiliOccasionali String?
-  acquistiCessioni               String?
-  acquistiIntracomunitari        String?
-  agevolazioniSubforniture       String?
-  aliquotaDiversa                String?
-  analiticoBeniAmmortizzabili    String?
-  autofatturaReverseCharge       String?
-  beniAmmortizzabili             String?
-  cesArt38QuaterStornoIva        String?
-  cessioneProdottiEditoriali     String?
-  comunicazioneDatiIvaAcquisti   String?
-  comunicazioneDatiIvaVendite    String?
-  gestioneProRata                String?
-  imponibile50Corrispettivi      String?
-  imposteIntrattenimenti         String?
-  indicatoreTerritorialeAcquisti String?
-  indicatoreTerritorialeVendite  String?
-  metodoDaApplicare              String?
-  monteAcquisti                  String?
-  noVolumeAffariPlafond          String?
-  operazioneEsenteOccasionale    String?
-  percDetrarreExport             String?
-  percentualeCompensazione       String?
-  percentualeForfetaria          String?
-  plafondAcquisti                String?
-  plafondVendite                 String?
-  provvigioniDm34099             String?
-  quotaForfetaria                String?
-
-  @@map("staging_codici_iva")
-}
-
-model StagingCausaleContabile {
-  id                             String  @id @default(cuid())
-  descrizione                    String?
-  codiceCausale                  String?
-  contoIva                       String?
-  contoIvaVendite                String?
-  dataFine                       String?
-  dataInizio                     String?
-  descrizioneDocumento           String?
-  fatturaEmessaRegCorrispettivi  String?
-  fatturaImporto0                String?
-  fatturaValutaEstera            String?
-  generazioneAutofattura         String?
-  gestioneIntrastat              String?
-  gestionePartite                String?
-  gestioneRitenuteEnasarco       String?
-  identificativoEsteroClifor     String?
-  ivaEsigibilitaDifferita        String?
-  movimentoRegIvaNonRilevante    String?
-  nonConsiderareLiquidazioneIva  String?
-  nonStampareRegCronologico      String?
-  noteMovimento                  String?
-  scritturaRettificaAssestamento String?
-  segnoMovimentoIva              String?
-  tipoAggiornamento              String?
-  tipoAutofatturaGenerata        String?
-  tipoMovimento                  String?
-  tipoMovimentoSemplificata      String?
-  tipoRegistroIva                String?
-  versamentoRitenute             String?
-
-  @@map("staging_causali_contabili")
-}
-
-model StagingCondizionePagamento {
-  id                       String  @id @default(cuid())
-  descrizione              String?
-  calcolaGiorniCommerciali String?
-  codicePagamento          String?
-  consideraPeriodiChiusura String?
-  contoIncassoPagamento    String?
-  inizioScadenza           String?
-  numeroRate               String?
-  suddivisione             String?
-
-  @@map("staging_condizioni_pagamento")
-}
-
-model StagingAnagrafica {
-  id                       String  @id @default(cuid())
-  aliquota                 String?
-  attivitaMensilizzazione  String?
-  cap                      String?
-  codiceIncassoCliente     String?
-  codiceIncassoPagamento   String?
-  codiceIso                String?
-  codicePagamentoFornitore String?
-  codiceRitenuta           String?
-  codiceValuta             String?
-  cognome                  String?
-  comuneNascita            String?
-  comuneResidenza          String?
-  contributoPrevid335      String?
-  contributoPrevidenziale  String?
-  dataNascita              String?
-  enasarco                 String?
-  gestioneDati770          String?
-  idFiscaleEstero          String?
-  indirizzo                String?
-  nome                     String?
-  numeroTelefono           String?
-  percContributoCassa      String?
-  prefissoTelefono         String?
-  quadro770                String?
-  sesso                    String?
-  soggettoARitenuta        String?
-  soggettoInail            String?
-  tipoRitenuta             String?
-  codiceAnagrafica         String?
-  codiceFiscaleAzienda     String?
-  codiceFiscaleClifor      String?
-  codiceUnivoco            String?
-  denominazione            String?
-  partitaIva               String?
-  sottocontoCliente        String?
-  sottocontoFornitore      String?
-  subcodiceAzienda         String?
-  subcodiceClifor          String?
-  tipoConto                String?
-  tipoSoggetto             String?
-
-  @@map("staging_anagrafiche")
 }
 
 enum TipoMovimentoAnalitico {

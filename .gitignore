@@ -35,3 +35,8 @@ server/**/*.cjs
 *.cjs
 
 .docs/messages
+
+# TypeScript build info
+*.tsbuildinfo
+
+server/scripts/

@@ -6,7 +6,8 @@ import {
   Building2, 
   Database, 
   Target, 
-  Settings 
+  Settings,
+  TestTube
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -18,9 +19,10 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { title: "Dashboard", url: "/new/dashboard", icon: Home },
+  { title: "Commesse", url: "/new/commesse", icon: Building2 },
   { title: "Import Dati", url: "/new/import", icon: Upload },
   { title: "Staging", url: "/new/staging", icon: Layers },
-  { title: "Commesse", url: "/new/commesse", icon: Building2 },
+  { title: "Staging Analysis", url: "/new/staging-analysis", icon: TestTube },
   { title: "Database", url: "/new/database", icon: Database },
   { title: "Riconciliazione", url: "/new/riconciliazione", icon: Target },
   { title: "Impostazioni", url: "/new/settings", icon: Settings },

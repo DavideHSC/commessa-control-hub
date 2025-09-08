@@ -1,14 +1,22 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Filter, Download } from 'lucide-react';
+import { Plus, Search, Filter, Download, Building2, ChevronRight, Eye, Edit, Trash2 } from 'lucide-react';
 import { Button } from '../new_components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../new_components/ui/Card';
 import { Input } from '../new_components/ui/Input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../new_components/ui/Select';
-import { UnifiedTable } from '../new_components/tables/UnifiedTable';
+import { Badge } from '../new_components/ui/Badge';
+import { Progress } from '../new_components/ui/Progress';
+import { 
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '../components/ui/accordion';
 import { CommessaForm } from '../new_components/forms/CommessaForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../new_components/ui/Dialog';
 import { useCommessaContext } from '../new_context/CommessaContext';
+import { prepareCommessaForForm } from '../utils/commessaFormUtils';
 
 interface Cliente {
   id: string;
@@ -28,9 +36,12 @@ interface Commessa {
   margine: number;
   percentualeAvanzamento: number;
   stato: string;
+  priorita: string;
   dataInizio: string;
   dataFine?: string;
   isAttiva: boolean;
+  figlie?: Commessa[]; // 🔧 AGGIUNTO: Support per gerarchia
+  parentId?: string;   // 🔧 AGGIUNTO: Parent reference
 }
 
 interface CommesseStats {
@@ -62,22 +73,30 @@ export const NewCommesse = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch commesse
+        // Fetch commesse con gerarchia (Commesse principali + Sub-commesse)
         const commesseResponse = await fetch('/api/commesse-performance');
         let commesseData: Commessa[] = [];
         if (commesseResponse.ok) {
           const result = await commesseResponse.json();
-          // Handle both array and object with commesse property
-          if (Array.isArray(result)) {
-            commesseData = result;
-          } else if (result.commesse && Array.isArray(result.commesse)) {
-            commesseData = result.commesse;
+          // 🔧 MANTENGO STRUTTURA GERARCHICA: commesse padre con figlie annidate
+          if (result.commesse && Array.isArray(result.commesse)) {
+            // Applico updates dal context mantenendo la gerarchia
+            const updatedCommesseData = result.commesse.map((padre: Commessa) => {
+              const updatedPadre = getCommessa(padre.id, padre);
+              
+              // Aggiorna anche le figlie se esistono
+              if (padre.figlie && Array.isArray(padre.figlie)) {
+                updatedPadre.figlie = padre.figlie.map((figlia: Commessa) => 
+                  getCommessa(figlia.id, figlia)
+                );
+              }
+              
+              return updatedPadre;
+            });
+            
+            commesseData = updatedCommesseData;
           }
-          // Apply any updates from context
-          const updatedCommesseData = commesseData.map((commessa: Commessa) => 
-            getCommessa(commessa.id, commessa)
-          );
-          setCommesse(updatedCommesseData);
+          setCommesse(commesseData);
         }
 
         // Fetch clienti for filters and forms
@@ -87,12 +106,12 @@ export const NewCommesse = () => {
           setClienti(Array.isArray(clientiData) ? clientiData : clientiData.data || []);
         }
 
-        // Calculate stats
+        // Calculate stats (solo commesse padre - i totali sono già consolidati)
         const statsData: CommesseStats = {
-          totale: commesseData.length,
+          totale: commesseData.length, // Solo mastri (padre)
           attive: commesseData.filter((c: Commessa) => c.stato === 'In Corso').length,
           completate: commesseData.filter((c: Commessa) => c.stato === 'Completata').length,
-          budgetTotale: commesseData.reduce((acc: number, c: Commessa) => acc + (c.budget || 0), 0),
+          budgetTotale: commesseData.reduce((acc: number, c: Commessa) => acc + (c.budget || 0), 0), // Budget consolidati
         };
         setStats(statsData);
       } catch (error) {
@@ -157,87 +176,7 @@ export const NewCommesse = () => {
     }
   }, []);
 
-  // Table columns configuration
-  const commesseColumns = useMemo(() => [
-    { 
-      key: 'nome' as const, 
-      label: 'Nome Commessa', 
-      sortable: true,
-      render: (nome: unknown, row: unknown) => {
-        const commessa = row as Commessa;
-        return (
-          <div>
-            <div className="font-medium">{nome as string}</div>
-            {commessa.descrizione && (
-              <div className="text-sm text-gray-500 truncate max-w-xs">
-                {commessa.descrizione}
-              </div>
-            )}
-          </div>
-        );
-      }
-    },
-    { 
-      key: 'cliente' as const, 
-      label: 'Cliente',
-      render: (cliente: unknown) => (cliente as { nome: string } | null)?.nome || 'N/A'
-    },
-    { 
-      key: 'stato' as const, 
-      label: 'Stato',
-      render: (stato: unknown) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          stato === 'In Corso' ? 'bg-blue-100 text-blue-800' :
-          stato === 'Completata' ? 'bg-green-100 text-green-800' :
-          stato === 'In Pausa' ? 'bg-yellow-100 text-yellow-800' :
-          'bg-gray-100 text-gray-800'
-        }`}>
-          {stato as string}
-        </span>
-      ),
-      sortable: true,
-    },
-    { 
-      key: 'budget' as const, 
-      label: 'Budget',
-      render: (budget: unknown) => formatCurrency(budget as number),
-      sortable: true,
-    },
-    { 
-      key: 'costi' as const, 
-      label: 'Costi',
-      render: (costi: unknown) => formatCurrency(costi as number),
-      sortable: true,
-    },
-    { 
-      key: 'margine' as const, 
-      label: 'Margine',
-      render: (margine: unknown) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-          typeof margine === 'number' && margine >= 20 
-            ? 'bg-green-100 text-green-800' 
-            : typeof margine === 'number' && margine >= 10
-            ? 'bg-yellow-100 text-yellow-800'
-            : 'bg-red-100 text-red-800'
-        }`}>
-          {formatPercentage(margine as number)}
-        </span>
-      ),
-      sortable: true,
-    },
-    { 
-      key: 'percentualeAvanzamento' as const, 
-      label: 'Avanzamento',
-      render: (perc: unknown) => formatPercentage(perc as number),
-      sortable: true,
-    },
-    { 
-      key: 'dataInizio' as const, 
-      label: 'Data Inizio',
-      render: (data: unknown) => formatDate(data as string),
-      sortable: true,
-    },
-  ], [formatCurrency, formatPercentage, formatDate]);
+  // 🔧 NOTA: Rimosso commesseColumns - ora usiamo accordion al posto di UnifiedTable
 
   // Client options for forms and filters
   const clientiOptions = useMemo(() => 
@@ -270,49 +209,66 @@ export const NewCommesse = () => {
     }
   }, []);
 
-  // Handle commessa edit (temporary frontend-only simulation until backend supports PUT)
+  // Handle commessa edit with real API call
   const handleEditCommessa = useCallback(async (data: Record<string, unknown>) => {
     if (!selectedCommessa) return;
     
     try {
-      // Update context with changes (persists across navigation)
-      const updates: any = {
-        ...data,
-        // Ensure dates are properly formatted
-        dataInizio: data.dataInizio ? new Date(data.dataInizio as string).toISOString() : selectedCommessa.dataInizio,
-        dataFine: data.dataFine ? new Date(data.dataFine as string).toISOString() : selectedCommessa.dataFine,
-      };
-
-      // If clienteId changed, update the nested cliente object
-      if (data.clienteId && data.clienteId !== selectedCommessa.clienteId) {
-        const selectedCliente = clienti.find(c => c.id === data.clienteId);
-        if (selectedCliente) {
-          updates.cliente = {
-            nome: selectedCliente.nome,
-            codice: selectedCliente.codice
-          };
+      // Define valid Commessa fields that can be updated
+      const validFields = [
+        'nome', 'descrizione', 'clienteId', 'stato', 'priorita', 'isAttiva', 'parentId', 'externalId'
+      ];
+      
+      // Filter data to only include valid Commessa fields
+      const filteredData: Record<string, unknown> = {};
+      validFields.forEach(field => {
+        if (data[field] !== undefined) {
+          filteredData[field] = data[field];
         }
+      });
+      
+      // Handle dates separately with proper formatting
+      if (data.dataInizio) {
+        filteredData.dataInizio = new Date(data.dataInizio as string).toISOString();
+      }
+      if (data.dataFine) {
+        filteredData.dataFine = new Date(data.dataFine as string).toISOString();
       }
       
-      updateCommessa(selectedCommessa.id, updates);
+      console.log('Sending filtered data to API:', filteredData);
+
+      // Make PUT request to backend with filtered data
+      const response = await fetch(`/api/commesse/${selectedCommessa.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(filteredData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const updatedCommessa = await response.json();
+
+      // Update context with changes (persists across navigation)
+      updateCommessa(selectedCommessa.id, updatedCommessa);
       
-      // Update local state with new data
-      const updatedCommessa = {
-        ...selectedCommessa,
-        ...updates,
-        updatedAt: new Date().toISOString()
-      };
-      
-      // Update in the commesse array
-      setCommesse(prev => prev.map(c => c.id === selectedCommessa.id ? updatedCommessa as Commessa : c));
+      // Refresh the commesse list to get updated data
+      const commesseResponse = await fetch('/api/commesse-performance');
+      if (commesseResponse.ok) {
+        const commesseResult = await commesseResponse.json();
+        setCommesse(Array.isArray(commesseResult) ? commesseResult : commesseResult.commesse || []);
+      }
+
       setIsEditDialogOpen(false);
       setSelectedCommessa(null);
       
     } catch (error) {
       console.error('Error editing commessa:', error);
-      alert(`Errore nella simulazione: ${error instanceof Error ? error.message : 'Errore sconosciuto'}`);
+      alert(`Errore nel salvataggio: ${error instanceof Error ? error.message : 'Errore sconosciuto'}`);
     }
-  }, [selectedCommessa, updateCommessa, clienti]);
+  }, [selectedCommessa, updateCommessa]);
 
   // Handle table actions
   const handleView = useCallback((commessa: Commessa) => {
@@ -484,31 +440,176 @@ export const NewCommesse = () => {
         </CardContent>
       </Card>
 
-      {/* Commesse Table */}
+      {/* Commesse Gerarchia */}
       <Card>
         <CardHeader>
-          <CardTitle>Lista Commesse</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Building2 className="h-5 w-5 text-blue-600" />
+            Lista Commesse
+          </CardTitle>
           <p className="text-sm text-gray-500">
-            {filteredCommesse.length} commesse trovate
+            {filteredCommesse.length} commesse principali trovate
           </p>
         </CardHeader>
         <CardContent>
-          <UnifiedTable
-            data={filteredCommesse as unknown as Record<string, unknown>[]}
-            columns={commesseColumns}
-            onView={(row) => handleView(row as unknown as Commessa)}
-            onEdit={(row) => handleEdit(row as unknown as Commessa)}
-            onDelete={(id) => handleDelete({id} as unknown as Commessa)}
-            loading={loading}
-            searchable={false} // Search is handled by external filters
-            paginated={filteredCommesse.length > 20}
-            emptyMessage="Nessuna commessa trovata con i filtri selezionati"
-            showActions={true}
-            rowClassName={(row) => {
-              const commessa = row as unknown as Commessa;
-              return !commessa.isAttiva ? 'opacity-60' : '';
-            }}
-          />
+          {filteredCommesse.length === 0 ? (
+            <div className="text-center py-12">
+              <Building2 className="h-16 w-16 mx-auto text-gray-300 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Nessuna commessa trovata</h3>
+              <p className="text-gray-500">Crea una nuova commessa o modifica i filtri di ricerca.</p>
+            </div>
+          ) : (
+            <Accordion type="multiple" className="w-full space-y-4">
+              {filteredCommesse.map((commessa) => (
+                <AccordionItem 
+                  key={commessa.id} 
+                  value={commessa.id} 
+                  className="bg-gray-50 rounded-lg border border-gray-200"
+                >
+                  <AccordionTrigger className="hover:no-underline px-6 py-4">
+                    <div className="flex items-center justify-between w-full pr-4">
+                      {/* 🏛️ COMMESSA PRINCIPALE */}
+                      <div className="flex items-center gap-4">
+                        <Building2 className="h-6 w-6 text-blue-600" />
+                        <div className="text-left">
+                          <div className="font-semibold text-lg">{commessa.nome}</div>
+                          <div className="text-sm text-gray-600">{commessa.cliente?.nome}</div>
+                        </div>
+                      </div>
+
+                      {/* KPI Consolidati */}
+                      <div className="flex items-center gap-6">
+                        {/* Budget */}
+                        <div className="text-center">
+                          <div className="font-medium text-blue-600">
+                            €{commessa.budget.toLocaleString('it-IT')}
+                          </div>
+                          <div className="text-xs text-gray-500">Budget</div>
+                        </div>
+
+                        {/* Margine */}
+                        <div className="text-center">
+                          <Badge variant={commessa.margine > 15 ? 'default' : commessa.margine > 5 ? 'secondary' : 'destructive'}>
+                            {commessa.margine.toFixed(1)}%
+                          </Badge>
+                          <div className="text-xs text-gray-500">Margine</div>
+                        </div>
+
+                        {/* Avanzamento */}
+                        <div className="text-center min-w-[100px]">
+                          <Progress value={commessa.percentualeAvanzamento} className="h-2 mb-1" />
+                          <div className="text-xs text-gray-600">{commessa.percentualeAvanzamento.toFixed(0)}%</div>
+                        </div>
+
+                        {/* Sub-commesse */}
+                        <div className="text-center">
+                          <div className="font-medium text-green-600">
+                            {commessa.figlie?.length || 0}
+                          </div>
+                          <div className="text-xs text-gray-500">Sub-commesse</div>
+                        </div>
+
+                        {/* Azioni */}
+                        <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                          <div
+                            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 px-3 cursor-pointer"
+                            onClick={() => handleView(commessa)}
+                            title="Visualizza dettagli"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </div>
+                          <div
+                            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 px-3 cursor-pointer"
+                            onClick={() => handleEdit(commessa)}
+                            title="Modifica"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </div>
+                          <div
+                            className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 px-3 cursor-pointer text-red-600 hover:text-red-700"
+                            onClick={() => handleDelete(commessa)}
+                            title="Elimina"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+
+                  <AccordionContent className="px-6 pb-4">
+                    {commessa.figlie && commessa.figlie.length > 0 ? (
+                      <div className="bg-white rounded-lg border border-gray-100 mt-2">
+                        <div className="p-4">
+                          <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                            <ChevronRight className="h-4 w-4" />
+                            Sub-commesse ({commessa.figlie.length})
+                          </h4>
+                          <div className="space-y-2">
+                            {commessa.figlie.map((subCommessa) => (
+                              <div 
+                                key={subCommessa.id}
+                                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="w-4 h-4 border-l-2 border-b-2 border-gray-300 ml-2"></div>
+                                  <div>
+                                    <div className="font-medium">{subCommessa.nome}</div>
+                                    <div className="text-sm text-gray-600">{subCommessa.descrizione}</div>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-4">
+                                  {/* Budget Sottoconto */}
+                                  <div className="text-center">
+                                    <div className="text-sm font-medium text-blue-600">
+                                      €{sottoconto.budget.toLocaleString('it-IT')}
+                                    </div>
+                                    <div className="text-xs text-gray-500">Budget</div>
+                                  </div>
+
+                                  {/* Stato */}
+                                  <Badge variant="outline" className="text-xs">
+                                    {sottoconto.stato}
+                                  </Badge>
+
+                                  {/* Azioni Sottoconto */}
+                                  <div className="flex gap-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleView(sottoconto)}
+                                      title="Visualizza dettagli"
+                                    >
+                                      <Eye className="h-3 w-3" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleEdit(sottoconto)}
+                                      title="Modifica"
+                                    >
+                                      <Edit className="h-3 w-3" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-center py-6 text-gray-500">
+                        <ChevronRight className="h-8 w-8 mx-auto mb-2 text-gray-300" />
+                        <p>Nessun sottoconto analitico configurato</p>
+                        <p className="text-sm">Tutti i movimenti saranno associati direttamente al mastro</p>
+                      </div>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          )}
         </CardContent>
       </Card>
 
@@ -520,7 +621,7 @@ export const NewCommesse = () => {
           </DialogHeader>
           {selectedCommessa && (
             <CommessaForm
-              commessa={selectedCommessa as unknown as Record<string, unknown>}
+              commessa={prepareCommessaForForm(selectedCommessa)}
               onSubmit={handleEditCommessa}
               onCancel={() => {
                 setIsEditDialogOpen(false);

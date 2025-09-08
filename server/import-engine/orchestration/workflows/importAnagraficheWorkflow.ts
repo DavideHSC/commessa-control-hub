@@ -6,8 +6,8 @@
  * Pattern: Parser Type-Safe → Zod Validation → Pure Transform → Atomic DB
  */
 
-import { parseFixedWidth } from '../../acquisition/parsers/typeSafeFixedWidthParser';
-import { rawAnagraficaSchema, RawAnagrafica } from '../../acquisition/validators/anagraficaValidator';
+import { parseFixedWidth } from '../../acquisition/parsers/typeSafeFixedWidthParser.js';
+import { rawAnagraficaSchema, RawAnagrafica } from '../../acquisition/validators/anagraficaValidator.js';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
