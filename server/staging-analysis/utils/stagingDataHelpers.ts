@@ -3,6 +3,7 @@
 
 /**
  * Converte stringa importo italiana (con virgola) in numero
+ * @deprecated Use parseGestionaleCurrency for Contabilità Evolution files
  */
 export function parseItalianCurrency(value: string): number {
   if (!value || value.trim() === '') return 0;
@@ -13,6 +14,17 @@ export function parseItalianCurrency(value: string): number {
     .replace(',', '.'); // Sostituisce virgola con punto
   
   const parsed = parseFloat(cleanValue);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
+/**
+ * Converte stringa importo da formato gestionale (Contabilità Evolution) in numero
+ * Il gestionale usa formato americano: punto come separatore decimale
+ * Esempi: "36.60" = 36.60€, "1300" = 1300.00€
+ */
+export function parseGestionaleCurrency(value: string): number {
+  if (!value || value.trim() === '') return 0;
+  const parsed = parseFloat(value.trim()); // Punto già corretto per gestionale
   return isNaN(parsed) ? 0 : parsed;
 }
 

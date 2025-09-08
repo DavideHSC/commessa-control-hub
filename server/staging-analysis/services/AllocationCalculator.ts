@@ -1,7 +1,8 @@
 import { PrismaClient } from '@prisma/client';
-import { AllocationStatusData, VirtualMovimento, AllocationStatus } from '../types/virtualEntities.js';
-import { parseItalianCurrency, calculateAllocationStatus, getTipoMovimento } from '../utils/stagingDataHelpers.js';
+import { AllocationStatusData, VirtualMovimento, AllocationStatus, AllocationSuggestion } from '../types/virtualEntities.js';
+import { parseGestionaleCurrency, calculateAllocationStatus, getTipoMovimento } from '../utils/stagingDataHelpers.js';
 import { RigheAggregator } from './RigheAggregator.js';
+import { MovimentClassifier } from '../utils/movimentClassifier.js';
 
 export class AllocationCalculator {
   private prisma: PrismaClient;
@@ -208,8 +209,8 @@ export class AllocationCalculator {
 
       const righeBreakdown = righeContabili.map(riga => {
         try {
-          const importoDare = parseItalianCurrency(riga.importoDare);
-          const importoAvere = parseItalianCurrency(riga.importoAvere);
+          const importoDare = parseGestionaleCurrency(riga.importoDare);
+          const importoAvere = parseGestionaleCurrency(riga.importoAvere);
           const importoRiga = Math.max(importoDare, importoAvere);
           
           // Conta allocazioni per questa riga
@@ -265,6 +266,160 @@ export class AllocationCalculator {
     } catch (error) {
       console.error('❌ Error calculating scrittura allocation details:', error);
       return null;
+    }
+  }
+
+  /**
+   * Genera suggerimenti automatici di allocazione per le righe non allocate
+   * Utilizza il pattern recognition del MovimentClassifier
+   */
+  async generateAutoAllocationSuggestions(): Promise<{
+    totalSuggerimenti: number;
+    suggerimentiPerConfidenza: {
+      alta: AllocationSuggestion[];
+      media: AllocationSuggestion[];
+      bassa: AllocationSuggestion[];
+    };
+    righeProcessate: number;
+    risparmioTempoStimato: number; // in minuti
+  }> {
+    const startTime = Date.now();
+
+    try {
+      // 1. Ottieni scritture aggregate con classificazione intelligente
+      const aggregator = new RigheAggregator();
+      const aggregationData = await aggregator.aggregateRighe();
+      
+      const suggerimentiTotali: AllocationSuggestion[] = [];
+      let righeProcessate = 0;
+
+      // 2. Processa ogni scrittura per generare suggerimenti
+      for (const scrittura of aggregationData.scritture) {
+        if (!scrittura.isAllocabile) continue;
+
+        // Aggiungi i suggerimenti già calcolati dal RigheAggregator
+        if (scrittura.suggerimentiAllocazione) {
+          suggerimentiTotali.push(...scrittura.suggerimentiAllocazione);
+        }
+
+        righeProcessate++;
+      }
+
+      // 3. Classifica per confidenza
+      const suggerimentiPerConfidenza = {
+        alta: suggerimentiTotali.filter(s => s.confidenza >= 70),
+        media: suggerimentiTotali.filter(s => s.confidenza >= 40 && s.confidenza < 70),
+        bassa: suggerimentiTotali.filter(s => s.confidenza < 40)
+      };
+
+      // 4. Stima risparmio tempo (assumendo 2 min per riga manuale vs 30 sec per suggerimento)
+      const risparmioTempoStimato = Math.round((suggerimentiPerConfidenza.alta.length * 1.5 + 
+                                               suggerimentiPerConfidenza.media.length * 1) / 60 * 100) / 100;
+
+      const processingTime = Date.now() - startTime;
+      console.log(`✅ AllocationCalculator: Generated ${suggerimentiTotali.length} suggestions in ${processingTime}ms`);
+
+      return {
+        totalSuggerimenti: suggerimentiTotali.length,
+        suggerimentiPerConfidenza,
+        righeProcessate,
+        risparmioTempoStimato
+      };
+
+    } catch (error) {
+      console.error('❌ Error generating auto allocation suggestions:', error);
+      throw error;
+    } finally {
+      await this.prisma.$disconnect();
+    }
+  }
+
+  /**
+   * Applica suggerimenti automatici selezionati (simulazione senza persistenza)
+   * Crea allocazioni virtuali per il test del workflow
+   */
+  async applyAllocationSuggestions(suggestionIds: string[], minConfidenza: number = 70): Promise<{
+    applicati: number;
+    errori: number;
+    allocazioniVirtuali: Array<{
+      codiceUnivocoScaricamento: string;
+      rigaProgressivo: string;
+      voceAnalitica: string;
+      importo: number;
+      confidenza: number;
+      status: 'success' | 'warning' | 'error';
+      messaggio: string;
+    }>;
+  }> {
+    const startTime = Date.now();
+
+    try {
+      // 1. Ottieni suggerimenti da applicare
+      const suggerimentiData = await this.generateAutoAllocationSuggestions();
+      const tuttiSuggerimenti = [
+        ...suggerimentiData.suggerimentiPerConfidenza.alta,
+        ...suggerimentiData.suggerimentiPerConfidenza.media,
+        ...suggerimentiData.suggerimentiPerConfidenza.bassa
+      ];
+
+      // 2. Filtra per confidenza minima
+      const suggerimentiDaApplicare = tuttiSuggerimenti.filter(s => s.confidenza >= minConfidenza);
+
+      let applicati = 0;
+      let errori = 0;
+      const allocazioniVirtuali = [];
+
+      // 3. Simula l'applicazione dei suggerimenti
+      for (const sugg of suggerimentiDaApplicare) {
+        try {
+          // Qui in un sistema reale si creerebbe l'allocazione nel database
+          // Per ora creiamo solo un'allocazione virtuale di test
+          
+          let status: 'success' | 'warning' | 'error' = 'success';
+          let messaggio = 'Allocazione creata con successo';
+
+          // Validazioni business simulate
+          if (sugg.importoSuggerito <= 0) {
+            status = 'error';
+            messaggio = 'Importo non valido';
+            errori++;
+          } else if (sugg.confidenza < 80) {
+            status = 'warning';
+            messaggio = 'Suggerimento a confidenza media - richiede verifica';
+          }
+
+          if (status !== 'error') {
+            applicati++;
+          }
+
+          allocazioniVirtuali.push({
+            codiceUnivocoScaricamento: '', // Sarà popolato dal codice della scrittura
+            rigaProgressivo: sugg.rigaProgressivo,
+            voceAnalitica: sugg.voceAnalitica,
+            importo: sugg.importoSuggerito,
+            confidenza: sugg.confidenza,
+            status,
+            messaggio
+          });
+
+        } catch (error) {
+          errori++;
+          console.error(`❌ Error applying suggestion:`, error);
+        }
+      }
+
+      const processingTime = Date.now() - startTime;
+      console.log(`✅ AllocationCalculator: Applied ${applicati} suggestions (${errori} errors) in ${processingTime}ms`);
+
+      return {
+        applicati,
+        errori,
+        allocazioniVirtuali
+      };
+
+    } catch (error) {
+      console.error('❌ Error applying allocation suggestions:', error);
+      throw error;
     }
   }
 }

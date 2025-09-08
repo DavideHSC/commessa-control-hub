@@ -55,7 +55,9 @@ async function generateTypes() {
     content += `}\n\n`;
   }
 
-  // MODIFICA: Utilizzo di __dirname (CommonJS) invece di import.meta.url (ESM)
+  // Utilizzo di import.meta.url per ESM
+  const __filename = new URL(import.meta.url).pathname;
+  const __dirname = path.dirname(__filename);
   const outputPath = path.resolve(__dirname, '../../core/types/generated.ts');
   
   console.log(`✍️  Scrittura dei tipi nel file: ${outputPath}`);

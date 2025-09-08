@@ -9,6 +9,7 @@ import { useImportCondizioniPagamento } from '../new_hooks/useImportCondizioniPa
 import { useImportCodiciIva } from '../new_hooks/useImportCodiciIva';
 import { useImportCausaliContabili } from '../new_hooks/useImportCausaliContabili';
 import { useImportAnagrafiche } from '../new_hooks/useImportAnagrafiche';
+import { useImportCentriCosto } from '../new_hooks/useImportCentriCosto';
 
 // Componenti UI
 import { Button } from '../new_components/ui/Button';
@@ -35,6 +36,7 @@ const IMPORT_TYPES = [
   { value: 'codici-iva', label: 'Codici IVA (CODICIVA)', disabled: false },
   { value: 'causali-contabili', label: 'Causali Contabili (CAUSALI)', disabled: false },
   { value: 'anagrafiche', label: 'Anagrafiche Clienti/Fornitori (A_CLIFOR)', disabled: false },
+  { value: 'centri-costo', label: 'Centri di Costo (ANAGRACC)', disabled: false },
 ];
 
 // Componente Principale
@@ -46,6 +48,7 @@ export const NewImport = () => {
   const codiciIvaWorkflow = useImportCodiciIva();
   const causaliContabiliWorkflow = useImportCausaliContabili();
   const anagraficheWorkflow = useImportAnagrafiche();
+  const centriCostoWorkflow = useImportCentriCosto();
   
   const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
   const [selectedType, setSelectedType] = useState<string>('scritture');
@@ -58,9 +61,10 @@ export const NewImport = () => {
       case 'codici-iva': return codiciIvaWorkflow;
       case 'causali-contabili': return causaliContabiliWorkflow;
       case 'anagrafiche': return anagraficheWorkflow;
+      case 'centri-costo': return centriCostoWorkflow;
       default: return scrittureWorkflow;
     }
-  }, [selectedType, scrittureWorkflow, pianoContiWorkflow, condizioniPagamentoWorkflow, codiciIvaWorkflow, causaliContabiliWorkflow, anagraficheWorkflow]);
+  }, [selectedType, scrittureWorkflow, pianoContiWorkflow, condizioniPagamentoWorkflow, codiciIvaWorkflow, causaliContabiliWorkflow, anagraficheWorkflow, centriCostoWorkflow]);
 
   const handleFilesSelected = (files: File[]) => {
     // Solo le scritture contabili accettano file multipli, tutti gli altri solo un file
@@ -135,6 +139,15 @@ export const NewImport = () => {
           return;
         }
         anagraficheWorkflow.startImport(filesToUpload[0]);
+        break;
+
+      case 'centri-costo':
+        // Logica per centri di costo (singolo file ANAGRACC.TXT)
+        if (filesToUpload.length !== 1) {
+          alert('Seleziona esattamente un file per i Centri di Costo');
+          return;
+        }
+        centriCostoWorkflow.startImport(filesToUpload[0]);
         break;
 
       default:

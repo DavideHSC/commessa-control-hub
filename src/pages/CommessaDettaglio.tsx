@@ -122,7 +122,7 @@ const CommessaDettaglio = () => {
 
     const movimentiData = movimentiAllocati.reduce((acc, movimento) => {
       const mese = new Date(movimento.dataRegistrazione).toLocaleDateString('it-IT', { month: 'short' });
-      const existing = acc.find(item => item.mese === mese);
+      const existing = acc.find((item: { mese: string; importo: number }) => item.mese === mese);
       if (existing) {
         existing.importo += (movimento.dare || movimento.avere || 0);
       } else {

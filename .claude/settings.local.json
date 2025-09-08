@@ -7,7 +7,10 @@
       "Bash(mkdir:*)",
       "Bash(npm test:*)",
       "Bash(npm run lint)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npx prisma db seed:*)"
     ],
     "deny": [],
     "ask": []

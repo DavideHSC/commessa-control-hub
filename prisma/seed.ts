@@ -147,7 +147,7 @@ async function main() {
   });
   console.log('Voci Analitiche di base create.');
 
-  // 5. Budget Realistici per Commesse (Logica Mastri/Sottoconti)
+  // 5. Budget Realistici per Commesse
   console.log('Creazione Budget per Commesse...');
   
   // Prima elimina budget esistenti per ricreazione pulita
@@ -234,7 +234,7 @@ async function main() {
     ]
   });
   
-  console.log('Budget per Commesse creati (Logica Mastri/Sottoconti).');
+  console.log('Budget per Commesse creati.');
 
 
   // 6. Template di Importazione (essenziali per funzionamento) - UPSERT
@@ -544,27 +544,18 @@ async function main() {
     { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'note', start: 83, length: 60, end: 142 },
     { fileIdentifier: 'PNRIGCON.TXT', fieldName: 'movimentiAnalitici', start: 248, length: 1, end: 248 },
 
-    // PNRIGIVA.TXT - POSIZIONI CORRETTE (1-based) - Formato Vecchio
-    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'externalId', start: 4, length: 12, end: 15 },
-    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'riga', start: 16, length: 3, end: 18, format: 'number' },
-    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'codiceIva', start: 19, length: 4, end: 22 },
-    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'contropartita', start: 23, length: 10, end: 32 },
-    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'imponibile', start: 33, length: 12, end: 44, format: 'number' },
-    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'imposta', start: 45, length: 12, end: 56, format: 'number' },
+    // PNRIGIVA.TXT - POSIZIONI CORRETTE (1-based) secondo tracciato ufficiale
+    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'codiceUnivocoScaricamento', start: 4, length: 12, end: 15 },
+    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'codiceIva', start: 16, length: 4, end: 19 },
+    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'contropartita', start: 20, length: 10, end: 29 },
+    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'imponibile', start: 30, length: 12, end: 41, format: 'number' },
+    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'imposta', start: 42, length: 12, end: 53, format: 'number' },
+    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'impostaIntrattenimenti', start: 54, length: 12, end: 65, format: 'number' },
+    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'imponibile50CorrNonCons', start: 66, length: 12, end: 77, format: 'number' },
+    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'impostaNonConsiderata', start: 78, length: 12, end: 89, format: 'number' },
     { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'importoLordo', start: 90, length: 12, end: 101, format: 'number' },
     { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'note', start: 102, length: 60, end: 161 },
-
-    // PNRIGIVA_NUOVO - POSIZIONI CORRETTE (1-based) - Formato Nuovo
-    { fileIdentifier: 'PNRIGIVA_NUOVO', fieldName: 'externalId', start: 4, length: 12, end: 15 },
-    { fileIdentifier: 'PNRIGIVA_NUOVO', fieldName: 'riga', start: 16, length: 3, end: 18, format: 'number' },
-    { fileIdentifier: 'PNRIGIVA_NUOVO', fieldName: 'codiceIva', start: 19, length: 4, end: 22 },
-    { fileIdentifier: 'PNRIGIVA_NUOVO', fieldName: 'contropartita', start: 23, length: 10, end: 32 },
-    { fileIdentifier: 'PNRIGIVA_NUOVO', fieldName: 'imponibile', start: 33, length: 12, end: 44, format: 'number' },
-    { fileIdentifier: 'PNRIGIVA_NUOVO', fieldName: 'imposta', start: 45, length: 12, end: 56, format: 'number' },
-    { fileIdentifier: 'PNRIGIVA_NUOVO', fieldName: 'importoLordo', start: 90, length: 12, end: 101, format: 'number' },
-    { fileIdentifier: 'PNRIGIVA_NUOVO', fieldName: 'note', start: 102, length: 60, end: 161 },
-    // Campi aggiuntivi del formato nuovo (assumo posizioni dopo il campo note)
-    { fileIdentifier: 'PNRIGIVA_NUOVO', fieldName: 'campoAggiuntivo1', start: 162, length: 10, end: 171 },
+    { fileIdentifier: 'PNRIGIVA.TXT', fieldName: 'siglaContropartita', start: 162, length: 12, end: 173 },
 
     // MOVANAC.TXT - POSIZIONI CORRETTE (1-based)
     { fileIdentifier: 'MOVANAC.TXT', fieldName: 'externalId', start: 4, length: 12, end: 15 },
@@ -659,6 +650,41 @@ async function main() {
           { fieldName: 'aliquota', start: 325, length: 6, end: 330, format: 'percentage' },
           { fieldName: 'percContributoCassa', start: 331, length: 6, end: 336, format: 'percentage' },
           { fieldName: 'attivitaMensilizzazione', start: 337, length: 2, end: 338 }
+        ]
+      },
+    },
+  });
+
+  // Template Centri di Costo (ANAGRACC.TXT) - Prima elimina quello esistente
+  const existingCentriCostoTemplate = await prisma.importTemplate.findUnique({
+    where: { name: 'centri_costo' },
+    include: { fieldDefinitions: true }
+  });
+
+  if (existingCentriCostoTemplate) {
+    await prisma.fieldDefinition.deleteMany({
+      where: { templateId: existingCentriCostoTemplate.id }
+    });
+    await prisma.importTemplate.delete({
+      where: { id: existingCentriCostoTemplate.id }
+    });
+  }
+
+  await prisma.importTemplate.create({
+    data: {
+      name: 'centri_costo',
+      modelName: 'StagingCentroCosto',
+      fieldDefinitions: {
+        create: [
+          // Layout basato su ANAGRACC.md - 156 bytes + CRLF (158 bytes totali)
+          // Posizioni 1-based come da tracciato ufficiale - filler (pos. 1-3) ignorato
+          { fieldName: 'codiceFiscaleAzienda', start: 4, length: 16, end: 19 },
+          { fieldName: 'subcodeAzienda', start: 20, length: 1, end: 20 },
+          { fieldName: 'codice', start: 21, length: 4, end: 24 },
+          { fieldName: 'descrizione', start: 25, length: 40, end: 64 },
+          { fieldName: 'responsabile', start: 65, length: 40, end: 104 },
+          { fieldName: 'livello', start: 105, length: 2, end: 106, format: 'number' },
+          { fieldName: 'note', start: 107, length: 50, end: 156 }
         ]
       },
     },

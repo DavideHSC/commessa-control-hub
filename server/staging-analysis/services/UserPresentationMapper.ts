@@ -74,7 +74,7 @@ export class UserPresentationMapper {
     try {
       causali = await this.prisma.causaleContabile.findMany({
         select: {
-          codice: true,
+          externalId: true,
           descrizione: true,
           nome: true
         }
@@ -84,14 +84,14 @@ export class UserPresentationMapper {
       causali = [];
     }
 
-    const causaliMap = new Map(causali.map(c => [c.codice, c]));
+    const causaliMap = new Map(causali.map(c => [c.externalId, c]));
 
     // Carica codici IVA per informazioni sulle aliquote
     let codiciIva = [];
     try {
       codiciIva = await this.prisma.codiceIva.findMany({
         select: {
-          codice: true,
+          externalId: true,
           descrizione: true,
           aliquota: true
         }
@@ -101,7 +101,7 @@ export class UserPresentationMapper {
       codiciIva = [];
     }
 
-    const codiciIvaMap = new Map(codiciIva.map(c => [c.codice, c]));
+    const codiciIvaMap = new Map(codiciIva.map(c => [c.externalId, c]));
 
     // Arricchisce ogni movimento
     return movimenti.map(movimento => {

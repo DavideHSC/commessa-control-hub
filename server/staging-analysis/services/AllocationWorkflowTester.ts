@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { AllocationWorkflowTest, AllocationWorkflowResult, VirtualAllocazione, ValidationResult } from '../types/virtualEntities.js';
-import { parseItalianCurrency, isValidAllocationData } from '../utils/stagingDataHelpers.js';
+import { parseGestionaleCurrency, isValidAllocationData } from '../utils/stagingDataHelpers.js';
 
 export class AllocationWorkflowTester {
   private prisma: PrismaClient;
@@ -208,8 +208,8 @@ export class AllocationWorkflowTester {
 
     if (!riga) return null;
 
-    const importoDare = parseItalianCurrency(riga.importoDare);
-    const importoAvere = parseItalianCurrency(riga.importoAvere);
+    const importoDare = parseGestionaleCurrency(riga.importoDare);
+    const importoAvere = parseGestionaleCurrency(riga.importoAvere);
     const importoTotale = Math.max(importoDare, importoAvere);
 
     return {

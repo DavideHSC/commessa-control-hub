@@ -301,7 +301,7 @@ export const NewDatabase = () => {
       return [
         {
           key: 'nome' as const,
-          label: 'Nome Commessa',
+          header: 'Nome Commessa',
           render: (value: unknown) => (
             <span className="font-medium text-gray-900 whitespace-normal break-words">
               {String(value || '-')}
@@ -310,7 +310,7 @@ export const NewDatabase = () => {
         },
         {
           key: 'descrizione' as const,
-          label: 'Descrizione',
+          header: 'Descrizione',
           render: (value: unknown) => {
             const str = String(value || '-');
             return (
@@ -323,7 +323,7 @@ export const NewDatabase = () => {
 
         {
           key: 'stato' as const,
-          label: 'Stato',
+          header: 'Stato',
           render: (value: unknown) => {
             const stato = String(value || '-');
             const colorClass = stato === 'In Corso' ? 'bg-green-100 text-green-800' : 
@@ -338,7 +338,7 @@ export const NewDatabase = () => {
         },
         {
           key: 'priorita' as const,
-          label: 'Priorità',
+          header: 'Priorità',
           render: (value: unknown) => {
             const priorita = String(value || '-');
             const colorClass = priorita === 'alta' ? 'bg-red-100 text-red-800' : 
@@ -354,7 +354,7 @@ export const NewDatabase = () => {
         },
         {
           key: 'dataInizio' as const,
-          label: 'Data Inizio',
+          header: 'Data Inizio',
           render: (value: unknown) => {
             if (!value) return '-';
             try {
@@ -368,7 +368,7 @@ export const NewDatabase = () => {
         },
         {
           key: 'isAttiva' as const,
-          label: 'Attiva',
+          header: 'Attiva',
           render: (value: unknown) => (
             <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${
               value === true ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -379,7 +379,7 @@ export const NewDatabase = () => {
         },
         {
           key: 'cliente' as const,
-          label: 'Cliente',
+          header: 'Cliente',
           render: (value: unknown) => {
             if (typeof value === 'object' && value !== null && 'nome' in value) {
               return (
@@ -393,7 +393,7 @@ export const NewDatabase = () => {
         },
         {
           key: 'budget' as const,
-          label: 'Budget',
+          header: 'Budget',
           render: (value: unknown) => {
             if (Array.isArray(value)) {
               const count = value.length;
@@ -409,7 +409,7 @@ export const NewDatabase = () => {
         },
         {
           key: 'children' as const,
-          label: 'Sotto-commesse',
+          header: 'Sotto-commesse',
           render: (value: unknown) => {
             if (Array.isArray(value)) {
               const count = value.length;
@@ -461,7 +461,7 @@ export const NewDatabase = () => {
     // Add ID column for other tables
     columns.push({
       key: 'id' as const,
-      label: 'ID',
+      header: 'ID',
       render: (id: unknown) => (
         <code className="text-xs bg-gray-100 px-2 py-1 rounded">
           {String(id).substring(0, 8)}...

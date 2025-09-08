@@ -6,7 +6,8 @@ import { useTable } from '../../new_hooks/useTable';
 
 interface Column<T> {
   key: keyof T;
-  label: string;
+  header: string;
+  label?: string; // Deprecated, use header instead
   render?: (value: unknown, row: T) => React.ReactNode;
   sortable?: boolean;
   width?: string;
@@ -30,6 +31,7 @@ interface UnifiedTableProps<T = Record<string, unknown>> {
   editIcon?: any;
   showDelete?: boolean;
   showView?: boolean;
+  expandedContent?: (row: T) => React.ReactNode;
 }
 
 interface TableRowProps<T> {
@@ -45,6 +47,8 @@ interface TableRowProps<T> {
   editIcon?: any;
   showDelete?: boolean;
   showView?: boolean;
+  expandedContent?: (row: T) => React.ReactNode;
+  totalColumns: number;
 }
 
 const TableRow = <T extends Record<string, unknown>>({
@@ -60,6 +64,8 @@ const TableRow = <T extends Record<string, unknown>>({
   editIcon,
   showDelete = true,
   showView = true,
+  expandedContent,
+  totalColumns,
 }: TableRowProps<T>) => {
   const handleDelete = () => {
     const id = row.id as string;
@@ -69,52 +75,61 @@ const TableRow = <T extends Record<string, unknown>>({
   };
 
   return (
-    <tr className={`hover:bg-gray-50 transition-colors ${rowClassName ? rowClassName(row) : ''}`}>
-      {columns.map((column) => {
-        const value = row[column.key];
-        return (
-          <td key={String(column.key)} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-            {column.render ? column.render(value, row) : String(value || '')}
+    <React.Fragment>
+      <tr className={`hover:bg-gray-50 transition-colors ${rowClassName ? rowClassName(row) : ''}`}>
+        {columns.map((column) => {
+          const value = row[column.key];
+          return (
+            <td key={String(column.key)} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" style={{ width: column.width }}>
+              {column.render ? column.render(value, row) : String(value || '')}
+            </td>
+          );
+        })}
+        {showActions && (
+          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+            {customActions && customActions(row)}
+            {onView && showView && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onView(row)}
+                className="text-indigo-600 hover:text-indigo-900"
+              >
+                Visualizza
+              </Button>
+            )}
+            {onEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onEdit(row)}
+                className="text-green-600 hover:text-green-900"
+              >
+                {editIcon && React.createElement(editIcon, { className: "h-4 w-4 mr-1" })}
+                {editLabel}
+              </Button>
+            )}
+            {onDelete && showDelete && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDelete}
+                className="text-red-600 hover:text-red-900"
+              >
+                Elimina
+              </Button>
+            )}
           </td>
-        );
-      })}
-      {showActions && (
-        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-          {customActions && customActions(row)}
-          {onView && showView && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onView(row)}
-              className="text-indigo-600 hover:text-indigo-900"
-            >
-              Visualizza
-            </Button>
-          )}
-          {onEdit && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onEdit(row)}
-              className="text-green-600 hover:text-green-900"
-            >
-              {editIcon && React.createElement(editIcon, { className: "h-4 w-4 mr-1" })}
-              {editLabel}
-            </Button>
-          )}
-          {onDelete && showDelete && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleDelete}
-              className="text-red-600 hover:text-red-900"
-            >
-              Elimina
-            </Button>
-          )}
-        </td>
+        )}
+      </tr>
+      {expandedContent && (
+        <tr>
+          <td colSpan={totalColumns} className="p-0">
+            {expandedContent(row)}
+          </td>
+        </tr>
       )}
-    </tr>
+    </React.Fragment>
   );
 };
 
@@ -248,6 +263,7 @@ export const UnifiedTable = <T extends Record<string, unknown>>({
   editIcon,
   showDelete = true,
   showView = true,
+  expandedContent,
 }: UnifiedTableProps<T>) => {
   const {
     searchTerm,
@@ -303,7 +319,7 @@ export const UnifiedTable = <T extends Record<string, unknown>>({
                   onClick={() => column.sortable && handleSort(column.key)}
                 >
                   <div className="flex items-center space-x-1">
-                    <span>{column.label}</span>
+                    <span>{column.header || column.label}</span>
                     {column.sortable && sortConfig.key === column.key && (
                       <span className="text-indigo-600">
                         {sortConfig.direction === 'asc' ? '↑' : '↓'}
@@ -340,6 +356,8 @@ export const UnifiedTable = <T extends Record<string, unknown>>({
                   editIcon={editIcon}
                   showDelete={showDelete}
                   showView={showView}
+                  expandedContent={expandedContent}
+                  totalColumns={totalColumns}
                 />
               ))
             )}

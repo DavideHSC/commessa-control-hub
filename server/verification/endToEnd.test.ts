@@ -168,8 +168,6 @@ describe('End-to-End Workflow Test - Staging to Production', () => {
     await prisma.stagingRigaIva.create({
       data: {
         codiceUnivocoScaricamento: 'MOV001',
-        rigaIdentifier: 'MOV001-1',
-        riga: '1',
         codiceIva: 'IVA22',
         contropartita: '2601',
         imponibile: '1000,00',
@@ -189,10 +187,7 @@ describe('End-to-End Workflow Test - Staging to Production', () => {
         codiceUnivocoScaricamento: 'MOV001',
         progressivoRigoContabile: '1',
         centroDiCosto: 'COMM001',
-        parametro: 'RICAVI_VENDITA',
-        allocazioneIdentifier: 'MOV001-1-1',
-        externalId: 'MOV001',
-        progressivoNumeroRigoCont: '1'
+        parametro: 'RICAVI_VENDITA'
       }
     });
 

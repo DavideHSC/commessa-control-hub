@@ -197,8 +197,6 @@ model StagingRigaIva {
   id                        String   @id @default(cuid())
   /// Chiave esterna per collegare la riga alla sua testata
   codiceUnivocoScaricamento String
-  /// Identificatore univoco della riga, calcolato come {codiceUnivoco}-{progressivo}
-  rigaIdentifier            String   @unique
   /// Codice IVA di riferimento
   codiceIva                 String
   /// Conto di contropartita IVA
@@ -207,6 +205,10 @@ model StagingRigaIva {
   imponibile                String
   /// Importo dell'imposta
   imposta                   String
+  /// Imposta relativa a spese di intrattenimento
+  impostaIntrattenimenti    String?
+  /// Imponibile al 50% per corrispettivi non considerati
+  imponibile50CorrNonCons   String?
   /// Imposta non considerata per calcoli specifici
   impostaNonConsiderata     String
   /// Totale lordo della riga IVA
@@ -215,28 +217,21 @@ model StagingRigaIva {
   note                      String
   /// Sigla della contropartita, alternativa al campo 'contropartita'
   siglaContropartita        String?
-  /// Progressivo numerico della riga IVA all'interno della registrazione
-  riga                      String
-  /// Imposta relativa a spese di intrattenimento
-  impostaIntrattenimenti      String?
-  /// Imponibile al 50% per corrispettivi non considerati
-  imponibile50CorrNonCons     String?  
   createdAt                 DateTime @default(now())
   updatedAt                 DateTime @updatedAt
 
+  @@unique([codiceUnivocoScaricamento, codiceIva, contropartita])
   @@map("staging_righe_iva")
 }
 
 model StagingAllocazione {
   id                        String  @id @default(cuid())
   codiceUnivocoScaricamento String?
-  progressivoNumeroRigoCont String?
-  allocazioneIdentifier     String? @unique
+  progressivoRigoContabile  String?
   centroDiCosto             String?
   parametro                 String?
-  externalId                String?
-  progressivoRigoContabile  String?
 
+  @@unique([codiceUnivocoScaricamento, progressivoRigoContabile, centroDiCosto])
   @@map("staging_allocazioni")
 }
 
@@ -421,6 +416,31 @@ model StagingAnagrafica {
   tipoSoggetto             String?
 
   @@map("staging_anagrafiche")
+}
+
+model StagingCentroCosto {
+  id                       String   @id @default(cuid())
+  /// Codice fiscale azienda (posizione 4-19)
+  codiceFiscaleAzienda     String?
+  /// Subcodice azienda (posizione 20)
+  subcodeAzienda           String?
+  /// Codice centro di costo - chiave primaria (posizione 21-24)
+  codice                   String?
+  /// Descrizione centro di costo (posizione 25-64)
+  descrizione              String?
+  /// Responsabile del centro di costo (posizione 65-104)
+  responsabile             String?
+  /// Livello gerarchico numerico (posizione 105-106)
+  livello                  String?
+  /// Note aggiuntive (posizione 107-156)
+  note                     String?
+  /// Timestamp importazione
+  importedAt               DateTime @default(now())
+  /// ID del job di import (per tracking)
+  importJobId              String?
+
+  @@unique([codiceFiscaleAzienda, subcodeAzienda, codice])
+  @@map("staging_centri_costo")
 }
 
 model Cliente {

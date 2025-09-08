@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prototipo Evoluto - Gestione Movimenti Contabili</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        background-color: #f8fafc;
+      }
+      .total-row td {
+        font-weight: bold;
+        border-top-width: 2px;
+      }
+      .table-section-header {
+        border-bottom: 2px solid #e5e7eb;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+      }
+      #lista-movimenti tbody tr.selected-row {
+        background-color: #e0f2fe;
+      }
+    </style>
+  </head>
+  <body class="p-4 sm:p-6 md:p-8">
+    <div class="container mx-auto">
+      <!-- L'HTML della UI rimane invariato: Header, Filtri, Tabella... -->
+      <header class="mb-6">
+        <h1 class="text-3xl font-bold text-slate-800">Prima Nota Contabile</h1>
+        <p class="text-slate-500">
+          Elenco e dettaglio dei movimenti registrati.
+        </p>
+      </header>
+
+      <section
+        id="filtri"
+        class="p-4 bg-white rounded-lg shadow-sm mb-6 border border-slate-200"
+      >
+        <h2 class="text-lg font-semibold text-slate-700 mb-3">
+          Filtri e Ricerca
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <div>
+            <label
+              for="data-da"
+              class="block text-sm font-medium text-slate-600"
+              >Data Da</label
+            >
+            <input
+              type="date"
+              id="data-da"
+              class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm"
+            />
+          </div>
+          <div>
+            <label for="data-a" class="block text-sm font-medium text-slate-600"
+              >Data A</label
+            >
+            <input
+              type="date"
+              id="data-a"
+              class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm"
+            />
+          </div>
+          <div>
+            <label
+              for="soggetto"
+              class="block text-sm font-medium text-slate-600"
+              >Cliente/Fornitore</label
+            >
+            <input
+              type="text"
+              id="soggetto"
+              placeholder="Cerca soggetto..."
+              class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm"
+            />
+          </div>
+          <div>
+            <label for="stato" class="block text-sm font-medium text-slate-600"
+              >Stato</label
+            >
+            <select
+              id="stato"
+              class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm"
+            >
+              <option>Tutti</option>
+              <option value="D">Definitiva</option>
+              <option value="P">Provvisoria</option>
+              <option value="V">Da Verificare</option>
+            </select>
+          </div>
+          <div class="self-end">
+            <button
+              id="apply-filters-btn"
+              class="w-full bg-sky-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
+            >
+              Applica
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="lista"
+        class="bg-white rounded-lg shadow-md border border-slate-200 overflow-hidden"
+      >
+        <div class="p-4 border-b border-slate-200">
+          <h2 class="text-xl font-semibold text-slate-700">Elenco Movimenti</h2>
+        </div>
+        <div class="overflow-x-auto">
+          <table
+            id="lista-movimenti"
+            class="w-full text-sm text-left text-slate-600"
+          >
+            <thead class="text-xs text-slate-700 uppercase bg-slate-100">
+              <tr>
+                <th scope="col" class="px-6 py-3">Data Reg.</th>
+                <th scope="col" class="px-6 py-3">Protocollo</th>
+                <th scope="col" class="px-6 py-3">Documento</th>
+                <th scope="col" class="px-6 py-3">Causale</th>
+                <th scope="col" class="px-6 py-3">Soggetto</th>
+                <th scope="col" class="px-6 py-3 text-right">Totale Doc.</th>
+                <th scope="col" class="px-6 py-3 text-center">Stato</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Righe popolate da JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section
+        id="dettaglio-movimento"
+        class="hidden mt-8 bg-white rounded-lg shadow-lg border border-slate-200 overflow-hidden"
+      >
+        <!-- Dettaglio popolato da JS -->
+      </section>
+      <div
+        id="dettaglio-placeholder"
+        class="mt-8 p-10 text-center text-slate-500 bg-white rounded-lg border-2 border-dashed border-slate-300"
+      >
+        <p>
+          Seleziona un movimento dalla tabella per visualizzarne il dettaglio.
+        </p>
+      </div>
+    </div>
+
+    <script>
+      // ==========================================================================================
+      // SCRIPT APPLICAZIONE
+      // ==========================================================================================
+
+      // --- 1. STATO DELL'APPLICAZIONE ---
+      // Contiene tutti i dati necessari per il rendering della pagina.
+      // Le funzioni di rendering leggeranno sempre da qui.
+      let appState = {
+        movimenti: [],
+        anagrafiche: {},
+      };
+
+      // --- 2. SEZIONE DI INTERAZIONE CON IL BACKEND (DA SOSTITUIRE) ---
+      // Queste funzioni simulano le chiamate API. Vanno sostituite con le chiamate reali.
+
+      /**
+       * AI: SOSTITUIRE QUESTA FUNZIONE.
+       * Deve eseguire una chiamata API al backend per recuperare la lista dei movimenti contabili.
+       * Può accettare dei filtri come parametri.
+       * Deve restituire un array di oggetti, dove ogni oggetto rappresenta un movimento completo
+       * (con testata, righeContabili, righeIva).
+       */
+      async function fetchMovimenti(filters = {}) {
+        console.log(
+          "Simulazione chiamata API per recuperare i movimenti con filtri:",
+          filters
+        );
+        // Simula un ritardo di rete
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // Dati Mock (gli stessi di prima)
+        const mockData = [
+          {
+            testata: {
+              codiceFiscaleAzienda: "01234567890",
+              codiceUnivoco: "MOV20231115A",
+              codiceCausale: "FA01",
+              descrizioneCausale: "Fattura di Acquisto",
+              dataRegistrazione: "20231115",
+              protocolloNumero: "1254",
+              protocolloBis: "",
+              documentoNumero: "F-123",
+              documentoBis: "A",
+              documentoData: "20231115",
+              cliForSigla: "FORNITORE SPA",
+              totaleDocumento: 1220.0,
+              stato: "D",
+              noteMovimento:
+                "Acquisto materie prime per commessa Y presso Fornitore SPA.",
+            },
+            righeContabili: [
+              {
+                progressivoRigo: 1,
+                conto: "601001",
+                importoDare: 1000.0,
+                importoAvere: 0,
+                flagAnalitica: "1",
+                movimentiAnalitici: [
+                  { centroDiCosto: "AMM", parametro: 400.0 },
+                  { centroDiCosto: "PROD", parametro: 600.0 },
+                ],
+              },
+              {
+                progressivoRigo: 2,
+                conto: "450010",
+                importoDare: 220.0,
+                importoAvere: 0,
+                flagAnalitica: "0",
+                movimentiAnalitici: [],
+              },
+              {
+                progressivoRigo: 3,
+                tipoConto: "F",
+                conto: "201001",
+                cliForSigla: "FORNITORE SPA",
+                importoDare: 0,
+                importoAvere: 1220.0,
+                flagAnalitica: "0",
+                movimentiAnalitici: [],
+              },
+            ],
+            righeIva: [
+              {
+                codiceIva: "22",
+                imponibile: 1000.0,
+                imposta: 220.0,
+                contropartita: "601001",
+              },
+            ],
+          },
+          {
+            testata: {
+              codiceFiscaleAzienda: "01234567890",
+              codiceUnivoco: "MOV20231116B",
+              codiceCausale: "FV01",
+              descrizioneCausale: "Fattura di Vendita",
+              dataRegistrazione: "20231116",
+              protocolloNumero: "350",
+              protocolloBis: "",
+              documentoNumero: "V-350",
+              documentoBis: "",
+              documentoData: "20231116",
+              cliForSigla: "CLIENTE SRL",
+              totaleDocumento: 244.0,
+              stato: "P",
+              noteMovimento: "Vendita prodotti finiti.",
+            },
+            righeContabili: [
+              {
+                progressivoRigo: 1,
+                tipoConto: "C",
+                conto: "101001",
+                cliForSigla: "CLIENTE SRL",
+                importoDare: 244.0,
+                importoAvere: 0,
+                flagAnalitica: "0",
+                movimentiAnalitici: [],
+              },
+              {
+                progressivoRigo: 2,
+                conto: "701001",
+                importoDare: 0,
+                importoAvere: 200.0,
+                flagAnalitica: "0",
+                movimentiAnalitici: [],
+              },
+              {
+                progressivoRigo: 3,
+                conto: "450020",
+                importoDare: 0,
+                importoAvere: 44.0,
+                flagAnalitica: "0",
+                movimentiAnalitici: [],
+              },
+            ],
+            righeIva: [
+              {
+                codiceIva: "22",
+                imponibile: 200.0,
+                imposta: 44.0,
+                contropartita: "701001",
+              },
+            ],
+          },
+          {
+            testata: {
+              codiceFiscaleAzienda: "01234567890",
+              codiceUnivoco: "MOV20231117C",
+              codiceCausale: "PG01",
+              descrizioneCausale: "Pagamento Fornitore",
+              dataRegistrazione: "20231117",
+              protocolloNumero: null,
+              protocolloBis: null,
+              documentoNumero: "Bonifico 17/11",
+              documentoBis: "",
+              documentoData: "20231117",
+              cliForSigla: "FORNITORE SPA",
+              totaleDocumento: 1220.0,
+              stato: "D",
+              noteMovimento: "Saldo fattura F-123/A",
+            },
+            righeContabili: [
+              {
+                progressivoRigo: 1,
+                tipoConto: "F",
+                conto: "201001",
+                cliForSigla: "FORNITORE SPA",
+                importoDare: 1220.0,
+                importoAvere: 0,
+                flagAnalitica: "0",
+                movimentiAnalitici: [],
+              },
+              {
+                progressivoRigo: 2,
+                conto: "301001",
+                importoDare: 0,
+                importoAvere: 1220.0,
+                flagAnalitica: "0",
+                movimentiAnalitici: [],
+              },
+            ],
+            righeIva: [],
+          },
+        ];
+        return mockData;
+      }
+
+      /**
+       * AI: SOSTITUIRE QUESTA FUNZIONE.
+       * Deve eseguire una chiamata API per recuperare le anagrafiche necessarie (es. Piano dei Conti,
+       * Codici IVA, etc.) per "tradurre" i codici in descrizioni leggibili.
+       * Deve restituire un oggetto strutturato.
+       */
+      async function fetchAnagrafiche() {
+        console.log("Simulazione chiamata API per recuperare le anagrafiche.");
+        await new Promise((resolve) => setTimeout(resolve, 200));
+
+        const mockAnagrafiche = {
+          pianoDeiConti: {
+            601001: "Costi materie prime",
+            450010: "IVA ns/Credito",
+            201001: "Fornitori c/acquisti",
+            701001: "Ricavi per vendite",
+            450020: "IVA ns/Debito",
+            101001: "Clienti c/vendite",
+            301001: "Banca c/c",
+          },
+          codiciIva: {
+            22: "Aliquota Ord. 22%",
+            10: "Aliquota Rid. 10%",
+            E01: "Esente Art. 10",
+          },
+          centriDiCosto: {
+            AMM: "Amministrazione",
+            PROD: "Produzione",
+            COMM: "Commerciale",
+          },
+          stati: {
+            D: { text: "Definitiva", class: "bg-green-100 text-green-800" },
+            P: { text: "Provvisoria", class: "bg-yellow-100 text-yellow-800" },
+            V: { text: "Da Verificare", class: "bg-red-100 text-red-800" },
+          },
+        };
+        return mockAnagrafiche;
+      }
+
+      // --- 3. FUNZIONI DI UTILITY (Generalmente stabili) ---
+      const formatCurrency = (value) =>
+        typeof value === "number"
+          ? value.toLocaleString("it-IT", {
+              style: "currency",
+              currency: "EUR",
+            })
+          : "";
+      const formatDate = (dateStr) =>
+        dateStr && dateStr.length === 8
+          ? `${dateStr.substring(0, 2)}/${dateStr.substring(
+              2,
+              4
+            )}/${dateStr.substring(4)}`
+          : "";
+      const getDescrizioneConto = (riga) => {
+        const descBase =
+          appState.anagrafiche.pianoDeiConti[riga.conto] || "Sconosciuto";
+        return riga.tipoConto === "C" || riga.tipoConto === "F"
+          ? `${descBase} - ${riga.cliForSigla}`
+          : descBase;
+      };
+
+      // --- 4. SEZIONE DI RENDERING (Logica di presentazione) ---
+      // Queste funzioni leggono da `appState` e aggiornano il DOM.
+
+      function renderListaMovimenti() {
+        const tbody = document.querySelector("#lista-movimenti tbody");
+        tbody.innerHTML = "";
+
+        if (appState.movimenti.length === 0) {
+          tbody.innerHTML =
+            '<tr><td colspan="7" class="text-center p-8 text-slate-500">Nessun movimento trovato.</td></tr>';
+          return;
+        }
+
+        appState.movimenti.forEach((mov) => {
+          const t = mov.testata;
+          const statoInfo = appState.anagrafiche.stati[t.stato];
+          const tr = document.createElement("tr");
+          tr.className = "bg-white border-b hover:bg-slate-50 cursor-pointer";
+          tr.dataset.movimentoId = t.codiceUnivoco;
+          tr.innerHTML = `
+            <td class="px-6 py-4">${formatDate(t.dataRegistrazione)}</td>
+            <td class="px-6 py-4 font-mono">${t.protocolloNumero || "N/A"}</td>
+            <td class="px-6 py-4">${t.documentoNumero} ${
+            t.documentoBis || ""
+          } del ${formatDate(t.documentoData)}</td>
+            <td class="px-6 py-4">${t.descrizioneCausale}</td>
+            <td class="px-6 py-4 font-semibold">${t.cliForSigla}</td>
+            <td class="px-6 py-4 text-right font-mono">${formatCurrency(
+              t.totaleDocumento
+            )}</td>
+            <td class="px-6 py-4 text-center"><span class="px-2 py-1 text-xs font-semibold rounded-full ${
+              statoInfo.class
+            }">${statoInfo.text}</span></td>
+        `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      function renderDettaglioMovimento(movimento) {
+        // La logica di rendering del dettaglio è complessa e rimane la stessa.
+        // L'unica differenza è che ora legge le anagrafiche da `appState`.
+        const dettaglioContainer = document.getElementById(
+          "dettaglio-movimento"
+        );
+        const { testata: t, righeContabili: rc, righeIva: ri } = movimento;
+        const hasAnalitica = rc.some(
+          (r) => r.flagAnalitica === "1" && r.movimentiAnalitici.length > 0
+        );
+
+        const renderRigheContabili = (righe) => {
+          /* ... logica identica a prima ... */
+          let totalDare = 0,
+            totalAvere = 0;
+          let rowsHtml = righe
+            .map((r) => {
+              totalDare += r.importoDare;
+              totalAvere += r.importoAvere;
+              return `<tr class="border-b border-slate-200"><td class="py-2 pr-2 font-mono">${
+                r.conto
+              }</td><td class="py-2 pr-2">${getDescrizioneConto(
+                r
+              )}</td><td class="py-2 pr-2 text-right font-mono">${
+                r.importoDare > 0 ? formatCurrency(r.importoDare) : ""
+              }</td><td class="py-2 pr-2 text-right font-mono">${
+                r.importoAvere > 0 ? formatCurrency(r.importoAvere) : ""
+              }</td></tr>`;
+            })
+            .join("");
+          return (
+            rowsHtml +
+            `<tr class="total-row text-slate-800"><td class="py-3" colspan="2">TOTALI</td><td class="py-3 text-right font-mono">${formatCurrency(
+              totalDare
+            )}</td><td class="py-3 text-right font-mono">${formatCurrency(
+              totalAvere
+            )}</td></tr>`
+          );
+        };
+        const renderRigheIva = (righe) => {
+          /* ... logica identica a prima ... */
+          let totalImponibile = 0,
+            totalImposta = 0;
+          let rowsHtml = righe
+            .map((r) => {
+              totalImponibile += r.imponibile;
+              totalImposta += r.imposta;
+              return `<tr class="border-b border-slate-200"><td class="py-2 pr-2 font-mono">${
+                r.codiceIva
+              }</td><td class="py-2 pr-2">${
+                appState.anagrafiche.codiciIva[r.codiceIva] || "Sconosciuto"
+              }</td><td class="py-2 pr-2 text-right font-mono">${formatCurrency(
+                r.imponibile
+              )}</td><td class="py-2 pr-2 text-right font-mono">${formatCurrency(
+                r.imposta
+              )}</td></tr>`;
+            })
+            .join("");
+          return (
+            rowsHtml +
+            `<tr class="total-row text-slate-800"><td class="py-3" colspan="2">TOTALI</td><td class="py-3 text-right font-mono">${formatCurrency(
+              totalImponibile
+            )}</td><td class="py-3 text-right font-mono">${formatCurrency(
+              totalImposta
+            )}</td></tr>`
+          );
+        };
+        const renderAnalitica = (righeContabili) => {
+          /* ... logica identica a prima ... */
+          let html = "";
+          righeContabili
+            .filter(
+              (r) => r.flagAnalitica === "1" && r.movimentiAnalitici.length > 0
+            )
+            .forEach((rigaContabile) => {
+              let totalParametro = 0;
+              let righeAnaliticaHtml = rigaContabile.movimentiAnalitici
+                .map((movAn) => {
+                  totalParametro += movAn.parametro;
+                  return `<tr class="border-b border-slate-200"><td class="py-2 pr-2 font-mono">${
+                    movAn.centroDiCosto
+                  }</td><td class="py-2 pr-2">${
+                    appState.anagrafiche.centriDiCosto[movAn.centroDiCosto] ||
+                    "Sconosciuto"
+                  }</td><td class="py-2 text-right font-mono">${formatCurrency(
+                    movAn.parametro
+                  )}</td></tr>`;
+                })
+                .join("");
+              html += `<div class="mt-4"><p class="text-sm text-slate-600 mb-2">Ripartizione per il conto: <strong class="text-slate-800">${
+                rigaContabile.conto
+              } - ${getDescrizioneConto(
+                rigaContabile
+              )}</strong></p><table class="w-full text-sm text-left"><thead class="text-xs text-slate-500 uppercase"><tr><th class="py-2">Centro di Costo</th><th class="py-2">Descrizione</th><th class="py-2 text-right">Importo di Competenza</th></tr></thead><tbody>${righeAnaliticaHtml}<tr class="total-row text-slate-800"><td class="py-3" colspan="2">TOTALE RIPARTITO</td><td class="py-3 text-right font-mono">${formatCurrency(
+                totalParametro
+              )}</td></tr></tbody></table></div>`;
+            });
+          return html;
+        };
+
+        dettaglioContainer.innerHTML = `
+        <div class="p-6 border-b border-slate-200 bg-slate-50">
+             <h2 class="text-2xl font-bold text-slate-800">Dettaglio Movimento: ${
+               t.descrizioneCausale
+             }</h2>
+             <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm"><div><span class="font-semibold text-slate-500 block">Soggetto</span><span class="text-slate-900">${
+               t.cliForSigla
+             }</span></div><div><span class="font-semibold text-slate-500 block">Documento</span><span class="text-slate-900">N. ${
+          t.documentoNumero
+        } ${t.documentoBis || ""} del ${formatDate(
+          t.documentoData
+        )}</span></div><div><span class="font-semibold text-slate-500 block">Data Registrazione</span><span class="text-slate-900">${formatDate(
+          t.dataRegistrazione
+        )}</span></div></div>
+             <div class="mt-4 text-sm"><span class="font-semibold text-slate-500 block">Note Movimento</span><p class="text-slate-700 italic">${
+               t.noteMovimento || "Nessuna nota."
+             }</p></div>
+        </div>
+        <div class="p-6">
+            <div id="sezione-scrittura"><h3 class="text-lg font-semibold text-slate-700 table-section-header">Scrittura Contabile (Partita Doppia)</h3><table class="w-full text-sm text-left"><thead class="text-xs text-slate-500 uppercase"><tr><th class="py-2">Conto</th><th class="py-2">Descrizione</th><th class="py-2 text-right">Dare</th><th class="py-2 text-right">Avere</th></tr></thead><tbody>${renderRigheContabili(
+              rc
+            )}</tbody></table></div>
+            ${
+              ri.length > 0
+                ? `<div id="sezione-iva" class="mt-8"><h3 class="text-lg font-semibold text-slate-700 table-section-header">Dettaglio IVA</h3><table class="w-full text-sm text-left"><thead class="text-xs text-slate-500 uppercase"><tr><th class="py-2">Codice IVA</th><th class="py-2">Descrizione</th><th class="py-2 text-right">Imponibile</th><th class="py-2 text-right">Imposta</th></tr></thead><tbody>${renderRigheIva(
+                    ri
+                  )}</tbody></table></div>`
+                : ""
+            }
+            ${
+              hasAnalitica
+                ? `<div id="sezione-analitica" class="mt-8"><h3 class="text-lg font-semibold text-slate-700 table-section-header">Contabilità Analitica (Centri di Costo)</h3>${renderAnalitica(
+                    rc
+                  )}</div>`
+                : ""
+            }
+        </div>`;
+
+        document
+          .getElementById("dettaglio-placeholder")
+          .classList.add("hidden");
+        dettaglioContainer.classList.remove("hidden");
+      }
+
+      // --- 5. GESTIONE DEGLI EVENTI E INIZIALIZZAZIONE ---
+
+      function handleRowClick(event) {
+        const clickedRow = event.target.closest("tr");
+        if (!clickedRow || !clickedRow.dataset.movimentoId) return;
+
+        document
+          .querySelectorAll("#lista-movimenti tbody tr.selected-row")
+          .forEach((row) => row.classList.remove("selected-row"));
+        clickedRow.classList.add("selected-row");
+
+        const movimentoId = clickedRow.dataset.movimentoId;
+        const movimentoSelezionato = appState.movimenti.find(
+          (m) => m.testata.codiceUnivoco === movimentoId
+        );
+
+        if (movimentoSelezionato) {
+          renderDettaglioMovimento(movimentoSelezionato);
+          document
+            .getElementById("dettaglio-movimento")
+            .scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }
+
+      function handleFilterClick() {
+        // AI: Qui andrà implementata la logica per ri-eseguire la fetch con i parametri dei filtri.
+        const filters = {
+          dataDa: document.getElementById("data-da").value,
+          dataA: document.getElementById("data-a").value,
+          soggetto: document.getElementById("soggetto").value,
+          stato: document.getElementById("stato").value,
+        };
+
+        // Mostra uno stato di caricamento
+        const tbody = document.querySelector("#lista-movimenti tbody");
+        tbody.innerHTML =
+          '<tr><td colspan="7" class="text-center p-8 text-slate-500">Caricamento dati...</td></tr>';
+
+        // Riesegue la fetch e il render
+        fetchMovimenti(filters).then((movimenti) => {
+          appState.movimenti = movimenti;
+          renderListaMovimenti();
+        });
+      }
+
+      /**
+       * Funzione principale che inizializza l'applicazione.
+       */
+      async function initializeApp() {
+        // 1. Recupera tutti i dati necessari in parallelo
+        const [movimenti, anagrafiche] = await Promise.all([
+          fetchMovimenti(),
+          fetchAnagrafiche(),
+        ]);
+
+        // 2. Aggiorna lo stato dell'applicazione
+        appState.movimenti = movimenti;
+        appState.anagrafiche = anagrafiche;
+
+        // 3. Renderizza la vista iniziale
+        renderListaMovimenti();
+
+        // 4. Imposta gli event listeners
+        document
+          .getElementById("lista-movimenti")
+          .addEventListener("click", handleRowClick);
+        document
+          .getElementById("apply-filters-btn")
+          .addEventListener("click", handleFilterClick);
+      }
+
+      // Avvia l'applicazione quando il DOM è pronto
+      document.addEventListener("DOMContentLoaded", initializeApp);
+    </script>
+  </body>
+</html>

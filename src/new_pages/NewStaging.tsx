@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '../new_components/ui/Alert';
 import { ConfirmDialog } from '../new_components/dialogs/ConfirmDialog';
 
 import { FinalizationMonitor } from '../new_components/dialogs/FinalizationMonitor';
+import { ScrittureContabiliMasterDetail } from '../new_components/tables/ScrittureContabiliMasterDetail';
 
 interface StagingStats {
   tableName: string;
@@ -33,7 +34,9 @@ const STAGING_TABLES = [
   { value: 'staging_causali_contabili', label: 'Causali Contabili', icon: '📋', endpoint: 'causali' },
   { value: 'staging_codici_iva', label: 'Codici IVA', icon: '💰', endpoint: 'codici-iva' },
   { value: 'staging_condizioni_pagamento', label: 'Condizioni Pagamento', icon: '💳', endpoint: 'condizioni-pagamento' },
+  { value: 'staging_centri_costo', label: 'Centri di Costo', icon: '🎯', endpoint: 'centri-costo' },
   { value: 'staging_scritture', label: 'Scritture Contabili', icon: '📝', endpoint: 'scritture' },
+  { value: 'staging_scritture_master_detail', label: 'Scritture Contabili (Master-Detail)', icon: '🔗', endpoint: 'scritture-complete' },
 ];
 
 export const NewStaging = () => {
@@ -106,8 +109,26 @@ export const NewStaging = () => {
             errorCount: 0
           },
           {
+            tableName: 'staging_centri_costo',
+            displayName: 'Centri di Costo',
+            recordCount: data.centriCosto || 0,
+            lastUpdated: new Date().toISOString(),
+            status: 'ready' as const,
+            hasErrors: false,
+            errorCount: 0
+          },
+          {
             tableName: 'staging_scritture',
             displayName: 'Scritture Contabili',
+            recordCount: data.scritture || 0,
+            lastUpdated: new Date().toISOString(),
+            status: 'ready' as const,
+            hasErrors: false,
+            errorCount: 0
+          },
+          {
+            tableName: 'staging_scritture_master_detail',
+            displayName: 'Scritture Contabili (Master-Detail)',
             recordCount: data.scritture || 0,
             lastUpdated: new Date().toISOString(),
             status: 'ready' as const,
@@ -354,7 +375,7 @@ Procedere con la finalizzazione intelligente?`
     // Add ID column
     columns.push({
       key: 'id' as const,
-      label: 'ID',
+      header: 'ID',
       render: (id: unknown) => (
         <code className="text-xs bg-gray-100 px-2 py-1 rounded">
           {String(id).substring(0, 8)}...
@@ -366,7 +387,7 @@ Procedere con la finalizzazione intelligente?`
     if (Object.prototype.hasOwnProperty.call(sampleRecord, 'status')) {
       columns.push({
         key: 'status' as const,
-        label: 'Stato',
+        header: 'Stato',
         render: (status: unknown) => {
           const statusStr = status as string;
           return (
@@ -385,7 +406,7 @@ Procedere con la finalizzazione intelligente?`
       // Add a default "Imported" status since data is in staging
       columns.push({
         key: 'imported_status' as const,
-        label: 'Stato',
+        header: 'Stato',
         render: () => (
           <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
             Importato
@@ -399,7 +420,7 @@ Procedere con la finalizzazione intelligente?`
       if (!['id', 'status', 'imported_status'].includes(key)) {
         columns.push({
           key: key,
-          label: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
+          header: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
           render: (value: unknown) => {
             if (value === null || value === undefined || value === '') return '-';
             
@@ -619,7 +640,9 @@ Procedere con la finalizzazione intelligente?`
             </div>
           </CardHeader>
           <CardContent>
-            {tableData.length > 0 ? (
+            {selectedTable === 'staging_scritture_master_detail' ? (
+              <ScrittureContabiliMasterDetail />
+            ) : tableData.length > 0 ? (
               <UnifiedTable
                 data={tableData}
                 columns={tableColumns}

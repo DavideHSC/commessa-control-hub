@@ -376,11 +376,11 @@ export const NewSettings = () => {
 
   // Table columns for voci analitiche
   const vociAnaliticheColumns = useMemo(() => [
-    { key: 'nome', label: 'Nome', sortable: true },
-    { key: 'descrizione', label: 'Descrizione', sortable: true },
+    { key: 'nome', header: 'Nome', sortable: true },
+    { key: 'descrizione', header: 'Descrizione', sortable: true },
     { 
       key: 'tipo', 
-      label: 'Tipo',
+      header: 'Tipo',
       render: (tipo: unknown) => (
         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
           tipo === 'costo' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
@@ -391,7 +391,7 @@ export const NewSettings = () => {
     },
     { 
       key: 'isAttiva', 
-      label: 'Stato',
+      header: 'Stato',
       render: (isAttiva: unknown) => (
         <span className={`px-2 py-1 text-xs font-medium rounded-full ${
           isAttiva ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
@@ -405,30 +405,30 @@ export const NewSettings = () => {
 
   // Table columns for regole ripartizione
   const regoleRipartizioneColumns = useMemo(() => [
-    { key: 'descrizione', label: 'Descrizione', sortable: true },
+    { key: 'descrizione', header: 'Descrizione', sortable: true },
     { 
       key: 'commessa', 
-      label: 'Commessa',
+      header: 'Commessa',
       render: (commessa: any) => commessa?.nome || '-'
     },
     { 
       key: 'conto', 
-      label: 'Conto',
+      header: 'Conto',
       render: (conto: any) => conto?.nome || '-'
     },
     { 
       key: 'voceAnalitica', 
-      label: 'Voce Analitica',
+      header: 'Voce Analitica',
       render: (voceAnalitica: any) => voceAnalitica?.nome || '-'
     },
     { 
       key: 'percentuale', 
-      label: 'Percentuale',
+      header: 'Percentuale',
       render: (percentuale: unknown) => `${Number(percentuale)}%`
     },
     { 
       key: 'createdAt', 
-      label: 'Creata',
+      header: 'Creata',
       render: (value: unknown) => {
         if (!value) return '-';
         

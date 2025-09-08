@@ -40,108 +40,86 @@ export const AnagraficheResolutionSection = ({ refreshTrigger }: AnagraficheReso
     }
   }, [hasData, loading, fetchAnagraficheResolution]);
 
-  // Prepare table data
+  // Prepare table data with BUSINESS FOCUS
   const tableData = useMemo(() => {
     if (!data?.anagrafiche) return [];
 
     return data.anagrafiche.map((anagrafica: any, index: number) => ({
-      id: `${anagrafica.tipo}-${anagrafica.codiceFiscale}-${index}`,
+      id: `${anagrafica.tipo}-${anagrafica.codiceCliente}-${index}`,
       tipo: anagrafica.tipo,
-      codiceFiscale: anagrafica.codiceFiscale,
-      sigla: anagrafica.sigla,
-      subcodice: anagrafica.subcodice,
-      matchedEntity: anagrafica.matchedEntity,
-      matchConfidence: anagrafica.matchConfidence,
+      codiceCliente: anagrafica.codiceCliente,
+      denominazione: anagrafica.denominazione,
+      totaleImporti: anagrafica.totaleImporti,
       sourceRows: anagrafica.sourceRows,
+      transazioni: anagrafica.transazioni,
+      statusImport: anagrafica.matchedEntity ? 'AGGIORNA' : 'CREA',
+      matchedEntity: anagrafica.matchedEntity,
       createdAt: new Date().toISOString(), // Placeholder
       updatedAt: new Date().toISOString(), // Placeholder
     }));
   }, [data]);
 
-  // Table columns configuration
+  // Table columns configuration - ANAGRAFICA FOCUS (semplificata)
   const tableColumns = [
     {
       key: 'tipo',
       header: 'Tipo',
       sortable: true,
-      render: (value: 'CLIENTE' | 'FORNITORE') => (
-        <Badge 
-          variant="secondary" 
-          className={value === 'CLIENTE' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}
-        >
-          {value === 'CLIENTE' ? <User size={12} className="mr-1" /> : <Building size={12} className="mr-1" />}
-          {value}
-        </Badge>
-      )
-    },
-    {
-      key: 'codiceFiscale',
-      header: 'Codice Fiscale',
-      sortable: true,
-      render: (value: string) => (
-        <code className="text-xs bg-gray-100 px-2 py-1 rounded">
-          {value || 'N/A'}
-        </code>
-      )
-    },
-    {
-      key: 'sigla',
-      header: 'Sigla',
-      sortable: true,
-      render: (value: string) => (
-        <span className="font-medium">{value || 'N/A'}</span>
-      )
-    },
-    {
-      key: 'matchedEntity',
-      header: 'Entità Matchata',
-      sortable: false,
-      render: (entity: any) => {
-        if (!entity) {
-          return (
-            <Badge variant="secondary" className="bg-red-100 text-red-800">
-              <AlertTriangle size={12} className="mr-1" />
-              Non matchata
-            </Badge>
-          );
-        }
-        
+      render: (value: unknown) => {
+        const tipo = value as 'CLIENTE' | 'FORNITORE';
         return (
-          <div>
-            <Badge variant="secondary" className="bg-green-100 text-green-800 mb-1">
-              <CheckCircle2 size={12} className="mr-1" />
-              Matchata
-            </Badge>
-            <div className="text-xs text-gray-600">{entity.nome}</div>
+          <Badge 
+            variant="secondary" 
+            className={tipo === 'CLIENTE' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}
+          >
+            {tipo === 'CLIENTE' ? <User size={12} className="mr-1" /> : <Building size={12} className="mr-1" />}
+            {tipo}
+          </Badge>
+        );
+      }
+    },
+    {
+      key: 'codiceCliente',
+      header: 'Codice Cliente/Fornitore',
+      sortable: true,
+      render: (value: unknown) => {
+        const codice = value as string;
+        return (
+          <code className="text-sm font-bold bg-blue-50 px-2 py-1 rounded border border-blue-200">
+            {codice}
+          </code>
+        );
+      }
+    },
+    {
+      key: 'denominazione',
+      header: 'Denominazione / Ragione Sociale',
+      sortable: true,
+      render: (value: unknown) => {
+        const denominazione = value as string;
+        return (
+          <div className="max-w-xs break-words overflow-wrap-anywhere whitespace-normal">
+            <span className="font-medium text-gray-800 block leading-tight text-sm">{denominazione}</span>
           </div>
         );
       }
     },
     {
-      key: 'matchConfidence',
-      header: 'Confidence',
+      key: 'statusImport',
+      header: 'Azione Import',
       sortable: true,
-      render: (confidence: number) => {
-        const percentage = Math.round(confidence * 100);
-        const colorClass = confidence >= 0.8 ? 'text-green-600' : 
-                          confidence >= 0.5 ? 'text-yellow-600' : 'text-red-600';
-        
+      render: (value: unknown) => {
+        const status = value as string;
+        const isCreate = status === 'CREA';
         return (
-          <span className={`font-medium ${colorClass}`}>
-            {percentage}%
-          </span>
+          <Badge 
+            variant="secondary" 
+            className={isCreate ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'}
+          >
+            {isCreate ? 'Da creare' : 'Aggiorna esistente'}
+          </Badge>
         );
       }
-    },
-    {
-      key: 'sourceRows',
-      header: 'Righe Staging',
-      sortable: true,
-      render: (value: number) => (
-        <Badge variant="outline" className="text-xs">
-          {value} righe
-        </Badge>
-      )
     }
   ];
 
@@ -175,9 +153,9 @@ export const AnagraficheResolutionSection = ({ refreshTrigger }: AnagraficheReso
         <div className="flex items-center gap-3">
           <Users className="text-blue-600" size={24} />
           <div>
-            <h3 className="text-lg font-semibold">Risoluzione Anagrafica Staging</h3>
+            <h3 className="text-lg font-semibold">Preview Import Anagrafiche</h3>
             <p className="text-sm text-gray-600">
-              Interpretazione diretta dei dati staging per identificare clienti e fornitori
+              Analisi predittiva: cosa verrà creato/aggiornato durante la finalizzazione
             </p>
           </div>
         </div>
@@ -212,8 +190,8 @@ export const AnagraficheResolutionSection = ({ refreshTrigger }: AnagraficheReso
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Matchati</p>
-                  <p className="text-2xl font-bold text-green-600">{data.matchedRecords}</p>
+                  <p className="text-sm text-gray-600">Esistenti</p>
+                  <p className="text-2xl font-bold text-blue-600">{data.matchedRecords}</p>
                 </div>
                 <CheckCircle2 className="text-green-400" size={24} />
               </div>
@@ -224,8 +202,8 @@ export const AnagraficheResolutionSection = ({ refreshTrigger }: AnagraficheReso
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Non Matchati</p>
-                  <p className="text-2xl font-bold text-red-600">{data.unmatchedRecords}</p>
+                  <p className="text-sm text-gray-600">Nuove da Creare</p>
+                  <p className="text-2xl font-bold text-green-600">{data.unmatchedRecords}</p>
                 </div>
                 <AlertTriangle className="text-red-400" size={24} />
               </div>
@@ -236,13 +214,25 @@ export const AnagraficheResolutionSection = ({ refreshTrigger }: AnagraficheReso
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Tasso Match</p>
+                  <p className="text-sm text-gray-600">Ratio Esistenti</p>
                   <p className="text-2xl font-bold text-blue-600">
                     {data.totalRecords > 0 
                       ? Math.round((data.matchedRecords / data.totalRecords) * 100)
                       : 0
                     }%
                   </p>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {data.totalRecords > 0 && (
+                      <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
+                        <div 
+                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                          style={{ 
+                            width: `${Math.round((data.matchedRecords / data.totalRecords) * 100)}%` 
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <Users className="text-blue-400" size={24} />
               </div>
@@ -252,12 +242,17 @@ export const AnagraficheResolutionSection = ({ refreshTrigger }: AnagraficheReso
       )}
 
       {/* Alert informativo */}
-      <Alert className="border-blue-200 bg-blue-50">
-        <Users className="h-4 w-4 text-blue-600" />
-        <AlertDescription className="text-blue-800">
-          <strong>Logica Interpretativa:</strong> Questa sezione analizza i dati staging per identificare 
-          anagrafiche uniche e tentare il match con entità esistenti nel database, senza creare record fake. 
-          La confidence indica la probabilità di match corretto.
+      <Alert className="border-green-200 bg-green-50">
+        <Users className="h-4 w-4 text-green-600" />
+        <AlertDescription className="text-green-800">
+          <strong>Preview Import Anagrafiche:</strong> Questa sezione mostra cosa accadrà durante la finalizzazione. 
+          Le anagrafiche vengono estratte dai movimenti contabili, arricchite con denominazioni e importi, 
+          e confrontate con il database per determinare se verranno <strong>create nuove</strong> o <strong>aggiornate esistenti</strong>.
+          {data && (
+            <div className="mt-2 text-sm font-medium">
+              📊 <strong>Dataset:</strong> {data.totalRecords} anagrafiche con €{data.anagrafiche?.reduce((sum: number, a: any) => sum + (a.totaleImporti || 0), 0)?.toLocaleString('it-IT') || 0} totali
+            </div>
+          )}
         </AlertDescription>
       </Alert>
 
@@ -265,17 +260,35 @@ export const AnagraficheResolutionSection = ({ refreshTrigger }: AnagraficheReso
       {hasData && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">
-              Anagrafiche Risolte ({tableData.length})
+            <CardTitle className="text-lg flex items-center justify-between">
+              <span>Preview Import Anagrafiche ({tableData.length})</span>
+              <div className="flex gap-2 text-sm font-normal">
+                {data && (
+                  <>
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                      {data.matchedRecords} esistenti
+                    </Badge>
+                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      {data.unmatchedRecords} nuove
+                    </Badge>
+                  </>
+                )}
+              </div>
             </CardTitle>
+            <p className="text-sm text-gray-600 mt-1">
+              Anagrafiche estratte dai movimenti contabili con denominazioni ufficiali dalle tabelle anagrafiche
+            </p>
           </CardHeader>
           <CardContent>
             <UnifiedTable
               data={tableData}
               columns={tableColumns}
               loading={loading}
+              searchable={true}
+              paginated={true}
               emptyMessage="Nessuna anagrafica trovata nei dati staging"
               className="min-h-[400px]"
+              itemsPerPage={25}
             />
           </CardContent>
         </Card>

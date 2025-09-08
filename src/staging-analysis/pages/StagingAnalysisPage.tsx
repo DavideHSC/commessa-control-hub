@@ -17,11 +17,15 @@ import {
 
 // Importazione componenti sezioni
 import { AnagraficheResolutionSection } from '../components/AnagraficheResolutionSection';
+import { AnagrafichePreviewSection } from '../components/AnagrafichePreviewSection';
 import { RigheAggregationSection } from '../components/RigheAggregationSection';
 import { AllocationStatusSection } from '../components/AllocationStatusSection';
 import { UserPresentationSection } from '../components/UserPresentationSection';
 import { AllocationWorkflowSection } from '../components/AllocationWorkflowSection';
 import { BusinessValidationSection } from '../components/BusinessValidationSection';
+import { AutoAllocationSuggestionsSection } from '../components/AutoAllocationSuggestionsSection';
+import { MovimentiContabiliSection } from '../components/MovimentiContabiliSection';
+import { TemplateManagementSection } from '../components/TemplateManagementSection';
 
 const SECTIONS = [
   {
@@ -71,6 +75,30 @@ const SECTIONS = [
     icon: CheckCircle,
     color: 'bg-red-500',
     status: 'ready'
+  },
+  {
+    id: 'suggerimenti',
+    title: 'G. Suggerimenti Automatici',
+    description: 'Sistema intelligente per suggerimenti di allocazione automatica',
+    icon: TestTube,
+    color: 'bg-yellow-500',
+    status: 'ready'
+  },
+  {
+    id: 'movimenti',
+    title: 'H. Movimenti Contabili Completi',
+    description: 'Prima nota digitale con interfaccia tipo gestionale tradizionale',
+    icon: Database,
+    color: 'bg-pink-500',
+    status: 'ready'
+  },
+  {
+    id: 'templates',
+    title: 'I. Gestione Template Parsing',
+    description: 'Configurazione template per il parsing dei file di importazione',
+    icon: Settings,
+    color: 'bg-indigo-500',
+    status: 'ready'
   }
 ] as const;
 
@@ -85,9 +113,9 @@ export const StagingAnalysisPage = () => {
   const activeTab = SECTIONS.find(s => s.id === activeSection);
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="mb-8">
+      <div>
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -117,7 +145,7 @@ export const StagingAnalysisPage = () => {
       </div>
 
       {/* Alert informativo */}
-      <Alert className="mb-6 border-blue-200 bg-blue-50">
+      <Alert className="border-blue-200 bg-blue-50">
         <Database className="h-4 w-4 text-blue-600" />
         <AlertDescription className="text-blue-800">
           <strong>Ambiente di Test Separato:</strong> Questo sistema lavora direttamente sui dati staging con logica interpretativa. 
@@ -126,7 +154,7 @@ export const StagingAnalysisPage = () => {
       </Alert>
 
       {/* Sezioni Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {SECTIONS.map((section) => {
           const IconComponent = section.icon;
           const isActive = activeSection === section.id;
@@ -164,7 +192,7 @@ export const StagingAnalysisPage = () => {
       </div>
 
       {/* Sezione Attiva */}
-      <Card className="mb-6">
+      <Card>
         <CardHeader className="border-b bg-gray-50">
           <div className="flex items-center gap-3">
             {activeTab && (
@@ -181,7 +209,10 @@ export const StagingAnalysisPage = () => {
         <CardContent className="p-6">
           {/* Contenuto della sezione attiva */}
           {activeSection === 'anagrafiche' && (
-            <AnagraficheResolutionSection refreshTrigger={globalRefresh} />
+            <div className="space-y-6">
+              <AnagraficheResolutionSection refreshTrigger={globalRefresh} />
+              <AnagrafichePreviewSection refreshTrigger={globalRefresh} />
+            </div>
           )}
           {activeSection === 'aggregazione' && (
             <RigheAggregationSection refreshTrigger={globalRefresh} />
@@ -198,6 +229,15 @@ export const StagingAnalysisPage = () => {
           {activeSection === 'validazioni' && (
             <BusinessValidationSection refreshTrigger={globalRefresh} />
           )}
+          {activeSection === 'suggerimenti' && (
+            <AutoAllocationSuggestionsSection refreshTrigger={globalRefresh} />
+          )}
+          {activeSection === 'movimenti' && (
+            <MovimentiContabiliSection refreshTrigger={globalRefresh} />
+          )}
+          {activeSection === 'templates' && (
+            <TemplateManagementSection refreshTrigger={globalRefresh} />
+          )}
         </CardContent>
       </Card>
 
@@ -210,7 +250,7 @@ export const StagingAnalysisPage = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-8 gap-2">
             {SECTIONS.map((section) => {
               const IconComponent = section.icon;
               const isActive = activeSection === section.id;

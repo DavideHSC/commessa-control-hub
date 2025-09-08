@@ -205,7 +205,7 @@ export const NewRiconciliazione = () => {
   const movimentiColumns = useMemo(() => [
     {
       key: 'numeroDocumento' as const,
-      label: 'N. Documento',
+      header: 'N. Documento',
       sortable: true,
       render: (numero: unknown, row: unknown) => {
         const movimento = row as MovimentoContabile;
@@ -219,7 +219,7 @@ export const NewRiconciliazione = () => {
     },
     {
       key: 'descrizione' as const,
-      label: 'Descrizione',
+      header: 'Descrizione',
       render: (descrizione: unknown, row: unknown) => {
         const movimento = row as MovimentoContabile;
         return (
@@ -236,7 +236,7 @@ export const NewRiconciliazione = () => {
     },
     {
       key: 'importo' as const,
-      label: 'Importo',
+      header: 'Importo',
       render: (importo: unknown) => (
         <span className={`font-medium ${(importo as number) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
           {formatCurrency(importo as number)}
@@ -246,7 +246,7 @@ export const NewRiconciliazione = () => {
     },
     {
       key: 'stato' as const,
-      label: 'Allocazione',
+      header: 'Allocazione',
       render: (stato: unknown, row: unknown) => {
         const movimento = row as MovimentoContabile;
         const progress = getAllocationProgress(movimento);
@@ -279,7 +279,7 @@ export const NewRiconciliazione = () => {
     },
     {
       key: 'allocazioni' as const,
-      label: 'Allocazioni',
+      header: 'Allocazioni',
       render: (allocazioni: unknown) => {
         const allocs = allocazioni as Allocazione[];
         if (!allocs || allocs.length === 0) return <span className="text-gray-400">Nessuna</span>;

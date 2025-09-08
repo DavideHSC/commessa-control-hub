@@ -232,8 +232,6 @@ export class ImportScrittureContabiliWorkflow {
       // --- Mappatura StagingRigaIva ---
       const stagingRigheIva = righeIva.map((r: any, index) => ({
         codiceUnivocoScaricamento: toStringOrEmpty(r.externalId),
-        riga: (index + 1).toString(),
-        rigaIdentifier: `${toStringOrEmpty(r.externalId)}-${index + 1}`,
         codiceIva: toStringOrEmpty(r.codiceIva),
         contropartita: toStringOrEmpty(r.contropartita),
         imponibile: toStringOrEmpty(r.imponibile),
@@ -250,12 +248,9 @@ export class ImportScrittureContabiliWorkflow {
       // --- Mappatura StagingAllocazione ---
       const stagingAllocazioni = allocazioni.map((a: any, index) => ({
         codiceUnivocoScaricamento: toStringOrEmpty(a.externalId),
-        externalId: toStringOrEmpty(a.externalId), // Mantenuto per retrocompatibilità/debug
         progressivoRigoContabile: toStringOrEmpty(a.progressivoRigoContabile),
         centroDiCosto: toStringOrEmpty(a.centroDiCosto),
         parametro: toStringOrEmpty(a.parametro),
-        progressivoNumeroRigoCont: toStringOrEmpty(a.progressivoRigoContabile), // Mappatura ridondante ma sicura
-        allocazioneIdentifier: `${toStringOrEmpty(a.externalId)}-${toStringOrEmpty(a.progressivoRigoContabile)}-${index}`,
       }));
 
       this.telemetryService.logInfo(job.id, 'Mappatura completata.');
@@ -356,9 +351,9 @@ export class ImportScrittureContabiliWorkflow {
     if (files.pnRigIva) {
       const righeIvaContent = files.pnRigIva.toString('utf-8');
       if (righeIvaContent.trim()) {
-        const firstLine = righeIvaContent.split('\n')[0];
-        const fileIdentifier = (firstLine && firstLine.length > 170) ? 'PNRIGIVA_NUOVO' : 'PNRIGIVA_VECCHIO';
-        this.telemetryService.logInfo(jobId, `Rilevato formato PNRIGIVA: ${fileIdentifier}. Applico la definizione corrispondente.`);
+        // Usa sempre il template unificato PNRIGIVA.TXT
+        const fileIdentifier = 'PNRIGIVA.TXT';
+        this.telemetryService.logInfo(jobId, `Processing PNRIGIVA con template unificato: ${fileIdentifier}`);
         pnRigIvaResult = await parseFixedWidth(righeIvaContent, templateName, fileIdentifier);
       }
     }

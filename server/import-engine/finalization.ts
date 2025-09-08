@@ -571,7 +571,7 @@ export async function finalizeRigaIva(prisma: PrismaClient) {
 
           righeProcessate++;
         } catch (error) {
-          console.error(`[Finalize RigaIva] Errore riga ${rigaStaging.rigaIdentifier}: ${error}`);
+          console.error(`[Finalize RigaIva] Errore riga ${rigaStaging.codiceUnivocoScaricamento}-${rigaStaging.codiceIva}-${rigaStaging.contropartita}: ${error}`);
         }
       }
     }, { timeout: 15000 });
@@ -719,7 +719,7 @@ export async function finalizeAllocazioni(prisma: PrismaClient) {
 
           // Salta se mancano dati essenziali per l'allocazione
           if (!commessa || !voceAnalitica) {
-            console.warn(`[Finalize Allocazioni] Dati insufficienti per allocazione: ${allocStaging.allocazioneIdentifier} (commessa: ${!!commessa}, voce: ${!!voceAnalitica})`);
+            console.warn(`[Finalize Allocazioni] Dati insufficienti per allocazione: ${allocStaging.codiceUnivocoScaricamento}-${allocStaging.progressivoRigoContabile}-${allocStaging.centroDiCosto} (commessa: ${!!commessa}, voce: ${!!voceAnalitica})`);
             continue;
           }
 
@@ -745,7 +745,7 @@ export async function finalizeAllocazioni(prisma: PrismaClient) {
           batchProcessed++;
           allocazioniProcessate++;
         } catch (error) {
-          console.error(`[Finalize Allocazioni] Errore allocazione ${allocStaging.allocazioneIdentifier}: ${error}`);
+          console.error(`[Finalize Allocazioni] Errore allocazione ${allocStaging.codiceUnivocoScaricamento}-${allocStaging.progressivoRigoContabile}-${allocStaging.centroDiCosto}: ${error}`);
           batchSkipped++;
           allocazioniSaltate++;
         }

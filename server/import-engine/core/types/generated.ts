@@ -1,48 +1,6 @@
 // ATTENZIONE: Questo file è generato automaticamente. NON MODIFICARE A MANO.
 // Eseguire 'npm run generate:import-types' per rigenerarlo.
 
-export interface RawPianoDeiContiAziendale {
-  filler_1: string;
-  codiceFiscaleAzienda: string;
-  subcodiceAzienda: string;
-  tabellaItalstudio: string;
-  livello: string;
-  codice: string;
-  tipo: string;
-  descrizione: string;
-  sigla: string;
-  controlloSegno: string;
-  contoCostiRicavi: string;
-  validoImpresaOrdinaria: string;
-  validoImpresaSemplificata: string;
-  validoProfessionistaOrdinario: string;
-  validoProfessionistaSemplificato: string;
-  validoUnicoPf: string;
-  validoUnicoSp: string;
-  validoUnicoSc: string;
-  validoUnicoEnc: string;
-  classeIrpefIres: string;
-  classeIrap: string;
-  classeProfessionista: string;
-  classeIrapProfessionista: string;
-  classeIva: string;
-  classeDatiStudiSettore: string;
-  colonnaRegistroCronologico: string;
-  colonnaRegistroIncassiPagamenti: string;
-  contoDareCee: string;
-  contoAvereCee: string;
-  naturaConto: string;
-  gestioneBeniAmmortizzabili: string;
-  percDeduzioneManutenzione: string;
-  gruppo: string;
-  dettaglioClienteFornitore: string;
-  descrizioneBilancioDare: string;
-  descrizioneBilancioAvere: string;
-  utilizzaDescrizioneLocale: string;
-  descrizioneLocale: string;
-  consideraBilancioSemplificato: string;
-}
-
 export interface RawCausali {
   codiceCausale: string;
   descrizione: string;
@@ -132,7 +90,44 @@ export interface RawPianoDeiConti {
   tipo: string;
   sigla: string;
   controlloSegno: string;
-  contoCostiRicavi: string;
+  contoCostiRicaviCollegato: string;
+  validoImpresaOrdinaria: string;
+  validoImpresaSemplificata: string;
+  validoProfessionistaOrdinario: string;
+  validoProfessionistaSemplificato: string;
+  validoUnicoPf: string;
+  validoUnicoSp: string;
+  validoUnicoSc: string;
+  validoUnicoEnc: string;
+  codiceClasseIrpefIres: string;
+  codiceClasseIrap: string;
+  codiceClasseProfessionista: string;
+  codiceClasseIrapProfessionista: string;
+  codiceClasseIva: string;
+  numeroColonnaRegCronologico: string;
+  numeroColonnaRegIncassiPag: string;
+  contoDareCee: string;
+  contoAvereCee: string;
+  naturaConto: string;
+  gestioneBeniAmmortizzabili: string;
+  percDeduzioneManutenzione: string;
+  gruppo: string;
+  codiceClasseDatiStudiSettore: string;
+  dettaglioClienteFornitore: string;
+  descrizioneBilancioDare: string;
+  descrizioneBilancioAvere: string;
+}
+
+export interface RawPianoDeiContiAziendale {
+  codiceFiscaleAzienda: string;
+  subcodiceAzienda: string;
+  livello: string;
+  codice: string;
+  tipo: string;
+  descrizione: string;
+  sigla: string;
+  controlloSegno: string;
+  contoCostiRicaviCollegato: string;
   validoImpresaOrdinaria: string;
   validoImpresaSemplificata: string;
   validoProfessionistaOrdinario: string;
@@ -146,6 +141,7 @@ export interface RawPianoDeiConti {
   classeProfessionista: string;
   classeIrapProfessionista: string;
   classeIva: string;
+  classeDatiExtracontabili: string;
   colonnaRegistroCronologico: string;
   colonnaRegistroIncassiPagamenti: string;
   contoDareCee: string;
@@ -154,52 +150,59 @@ export interface RawPianoDeiConti {
   gestioneBeniAmmortizzabili: string;
   percDeduzioneManutenzione: string;
   gruppo: string;
-  classeDatiExtracontabili: string;
   dettaglioClienteFornitore: string;
   descrizioneBilancioDare: string;
   descrizioneBilancioAvere: string;
+  utilizzaDescrizioneLocale: string;
+  descrizioneLocale: string;
+  consideraBilancioSemplificato: string;
 }
 
 export interface RawScrittureContabili {
   externalId: string;
-  riga: string;
   progressivoRigo: string;
-  progressivoRigoContabile: string;
-  centroDiCosto: string;
-  tipoConto: string;
   codiceIva: string;
+  progressivoRigoContabile: string;
+  riga: string;
+  tipoConto: string;
+  centroDiCosto: string;
+  contropartita: string;
   clienteFornitoreCodiceFiscale: string;
   parametro: string;
-  contropartita: string;
   imponibile: string;
   causaleId: string;
   imposta: string;
   conto: string;
+  impostaIntrattenimenti: string;
   importoDare: string;
+  imponibile50CorrNonCons: string;
   importoAvere: string;
+  impostaNonConsiderata: string;
   note: string;
   dataRegistrazione: string;
   importoLordo: string;
   dataDocumento: string;
   numeroDocumento: string;
+  siglaContropartita: string;
+  campoAggiuntivo1: string;
   totaleDocumento: string;
   noteMovimento: string;
   movimentiAnalitici: string;
 }
 
 export interface RawAnagraficaClifor {
-  CODICE_FISCALE_AZIENDA: string;
-  SUBCODICE_AZIENDA: string;
-  CODICE_UNIVOCO: string;
-  CODICE_FISCALE_CLIFOR: string;
-  SUBCODICE_CLIFOR: string;
-  TIPO_CONTO: string;
-  SOTTOCONTO_CLIENTE: string;
-  SOTTOCONTO_FORNITORE: string;
-  CODICE_ANAGRAFICA: string;
-  PARTITA_IVA: string;
-  TIPO_SOGGETTO: string;
-  DENOMINAZIONE: string;
+  codiceFiscaleAzienda: string;
+  subcodiceAzienda: string;
+  codiceUnivoco: string;
+  codiceFiscaleClifor: string;
+  subcodiceClifor: string;
+  tipoConto: string;
+  sottocontoCliente: string;
+  sottocontoFornitore: string;
+  codiceAnagrafica: string;
+  partitaIva: string;
+  tipoSoggetto: string;
+  denominazione: string;
   cognome: string;
   nome: string;
   sesso: string;
@@ -228,5 +231,15 @@ export interface RawAnagraficaClifor {
   aliquota: string;
   percContributoCassa: string;
   attivitaMensilizzazione: string;
+}
+
+export interface RawCentriCosto {
+  codiceFiscaleAzienda: string;
+  subcodeAzienda: string;
+  codice: string;
+  descrizione: string;
+  responsabile: string;
+  livello: string;
+  note: string;
 }
 

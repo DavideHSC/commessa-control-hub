@@ -153,6 +153,8 @@ const ComparativeAnalysis = () => {
     );
   }
 
+  const buttonText = selectedCommesse.length === filteredCommesse.length ? 'Deseleziona' : 'Seleziona';
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -238,7 +240,7 @@ const ComparativeAnalysis = () => {
                     <SelectItem value="all">Tutti i margini</SelectItem>
                     <SelectItem value="alto">Alto (≥20%)</SelectItem>
                     <SelectItem value="medio">Medio (10-20%)</SelectItem>
-                    <SelectItem value="basso">Basso (<10%)</SelectItem>
+                    <SelectItem value="basso">Basso (&lt;10%)</SelectItem>
                     <SelectItem value="positivo">Positivo</SelectItem>
                     <SelectItem value="negativo">Negativo</SelectItem>
                   </SelectContent>
@@ -247,7 +249,7 @@ const ComparativeAnalysis = () => {
 
               <div className="flex items-end">
                 <Button variant="outline" onClick={handleSelectAll} className="w-full">
-                  {selectedCommesse.length === filteredCommesse.length ? 'Deseleziona' : 'Seleziona'} Tutto
+                  {buttonText} Tutto
                 </Button>
               </div>
             </div>

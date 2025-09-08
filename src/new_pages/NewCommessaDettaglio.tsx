@@ -67,6 +67,25 @@ export const NewCommessaDettaglio = () => {
   const [loading, setLoading] = useState(true);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
+  const ownBudget = useMemo(() => {
+    if (!commessa) return 0;
+    if (!commessa.figlie || commessa.figlie.length === 0) {
+      return commessa.budget;
+    }
+    const subCommesseBudget = commessa.figlie.reduce((acc, figlia) => acc + figlia.budget, 0);
+    return commessa.budget - subCommesseBudget;
+  }, [commessa]);
+
+  const commessaForForm = useMemo(() => {
+    if (!commessa) return undefined;
+    
+    const prepared = prepareCommessaForForm({
+      ...commessa,
+      budget: ownBudget,
+    });
+    return prepared;
+  }, [commessa, ownBudget]);
+
   // Fetch commessa details
   useEffect(() => {
     const fetchCommessaDetails = async () => {
@@ -74,7 +93,7 @@ export const NewCommessaDettaglio = () => {
       
       setLoading(true);
       try {
-        // Fetch commessa details con logica Mastri/Sottoconti
+        // Fetch commessa details con gerarchia
         const commessaResponse = await fetch(`/api/commesse-performance`);
         if (commessaResponse.ok) {
           const commessaResult = await commessaResponse.json();
@@ -90,7 +109,7 @@ export const NewCommessaDettaglio = () => {
           if (foundCommessa) {
             isMastro = true;
           } else {
-            // 2. Cerca tra le figlie (sottoconti)
+            // 2. Cerca tra le figlie (sub-commesse)
             for (const mastro of commesseArray) {
               if (mastro.figlie && Array.isArray(mastro.figlie)) {
                 const figlia = mastro.figlie.find((f: any) => f.id === id);
@@ -107,8 +126,8 @@ export const NewCommessaDettaglio = () => {
           if (foundCommessa) {
             // 🏛️ VALIDAZIONE MASTRI: Permetti accesso solo ai mastri per dettaglio completo
             if (!isMastro) {
-              // Se è un sottoconto, redireziona al mastro padre
-              console.warn(`Accesso a sottoconto ${id}, reindirizzamento al mastro ${parentInfo?.id}`);
+              // Se è una sub-commessa, redireziona alla commessa padre
+              console.warn(`Accesso a sub-commessa ${id}, reindirizzamento alla commessa padre ${parentInfo?.id}`);
               navigate(`/new/commesse/${parentInfo?.id}`, { 
                 replace: true,
                 state: { highlightSottoconto: id }
@@ -221,13 +240,13 @@ export const NewCommessaDettaglio = () => {
   const allocazioniColumns = useMemo(() => [
     {
       key: 'dataAllocazione' as const,
-      label: 'Data',
+      header: 'Data',
       render: (data: unknown) => formatDate(data as string),
       sortable: true,
     },
     {
       key: 'movimento' as const,
-      label: 'Movimento',
+      header: 'Movimento',
       render: (movimento: unknown) => {
         const mov = movimento as Allocazione['movimento'];
         return (
@@ -243,7 +262,7 @@ export const NewCommessaDettaglio = () => {
     },
     {
       key: 'voceAnalitica' as const,
-      label: 'Voce Analitica',
+      header: 'Voce Analitica',
       render: (voce: unknown) => {
         const v = voce as Allocazione['voceAnalitica'];
         return (
@@ -258,7 +277,7 @@ export const NewCommessaDettaglio = () => {
     },
     {
       key: 'importo' as const,
-      label: 'Importo',
+      header: 'Importo',
       render: (importo: unknown) => (
         <span className="font-medium">{formatCurrency(importo as number)}</span>
       ),
@@ -266,7 +285,7 @@ export const NewCommessaDettaglio = () => {
     },
     {
       key: 'percentuale' as const,
-      label: 'Percentuale',
+      header: 'Percentuale',
       render: (perc: unknown) => `${(perc as number).toFixed(1)}%`,
       sortable: true,
     },
@@ -277,15 +296,17 @@ export const NewCommessaDettaglio = () => {
     if (!commessa) return;
     
     try {
-      // Update context with changes (persists across navigation)
+      const newOwnBudget = Number(data.budget) || 0;
+      const subCommesseBudget = (commessa.figlie || []).reduce((acc, figlia) => acc + figlia.budget, 0);
+      const newTotalBudget = newOwnBudget + subCommesseBudget;
+
       const updates: any = {
         ...data,
-        // Ensure dates are properly formatted
+        budget: newTotalBudget,
         dataInizio: data.dataInizio ? new Date(data.dataInizio as string).toISOString() : commessa.dataInizio,
         dataFine: data.dataFine ? new Date(data.dataFine as string).toISOString() : commessa.dataFine,
       };
 
-      // If clienteId changed, update the nested cliente object
       if (data.clienteId && data.clienteId !== commessa.clienteId) {
         const selectedCliente = clienti.find(c => c.id === data.clienteId);
         if (selectedCliente) {
@@ -296,12 +317,12 @@ export const NewCommessaDettaglio = () => {
         }
       }
       
-      updateCommessa(commessa.id, updates);
+      updateCommessa(commessa.id, { ...updates, budget: newTotalBudget });
       
-      // Update local state with new data
       const updatedCommessa = {
         ...commessa,
         ...updates,
+        budget: newTotalBudget,
         updatedAt: new Date().toISOString()
       };
       
@@ -438,17 +459,17 @@ export const NewCommessaDettaglio = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Target className="h-5 w-5 text-blue-600" />
-              Breakdown Sottoconti Analitici ({commessa.figlie.length})
+              Breakdown Sub-commesse ({commessa.figlie.length})
             </CardTitle>
             <p className="text-sm text-gray-500">
-              Dettaglio delle sotto-commesse per analisi specifica del mastro
+              Dettaglio delle sub-commesse per analisi specifica
             </p>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {commessa.figlie.map((sottoconto) => (
+              {commessa.figlie.map((subCommessa) => (
                 <div 
-                  key={sottoconto.id}
+                  key={subCommessa.id}
                   className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors"
                 >
                   <div className="flex items-center justify-between">
@@ -456,56 +477,56 @@ export const NewCommessaDettaglio = () => {
                       <div className="flex items-center gap-3">
                         <div className="w-1 h-8 bg-blue-500 rounded"></div>
                         <div>
-                          <h4 className="font-semibold text-lg">{sottoconto.nome}</h4>
-                          <p className="text-sm text-gray-600">{sottoconto.descrizione}</p>
+                          <h4 className="font-semibold text-lg">{subCommessa.nome}</h4>
+                          <p className="text-sm text-gray-600">{subCommessa.descrizione}</p>
                         </div>
                       </div>
                     </div>
                     
-                    {/* KPI Sottoconto */}
+                    {/* KPI Sub-commessa */}
                     <div className="flex items-center gap-6">
                       <div className="text-center">
                         <div className="text-sm font-medium text-blue-600">
-                          {formatCurrency(sottoconto.budget)}
+                          {formatCurrency(subCommessa.budget)}
                         </div>
                         <div className="text-xs text-gray-500">Budget</div>
                       </div>
                       
                       <div className="text-center">
                         <div className="text-sm font-medium text-red-600">
-                          {formatCurrency(sottoconto.costi)}
+                          {formatCurrency(subCommessa.costi)}
                         </div>
                         <div className="text-xs text-gray-500">Costi</div>
                       </div>
                       
                       <div className="text-center">
                         <div className="text-sm font-medium text-green-600">
-                          {formatCurrency(sottoconto.ricavi)}
+                          {formatCurrency(subCommessa.ricavi)}
                         </div>
                         <div className="text-xs text-gray-500">Ricavi</div>
                       </div>
                       
                       <div className="text-center min-w-[80px]">
                         <Progress 
-                          value={sottoconto.percentualeAvanzamento} 
+                          value={subCommessa.percentualeAvanzamento} 
                           className="h-2 mb-1" 
                         />
                         <div className="text-xs text-gray-600">
-                          {sottoconto.percentualeAvanzamento.toFixed(0)}%
+                          {subCommessa.percentualeAvanzamento.toFixed(0)}%
                         </div>
                       </div>
                       
                       <Badge 
-                        variant={sottoconto.margine > 15 ? 'default' : sottoconto.margine > 5 ? 'secondary' : 'destructive'}
+                        variant={subCommessa.margine > 15 ? 'default' : subCommessa.margine > 5 ? 'secondary' : 'destructive'}
                         className="min-w-[60px] justify-center"
                       >
-                        {sottoconto.margine.toFixed(1)}%
+                        {subCommessa.margine.toFixed(1)}%
                       </Badge>
                       
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => navigate(`/new/commesse/${sottoconto.id}`)}
+                        onClick={() => navigate(`/new/commesse/${subCommessa.id}`)}
                         title="Visualizza dettagli"
                       >
                         <Eye className="h-4 w-4" />
@@ -614,7 +635,7 @@ export const NewCommessaDettaglio = () => {
             <p className="text-sm text-gray-500">Aggiorna i dettagli della commessa selezionata</p>
           </DialogHeader>
           <CommessaForm
-            commessa={prepareCommessaForForm(commessa)}
+            commessa={commessaForForm}
             onSubmit={handleEditCommessa}
             onCancel={() => setIsEditDialogOpen(false)}
             clientiOptions={clientiOptions}

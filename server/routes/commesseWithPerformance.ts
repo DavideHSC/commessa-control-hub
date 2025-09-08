@@ -100,7 +100,7 @@ router.get('/', async (req, res) => {
 
     // Crea tutte le commesse con dati performance
     const tutteLeCommesse: CommessaWithPerformance[] = commesse.map(c => {
-      const budgetTotale = c.budget.reduce((acc, b) => acc + b.importo, 0);
+      const budgetTotale = Array.isArray(c.budget) ? c.budget.reduce((acc, b) => acc + b.importo, 0) : 0;
       const { costi, ricavi } = calcolaTotaliCommessa(c.id);
       const margine = ricavi > 0 ? ((ricavi - costi) / ricavi) * 100 : 0;
       const percentualeAvanzamento = calcolaAvanzamento(c.id, budgetTotale);

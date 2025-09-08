@@ -67,6 +67,22 @@ export const NewCommesse = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [clienteFilter, setClienteFilter] = useState('all');
 
+  const ownBudgetForSelected = useMemo(() => {
+    if (!selectedCommessa) return 0;
+    if (!selectedCommessa.figlie || selectedCommessa.figlie.length === 0) {
+      return selectedCommessa.budget;
+    }
+    const subCommesseBudget = selectedCommessa.figlie.reduce((acc, figlia) => acc + figlia.budget, 0);
+    return selectedCommessa.budget - subCommesseBudget;
+  }, [selectedCommessa]);
+
+  const commessaForForm = useMemo(() => {
+    if (!selectedCommessa) return undefined;
+    return prepareCommessaForForm({
+      ...selectedCommessa,
+      budget: ownBudgetForSelected,
+    });
+  }, [selectedCommessa, ownBudgetForSelected]);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -107,12 +123,30 @@ export const NewCommesse = () => {
         }
 
         // Calculate stats (solo commesse padre - i totali sono già consolidati)
+        console.log('📊 Calculating stats from commesse data. Sample budget:', commesseData[0]?.budget);
+        
+        const budgetTotale = commesseData.reduce((acc: number, c: Commessa) => {
+          let budget = 0;
+          
+          if (typeof c.budget === 'number') {
+            budget = c.budget;
+          } else if (Array.isArray(c.budget)) {
+            // Se budget è un array (BudgetVoce[]), somma tutti gli importi
+            budget = (c.budget as any[]).reduce((sum: number, b: any) => sum + (b.importo || 0), 0);
+          }
+          
+          console.log(`Budget for ${c.nome}: ${budget} (type: ${typeof c.budget}, array length: ${Array.isArray(c.budget) ? (c.budget as any[]).length : 'N/A'})`);
+          return acc + budget;
+        }, 0);
+        
         const statsData: CommesseStats = {
           totale: commesseData.length, // Solo mastri (padre)
           attive: commesseData.filter((c: Commessa) => c.stato === 'In Corso').length,
           completate: commesseData.filter((c: Commessa) => c.stato === 'Completata').length,
-          budgetTotale: commesseData.reduce((acc: number, c: Commessa) => acc + (c.budget || 0), 0), // Budget consolidati
+          budgetTotale: budgetTotale, // Budget consolidati
         };
+        
+        console.log('📊 Final stats:', statsData);
         setStats(statsData);
       } catch (error) {
         console.error('Errore nel caricamento dati:', error);
@@ -186,6 +220,21 @@ export const NewCommesse = () => {
     }))
   , [clienti]);
 
+  // Commesse options for parent selection (exclude current commessa when editing)
+  const commesseOptions = useMemo(() => {
+    const allCommesse = commesse.flatMap(commessa => [
+      commessa,
+      ...(commessa.figlie || [])
+    ]);
+    
+    return allCommesse
+      .filter(commessa => commessa.id !== selectedCommessa?.id) // Prevent self-reference
+      .map(commessa => ({
+        label: `${commessa.nome}${commessa.figlie?.length ? ` (${commessa.figlie.length} sub-commesse)` : ''}`,
+        value: commessa.id,
+      }));
+  }, [commesse, selectedCommessa]);
+
   // Handle commessa creation
   const handleCreateCommessa = useCallback(async (data: Record<string, unknown>) => {
     try {
@@ -216,7 +265,7 @@ export const NewCommesse = () => {
     try {
       // Define valid Commessa fields that can be updated
       const validFields = [
-        'nome', 'descrizione', 'clienteId', 'stato', 'priorita', 'isAttiva', 'parentId', 'externalId'
+        'nome', 'descrizione', 'clienteId', 'stato', 'priorita', 'isAttiva', 'parentId', 'externalId', 'budget'
       ];
       
       // Filter data to only include valid Commessa fields
@@ -250,15 +299,46 @@ export const NewCommesse = () => {
       }
 
       const updatedCommessa = await response.json();
+      console.log('📥 Updated commessa from backend:', updatedCommessa);
 
       // Update context with changes (persists across navigation)
       updateCommessa(selectedCommessa.id, updatedCommessa);
       
       // Refresh the commesse list to get updated data
+      console.log('🔄 Refreshing commesse list...');
       const commesseResponse = await fetch('/api/commesse-performance');
       if (commesseResponse.ok) {
         const commesseResult = await commesseResponse.json();
-        setCommesse(Array.isArray(commesseResult) ? commesseResult : commesseResult.commesse || []);
+        const commesseData = Array.isArray(commesseResult) ? commesseResult : commesseResult.commesse || [];
+        console.log('📊 Refreshed commesse data:', commesseData.find((c: Commessa) => c.id === selectedCommessa.id));
+        setCommesse(commesseData);
+        
+        // Recalculate stats with updated data
+        console.log('📊 Recalculating stats after update...');
+        const budgetTotale = commesseData.reduce((acc: number, c: Commessa) => {
+          let budget = 0;
+          
+          if (typeof c.budget === 'number') {
+            budget = c.budget;
+          } else if (Array.isArray(c.budget)) {
+            // Se budget è un array (BudgetVoce[]), somma tutti gli importi
+            budget = (c.budget as any[]).reduce((sum: number, b: any) => sum + (b.importo || 0), 0);
+          }
+          
+          return acc + budget;
+        }, 0);
+        
+        const updatedStats: CommesseStats = {
+          totale: commesseData.length,
+          attive: commesseData.filter((c: Commessa) => c.stato === 'In Corso').length,
+          completate: commesseData.filter((c: Commessa) => c.stato === 'Completata').length,
+          budgetTotale: budgetTotale,
+        };
+        
+        console.log('📊 Updated stats after edit:', updatedStats);
+        setStats(updatedStats);
+      } else {
+        console.error('❌ Failed to refresh commesse list');
       }
 
       setIsEditDialogOpen(false);
@@ -329,6 +409,7 @@ export const NewCommesse = () => {
                 onSubmit={handleCreateCommessa}
                 onCancel={() => setIsCreateDialogOpen(false)}
                 clientiOptions={clientiOptions}
+                commesseOptions={commesseOptions}
                 hideTitle
               />
             </DialogContent>
@@ -479,13 +560,21 @@ export const NewCommesse = () => {
 
                       {/* KPI Consolidati */}
                       <div className="flex items-center gap-6">
-                        {/* Budget */}
-                        <div className="text-center">
-                          <div className="font-medium text-blue-600">
-                            €{commessa.budget.toLocaleString('it-IT')}
-                          </div>
-                          <div className="text-xs text-gray-500">Budget</div>
-                        </div>
+                                                 {/* Budget */}
+                         <div className="text-center">
+                           <div className="font-medium text-blue-600">
+                             €{(() => {
+                               let budget = 0;
+                               if (typeof commessa.budget === 'number') {
+                                 budget = commessa.budget;
+                               } else if (Array.isArray(commessa.budget)) {
+                                 budget = (commessa.budget as any[]).reduce((sum: number, b: any) => sum + (b.importo || 0), 0);
+                               }
+                               return budget.toLocaleString('it-IT');
+                             })()}
+                           </div>
+                           <div className="text-xs text-gray-500">Budget</div>
+                         </div>
 
                         {/* Margine */}
                         <div className="text-center">
@@ -560,25 +649,33 @@ export const NewCommesse = () => {
                                 </div>
 
                                 <div className="flex items-center gap-4">
-                                  {/* Budget Sottoconto */}
-                                  <div className="text-center">
-                                    <div className="text-sm font-medium text-blue-600">
-                                      €{sottoconto.budget.toLocaleString('it-IT')}
-                                    </div>
-                                    <div className="text-xs text-gray-500">Budget</div>
-                                  </div>
+                                                                     {/* Budget Sottoconto */}
+                                   <div className="text-center">
+                                     <div className="text-sm font-medium text-blue-600">
+                                       €{(() => {
+                                         let budget = 0;
+                                         if (typeof subCommessa.budget === 'number') {
+                                           budget = subCommessa.budget;
+                                         } else if (Array.isArray(subCommessa.budget)) {
+                                           budget = (subCommessa.budget as any[]).reduce((sum: number, b: any) => sum + (b.importo || 0), 0);
+                                         }
+                                         return budget.toLocaleString('it-IT');
+                                       })()}
+                                     </div>
+                                     <div className="text-xs text-gray-500">Budget</div>
+                                   </div>
 
                                   {/* Stato */}
                                   <Badge variant="outline" className="text-xs">
-                                    {sottoconto.stato}
+                                    {subCommessa.stato}
                                   </Badge>
 
-                                  {/* Azioni Sottoconto */}
+                                  {/* Azioni Sub-commessa */}
                                   <div className="flex gap-1">
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      onClick={() => handleView(sottoconto)}
+                                      onClick={() => handleView(subCommessa)}
                                       title="Visualizza dettagli"
                                     >
                                       <Eye className="h-3 w-3" />
@@ -586,7 +683,7 @@ export const NewCommesse = () => {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      onClick={() => handleEdit(sottoconto)}
+                                      onClick={() => handleEdit(subCommessa)}
                                       title="Modifica"
                                     >
                                       <Edit className="h-3 w-3" />
@@ -601,8 +698,8 @@ export const NewCommesse = () => {
                     ) : (
                       <div className="text-center py-6 text-gray-500">
                         <ChevronRight className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-                        <p>Nessun sottoconto analitico configurato</p>
-                        <p className="text-sm">Tutti i movimenti saranno associati direttamente al mastro</p>
+                        <p>Nessuna sub-commessa configurata</p>
+                        <p className="text-sm">Tutti i movimenti saranno associati direttamente alla commessa principale</p>
                       </div>
                     )}
                   </AccordionContent>
@@ -621,13 +718,14 @@ export const NewCommesse = () => {
           </DialogHeader>
           {selectedCommessa && (
             <CommessaForm
-              commessa={prepareCommessaForForm(selectedCommessa)}
+              commessa={commessaForForm}
               onSubmit={handleEditCommessa}
               onCancel={() => {
                 setIsEditDialogOpen(false);
                 setSelectedCommessa(null);
               }}
               clientiOptions={clientiOptions}
+              commesseOptions={commesseOptions}
               hideTitle
             />
           )}

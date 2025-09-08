@@ -103,6 +103,22 @@ RESTful endpoints in `/server/routes/`:
 - Separate ESLint configs for frontend (React) and backend (Node.js)
 - Path aliases: `@/` resolves to `/src/` in frontend code
 
+### ✅ NEW: Tracciati Documentation as Active Schema (2025-09-04)
+**Critical Pattern**: Files in `.docs/dati_cliente/tracciati/modificati/` are NOT just documentation but **active relationship schema**:
+
+**Relational Strategy**: 
+- **Primary Keys**: Always use internal gestionale codes (subcodice, externalId, codice)  
+- **Never Fiscal IDs**: Avoid codice fiscale/partita IVA for relationships (inconsistent, changeable)
+- **Join Precedence**: Follow documented priorities in tracciati (e.g., codice fiscale > sigla in A_CLIFOR.md)
+
+**4-Table Core Pattern** (accounting movements):
+1. **PNTESTA.md** → Master key: `CODICE UNIVOCO SCARICAMENTO`
+2. **PNRIGCON.md** → References master + links to CONTIGEN via `CONTO`/`SIGLA CONTO`  
+3. **PNRIGIVA.md** → References master + links to CODICIVA
+4. **MOVANAC.md** → References master for analytical allocations
+
+**Decoder Pattern**: All abbreviated values decodable via `fieldDecoders.ts` functions
+
 ### Import Engine Usage
 When working with data imports:
 1. Files are parsed by acquisition layer parsers
@@ -130,8 +146,80 @@ Located in `/server/staging-analysis/`:
 - **Virtual Entities**: Zero-persistence pattern for safe data exploration
 - **Real Data Validation**: Tested with 746 movements (€114+ million) without errors
 - **Error Resilience**: Robust error handling for complex real-world data
-- **API Integration**: 6 endpoints (4 GET + 2 POST) fully functional
+- **API Integration**: 7 endpoints (5 GET + 2 POST) fully functional
 - **User Benefits**: Safe staging data analysis + workflow testing + allocation preview
+
+### ✅ NEW: Anagrafiche Preview Import System ✅ IMPLEMENTED (2025-09-06)
+**Complete Import Validation System**: Advanced preview system for anagrafiche import validation.
+
+**Architecture**:
+- **Backend Service**: `AnagrafichePreviewService.ts` - Direct testate/anagrafiche comparison
+- **API Endpoint**: `/api/staging-analysis/anagrafiche-preview` - RESTful preview data
+- **React Component**: `AnagrafichePreviewSection.tsx` - Interactive preview table
+- **Integration**: StagingAnalysisPage.tsx with automatic refresh capability
+
+**Key Features**:
+- **Real Matching Logic**: `StagingTestata.clienteFornitoreSigla` ↔ `StagingAnagrafica.codiceAnagrafica`
+- **Visual Indicators**: Status badges, highlighted matches, clear non-matches
+- **6-Column Display**: Tipo, Codice Testate, Codice Anagrafiche, Denominazione, Sottoconti, Status
+- **Real-time Statistics**: Match/unmatch counts, clienti/fornitori breakdown
+- **Performance Optimized**: Debounced queries, pagination support, error resilience
+
+**Business Value**:
+- **Import Validation**: Preview exactly what will be created vs updated
+- **Data Quality Assurance**: Identify missing anagrafiche before import
+- **User Confidence**: Clear visual feedback on import consequences
+- **Debugging Support**: Resolve anagrafica matching issues pre-import
+
+**Files**:
+- `server/staging-analysis/services/AnagrafichePreviewService.ts` - Core business logic
+- `server/staging-analysis/routes.ts` - API endpoint registration  
+- `src/staging-analysis/components/AnagrafichePreviewSection.tsx` - React UI component
+- `src/staging-analysis/pages/StagingAnalysisPage.tsx` - Integration point
+
+### ✅ NEW: Relational Mapping & Field Decoding System ✅ IMPLEMENTED (2025-09-04)
+**Tracciati-Driven Architecture**: Complete system for managing table relationships based on legacy trace documentation.
+
+**Key Components**:
+- **`fieldDecoders.ts`**: 25+ decoder functions for abbreviated values (C→Cliente, P→Patrimoniale, etc.)
+- **`relationalMapper.ts`**: Complete relational engine using internal codes (subcodice, externalId) not fiscal codes
+- **Extended Virtual Entities**: Complete relationship resolution with match confidence scoring
+- **Cache-Based Performance**: Multi-key lookup strategies for optimal performance
+
+**Business Value**:
+- **Zero Cryptic Codes**: All UI displays human-readable descriptions
+- **Complete Relationships**: Following tracciati documentation for join patterns  
+- **Performance Optimized**: Cache-based lookups prevent N+1 queries
+- **Legacy Documentation Leveraged**: Tracciati files become active schema documentation
+
+### ✅ NEW: Master-Detail UI System ✅ IMPLEMENTED (2025-09-05)
+**Scritture Contabili Master-Detail Interface**: Advanced UI component for hierarchical data visualization.
+
+**Architecture**:
+- **API Endpoint**: `/api/staging/scritture-complete` - Paginated master-detail data
+- **React Component**: `ScrittureContabiliMasterDetail.tsx` - Expandable row interface
+- **Integration**: NewStaging.tsx with dropdown selection for master-detail view
+- **Template Fix**: Complete reconstruction of import templates (105 field definitions)
+
+**Key Features**:
+- **Expandable Rows**: Click testate to show righe contabili + righe IVA + allocazioni
+- **Visual Indicators**: Chevron icons, highlight empty fields, status badges
+- **Data Completeness**: Displays clienteFornitoreSigla properly after template fix
+- **Performance**: Efficient pagination and on-demand detail loading
+- **Real-time Stats**: Totals, counts, and financial summaries per testata
+
+**Template Corrections**:
+- **PNTESTA.TXT**: 55 field definitions (clienteFornitoreSigla: position 117-128)
+- **PNRIGCON.TXT**: 28 field definitions (clienteFornitoreSigla: position 37-48) 
+- **PNRIGIVA.TXT**: 8 field definitions for IVA processing
+- **MOVANAC.TXT**: 5 field definitions for analytical allocations
+- **Total**: 105 complete field definitions across all files
+
+**Files**:
+- `server/routes/staging.ts:scritture-complete` - Master-detail API endpoint
+- `src/new_components/tables/ScrittureContabiliMasterDetail.tsx` - UI component
+- `server/scripts/fix_*_template.ts` - Template reconstruction scripts
+- `server/scripts/final_verification.ts` - System validation
 
 ## 🎯 System Completion Status: 99% PRODUCTION-READY
 
@@ -148,7 +236,9 @@ Located in `/server/staging-analysis/`:
 - API stability with robust error handling
 - Performance optimization (batch processing, <500ms responses)
 - Documentation and architectural decisions recorded in ADR.md
-- **✅ NEW**: Staging-First Analysis System - 6 services operational with real data validation
+- **✅ NEW**: Staging-First Analysis System - 7 services operational with real data validation
+- **✅ NEW**: Anagrafiche Preview Import System - Direct testate/anagrafiche matching validation
+- **✅ NEW**: Master-Detail UI System - Complete interface for Scritture Contabili with template fixes
 
 ### ✅ FRONTEND IMPORT INTERFACE COMPLETED
 - **Complete Import UI**: All 6 Contabilità Evolution trace types supported
@@ -157,6 +247,8 @@ Located in `/server/staging-analysis/`:
 - **Error Handling**: Consistent error management and validation display
 - **User Experience**: Intuitive interface with progress feedback and success indicators
 - **Results Standardization**: Unified response format across all import types
+- **✅ NEW**: Master-Detail Interface - Expandable Scritture Contabili visualization with complete field mapping
+- **✅ NEW**: Movimenti Contabili Completi - Prima nota digitale con interfaccia tipo gestionale tradizionale (Sezione H)
 
 ### ✅ RECONCILIATION SYSTEM COMPLETED
 - **NEW**: Fixed Unix epoch date parsing (01/01/1970 → real dates)
@@ -242,3 +334,35 @@ The finalization system had a **catastrophic architectural flaw**: `cleanSlate()
 - `src/new_pages/NewStaging.tsx` - Enhanced UI dialogs
 - `server/verification/operationalModes.test.ts` - Safety test coverage
 - **✅ NEW**: `server/staging-analysis/` - Complete staging-first analysis system
+
+### ✅ NEW: Sezione H - Movimenti Contabili Completi ✅ IMPLEMENTED (2025-09-06)
+**Prima Nota Digitale**: Interfaccia completa tipo gestionale tradizionale per movimenti contabili.
+
+**Architecture**:
+- **Backend Service**: `MovimentiContabiliService.ts` - Logica aggregazione con filtri e paginazione
+- **API Endpoint**: `/api/staging-analysis/movimenti-contabili` - RESTful con query parameters avanzati
+- **React Component**: `MovimentiContabiliSection.tsx` - UI master-detail con filtri interattivi
+- **Integration**: StagingAnalysisPage.tsx con navigazione rapida (Sezione H)
+
+**Key Features**:
+- **Filtri Avanzati**: Data Da/A, soggetto, stato documento (Draft/Posted/Validated)
+- **Paginazione**: Server-side per performance su grandi dataset (max 100 per pagina)
+- **Master-Detail**: Click movimento → dettaglio completo (Scrittura + IVA + Analitica)
+- **Prima Nota View**: 8 colonne (Data Reg., Protocollo, Documento, Causale, Soggetto, Totale, Stato)
+- **Real-time Statistics**: Totale movimenti, valore, quadratura, allocabilità
+- **Responsive Design**: Layout ottimizzato mobile/desktop
+
+**Business Value**:
+- **Interfaccia Familiare**: Replica prima nota gestionali tradizionali per user experience ottimale
+- **Debug Avanzato**: Drill-down completo per identificazione anomalie pre-import
+- **Performance Optimized**: Paginazione server-side + caching per dataset >1000 records
+- **Zero Risk**: Lavora solo su staging data, completamente isolato dal sistema principale
+
+**Files**:
+- `server/staging-analysis/services/MovimentiContabiliService.ts` - Core business logic (18KB)
+- `server/staging-analysis/routes.ts` - API endpoint con validazione parametri
+- `src/staging-analysis/components/MovimentiContabiliSection.tsx` - UI component (26KB)
+- `src/staging-analysis/types/stagingAnalysisTypes.ts` - TypeScript interfaces estese
+
+## 🇮🇹 LINGUA ITALIANA OBBLIGATORIA
+**SEMPRE rispondere in ITALIANO con l'utente Davide - mai in inglese!**

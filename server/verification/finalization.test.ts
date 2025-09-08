@@ -70,8 +70,6 @@ describe('Finalization Functions - Test Coverage', () => {
       await prisma.stagingRigaIva.create({
         data: {
           codiceUnivocoScaricamento: 'SCRIT_001',
-          rigaIdentifier: 'SCRIT_001-1',
-          riga: '1',
           codiceIva: 'IVA22',
           contropartita: 'CONTO_IVA',
           imponibile: '100,50',
@@ -111,8 +109,6 @@ describe('Finalization Functions - Test Coverage', () => {
       await prisma.stagingRigaIva.create({
         data: {
           codiceUnivocoScaricamento: 'SCRIT_BAD',
-          rigaIdentifier: 'SCRIT_BAD-1',
-          riga: '1',
           codiceIva: 'IVA22',
           contropartita: 'CONTO_IVA',
           imponibile: 'NON_NUMERICO',
@@ -183,7 +179,6 @@ describe('Finalization Functions - Test Coverage', () => {
           progressivoRigoContabile: '1',
           centroDiCosto: 'CDC_NUOVO',
           parametro: 'VOCE_NUOVA',
-          allocazioneIdentifier: 'ALLOC_001-1'
         }
       });
 
@@ -267,7 +262,6 @@ describe('Finalization Functions - Test Coverage', () => {
           progressivoRigoContabile: '1',
           centroDiCosto: 'CDC_ESISTENTE',
           parametro: 'VOCE_ESISTENTE',
-          allocazioneIdentifier: 'EXIST_001-1'
         }
       });
 
@@ -302,21 +296,18 @@ describe('Finalization Functions - Test Coverage', () => {
             progressivoRigoContabile: '1',
             centroDiCosto: 'CDC_1',
             parametro: 'VOCE_1',
-            allocazioneIdentifier: 'INCOMPLETE_1'
           },
           {
             codiceUnivocoScaricamento: 'COMP_001',
             // Manca progressivoRigoContabile
             centroDiCosto: 'CDC_2',
             parametro: 'VOCE_2',
-            allocazioneIdentifier: 'INCOMPLETE_2'
           },
           {
             codiceUnivocoScaricamento: 'COMP_002',
             progressivoRigoContabile: '1',
             // Manca centroDiCosto
             parametro: 'VOCE_3',
-            allocazioneIdentifier: 'INCOMPLETE_3'
           }
         ]
       });
@@ -359,7 +350,6 @@ describe('Finalization Functions - Test Coverage', () => {
       for (let i = 1; i <= 100; i++) {
         righeStagingData.push({
           codiceUnivocoScaricamento: `PERF_${i.toString().padStart(3, '0')}`,
-          rigaIdentifier: `PERF_${i.toString().padStart(3, '0')}-1`,
           riga: '1',
           codiceIva: 'IVA22',
           contropartita: 'CONTO_IVA',

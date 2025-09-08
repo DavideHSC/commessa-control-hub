@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 interface FormField {
   name: string;
   label: string;
-  type: 'text' | 'email' | 'number' | 'select' | 'textarea' | 'checkbox' | 'date' | 'password';
+  type: 'text' | 'email' | 'number' | 'currency' | 'select' | 'textarea' | 'checkbox' | 'date' | 'password';
   required?: boolean;
   options?: { label: string; value: string | number }[];
   placeholder?: string;
@@ -34,7 +34,11 @@ export const FormFieldComponent = React.memo<FormFieldComponentProps>(({ field, 
     let newValue: unknown = e.target.value;
     
     // Type conversion based on field type
-    if (field.type === 'number' && newValue !== '') {
+    if ((field.type === 'number' || field.type === 'currency') && newValue !== '') {
+      // Remove any non-numeric characters for currency fields
+      if (field.type === 'currency') {
+        newValue = String(newValue).replace(/[^\d.,]/g, '').replace(/,/g, '.');
+      }
       newValue = Number(newValue);
     } else if (field.type === 'checkbox') {
       newValue = (e.target as HTMLInputElement).checked;
@@ -101,6 +105,20 @@ export const FormFieldComponent = React.memo<FormFieldComponentProps>(({ field, 
             <label htmlFor={field.name} className="ml-2 text-sm text-gray-700">
               {field.label}
             </label>
+          </div>
+        );
+
+      case 'currency':
+        return (
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
+            <Input
+              {...commonProps}
+              type="text"
+              value={String(value || '')}
+              className={`pl-8 ${commonProps.className}`}
+              placeholder={field.placeholder || '0'}
+            />
           </div>
         );
 

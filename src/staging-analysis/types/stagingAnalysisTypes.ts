@@ -14,13 +14,15 @@ export interface AnagraficaResoluzione {
   codiceFiscale: string;
   sigla: string;
   subcodice: string;
-  tipo: 'CLIENTE' | 'FORNITORE';
+  tipo: 'CLIENTE' | 'FORNITORE' | 'INTERNO' | string; // Aggiunto INTERNO e string per flessibilità
   matchedEntity: {
     id: string;
     nome: string;
   } | null;
   matchConfidence: number;
   sourceRows: number;
+  denominazione?: string; // <-- CAMPO FONDAMENTALE AGGIUNTO
+  isUnresolved?: boolean; // Campo opzionale per gestire soggetti non trovati
 }
 
 export interface AnagraficheResolutionResponse {
@@ -41,6 +43,11 @@ export interface VirtualRigaContabile {
   anagrafica: AnagraficaResoluzione | null;
   hasCompetenzaData: boolean;
   hasMovimentiAnalitici: boolean;
+  // Campi arricchiti dal backend
+  contoDenominazione?: string;
+  tipoRiga?: string;
+  isAllocabile?: boolean;
+  classeContabile?: string;
 }
 
 export interface VirtualRigaIva {
@@ -140,21 +147,131 @@ export interface MovementSummary {
 }
 
 // --- Sezione E: Test Workflow Allocazione ---
+export interface AllocationWorkflowFilters extends MovimentiContabiliFilters {
+  soloAllocabili?: boolean;          // Solo movimenti con righe allocabili
+  statoAllocazione?: AllocationStatus; // Filtra per stato allocazione
+  hasAllocazioniStaging?: boolean;   // Ha allocazioni MOVANAC predefinite
+  contoRilevante?: boolean;          // Solo conti isRilevantePerCommesse
+}
+
+export interface AllocationSuggestion {
+  tipo: 'MOVANAC' | 'REGOLA_DETTANAL' | 'PATTERN_STORICO';
+  commessaId: string;
+  commessaNome: string;
+  voceAnaliticaId: string;
+  voceAnaliticaNome: string;
+  importoSuggerito: number;
+  percentualeSuggerita?: number;
+  confidenza: number; // 0-100
+  reasoning: string;
+  applicabileAutomaticamente: boolean;
+}
+
+export interface MovimentoAllocabile extends MovimentoContabileCompleto {
+  righeLavorabili: VirtualRigaContabile[];  // Solo righe con isAllocabile=true
+  suggerimentiMOVANAC: VirtualAllocazione[];
+  suggerimentiRegole: AllocationSuggestion[];
+  simulazioneVirtuale?: AllocazioneVirtuale[];
+  potenzialeBudgetImpact: BudgetImpact[];
+}
+
+export interface AllocazioneVirtuale {
+  id: string; // Temporaneo per la UI
+  rigaProgressivo: string;
+  commessaId: string;
+  commessaNome: string;
+  voceAnaliticaId: string;
+  voceAnaliticaNome: string;
+  importo: number;
+  percentuale?: number;
+  isFromSuggestion: boolean;
+  suggestionType?: 'MOVANAC' | 'REGOLA_DETTANAL' | 'PATTERN_STORICO';
+  validazioni: ValidationResult[];
+}
+
+export interface BudgetImpact {
+  commessaId: string;
+  commessaNome: string;
+  voceAnaliticaId: string;
+  voceAnaliticaNome: string;
+  budgetAttuale: number;
+  impactImporto: number;
+  nuovoPercentualeUtilizzo: number;
+  isOverBudget: boolean;
+}
+
 export interface AllocationWorkflowTestRequest {
-  rigaScritturaIdentifier: string;
-  proposedAllocations: Array<{
-    commessaExternalId: string;
-    voceAnaliticaNome: string;
-    importo: number;
-  }>;
+  movimentoId: string; // codiceUnivocoScaricamento
+  allocazioniVirtuali: AllocazioneVirtuale[];
+  modalitaTest: 'VALIDATION_ONLY' | 'PREVIEW_SCRITTURE' | 'IMPACT_ANALYSIS';
 }
 
 export interface AllocationWorkflowTestResponse {
   success: boolean;
-  virtualAllocations: VirtualAllocazione[];
-  validations: ValidationResult[];
+  risultatiValidazione: ValidationResult[];
+  allocazioniProcessate: AllocazioneVirtuale[];
   totalAllocatedAmount: number;
   remainingAmount: number;
+  budgetImpacts: BudgetImpact[];
+  previewScritture?: ScritturaContabilePreview[];
+  riepilogoOperazioni: OperationSummary;
+}
+
+export interface ScritturaContabilePreview {
+  descrizione: string;
+  dataMovimento: string;
+  righe: Array<{
+    contoId: string;
+    contoCodice: string;
+    contoDenominazione: string;
+    dare?: number;
+    avere?: number;
+    commessaId?: string;
+    voceAnaliticaId?: string;
+  }>;
+  totaliDare: number;
+  totaliAvere: number;
+  isQuadrata: boolean;
+}
+
+export interface OperationSummary {
+  totalMovimentiProcessati: number;
+  totalAllocazioniCreate: number;
+  totalImportoAllocato: number;
+  commesseInteressate: string[];
+  vociAnaliticheUtilizzate: string[];
+  tempoElaborazioneStimato: number; // minuti
+}
+
+export interface AllocationWorkflowResponse {
+  movimentiAllocabili: MovimentoAllocabile[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  filtriApplicati: AllocationWorkflowFilters;
+  statistiche: {
+    totalMovimenti: number;
+    movimentiConSuggerimenti: number;
+    allocazioniMOVANACDisponibili: number;
+    regoleDETTANALApplicabili: number;
+    potenzialeTempoRisparmiato: number; // minuti
+  };
+  commesseDisponibili: Array<{
+    id: string;
+    nome: string;
+    clienteNome: string;
+    isAttiva: boolean;
+    budgetTotale?: number;
+  }>;
+  vociAnalitiche: Array<{
+    id: string;
+    nome: string;
+    tipo: string;
+    isAttiva: boolean;
+  }>;
 }
 
 // --- Sezione F: Validazioni Business ---
@@ -271,3 +388,50 @@ export const ALLOCATION_STATUSES = ['non_allocato', 'parzialmente_allocato', 'co
 
 export const MOVIMENTO_TYPES = ['COSTO', 'RICAVO', 'ALTRO'] as const;
 export type MovimentoType = typeof MOVIMENTO_TYPES[number];
+
+// --- Sezione G: Movimenti Contabili Completi ---
+export interface MovimentoContabileCompleto {
+  testata: {
+    codiceUnivocoScaricamento: string;
+    dataRegistrazione: string; // YYYY-MM-DD
+    dataDocumento?: string;
+    numeroDocumento: string;
+    codiceCausale: string;
+    descrizioneCausale: string;
+    causaleDecodificata: string;
+    soggettoResolve: AnagraficaResoluzione;
+  };
+  righeDettaglio: VirtualRigaContabile[];
+  righeIva: VirtualRigaIva[];
+  allocazioni?: VirtualAllocazione[];
+  totaliDare: number;
+  totaliAvere: number;
+  statoDocumento: 'Draft' | 'Posted' | 'Validated';
+  filtriApplicabili: string[];
+}
+
+export interface MovimentiContabiliFilters {
+  dataDa?: string; // YYYY-MM-DD
+  dataA?: string;  // YYYY-MM-DD
+  soggetto?: string; // Ricerca parziale
+  stato?: 'D' | 'P' | 'V' | 'ALL'; // Draft, Posted, Validated, All
+  page?: number;
+  limit?: number;
+}
+
+export interface MovimentiContabiliResponse {
+  movimenti: MovimentoContabileCompleto[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  filtriApplicati: MovimentiContabiliFilters;
+  statistiche: {
+    totalMovimenti: number;
+    totalImporto: number;
+    movimentiQuadrati: number;
+    movimentiAllocabili: number;
+  };
+}

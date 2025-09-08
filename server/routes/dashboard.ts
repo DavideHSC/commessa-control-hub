@@ -67,7 +67,7 @@ router.get('/', async (req, res) => {
 
     // Prima, creiamo tutte le commesse con i loro dati
     const tutteLeCommesse: CommessaDashboard[] = commesse.map(c => {
-      const budgetTotale = c.budget.reduce((acc, b) => acc + b.importo, 0);
+      const budgetTotale = Array.isArray(c.budget) ? c.budget.reduce((acc, b) => acc + b.importo, 0) : 0;
       const { costi, ricavi } = calcolaTotaliCommessa(c.id);
       const margine = ricavi > 0 ? ((ricavi - costi) / ricavi) * 100 : 0;
 

@@ -295,6 +295,60 @@ router.get('/conti', async (req, res) => {
       res.status(500).json({ error: 'Errore nel recupero delle condizioni di pagamento di staging.' });
     }
   });
+
+  // GET all staging centri di costo with pagination, search, and sort
+  router.get('/centri-costo', async (req, res) => {
+    try {
+      const { 
+        page = '1', 
+        limit = '25', 
+        search = '',
+        sortBy = 'codice',
+        sortOrder = 'asc'
+      } = req.query;
+
+      const pageNumber = parseInt(page as string, 10);
+      const pageSize = parseInt(limit as string, 10);
+      const skip = (pageNumber - 1) * pageSize;
+      const take = pageSize;
+
+      const where = search ? {
+        OR: [
+          { codice: { contains: search as string, mode: 'insensitive' } },
+          { descrizione: { contains: search as string, mode: 'insensitive' } },
+          { responsabile: { contains: search as string, mode: 'insensitive' } },
+          { codiceFiscaleAzienda: { contains: search as string, mode: 'insensitive' } },
+        ],
+      } : {};
+
+      const orderBy = {
+          [(sortBy as string) || 'codice']: (sortOrder as 'asc' | 'desc') || 'asc'
+      };
+
+      const [centriCosto, totalCount] = await prisma.$transaction([
+        (prisma as any).stagingCentroCosto.findMany({
+          where,
+          orderBy,
+          skip,
+          take,
+        }),
+        (prisma as any).stagingCentroCosto.count({ where }),
+      ]);
+
+      res.json({
+        data: centriCosto,
+        pagination: {
+          page: pageNumber,
+          limit: pageSize,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / pageSize),
+        }
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Errore nel recupero dei centri di costo di staging.' });
+    }
+  });
   
   // GET all staging scritture (testate) with pagination, search, and sort
   router.get('/scritture', async (req, res) => {
@@ -351,17 +405,119 @@ router.get('/conti', async (req, res) => {
     }
   });
 
+// GET master-detail view for scritture contabili (testate + righe)
+router.get('/scritture-complete', async (req, res) => {
+    try {
+      const { 
+        page = '1', 
+        limit = '25', 
+        search = '',
+        sortBy = 'codiceUnivocoScaricamento',
+        sortOrder = 'asc'
+      } = req.query;
+  
+      const pageNumber = parseInt(page as string, 10);
+      const pageSize = parseInt(limit as string, 10);
+      const skip = (pageNumber - 1) * pageSize;
+      const take = pageSize;
+  
+      const where: Prisma.StagingTestataWhereInput = search ? {
+        OR: [
+          { codiceUnivocoScaricamento: { contains: search as string, mode: 'insensitive' } },
+          { descrizioneCausale: { contains: search as string, mode: 'insensitive' } },
+          { numeroDocumento: { contains: search as string, mode: 'insensitive' } },
+          { clienteFornitoreCodiceFiscale: { contains: search as string, mode: 'insensitive' } },
+          { clienteFornitoreSigla: { contains: search as string, mode: 'insensitive' } },
+        ],
+      } : {};
+  
+      const orderBy: Prisma.StagingTestataOrderByWithRelationInput = {
+          [(sortBy as string) || 'codiceUnivocoScaricamento']: (sortOrder as 'asc' | 'desc') || 'asc'
+      };
+  
+      // 1. Recupera le testate con paginazione
+      const [testate, totalCount] = await prisma.$transaction([
+        prisma.stagingTestata.findMany({
+          where,
+          orderBy,
+          skip,
+          take,
+        }),
+        prisma.stagingTestata.count({ where }),
+      ]);
+
+      // 2. Per ogni testata, recupera le righe contabili e IVA associate
+      const testateWithDetails = await Promise.all(
+        testate.map(async (testata) => {
+          const [righeContabili, righeIva, allocazioni] = await prisma.$transaction([
+            // Righe contabili
+            prisma.stagingRigaContabile.findMany({
+              where: { codiceUnivocoScaricamento: testata.codiceUnivocoScaricamento },
+              orderBy: { progressivoRigo: 'asc' }
+            }),
+            // Righe IVA  
+            prisma.stagingRigaIva.findMany({
+              where: { codiceUnivocoScaricamento: testata.codiceUnivocoScaricamento },
+              orderBy: { codiceIva: 'asc' }
+            }),
+            // Allocazioni analitiche
+            prisma.stagingAllocazione.findMany({
+              where: { codiceUnivocoScaricamento: testata.codiceUnivocoScaricamento },
+              orderBy: { progressivoRigoContabile: 'asc' }
+            })
+          ]);
+          
+          return {
+            ...testata,
+            righeContabili,
+            righeIva,
+            allocazioni,
+            // Statistiche di riepilogo
+            stats: {
+              numeroRigheContabili: righeContabili.length,
+              numeroRigheIva: righeIva.length,
+              numeroAllocazioni: allocazioni.length,
+              totaleDare: righeContabili.reduce((sum, r) => sum + (parseFloat(r.importoDare || '0') || 0), 0),
+              totaleAvere: righeContabili.reduce((sum, r) => sum + (parseFloat(r.importoAvere || '0') || 0), 0),
+            }
+          };
+        })
+      );
+
+      res.json({
+        data: testateWithDetails,
+        pagination: {
+          page: pageNumber,
+          limit: pageSize,
+          total: totalCount,
+          totalPages: Math.ceil(totalCount / pageSize),
+        },
+        summary: {
+          totalTestate: totalCount,
+          testateInPagina: testate.length,
+          righeContabiliTotali: testateWithDetails.reduce((sum, t) => sum + t.stats.numeroRigheContabili, 0),
+          righeIvaTotali: testateWithDetails.reduce((sum, t) => sum + t.stats.numeroRigheIva, 0),
+          allocazioniTotali: testateWithDetails.reduce((sum, t) => sum + t.stats.numeroAllocazioni, 0)
+        }
+      });
+    } catch (error) {
+      console.error('Errore nel recupero delle scritture complete:', error);
+      res.status(500).json({ error: 'Errore nel recupero delle scritture complete di staging.' });
+    }
+  });
+
 router.get('/stats', async (req, res) => {
     try {
-        const [anagrafiche, causali, codiciIva, condizioniPagamento, conti, scritture] = await prisma.$transaction([
+        const [anagrafiche, causali, codiciIva, condizioniPagamento, conti, scritture, centriCosto] = await prisma.$transaction([
             prisma.stagingAnagrafica.count(),
             prisma.stagingCausaleContabile.count(),
             prisma.stagingCodiceIva.count(),
             prisma.stagingCondizionePagamento.count(),
             prisma.stagingConto.count(),
             prisma.stagingTestata.count(),
+            (prisma as any).stagingCentroCosto.count(),
         ]);
-        res.json({ anagrafiche, causali, codiciIva, condizioniPagamento, conti, scritture });
+        res.json({ anagrafiche, causali, codiciIva, condizioniPagamento, conti, scritture, centriCosto });
     } catch (error) {
         console.error("Errore nel recupero delle statistiche di staging:", error);
         res.status(500).json({ error: 'Errore nel recupero delle statistiche di staging.' });
@@ -751,6 +907,165 @@ router.get('/audit-report', (_req, res) => {
         res.status(500).json({
             success: false,
             message: `Errore generazione report audit: ${errorMessage}`
+        });
+    }
+});
+
+// DELETE endpoints per svuotamento singole tabelle staging
+router.delete('/staging_conti', async (req, res) => {
+    console.log('[Staging Delete] Richiesta cancellazione staging_conti...');
+    try {
+        const result = await prisma.stagingConto.deleteMany({});
+        console.log(`[Staging Delete] ${result.count} record eliminati da staging_conti.`);
+        res.json({
+            success: true,
+            message: `${result.count} record eliminati dalla tabella Piano dei Conti.`,
+            count: result.count
+        });
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error('[Staging Delete] Errore eliminazione staging_conti:', errorMessage);
+        res.status(500).json({
+            success: false,
+            message: `Errore durante l'eliminazione: ${errorMessage}`
+        });
+    }
+});
+
+router.delete('/staging_anagrafiche', async (req, res) => {
+    console.log('[Staging Delete] Richiesta cancellazione staging_anagrafiche...');
+    try {
+        const result = await prisma.stagingAnagrafica.deleteMany({});
+        console.log(`[Staging Delete] ${result.count} record eliminati da staging_anagrafiche.`);
+        res.json({
+            success: true,
+            message: `${result.count} record eliminati dalla tabella Anagrafiche.`,
+            count: result.count
+        });
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error('[Staging Delete] Errore eliminazione staging_anagrafiche:', errorMessage);
+        res.status(500).json({
+            success: false,
+            message: `Errore durante l'eliminazione: ${errorMessage}`
+        });
+    }
+});
+
+router.delete('/staging_causali_contabili', async (req, res) => {
+    console.log('[Staging Delete] Richiesta cancellazione staging_causali_contabili...');
+    try {
+        const result = await prisma.stagingCausaleContabile.deleteMany({});
+        console.log(`[Staging Delete] ${result.count} record eliminati da staging_causali_contabili.`);
+        res.json({
+            success: true,
+            message: `${result.count} record eliminati dalla tabella Causali Contabili.`,
+            count: result.count
+        });
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error('[Staging Delete] Errore eliminazione staging_causali_contabili:', errorMessage);
+        res.status(500).json({
+            success: false,
+            message: `Errore durante l'eliminazione: ${errorMessage}`
+        });
+    }
+});
+
+router.delete('/staging_codici_iva', async (req, res) => {
+    console.log('[Staging Delete] Richiesta cancellazione staging_codici_iva...');
+    try {
+        const result = await prisma.stagingCodiceIva.deleteMany({});
+        console.log(`[Staging Delete] ${result.count} record eliminati da staging_codici_iva.`);
+        res.json({
+            success: true,
+            message: `${result.count} record eliminati dalla tabella Codici IVA.`,
+            count: result.count
+        });
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error('[Staging Delete] Errore eliminazione staging_codici_iva:', errorMessage);
+        res.status(500).json({
+            success: false,
+            message: `Errore durante l'eliminazione: ${errorMessage}`
+        });
+    }
+});
+
+router.delete('/staging_condizioni_pagamento', async (req, res) => {
+    console.log('[Staging Delete] Richiesta cancellazione staging_condizioni_pagamento...');
+    try {
+        const result = await prisma.stagingCondizionePagamento.deleteMany({});
+        console.log(`[Staging Delete] ${result.count} record eliminati da staging_condizioni_pagamento.`);
+        res.json({
+            success: true,
+            message: `${result.count} record eliminati dalla tabella Condizioni Pagamento.`,
+            count: result.count
+        });
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error('[Staging Delete] Errore eliminazione staging_condizioni_pagamento:', errorMessage);
+        res.status(500).json({
+            success: false,
+            message: `Errore durante l'eliminazione: ${errorMessage}`
+        });
+    }
+});
+
+router.delete('/staging_centri_costo', async (req, res) => {
+    console.log('[Staging Delete] Richiesta cancellazione staging_centri_costo...');
+    try {
+        const result = await (prisma as any).stagingCentroCosto.deleteMany({});
+        console.log(`[Staging Delete] ${result.count} record eliminati da staging_centri_costo.`);
+        res.json({
+            success: true,
+            message: `${result.count} record eliminati dalla tabella Centri di Costo.`,
+            count: result.count
+        });
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error('[Staging Delete] Errore eliminazione staging_centri_costo:', errorMessage);
+        res.status(500).json({
+            success: false,
+            message: `Errore durante l'eliminazione: ${errorMessage}`
+        });
+    }
+});
+
+router.delete('/staging_scritture', async (req, res) => {
+    console.log('[Staging Delete] Richiesta cancellazione staging_scritture...');
+    try {
+        const result = await prisma.$transaction(async (tx) => {
+            // Elimina in ordine corretto per rispettare le foreign key
+            const righeContabili = await tx.stagingRigaContabile.deleteMany({});
+            const righeIva = await tx.stagingRigaIva.deleteMany({});
+            const allocazioni = await tx.stagingAllocazione.deleteMany({});
+            const testate = await tx.stagingTestata.deleteMany({});
+            
+            return {
+                count: righeContabili.count + righeIva.count + allocazioni.count + testate.count,
+                details: {
+                    righeContabili: righeContabili.count,
+                    righeIva: righeIva.count,
+                    allocazioni: allocazioni.count,
+                    testate: testate.count
+                }
+            };
+        });
+        
+        console.log(`[Staging Delete] ${result.count} record totali eliminati da tabelle scritture.`);
+        res.json({
+            success: true,
+            message: `${result.count} record eliminati dalle tabelle Scritture Contabili.`,
+            count: result.count,
+            details: result.details
+        });
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error('[Staging Delete] Errore eliminazione staging_scritture:', errorMessage);
+        res.status(500).json({
+            success: false,
+            message: `Errore durante l'eliminazione: ${errorMessage}`
         });
     }
 });

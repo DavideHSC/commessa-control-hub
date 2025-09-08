@@ -154,15 +154,15 @@ export const NewDashboard = () => {
 
   // Table columns configuration
   const commesseColumns = useMemo(() => [
-    { key: 'nome' as const, label: 'Nome Commessa', sortable: true },
+    { key: 'nome' as const, header: 'Nome Commessa', sortable: true },
     { 
       key: 'cliente' as const, 
-      label: 'Cliente',
+      header: 'Cliente',
       render: (cliente: unknown) => (cliente as { nome: string } | null)?.nome || 'N/A'
     },
     { 
       key: 'stato' as const, 
-      label: 'Stato',
+      header: 'Stato',
       render: (stato: unknown) => (
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
           stato === 'In Corso' 
@@ -180,19 +180,19 @@ export const NewDashboard = () => {
     },
     { 
       key: 'budget' as const, 
-      label: 'Budget',
+      header: 'Budget',
       render: (budget: unknown) => formatCurrency(budget as number),
       sortable: true,
     },
     { 
       key: 'costi' as const, 
-      label: 'Costi',
+      header: 'Costi',
       render: (costi: unknown) => formatCurrency(costi as number),
       sortable: true,
     },
     { 
       key: 'margine' as const, 
-      label: 'Margine',
+      header: 'Margine',
       render: (margine: unknown) => (
         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
           typeof margine === 'number' && margine >= 20 
@@ -208,7 +208,7 @@ export const NewDashboard = () => {
     },
     { 
       key: 'percentualeAvanzamento' as const, 
-      label: 'Avanzamento',
+      header: 'Avanzamento',
       render: (perc: unknown) => (
         <div className="flex items-center space-x-2">
           <Progress value={perc as number} className="w-16" />

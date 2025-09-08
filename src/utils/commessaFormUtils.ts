@@ -12,8 +12,16 @@
 export function prepareCommessaForForm(commessa: any): Record<string, unknown> {
   if (!commessa) return {};
 
+  // Gestione budget: se è un array, calcola la somma totale
+  let budgetValue = commessa.budget;
+  if (Array.isArray(commessa.budget)) {
+    budgetValue = (commessa.budget as any[]).reduce((sum: number, b: any) => sum + (b.importo || 0), 0);
+  }
+
   return {
     ...commessa,
+    // Conversione budget per form
+    budget: budgetValue,
     // Conversione date per input HTML
     dataInizio: commessa.dataInizio ? new Date(commessa.dataInizio).toISOString().split('T')[0] : undefined,
     dataFine: commessa.dataFine ? new Date(commessa.dataFine).toISOString().split('T')[0] : undefined,

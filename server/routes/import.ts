@@ -22,6 +22,9 @@ import { handleCausaleContabileImport } from '../import-engine/orchestration/han
 // Import nuovo handler anagrafiche
 import { handleAnagraficaImport, handleAnagraficaTemplateInfo } from '../import-engine/orchestration/handlers/anagraficaHandler.js';
 
+// Import handler centri di costo
+import { handleCentroCostoImport, handleCentriCostoValidation } from '../import-engine/orchestration/handlers/centroCostoHandler.js';
+
 const router = express.Router();
 const prisma = new PrismaClient();
 
@@ -83,6 +86,18 @@ router.post('/clienti-fornitori', upload.single('file'), handleAnagraficaImport)
  */
 router.get('/anagrafiche/template-info', handleAnagraficaTemplateInfo);
 
+/**
+ * POST /api/v2/import/centri-costo
+ * Importazione Centri di Costo (ANAGRACC.TXT)
+ */
+router.post('/centri-costo', upload.single('file'), handleCentroCostoImport);
+
+/**
+ * GET /api/v2/import/centri-costo/validate
+ * Validazione readiness Centri di Costo staging
+ */
+router.get('/centri-costo/validate', handleCentriCostoValidation);
+
 // === ENDPOINT INFORMATIVI ===
 
 /**
@@ -130,6 +145,13 @@ router.get('/status', (req, res) => {
         path: '/api/v2/import/anagrafiche',
         file: 'A_CLIFOR.TXT',
         status: 'active-development' // 🎯 IN DEVELOPMENT
+      },
+      {
+        entity: 'centri-costo',
+        method: 'POST',
+        path: '/api/v2/import/centri-costo',
+        file: 'ANAGRACC.TXT',
+        status: 'active-development' // 🎯 NEW FEATURE
       }
     ],
     features: [

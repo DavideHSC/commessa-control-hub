@@ -7,7 +7,7 @@ import { FormFieldComponent } from './FormFieldComponent';
 interface FormField {
   name: string;
   label: string;
-  type: 'text' | 'email' | 'number' | 'select' | 'textarea' | 'checkbox' | 'date' | 'password';
+  type: 'text' | 'email' | 'number' | 'currency' | 'select' | 'textarea' | 'checkbox' | 'date' | 'password';
   required?: boolean;
   options?: { label: string; value: string | number }[];
   placeholder?: string;

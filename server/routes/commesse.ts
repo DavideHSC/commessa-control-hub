@@ -123,14 +123,61 @@ router.put('/:id', async (req, res) => {
   try {
     const { budget, cliente, ...commessaData } = req.body;
     
+    // GESTIONE BUDGET: Converte numero singolo in array BudgetVoce se necessario
+    let budgetArray = null;
+    console.log(`[Commesse API] Processing budget for commessa ${id}:`, budget, typeof budget);
+    
+    if (budget !== undefined) {
+      if (typeof budget === 'number') {
+        // Budget singolo dal form semplice: creiamo una voce generica
+        const vociGeneriche = await prisma.voceAnalitica.findMany({
+          where: { tipo: 'costo', isAttiva: true },
+          take: 1
+        });
+        
+        console.log(`[Commesse API] Found voci analitiche:`, vociGeneriche.length);
+        
+        if (vociGeneriche.length > 0) {
+          budgetArray = [{
+            voceAnaliticaId: vociGeneriche[0].id,
+            importo: budget
+          }];
+          console.log(`[Commesse API] Created budget array:`, budgetArray);
+        } else {
+          // Se non ci sono voci analitiche, creiamone una di default
+          console.log(`[Commesse API] No voci analitiche found, creating default one`);
+          const defaultVoce = await prisma.voceAnalitica.create({
+            data: {
+              nome: 'Budget Generale',
+              tipo: 'costo',
+              descrizione: 'Voce analitica generica per budget',
+              isAttiva: true
+            }
+          });
+          
+          budgetArray = [{
+            voceAnaliticaId: defaultVoce.id,
+            importo: budget
+          }];
+          console.log(`[Commesse API] Created default voce and budget array:`, budgetArray);
+        }
+      } else if (Array.isArray(budget)) {
+        // Budget complesso (array di BudgetVoce): usa logica esistente
+        budgetArray = budget;
+        console.log(`[Commesse API] Using existing budget array:`, budgetArray);
+      }
+    } else {
+      console.log(`[Commesse API] Budget is undefined, skipping budget update`);
+    }
+    
     // VALIDAZIONI BUSINESS CRITICHE
     console.log(`[Commesse API] Validating update for commessa ${id}...`);
     
     const validationData = {
       parentId: commessaData.parentId,
-      budget: budget ? budget.map((b: any) => ({
+      budget: budgetArray ? budgetArray.map((b: any) => ({
         voceAnaliticaId: b.voceAnaliticaId,
-        budgetPrevisto: b.budgetPrevisto || 0
+        budgetPrevisto: b.importo || b.budgetPrevisto || 0
       })) : undefined
     };
     
@@ -164,16 +211,25 @@ router.put('/:id', async (req, res) => {
       });
 
       // 2. Se è stato fornito un nuovo budget, cancelliamo quello vecchio e creiamo quello nuovo
-      if (budget) {
+      if (budgetArray) {
+        console.log(`[Commesse API] Deleting existing budget for commessa ${id}`);
         await tx.budgetVoce.deleteMany({
           where: { commessaId: id },
         });
+        
+        const budgetData = budgetArray.map((voce: any) => ({
+          voceAnaliticaId: voce.voceAnaliticaId,
+          importo: voce.importo || voce.budgetPrevisto || 0,
+          commessaId: id,
+        }));
+        
+        console.log(`[Commesse API] Creating new budget:`, budgetData);
         await tx.budgetVoce.createMany({
-          data: budget.map((voce: Partial<import('@prisma/client').BudgetVoce>) => ({
-            ...voce,
-            commessaId: id,
-          })),
+          data: budgetData,
         });
+        console.log(`[Commesse API] Budget created successfully for commessa ${id}`);
+      } else {
+        console.log(`[Commesse API] No budget update for commessa ${id}`);
       }
 
       return commessaAggiornata;
@@ -185,7 +241,11 @@ router.put('/:id', async (req, res) => {
       validationWarnings: validationResult.warnings
     };
 
-    console.log(`[Commesse API] Update successful for commessa ${id}`);
+    console.log(`[Commesse API] Update successful for commessa ${id}. Returning:`, {
+      id: response.id,
+      nome: response.nome,
+      budget: response.budget?.length ? response.budget.map(b => ({ voceAnaliticaId: b.voceAnaliticaId, importo: b.importo })) : 'No budget'
+    });
     res.json(response);
   } catch (error: unknown) {
     console.error(`[Commesse API] Update error for commessa ${id}:`, error);

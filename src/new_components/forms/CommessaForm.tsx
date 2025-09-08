@@ -7,6 +7,7 @@ interface CommessaFormProps {
   onCancel?: () => void;
   loading?: boolean;
   clientiOptions?: { label: string; value: string }[];
+  commesseOptions?: { label: string; value: string }[]; // Add commesse for parent selection
   hideTitle?: boolean; // Add option to hide internal title/description
 }
 
@@ -16,6 +17,7 @@ export const CommessaForm = ({
   onCancel,
   loading = false,
   clientiOptions = [],
+  commesseOptions = [],
   hideTitle = false,
 }: CommessaFormProps) => {
   const defaultValues = useMemo(() => ({ 
@@ -57,6 +59,13 @@ export const CommessaForm = ({
       description: 'Seleziona il cliente associato alla commessa',
     },
     {
+      name: 'parentId',
+      label: 'Commessa Padre',
+      type: 'select' as const,
+      options: commesseOptions,
+      description: 'Seleziona una commessa padre per creare una sub-commessa (opzionale)',
+    },
+    {
       name: 'dataInizio',
       label: 'Data Inizio',
       type: 'date' as const,
@@ -71,8 +80,8 @@ export const CommessaForm = ({
     {
       name: 'budget',
       label: 'Budget Totale',
-      type: 'number' as const,
-      placeholder: '0.00',
+      type: 'currency' as const,
+      placeholder: '0',
       validation: {
         min: 0,
         message: 'Il budget deve essere un valore positivo',
@@ -109,7 +118,7 @@ export const CommessaForm = ({
       type: 'checkbox' as const,
       description: 'Le commesse attive possono ricevere allocazioni di costi',
     },
-  ], [clientiOptions]);
+  ], [clientiOptions, commesseOptions]);
 
   const handleSubmit = (data: Record<string, unknown>) => {
     onSubmit(data);

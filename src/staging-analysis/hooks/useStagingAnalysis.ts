@@ -1,6 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
+import { 
+  AllocationWorkflowFilters,
+  AllocationWorkflowResponse,
+  AllocationWorkflowTestRequest,
+  AllocationWorkflowTestResponse,
+  StagingAnalysisApiResponse
+} from '../types/stagingAnalysisTypes';
 
-// Tipi per le risposte API
+// Tipi per le risposte API (mantenuti per compatibilità)
 interface StagingAnalysisResponse<T> {
   success: boolean;
   data: T;
@@ -162,8 +169,39 @@ export const useStagingAnalysis = () => {
     return await fetchData<UserMovementsData>('user-movements', 'movements');
   }, [fetchData]);
 
-  // Sezione E: Test Workflow Allocazione
-  const testAllocationWorkflow = useCallback(async (testData: {
+  // Sezione E: Allocation Workflow
+  const fetchAllocationWorkflow = useCallback(async (filters?: AllocationWorkflowFilters): Promise<AllocationWorkflowResponse | null> => {
+    const queryParams = new URLSearchParams();
+    
+    if (filters) {
+      // Parametri base
+      if (filters.dataDa) queryParams.append('dataDa', filters.dataDa);
+      if (filters.dataA) queryParams.append('dataA', filters.dataA);
+      if (filters.soggetto) queryParams.append('soggetto', filters.soggetto);
+      if (filters.stato) queryParams.append('stato', filters.stato);
+      if (filters.page) queryParams.append('page', filters.page.toString());
+      if (filters.limit) queryParams.append('limit', filters.limit.toString());
+      
+      // Parametri specifici allocation workflow
+      if (filters.soloAllocabili) queryParams.append('soloAllocabili', 'true');
+      if (filters.contoRilevante) queryParams.append('contoRilevante', 'true');
+      if (filters.hasAllocazioniStaging) queryParams.append('hasAllocazioniStaging', 'true');
+      if (filters.statoAllocazione) queryParams.append('statoAllocazione', filters.statoAllocazione);
+    }
+
+    const endpoint = `allocation-workflow${queryParams.toString() ? `?${queryParams}` : ''}`;
+    return await fetchData<AllocationWorkflowResponse>(endpoint, 'allocation-workflow');
+  }, [fetchData]);
+
+  const testAllocationWorkflow = useCallback(async (testData: AllocationWorkflowTestRequest): Promise<AllocationWorkflowTestResponse | null> => {
+    return await fetchData<AllocationWorkflowTestResponse>('allocation-workflow/test', 'allocation-workflow-test', {
+      method: 'POST',
+      body: JSON.stringify(testData)
+    });
+  }, [fetchData]);
+
+  // Backward compatibility - vecchia implementazione
+  const testAllocationWorkflowLegacy = useCallback(async (testData: {
     rigaScritturaIdentifier: string;
     proposedAllocations: Array<{
       commessaExternalId: string;
@@ -225,7 +263,9 @@ export const useStagingAnalysis = () => {
     fetchRigheAggregation, 
     fetchAllocationStatus,
     fetchUserMovements,
+    fetchAllocationWorkflow,
     testAllocationWorkflow,
+    testAllocationWorkflowLegacy, // Backward compatibility
     testBusinessValidations,
 
     // Utility functions
@@ -241,7 +281,7 @@ export const useStagingAnalysis = () => {
     // Computed states
     isAnyLoading: Object.values(loading).some(Boolean),
     hasAnyError: Object.values(error).some(Boolean),
-    totalSections: 6,
+    totalSections: 7, // Aggiornato per includere allocation workflow
     loadedSections: Object.keys(data).filter(key => data[key] !== null).length
   };
 };

@@ -323,6 +323,55 @@ export function formatScrittureContabiliResult(
   return createStandardResult(success, message, stats, metadata, [], [], reportDetails);
 }
 
+/**
+ * Formatter per Centri di Costo (ANAGRACC.TXT)
+ * Converte il formato del workflow centri di costo
+ */
+export function formatCentriCostoResult(
+  workflowResult: any,
+  fileName?: string,
+  fileSize?: number,
+  processingTime?: number
+): StandardImportResult {
+  const success = workflowResult.success || false;
+  const message = workflowResult.message || (success ? 'Importazione centri di costo completata' : 'Importazione centri di costo fallita');
+  
+  const stats = createImportStats(
+    workflowResult.stats?.totalRecords || 0,
+    workflowResult.stats?.successfulRecords || workflowResult.stats?.createdRecords || 0,
+    workflowResult.stats?.updatedRecords || 0,
+    workflowResult.stats?.errorRecords || workflowResult.errors?.length || 0,
+    workflowResult.stats?.warnings?.length || 0
+  );
+
+  const metadata = createImportMetadata(fileName, fileSize, processingTime);
+
+  const validationErrors: ValidationError[] = (workflowResult.errors || []).map((err: any) => ({
+    field: err.field || 'unknown',
+    message: err.error || err.message || 'Validation error',
+    row: err.row,
+    value: err.data
+  }));
+
+  const warnings: ImportWarning[] = (workflowResult.stats?.warnings || []).map((warn: any) => ({
+    field: warn.field || 'unknown',
+    message: warn.message || 'Warning',
+    row: warn.row,
+    value: warn.value
+  }));
+
+  const reportDetails = workflowResult.centriCostoStats ? {
+    centriCostoStats: workflowResult.centriCostoStats,
+    parsing: {
+      totalRecords: workflowResult.stats?.totalRecords || 0,
+      successfulRecords: workflowResult.stats?.successfulRecords || 0,
+      errorRecords: workflowResult.stats?.errorRecords || 0
+    }
+  } : undefined;
+
+  return createStandardResult(success, message, stats, metadata, validationErrors, warnings, reportDetails);
+}
+
 // =============================================================================
 // AUTO-DETECTION FORMATTER
 // =============================================================================
@@ -332,7 +381,7 @@ export function formatScrittureContabiliResult(
  */
 export function formatImportResult(
   workflowResult: any,
-  importType: 'anagrafiche' | 'causali-contabili' | 'codici-iva' | 'condizioni-pagamento' | 'piano-conti' | 'scritture-contabili',
+  importType: 'anagrafiche' | 'causali-contabili' | 'codici-iva' | 'condizioni-pagamento' | 'piano-conti' | 'scritture-contabili' | 'centri-costo',
   fileName?: string,
   fileSize?: number,
   processingTime?: number,
@@ -363,6 +412,9 @@ export function formatImportResult(
     
     case 'scritture-contabili':
       return formatScrittureContabiliResult(workflowResult, fileName, fileSize, processingTime);
+    
+    case 'centri-costo':
+      return formatCentriCostoResult(workflowResult, fileName, fileSize, processingTime);
     
     default:
       // Fallback per tipi non riconosciuti
