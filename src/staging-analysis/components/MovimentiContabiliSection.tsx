@@ -243,8 +243,8 @@ export const MovimentiContabiliSection = ({ refreshTrigger }: MovimentiContabili
                                 return riga.anagrafica.sottocontoFornitore || riga.conto || riga.siglaConto || 'N/D';
                               } else if (riga.tipoConto === 'E') {
                                 // Per tipo "E" (Entrambi), determiniamo dal contesto
-                                const importoDare = parseFloat(riga.importoDare || '0');
-                                const importoAvere = parseFloat(riga.importoAvere || '0');
+                                const importoDare = parseFloat((riga.importoDare || 0).toString());
+                                const importoAvere = parseFloat((riga.importoAvere || 0).toString());
                                 
                                 // Se ha importo in DARE, agisce come Cliente (credito)
                                 if (importoDare > 0 && importoAvere === 0) {

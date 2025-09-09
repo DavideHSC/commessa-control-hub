@@ -283,7 +283,7 @@ export const RegolaRipartizioneDialog: React.FC<RegolaRipartizioneDialogProps> =
                   <div className="text-sm text-blue-800">
                     <p className="font-medium">Nessun conto disponibile</p>
                     <p className="mt-1">
-                      Prima di creare regole di ripartizione, importa il <strong>Piano dei Conti</strong> dalla sezione "Import Dati".
+                      Prima di creare regole di ripartizione, importa il <strong>Piano dei Conti</strong> dalla sezione "Importazione Dati".
                     </p>
                   </div>
                 </div>

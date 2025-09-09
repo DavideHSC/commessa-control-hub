@@ -20,8 +20,8 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { title: "Dashboard", url: "/new/dashboard", icon: Home },
   { title: "Commesse", url: "/new/commesse", icon: Building2 },
-  { title: "Import Dati", url: "/new/import", icon: Upload },
-  { title: "Staging", url: "/new/staging", icon: Layers },
+  { title: "Importazione Dati", url: "/new/import", icon: Upload },
+  { title: "Dati Importati", url: "/new/staging", icon: Layers },
   { title: "Staging Analysis", url: "/new/staging-analysis", icon: TestTube },
   { title: "Database", url: "/new/database", icon: Database },
   { title: "Riconciliazione", url: "/new/riconciliazione", icon: Target },

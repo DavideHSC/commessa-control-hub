@@ -30,12 +30,12 @@ interface ScrittureImportFiles {
 }
 
 const IMPORT_TYPES = [
-  { value: 'scritture', label: 'Scritture Contabili (PNTESTA+PNRIGCON+...)', disabled: false },
   { value: 'piano-conti', label: 'Piano dei Conti (CONTIGEN)', disabled: false },
   { value: 'condizioni-pagamento', label: 'Condizioni Pagamento (CODPAGAM)', disabled: false },
   { value: 'codici-iva', label: 'Codici IVA (CODICIVA)', disabled: false },
   { value: 'causali-contabili', label: 'Causali Contabili (CAUSALI)', disabled: false },
   { value: 'anagrafiche', label: 'Anagrafiche Clienti/Fornitori (A_CLIFOR)', disabled: false },
+  { value: 'scritture', label: 'Scritture Contabili (PNTESTA+PNRIGCON+PNRIGIVA+MOVANAC)', disabled: false },
   { value: 'centri-costo', label: 'Centri di Costo (ANAGRACC)', disabled: false },
 ];
 
@@ -163,7 +163,7 @@ export const NewImport = () => {
       return (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center space-x-2"><Upload className="w-5 h-5" /><span>Configurazione Import</span></CardTitle>
+            <CardTitle className="flex items-center space-x-2"><Upload className="w-5 h-5" /><span>Selezione Operazioni</span></CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">

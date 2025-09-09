@@ -281,41 +281,6 @@ Procedere con la finalizzazione intelligente?`
   // Note: Enhanced polling logic moved to FinalizationMonitor component
   // This eliminates race conditions and duplicate SSE connections
 
-  // Emergency reset function
-  const handleEmergencyReset = useCallback(async () => {
-    setConfirmMessage({
-      title: '🚨 Reset Emergenza',
-      description: 'Questo resetterà il flag di finalizzazione bloccato.\n\nUsa solo se il processo è rimasto appeso.\n\nVuoi procedere?'
-    });
-    setConfirmAction(() => async () => {
-      try {
-        const response = await fetch('/api/staging/reset-finalization-flag', { method: 'POST' });
-        const result = await response.json();
-        
-        if (result.success) {
-          setConfirmMessage({
-            title: '✅ Reset Completato',
-            description: result.message
-          });
-        } else {
-          setConfirmMessage({
-            title: '❌ Errore Reset',
-            description: result.message
-          });
-        }
-        setConfirmAction(null);
-        setShowConfirmDialog(true);
-      } catch (error) {
-        setConfirmMessage({
-          title: '❌ Errore Reset',
-          description: 'Errore di connessione durante il reset.'
-        });
-        setConfirmAction(null);
-        setShowConfirmDialog(true);
-      }
-    });
-    setShowConfirmDialog(true);
-  }, []);
 
   // Perform the actual clear operation
   const performClear = useCallback(async (tableName: string) => {
@@ -466,8 +431,8 @@ Procedere con la finalizzazione intelligente?`
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Staging</h1>
-          <p className="text-gray-500">Dati provvisori importati in attesa di finalizzazione</p>
+          <h1 className="text-3xl font-bold text-gray-900">Dati Importati</h1>
+          <p className="text-gray-500">Gestione e Visualizzazione dei Dati Importati</p>
         </div>
         <div className="flex space-x-3">
           <Button 
@@ -477,14 +442,6 @@ Procedere con la finalizzazione intelligente?`
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Aggiorna
-          </Button>
-          <Button 
-            variant="outline"
-            size="sm"
-            onClick={handleEmergencyReset}
-            className="text-orange-600 hover:text-orange-700"
-          >
-            🚨 Reset Flag
           </Button>
           <Button 
             onClick={() => handleFinalize()}
@@ -536,7 +493,7 @@ Procedere con la finalizzazione intelligente?`
       {/* Staging Tables Grid */}
       <Card>
         <CardHeader>
-          <CardTitle>Tabelle Staging</CardTitle>
+          <CardTitle>Tabelle</CardTitle>
           <p className="text-sm text-gray-500">
             Dati importati per ogni tipologia di tracciato
           </p>

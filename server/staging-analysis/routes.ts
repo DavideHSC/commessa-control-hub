@@ -1,8 +1,6 @@
 import express from 'express';
 import { AnagraficaResolver } from './services/AnagraficaResolver.js';
-import { RigheAggregator } from './services/RigheAggregator.js';
 import { AllocationCalculator } from './services/AllocationCalculator.js';
-import { UserPresentationMapper } from './services/UserPresentationMapper.js';
 import { AllocationWorkflowTester } from './services/AllocationWorkflowTester.js';
 import { BusinessValidationTester } from './services/BusinessValidationTester.js';
 import { AnagrafichePreviewService } from './services/AnagrafichePreviewService.js';
@@ -24,19 +22,7 @@ router.get('/anagrafiche-resolution', async (_req, res) => {
   }
 });
 
-// Sezione B: Aggregazione Righe Contabili  
-router.get('/righe-aggregation', async (_req, res) => {
-  try {
-    const aggregator = new RigheAggregator();
-    const result = await aggregator.aggregateRighe();
-    res.json({ success: true, data: result });
-  } catch (error) {
-    console.error('Error in righe-aggregation:', error);
-    res.status(500).json({ success: false, error: 'Failed to aggregate righe' });
-  }
-});
-
-// Sezione C: Calcolo Stato Allocazione
+// Sezione B: Calcolo Stato Allocazione
 router.get('/allocation-status', async (_req, res) => {
   try {
     const calculator = new AllocationCalculator();
@@ -48,19 +34,7 @@ router.get('/allocation-status', async (_req, res) => {
   }
 });
 
-// Sezione D: Presentazione Utente
-router.get('/user-movements', async (_req, res) => {
-  try {
-    const mapper = new UserPresentationMapper();
-    const result = await mapper.mapToUserMovements();
-    res.json({ success: true, data: result });
-  } catch (error) {
-    console.error('Error in user-movements:', error);
-    res.status(500).json({ success: false, error: 'Failed to map user movements' });
-  }
-});
-
-// Sezione E: Test Workflow Allocazione
+// Sezione C: Test Workflow Allocazione
 router.post('/test-allocation-workflow', async (req, res) => {
   try {
     const tester = new AllocationWorkflowTester();
@@ -72,7 +46,7 @@ router.post('/test-allocation-workflow', async (req, res) => {
   }
 });
 
-// Sezione F: Test Validazione Business
+// Sezione D: Test Validazione Business
 router.post('/test-business-validations', async (req, res) => {
   try {
     const tester = new BusinessValidationTester();
@@ -86,7 +60,7 @@ router.post('/test-business-validations', async (req, res) => {
 
 // NUOVE SEZIONI: Suggerimenti automatici di allocazione
 
-// Sezione G: Genera suggerimenti automatici
+// Sezione E: Genera suggerimenti automatici
 router.get('/auto-allocation-suggestions', async (_req, res) => {
   try {
     const calculator = new AllocationCalculator();
@@ -98,7 +72,7 @@ router.get('/auto-allocation-suggestions', async (_req, res) => {
   }
 });
 
-// Sezione H: Applica suggerimenti selezionati (test virtuale)
+// Sezione F: Applica suggerimenti selezionati (test virtuale)
 router.post('/apply-allocation-suggestions', async (req, res) => {
   try {
     const { suggestionIds, minConfidenza } = req.body;
@@ -123,7 +97,7 @@ router.get('/anagrafiche-preview', async (_req, res) => {
   }
 });
 
-// Sezione G: Movimenti Contabili Completi
+// Sezione A: Movimenti Contabili Completi
 router.get('/movimenti-contabili', async (req, res) => {
   try {
     const {
@@ -205,7 +179,7 @@ router.get('/movimenti-contabili', async (req, res) => {
   }
 });
 
-// Sezione E: Test Workflow Allocazione  
+// Sezione B: Test Workflow Allocazione  
 router.get('/allocation-workflow', async (req, res) => {
   try {
     const {

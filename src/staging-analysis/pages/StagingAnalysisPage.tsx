@@ -18,9 +18,7 @@ import {
 // Importazione componenti sezioni
 import { AnagraficheResolutionSection } from '../components/AnagraficheResolutionSection';
 import { AnagrafichePreviewSection } from '../components/AnagrafichePreviewSection';
-import { RigheAggregationSection } from '../components/RigheAggregationSection';
 import { AllocationStatusSection } from '../components/AllocationStatusSection';
-import { UserPresentationSection } from '../components/UserPresentationSection';
 import { AllocationWorkflowSection } from '../components/AllocationWorkflowSection';
 import { BusinessValidationSection } from '../components/BusinessValidationSection';
 import { AutoAllocationSuggestionsSection } from '../components/AutoAllocationSuggestionsSection';
@@ -64,42 +62,26 @@ const SECTIONS = [
     status: 'pronto'
   },
   {
-    id: 'aggregazione',
-    title: 'E. Aggregazione Righe Contabili', 
-    description: 'Aggrega righe contabili staging per formare scritture virtuali complete',
-    icon: FileText,
-    color: 'bg-green-500',
-    status: 'pronto'
-  },
-  {
     id: 'allocazioni',
-    title: 'F. Calcolo Stato Allocazione',
+    title: 'E. Calcolo Stato Allocazione',
     description: 'Calcola percentuali allocazione da staging senza finalizzare',
     icon: PieChart,
     color: 'bg-yellow-500',
     status: 'pronto'
   },
-  
-  // Terza riga - Presentazione e validazioni
-  {
-    id: 'presentazione',
-    title: 'G. Presentazione Utente',
-    description: 'Trasforma dati staging in rappresentazione user-friendly',
-    icon: Eye,
-    color: 'bg-purple-500',
-    status: 'pronto'
-  },
   {
     id: 'validazioni',
-    title: 'H. Test Validazione Business',
+    title: 'F. Test Validazione Business',
     description: 'Applica validazioni business sui dati staging',
     icon: CheckCircle,
     color: 'bg-red-500',
     status: 'pronto'
   },
+  
+  // Terza riga - Suggerimenti intelligenti (centrata)
   {
     id: 'suggerimenti',
-    title: 'I. Suggerimenti Automatici',
+    title: 'G. Suggerimenti Automatici',
     description: 'Sistema intelligente per suggerimenti di allocazione automatica',
     icon: TestTube,
     color: 'bg-yellow-500',
@@ -219,14 +201,8 @@ export const StagingAnalysisPage = () => {
               <AnagrafichePreviewSection refreshTrigger={globalRefresh} />
             </div>
           )}
-          {activeSection === 'aggregazione' && (
-            <RigheAggregationSection refreshTrigger={globalRefresh} />
-          )}
           {activeSection === 'allocazioni' && (
             <AllocationStatusSection refreshTrigger={globalRefresh} />
-          )}
-          {activeSection === 'presentazione' && (
-            <UserPresentationSection refreshTrigger={globalRefresh} />
           )}
           {activeSection === 'workflow' && (
             <AllocationWorkflowSection refreshTrigger={globalRefresh} />

@@ -10,6 +10,13 @@ See **ADR.md** in the project root for comprehensive architectural decisions, im
 ### ⚠️ IMPORTANTE: Gestione Server di Sviluppo
 **NEVER run `npm run dev` or any server commands** - Il server è sempre in esecuzione e gestito dall'utente Davide. Claude Code deve limitarsi a leggere, analizzare e modificare i file senza mai avviare processi server.
 
+### 🚨 REGOLA CRITICA: Direttive Utente
+**Se intendi contravvenire a una direttiva dell'utente Davide**:
+1. **FERMATI IMMEDIATAMENTE**
+2. **SPIEGA CHIARAMENTE** cosa intendi fare e perché
+3. **ATTENDI IL CONSENSO ESPLICITO** prima di procedere
+**QUESTA REGOLA È INVIOLABILE** - Non decidere mai autonomamente di ignorare o modificare una richiesta diretta.
+
 ### Core Development (SOLO PER RIFERIMENTO - NON ESEGUIRE)
 - `npm run dev` - Start both client (port 5101) and server (port 3001) concurrently [GESTITO DA DAVIDE]
 - `npm run dev:client` - Start frontend only (Vite dev server) [GESTITO DA DAVIDE]

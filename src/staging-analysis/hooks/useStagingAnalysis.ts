@@ -30,38 +30,11 @@ interface AnagraficheResolutionData {
   unmatchedRecords: number;
 }
 
-interface RigheAggregationData {
-  scritture: Array<{
-    codiceUnivocoScaricamento: string;
-    dataRegistrazione: string;
-    descrizione: string;
-    righeContabili: any[];
-    righeIva: any[];
-    allocazioni: any[];
-    totaliDare: number;
-    totaliAvere: number;
-    isQuadrata: boolean;
-    allocationStatus: string;
-  }>;
-  totalScrittureCount: number;
-  quadrateScrittureCount: number;
-  nonQuadrateScrittureCount: number;
-  totalRigheCount: number;
-}
-
 interface AllocationStatusData {
   allocationsByStatus: Record<string, number>;
   totalAllocations: number;
   averageAllocationPercentage: number;
   topUnallocatedMovements: any[];
-}
-
-interface UserMovementsData {
-  movimenti: any[];
-  totalMovimenti: number;
-  costiTotal: number;
-  ricaviTotal: number;
-  altroTotal: number;
 }
 
 interface AllocationWorkflowResult {
@@ -154,22 +127,12 @@ export const useStagingAnalysis = () => {
     return await fetchData<AnagraficheResolutionData>('anagrafiche-resolution', 'anagrafiche');
   }, [fetchData]);
 
-  // Sezione B: Aggregazione Righe
-  const fetchRigheAggregation = useCallback(async (): Promise<RigheAggregationData | null> => {
-    return await fetchData<RigheAggregationData>('righe-aggregation', 'righe');
-  }, [fetchData]);
-
-  // Sezione C: Stato Allocazioni
+  // Sezione B: Stato Allocazioni
   const fetchAllocationStatus = useCallback(async (): Promise<AllocationStatusData | null> => {
     return await fetchData<AllocationStatusData>('allocation-status', 'allocations');
   }, [fetchData]);
 
-  // Sezione D: Presentazione Utente
-  const fetchUserMovements = useCallback(async (): Promise<UserMovementsData | null> => {
-    return await fetchData<UserMovementsData>('user-movements', 'movements');
-  }, [fetchData]);
-
-  // Sezione E: Allocation Workflow
+  // Sezione C: Allocation Workflow
   const fetchAllocationWorkflow = useCallback(async (filters?: AllocationWorkflowFilters): Promise<AllocationWorkflowResponse | null> => {
     const queryParams = new URLSearchParams();
     
@@ -215,7 +178,7 @@ export const useStagingAnalysis = () => {
     });
   }, [fetchData]);
 
-  // Sezione F: Test Validazioni Business
+  // Sezione D: Test Validazioni Business
   const testBusinessValidations = useCallback(async (testData: {
     validationRules?: string[];
     includeSeverityLevels?: ('ERROR' | 'WARNING' | 'INFO')[];
@@ -230,9 +193,7 @@ export const useStagingAnalysis = () => {
   const refreshAllSections = useCallback(async () => {
     const promises = [
       fetchAnagraficheResolution(),
-      fetchRigheAggregation(),
-      fetchAllocationStatus(),
-      fetchUserMovements()
+      fetchAllocationStatus()
     ];
 
     try {
@@ -240,7 +201,7 @@ export const useStagingAnalysis = () => {
     } catch (error) {
       console.error('Error refreshing all sections:', error);
     }
-  }, [fetchAnagraficheResolution, fetchRigheAggregation, fetchAllocationStatus, fetchUserMovements]);
+  }, [fetchAnagraficheResolution, fetchAllocationStatus]);
 
   // Clear data for section
   const clearSectionData = useCallback((section: string) => {
@@ -260,9 +221,7 @@ export const useStagingAnalysis = () => {
   return {
     // Data fetching functions
     fetchAnagraficheResolution,
-    fetchRigheAggregation, 
     fetchAllocationStatus,
-    fetchUserMovements,
     fetchAllocationWorkflow,
     testAllocationWorkflow,
     testAllocationWorkflowLegacy, // Backward compatibility
@@ -281,7 +240,7 @@ export const useStagingAnalysis = () => {
     // Computed states
     isAnyLoading: Object.values(loading).some(Boolean),
     hasAnyError: Object.values(error).some(Boolean),
-    totalSections: 7, // Aggiornato per includere allocation workflow
+    totalSections: 7, // Mantenuto per ora
     loadedSections: Object.keys(data).filter(key => data[key] !== null).length
   };
 };

@@ -23,6 +23,8 @@ export interface AnagraficaResoluzione {
   sourceRows: number;
   denominazione?: string; // <-- CAMPO FONDAMENTALE AGGIUNTO
   isUnresolved?: boolean; // Campo opzionale per gestire soggetti non trovati
+  sottocontoCliente?: string;    // Sottoconto clienti per logica sottoconto intelligente
+  sottocontoFornitore?: string;  // Sottoconto fornitori per logica sottoconto intelligente
 }
 
 export interface AnagraficheResolutionResponse {
@@ -48,6 +50,7 @@ export interface VirtualRigaContabile {
   tipoRiga?: string;
   isAllocabile?: boolean;
   classeContabile?: string;
+  tipoConto?: 'C' | 'F' | 'E' | string; // C=Cliente, F=Fornitore, E=Entrambi - per logica sottoconto intelligente
 }
 
 export interface VirtualRigaIva {
