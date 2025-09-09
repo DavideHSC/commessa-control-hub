@@ -119,20 +119,73 @@ export class ImportScrittureContabiliWorkflow {
       console.log(`   📊 TOTALE VALIDI:        ${(validatedData.testate.length + validatedData.righeContabili.length + validatedData.righeIva.length + validatedData.allocazioni.length).toString().padStart(4)} record`);
       console.log(`   ❌ Record scartati:       ${errorCount.toString().padStart(4)} record (→ DLQ)`);
 
-      // FASE 3: PULIZIA COMPLETA DELLO STAGING
-      console.log('\n🧹 FASE 3: PULIZIA TABELLE DI STAGING');
+      // Estrai le variabili validate prima dell'utilizzo
+      const { testate, righeContabili, righeIva, allocazioni } = validatedData;
+
+      // FASE 3: DELETE SELETTIVO - SOLO RECORD PRESENTI NEI FILE
+      console.log('\n🧹 FASE 3: DELETE SELETTIVO RECORD DA AGGIORNARE');
       console.log('─'.repeat(50));
-      this.telemetryService.logInfo(job.id, 'Iniziando la pulizia completa delle tabelle di staging per le scritture...');
+      
+      // Estrai tutti i codici univoci presenti nei file di import
+      const codiciUnivochiNeiFile = new Set<string>();
+      
+      // Aggiungi codici da PNTESTA
+      testate.forEach(t => {
+        if (t.externalId) codiciUnivochiNeiFile.add(String(t.externalId));
+      });
+      
+      // Aggiungi codici da PNRIGCON (dovrebbero coincidere, ma per sicurezza)
+      righeContabili.forEach(r => {
+        if (r.externalId) codiciUnivochiNeiFile.add(String(r.externalId));
+      });
+      
+      // Aggiungi codici da PNRIGIVA
+      righeIva.forEach(i => {
+        if (i.codiceUnivocoScaricamento) codiciUnivochiNeiFile.add(String(i.codiceUnivocoScaricamento));
+      });
+      
+      // Aggiungi codici da MOVANAC
+      allocazioni.forEach(a => {
+        if (a.externalId) codiciUnivochiNeiFile.add(String(a.externalId));
+      });
+      
+      const codiciArray = Array.from(codiciUnivochiNeiFile);
+      console.log(`📊 Identificati ${codiciArray.length} codici univoci da aggiornare`);
+      console.log(`🛡️  Altri movimenti produzione: SARANNO PRESERVATI`);
+      
+      this.telemetryService.logInfo(job.id, `Iniziando delete selettivo per ${codiciArray.length} movimenti (preservando tutti gli altri)...`);
+      
+      // DELETE SELETTIVO - Solo record presenti nei file
       await this.prisma.$transaction([
-        this.prisma.stagingAllocazione.deleteMany({}),
-        this.prisma.stagingRigaIva.deleteMany({}),
-        this.prisma.stagingRigaContabile.deleteMany({}),
-        this.prisma.stagingTestata.deleteMany({}),
+        this.prisma.stagingAllocazione.deleteMany({
+          where: { codiceUnivocoScaricamento: { in: codiciArray } }
+        }),
+        this.prisma.stagingRigaIva.deleteMany({
+          where: { codiceUnivocoScaricamento: { in: codiciArray } }
+        }),
+        this.prisma.stagingRigaContabile.deleteMany({
+          where: { codiceUnivocoScaricamento: { in: codiciArray } }
+        }),
+        this.prisma.stagingTestata.deleteMany({
+          where: { codiceUnivocoScaricamento: { in: codiciArray } }
+        }),
       ]);
-      console.log(`✅ Tabelle StagingAllocazione, StagingRigaIva, StagingRigaContabile e StagingTestata svuotate.`);
+      
+      console.log(`✅ Delete selettivo completato per ${codiciArray.length} movimenti`);
+      console.log(`🛡️  Movimenti non presenti nei file: PRESERVATI INTATTI`);
+
+      // VALIDAZIONE SICUREZZA: Verifica preservazione dati
+      const recordRimanentiDopoDelete = await this.prisma.stagingTestata.count();
+      const recordDaInserire = testate.length;
+      
+      console.log(`📊 REPORT DELETE SELETTIVO:`);
+      console.log(`   🛡️  Records preservati:        ${recordRimanentiDopoDelete.toString().padStart(4)}`);
+      console.log(`   📥 Records da inserire (file): ${recordDaInserire.toString().padStart(4)}`);
+      console.log(`   📊 Records finali previsti:    ${(recordRimanentiDopoDelete + recordDaInserire).toString().padStart(4)}`);
+      
+      this.telemetryService.logInfo(job.id, `Delete selettivo sicuro: ${recordRimanentiDopoDelete} preservati, ${recordDaInserire} da inserire`);
 
       // FASE 4: MAPPATURA PER LO STAGING (con conversione sicura a stringa)
-      const { testate, righeContabili, righeIva, allocazioni } = validatedData;
       this.telemetryService.logInfo(job.id, 'Iniziando mappatura verso modelli di staging...');
 
       // Funzione helper per garantire che ogni valore sia una stringa, anche se null o undefined in origine.

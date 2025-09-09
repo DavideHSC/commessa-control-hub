@@ -63,6 +63,12 @@ export interface VirtualRigaIva {
     descrizione: string;
     aliquota: number;
   } | null;
+  
+  // NUOVO: Contropartita arricchita
+  matchedContropartita?: {
+    codice: string;
+    descrizione: string;
+  } | null;
 }
 
 export interface VirtualAllocazione {
@@ -76,6 +82,12 @@ export interface VirtualAllocazione {
   matchedVoceAnalitica: {
     id: string;
     nome: string;
+  } | null;
+  
+  // NUOVO: Centro di costo arricchito
+  matchedCentroCosto?: {
+    codice: string;
+    descrizione: string;
   } | null;
 }
 

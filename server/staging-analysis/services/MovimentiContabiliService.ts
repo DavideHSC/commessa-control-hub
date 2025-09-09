@@ -41,6 +41,7 @@ export class MovimentiContabiliService {
   private causaliMap: Map<string, StagingCausaleContabile>;
   private anagraficheByCodiceMap: Map<string, StagingAnagrafica>; // Chiave: codiceAnagrafica o CF
   private anagraficheBySottocontoMap: Map<string, StagingAnagrafica>; // <-- LA CHIAVE DELLA SOLUZIONE
+  private anagraficheBySiglaMap: Map<string, StagingAnagrafica>; // NUOVA: Chiave sigla cliente/fornitore
   private codiciIvaMap: Map<string, StagingCodiceIva>;
   private centriCostoMap: Map<string, any>; // Chiave: codice centro di costo
 
@@ -50,6 +51,7 @@ export class MovimentiContabiliService {
     this.causaliMap = new Map();
     this.anagraficheByCodiceMap = new Map();
     this.anagraficheBySottocontoMap = new Map(); // <-- LA CHIAVE DELLA SOLUZIONE
+    this.anagraficheBySiglaMap = new Map(); // NUOVA: Mappa per sigla
     this.codiciIvaMap = new Map();
     this.centriCostoMap = new Map();
   }
@@ -81,6 +83,7 @@ export class MovimentiContabiliService {
       // --- INIZIO BLOCCO LOGICA ANAGRAFICHE MIGLIORATA ---
       this.anagraficheByCodiceMap.clear();
       this.anagraficheBySottocontoMap.clear();
+      this.anagraficheBySiglaMap.clear();
       anagrafiche.forEach(anagrafica => {
         // Mappa per codice anagrafica (es. "ERION WEEE") e CF
         if (anagrafica.codiceAnagrafica) this.anagraficheByCodiceMap.set(anagrafica.codiceAnagrafica, anagrafica);
@@ -89,6 +92,21 @@ export class MovimentiContabiliService {
         // Mappa per sottoconto (es. "1410000034")
         if (anagrafica.sottocontoCliente) this.anagraficheBySottocontoMap.set(anagrafica.sottocontoCliente, anagrafica);
         if (anagrafica.sottocontoFornitore) this.anagraficheBySottocontoMap.set(anagrafica.sottocontoFornitore, anagrafica);
+
+        // NUOVA: Mappa per sigla estratta da sottoconto
+        if (anagrafica.sottocontoCliente) {
+          const siglaCliente = this.extractSiglaFromSottoconto(anagrafica.sottocontoCliente);
+          if (siglaCliente) this.anagraficheBySiglaMap.set(siglaCliente, anagrafica);
+        }
+        if (anagrafica.sottocontoFornitore) {
+          const siglaFornitore = this.extractSiglaFromSottoconto(anagrafica.sottocontoFornitore);
+          if (siglaFornitore) this.anagraficheBySiglaMap.set(siglaFornitore, anagrafica);
+        }
+        
+        // ALTERNATIVA: Mappa anche direttamente per codiceAnagrafica se è numerico
+        if (anagrafica.codiceAnagrafica && /^\d+$/.test(anagrafica.codiceAnagrafica)) {
+          this.anagraficheBySiglaMap.set(anagrafica.codiceAnagrafica, anagrafica);
+        }
       });
       // --- FINE BLOCCO LOGICA ANAGRAFICHE MIGLIORATA ---
 
@@ -138,7 +156,7 @@ export class MovimentiContabiliService {
               },
               select: { codiceUnivocoScaricamento: true }
           });
-          preFilteredTestataIds = [...new Set(matchingRighe.map(r => r.codiceUnivocoScaricamento))];
+          preFilteredTestataIds = Array.from(new Set(matchingRighe.map(r => r.codiceUnivocoScaricamento)));
           if (preFilteredTestataIds.length === 0) return this.createEmptyResponse(appliedFilters);
       }
 
@@ -260,19 +278,30 @@ export class MovimentiContabiliService {
       let contoDenominazione = `[Conto non presente: ${contoCodice}]`;
       let anagraficaRisolta = null;
 
-      if (riga.tipoConto === 'C' || riga.tipoConto === 'F') {
+      if (riga.tipoConto === 'C' || riga.tipoConto === 'F' || riga.tipoConto === 'E') {
           // È un cliente o fornitore, cerco la denominazione in staging_anagrafiche
-          const anagraficaInfo = this.anagraficheBySottocontoMap.get(contoCodice);
+          // CORREZIONE: Uso clienteFornitoreSigla come chiave primaria, non il conto
+          const chiaveRicerca = riga.clienteFornitoreSigla || riga.clienteFornitoreCodiceFiscale;
+          const anagraficaInfo = this.anagraficheBySiglaMap.get(chiaveRicerca) || 
+                                this.anagraficheByCodiceMap.get(chiaveRicerca) ||
+                                this.anagraficheBySottocontoMap.get(contoCodice); // Fallback per retrocompatibilità
+          
           if (anagraficaInfo) {
               contoDenominazione = anagraficaInfo.denominazione || `${anagraficaInfo.cognome} ${anagraficaInfo.nome}`.trim();
+              
+              // Gestione tipo "E" (Entrambi)
+              const tipoEffettivo = riga.tipoConto === 'E' 
+                ? this.determinaTipoFromContext(riga) 
+                : riga.tipoConto;
+              
               anagraficaRisolta = {
                   ...anagraficaInfo,
                   codiceCliente: anagraficaInfo.codiceAnagrafica || riga.clienteFornitoreSigla,
                   denominazione: contoDenominazione,
-                  tipo: riga.tipoConto === 'C' ? 'CLIENTE' : 'FORNITORE',
+                  tipo: tipoEffettivo === 'C' ? 'CLIENTE' : 'FORNITORE',
               };
           } else {
-              contoDenominazione = `[Anagrafica non trovata per sottoconto: ${contoCodice}]`;
+              contoDenominazione = `[Anagrafica non trovata per sigla: ${chiaveRicerca}]`;
           }
       } else {
           // È un conto generico, cerco la denominazione in staging_conti
@@ -282,10 +311,24 @@ export class MovimentiContabiliService {
           }
       }
 
-      if (!scrittura.testata.soggettoResolve && (riga.tipoConto === 'C' || riga.tipoConto === 'F')) {
+      if (!scrittura.testata.soggettoResolve && (riga.tipoConto === 'C' || riga.tipoConto === 'F' || riga.tipoConto === 'E')) {
         const sigla = riga.clienteFornitoreSigla || riga.clienteFornitoreCodiceFiscale;
-        const anagraficaTrovata = this.anagraficheByCodiceMap.get(sigla);
-        scrittura.testata.soggettoResolve = anagraficaTrovata ? { ...anagraficaTrovata, tipo: riga.tipoConto === 'C' ? 'CLIENTE' : 'FORNITORE' } : { denominazione: sigla, tipo: riga.tipoConto === 'C' ? 'CLIENTE' : 'FORNITORE', isUnresolved: true };
+        const anagraficaTrovata = this.anagraficheBySiglaMap.get(sigla) || 
+                                 this.anagraficheByCodiceMap.get(sigla);
+        
+        // Gestione tipo "E" anche per il soggetto della testata
+        const tipoEffettivo = riga.tipoConto === 'E' 
+          ? this.determinaTipoFromContext(riga) 
+          : riga.tipoConto;
+        
+        scrittura.testata.soggettoResolve = anagraficaTrovata ? { 
+          ...anagraficaTrovata, 
+          tipo: tipoEffettivo === 'C' ? 'CLIENTE' : 'FORNITORE' 
+        } : { 
+          denominazione: sigla, 
+          tipo: tipoEffettivo === 'C' ? 'CLIENTE' : 'FORNITORE', 
+          isUnresolved: true 
+        };
       }
       
       const contoInfo = this.contiMap.get(contoCodice); // Lo ricarico per il gruppo
@@ -403,5 +446,50 @@ export class MovimentiContabiliService {
       movimentiQuadrati: movimenti.filter(m => Math.abs(m.totaliDare - m.totaliAvere) < 0.01).length,
       movimentiAllocabili: movimenti.filter(m => m.righeDettaglio.some((r: VirtualRigaContabile) => r.isAllocabile)).length
     };
+  }
+
+  /**
+   * Estrae la sigla dal sottoconto formato MMCCSSSSSS
+   * @param sottoconto - Sottoconto nel formato gestionale 
+   * @returns La sigla estratta o null se non valida
+   */
+  private extractSiglaFromSottoconto(sottoconto: string): string | null {
+    if (!sottoconto || sottoconto.length < 6) return null;
+    
+    // Il sottoconto ha formato MMCCSSSSSS dove:
+    // MM = Tipo (14=Cliente, 20=Fornitore)  
+    // CC = Classe
+    // SSSSSS = Sigla numerica progressiva
+    
+    // Estraiamo la parte numerica (ultime 6 cifre) e rimuoviamo zeri iniziali
+    const siglaStr = sottoconto.slice(-6);
+    const siglaNumerica = parseInt(siglaStr, 10);
+    
+    return siglaNumerica.toString(); // Restituisce senza zeri iniziali (es. 000001 -> "1")
+  }
+
+  /**
+   * Determina il tipo effettivo per anagrafiche con tipo "E" (Entrambi)
+   * @param riga - Riga contabile da analizzare
+   * @returns 'C' per Cliente o 'F' per Fornitore
+   */
+  private determinaTipoFromContext(riga: any): 'C' | 'F' {
+    // Euristica basata sui movimenti contabili:
+    // - Se ha importo in DARE, probabilmente è un Cliente (credito verso di noi)
+    // - Se ha importo in AVERE, probabilmente è un Fornitore (debito verso di lui)
+    
+    const importoDare = parseGestionaleCurrency(riga.importoDare);
+    const importoAvere = parseGestionaleCurrency(riga.importoAvere);
+    
+    if (importoDare > 0 && importoAvere === 0) return 'C'; // Cliente
+    if (importoAvere > 0 && importoDare === 0) return 'F'; // Fornitore
+    
+    // In caso di ambiguità, proviamo a inferire dal codice conto
+    const contoCodice = riga.conto || riga.siglaConto || '';
+    if (contoCodice.startsWith('14')) return 'C'; // Conto clienti tipicamente 14xxxx
+    if (contoCodice.startsWith('20')) return 'F'; // Conto fornitori tipicamente 20xxxx
+    
+    // Fallback: default a Fornitore (caso più comune per tipo E)
+    return 'F';
   }
 }

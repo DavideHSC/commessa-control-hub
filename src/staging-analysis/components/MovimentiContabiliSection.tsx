@@ -187,7 +187,7 @@ export const MovimentiContabiliSection = ({ refreshTrigger }: MovimentiContabili
                 <div>
                   <span className="font-medium text-gray-600">Soggetto:</span>
                   <div className="text-gray-700 mt-1">
-                    {movimento.testata.soggettoResolve.sigla || 'N/D'}
+                    {movimento.testata.soggettoResolve.denominazione || movimento.testata.soggettoResolve.sigla || 'N/D'}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
                     {movimento.testata.soggettoResolve.tipo}
@@ -232,7 +232,41 @@ export const MovimentiContabiliSection = ({ refreshTrigger }: MovimentiContabili
                   {movimento.righeDettaglio.map((riga, index) => (
                     <TableRow key={`${movimento.testata.codiceUnivocoScaricamento}-riga-${index}`}>
                       <TableCell className="font-mono text-sm font-medium">
-                        {(riga.conto && typeof riga.conto === 'object' ? (riga.conto as any).codice : riga.conto) || riga.siglaConto || 'N/D'}
+                        {(() => {
+                          // Logica Sottoconto Intelligente per Cliente/Fornitore/Entrambi
+                          if (riga.tipoConto === 'C' || riga.tipoConto === 'F' || riga.tipoConto === 'E') {
+                            // Se abbiamo l'anagrafica risolta, usiamo il sottoconto appropriato
+                            if (riga.anagrafica) {
+                              if (riga.tipoConto === 'C') {
+                                return riga.anagrafica.sottocontoCliente || riga.conto || riga.siglaConto || 'N/D';
+                              } else if (riga.tipoConto === 'F') {
+                                return riga.anagrafica.sottocontoFornitore || riga.conto || riga.siglaConto || 'N/D';
+                              } else if (riga.tipoConto === 'E') {
+                                // Per tipo "E" (Entrambi), determiniamo dal contesto
+                                const importoDare = parseFloat(riga.importoDare || '0');
+                                const importoAvere = parseFloat(riga.importoAvere || '0');
+                                
+                                // Se ha importo in DARE, agisce come Cliente (credito)
+                                if (importoDare > 0 && importoAvere === 0) {
+                                  return riga.anagrafica.sottocontoCliente || riga.conto || riga.siglaConto || 'N/D';
+                                }
+                                // Se ha importo in AVERE, agisce come Fornitore (debito)
+                                if (importoAvere > 0 && importoDare === 0) {
+                                  return riga.anagrafica.sottocontoFornitore || riga.conto || riga.siglaConto || 'N/D';
+                                }
+                                
+                                // Fallback: usa sottoconto fornitore come default per tipo E
+                                return riga.anagrafica.sottocontoFornitore || riga.anagrafica.sottocontoCliente || riga.conto || riga.siglaConto || 'N/D';
+                              }
+                            }
+                            
+                            // Fallback se non abbiamo anagrafica risolta
+                            return riga.conto || riga.siglaConto || 'N/D';
+                          }
+                          
+                          // Per righe normali, usa la logica esistente per piano dei conti
+                          return (riga.conto && typeof riga.conto === 'object' ? (riga.conto as any).codice : riga.conto) || riga.siglaConto || 'N/D';
+                        })()}
                       </TableCell>
                       <TableCell className="font-medium text-sm" title={riga.contoDenominazione}>
                         <div className="truncate">

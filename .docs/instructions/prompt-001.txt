@@ -1,0 +1,259 @@
+ho verificato io nel db ed effettivamente non stiamo importando i valori per il campo "clienteFornitoreSigla" che è presente sia
+ nelle teste che nelle righe e in realtà, non stiamo importando neanche i valori per il campo "clienteFornitoreSubcodice" nella tabella "staging_righe_contabili"
+ho anche eseguito questa query:
+SELECT * 
+FROM "FieldDefinition" 
+WHERE "fieldName" LIKE '%cliente%'
+ORDER BY "fieldName"
+
+ed il risultato è scioccante:
+FieldDefinition
+---
+| id | start | length | templateId | fileIdentifier | fieldName | format | end | 
+| --- | ---: | ---: | --- | --- | --- | --- | ---: | 
+| cmfbb7l12005max8fke2uz8qk | 100 | 16 | cmfbb7l12005iax8fcx8uz72i | PNTESTA.TXT | clienteFornitoreCodiceFiscale | \N | 115 | 
+| cmfbb7l12005uax8ff3wtrnb7 | 20 | 16 | cmfbb7l12005iax8fcx8uz72i | PNRIGCON.TXT | clienteFornitoreCodiceFiscale | \N | 35 | 
+
+solo questi due???
+
+e quest'altra?:
+SELECT t."modelName", t."name", f."fieldName", f."fileIdentifier", f.start, f.length, f.end, f.format FROM "ImportTemplate" AS t
+LEFT JOIN "FieldDefinition" AS f ON f."templateId" = t.id
+ORDER BY t.id, f."fieldName"
+
+risultato:
+---
+| modelName | name | fieldName | fileIdentifier | start | length | end | format | 
+| --- | --- | --- | --- | ---: | ---: | ---: | --- | 
+| CausaleContabile | causali | codiceCausale | \N | 5 | 6 | 10 | \N | 
+| CausaleContabile | causali | contoIva | \N | 71 | 10 | 80 | \N | 
+| CausaleContabile | causali | contoIvaVendite | \N | 83 | 10 | 92 | \N | 
+| CausaleContabile | causali | dataFine | \N | 61 | 8 | 68 | date:DDMMYYYY | 
+| CausaleContabile | causali | dataInizio | \N | 53 | 8 | 60 | date:DDMMYYYY | 
+| CausaleContabile | causali | descrizione | \N | 11 | 40 | 50 | \N | 
+| CausaleContabile | causali | descrizioneDocumento | \N | 162 | 5 | 166 | \N | 
+| CausaleContabile | causali | fatturaEmessaRegCorrispettivi | \N | 97 | 1 | 97 | boolean | 
+| CausaleContabile | causali | fatturaImporto0 | \N | 93 | 1 | 93 | boolean | 
+| CausaleContabile | causali | fatturaValutaEstera | \N | 94 | 1 | 94 | boolean | 
+| CausaleContabile | causali | generazioneAutofattura | \N | 81 | 1 | 81 | boolean | 
+| CausaleContabile | causali | gestioneIntrastat | \N | 99 | 1 | 99 | boolean | 
+| CausaleContabile | causali | gestionePartite | \N | 98 | 1 | 98 | \N | 
+| CausaleContabile | causali | gestioneRitenuteEnasarco | \N | 100 | 1 | 100 | \N | 
+| CausaleContabile | causali | identificativoEsteroClifor | \N | 167 | 1 | 167 | boolean | 
+| CausaleContabile | causali | ivaEsigibilitaDifferita | \N | 96 | 1 | 96 | \N | 
+| CausaleContabile | causali | movimentoRegIvaNonRilevante | \N | 170 | 1 | 170 | boolean | 
+| CausaleContabile | causali | nonConsiderareLiquidazioneIva | \N | 95 | 1 | 95 | boolean | 
+| CausaleContabile | causali | nonStampareRegCronologico | \N | 169 | 1 | 169 | boolean | 
+| CausaleContabile | causali | noteMovimento | \N | 102 | 60 | 161 | \N | 
+| CausaleContabile | causali | scritturaRettificaAssestamento | \N | 168 | 1 | 168 | boolean | 
+| CausaleContabile | causali | segnoMovimentoIva | \N | 70 | 1 | 70 | \N | 
+| CausaleContabile | causali | tipoAggiornamento | \N | 52 | 1 | 52 | \N | 
+| CausaleContabile | causali | tipoAutofatturaGenerata | \N | 82 | 1 | 82 | \N | 
+| CausaleContabile | causali | tipoMovimento | \N | 51 | 1 | 51 | \N | 
+| CausaleContabile | causali | tipoMovimentoSemplificata | \N | 171 | 1 | 171 | \N | 
+| CausaleContabile | causali | tipoRegistroIva | \N | 69 | 1 | 69 | \N | 
+| CausaleContabile | causali | versamentoRitenute | \N | 101 | 1 | 101 | boolean | 
+| CondizionePagamento | condizioni_pagamento | calcolaGiorniCommerciali | \N | 63 | 1 | 63 | boolean | 
+| CondizionePagamento | condizioni_pagamento | codicePagamento | \N | 5 | 8 | 12 | \N | 
+| CondizionePagamento | condizioni_pagamento | consideraPeriodiChiusura | \N | 64 | 1 | 64 | boolean | 
+| CondizionePagamento | condizioni_pagamento | contoIncassoPagamento | \N | 53 | 10 | 62 | \N | 
+| CondizionePagamento | condizioni_pagamento | descrizione | \N | 13 | 40 | 52 | \N | 
+| CondizionePagamento | condizioni_pagamento | inizioScadenza | \N | 66 | 1 | 66 | \N | 
+| CondizionePagamento | condizioni_pagamento | numeroRate | \N | 67 | 2 | 68 | number | 
+| CondizionePagamento | condizioni_pagamento | suddivisione | \N | 65 | 1 | 65 | \N | 
+| CodiceIva | codici_iva | acqOperazImponibiliOccasionali | \N | 130 | 1 | 130 | \N | 
+| CodiceIva | codici_iva | acquistiCessioni | \N | 143 | 1 | 143 | \N | 
+| CodiceIva | codici_iva | acquistiIntracomunitari | \N | 161 | 1 | 161 | \N | 
+| CodiceIva | codici_iva | agevolazioniSubforniture | \N | 132 | 1 | 132 | \N | 
+| CodiceIva | codici_iva | aliquota | \N | 50 | 6 | 55 | percentage | 
+| CodiceIva | codici_iva | aliquotaDiversa | \N | 119 | 6 | 124 | percentage | 
+| CodiceIva | codici_iva | analiticoBeniAmmortizzabili | \N | 159 | 1 | 159 | \N | 
+| CodiceIva | codici_iva | autofatturaReverseCharge | \N | 134 | 1 | 134 | \N | 
+| CodiceIva | codici_iva | beniAmmortizzabili | \N | 150 | 1 | 150 | boolean | 
+| CodiceIva | codici_iva | cesArt38QuaterStornoIva | \N | 136 | 1 | 136 | \N | 
+| CodiceIva | codici_iva | cessioneProdottiEditoriali | \N | 162 | 1 | 162 | \N | 
+| CodiceIva | codici_iva | codice | \N | 5 | 4 | 8 | \N | 
+| CodiceIva | codici_iva | comunicazioneDatiIvaAcquisti | \N | 133 | 1 | 133 | \N | 
+| CodiceIva | codici_iva | comunicazioneDatiIvaVendite | \N | 131 | 1 | 131 | \N | 
+| CodiceIva | codici_iva | descrizione | \N | 9 | 40 | 48 | \N | 
+| CodiceIva | codici_iva | gestioneProRata | \N | 129 | 1 | 129 | \N | 
+| CodiceIva | codici_iva | imponibile50Corrispettivi | \N | 115 | 1 | 115 | \N | 
+| CodiceIva | codici_iva | imposteIntrattenimenti | \N | 116 | 2 | 117 | \N | 
+| CodiceIva | codici_iva | indetraibilita | \N | 56 | 3 | 58 | percentage | 
+| CodiceIva | codici_iva | indicatoreTerritorialeAcquisti | \N | 154 | 2 | 155 | \N | 
+| CodiceIva | codici_iva | indicatoreTerritorialeVendite | \N | 151 | 2 | 152 | \N | 
+| CodiceIva | codici_iva | metodoDaApplicare | \N | 156 | 1 | 156 | \N | 
+| CodiceIva | codici_iva | monteAcquisti | \N | 126 | 1 | 126 | \N | 
+| CodiceIva | codici_iva | noVolumeAffariPlafond | \N | 128 | 1 | 128 | \N | 
+| CodiceIva | codici_iva | note | \N | 59 | 40 | 98 | \N | 
+| CodiceIva | codici_iva | operazioneEsenteOccasionale | \N | 135 | 1 | 135 | \N | 
+| CodiceIva | codici_iva | percDetrarreExport | \N | 137 | 6 | 142 | number:decimal | 
+| CodiceIva | codici_iva | percentualeCompensazione | \N | 144 | 6 | 149 | percentage | 
+| CodiceIva | codici_iva | percentualeForfetaria | \N | 157 | 2 | 158 | \N | 
+| CodiceIva | codici_iva | plafondAcquisti | \N | 125 | 1 | 125 | \N | 
+| CodiceIva | codici_iva | plafondVendite | \N | 127 | 1 | 127 | \N | 
+| CodiceIva | codici_iva | provvigioniDm34099 | \N | 153 | 1 | 153 | \N | 
+| CodiceIva | codici_iva | quotaForfetaria | \N | 160 | 1 | 160 | \N | 
+| CodiceIva | codici_iva | tipoCalcolo | \N | 49 | 1 | 49 | \N | 
+| CodiceIva | codici_iva | validitaFine | \N | 107 | 8 | 114 | date:DDMMYYYY | 
+| CodiceIva | codici_iva | validitaInizio | \N | 99 | 8 | 106 | date:DDMMYYYY | 
+| CodiceIva | codici_iva | ventilazione | \N | 118 | 1 | 118 | \N | 
+| StagingConto | piano_dei_conti | codice | \N | 6 | 10 | 15 | \N | 
+| StagingConto | piano_dei_conti | codiceClasseDatiStudiSettore | \N | 258 | 10 | 267 | \N | 
+| StagingConto | piano_dei_conti | codiceClasseIrap | \N | 118 | 10 | 127 | \N | 
+| StagingConto | piano_dei_conti | codiceClasseIrapProfessionista | \N | 138 | 10 | 147 | \N | 
+| StagingConto | piano_dei_conti | codiceClasseIrpefIres | \N | 108 | 10 | 117 | \N | 
+| StagingConto | piano_dei_conti | codiceClasseIva | \N | 148 | 10 | 157 | \N | 
+| StagingConto | piano_dei_conti | codiceClasseProfessionista | \N | 128 | 10 | 137 | \N | 
+| StagingConto | piano_dei_conti | contoAvereCee | \N | 178 | 12 | 189 | \N | 
+| StagingConto | piano_dei_conti | contoCostiRicaviCollegato | \N | 90 | 10 | 99 | \N | 
+| StagingConto | piano_dei_conti | contoDareCee | \N | 166 | 12 | 177 | \N | 
+| StagingConto | piano_dei_conti | controlloSegno | \N | 89 | 1 | 89 | \N | 
+| StagingConto | piano_dei_conti | descrizione | \N | 16 | 60 | 75 | \N | 
+| StagingConto | piano_dei_conti | descrizioneBilancioAvere | \N | 329 | 60 | 388 | \N | 
+| StagingConto | piano_dei_conti | descrizioneBilancioDare | \N | 269 | 60 | 328 | \N | 
+| StagingConto | piano_dei_conti | dettaglioClienteFornitore | \N | 268 | 1 | 268 | \N | 
+| StagingConto | piano_dei_conti | gestioneBeniAmmortizzabili | \N | 194 | 1 | 194 | \N | 
+| StagingConto | piano_dei_conti | gruppo | \N | 257 | 1 | 257 | \N | 
+| StagingConto | piano_dei_conti | livello | \N | 5 | 1 | 5 | \N | 
+| StagingConto | piano_dei_conti | naturaConto | \N | 190 | 4 | 193 | \N | 
+| StagingConto | piano_dei_conti | numeroColonnaRegCronologico | \N | 158 | 4 | 161 | \N | 
+| StagingConto | piano_dei_conti | numeroColonnaRegIncassiPag | \N | 162 | 4 | 165 | \N | 
+| StagingConto | piano_dei_conti | percDeduzioneManutenzione | \N | 195 | 6 | 200 | number:decimal | 
+| StagingConto | piano_dei_conti | sigla | \N | 77 | 12 | 88 | \N | 
+| StagingConto | piano_dei_conti | tipo | \N | 76 | 1 | 76 | \N | 
+| StagingConto | piano_dei_conti | validoImpresaOrdinaria | \N | 100 | 1 | 100 | boolean | 
+| StagingConto | piano_dei_conti | validoImpresaSemplificata | \N | 101 | 1 | 101 | boolean | 
+| StagingConto | piano_dei_conti | validoProfessionistaOrdinario | \N | 102 | 1 | 102 | boolean | 
+| StagingConto | piano_dei_conti | validoProfessionistaSemplificato | \N | 103 | 1 | 103 | boolean | 
+| StagingConto | piano_dei_conti | validoUnicoEnc | \N | 107 | 1 | 107 | boolean | 
+| StagingConto | piano_dei_conti | validoUnicoPf | \N | 104 | 1 | 104 | boolean | 
+| StagingConto | piano_dei_conti | validoUnicoSc | \N | 106 | 1 | 106 | boolean | 
+| StagingConto | piano_dei_conti | validoUnicoSp | \N | 105 | 1 | 105 | boolean | 
+| StagingConto | piano_dei_conti_aziendale | classeDatiExtracontabili | \N | 175 | 10 | 184 | \N | 
+| StagingConto | piano_dei_conti_aziendale | classeIrap | \N | 135 | 10 | 144 | \N | 
+| StagingConto | piano_dei_conti_aziendale | classeIrapProfessionista | \N | 155 | 10 | 164 | \N | 
+| StagingConto | piano_dei_conti_aziendale | classeIrpefIres | \N | 125 | 10 | 134 | \N | 
+| StagingConto | piano_dei_conti_aziendale | classeIva | \N | 165 | 10 | 174 | \N | 
+| StagingConto | piano_dei_conti_aziendale | classeProfessionista | \N | 145 | 10 | 154 | \N | 
+| StagingConto | piano_dei_conti_aziendale | codice | \N | 23 | 10 | 32 | \N | 
+| StagingConto | piano_dei_conti_aziendale | codiceFiscaleAzienda | \N | 4 | 16 | 19 | \N | 
+| StagingConto | piano_dei_conti_aziendale | colonnaRegistroCronologico | \N | 185 | 4 | 188 | \N | 
+| StagingConto | piano_dei_conti_aziendale | colonnaRegistroIncassiPagamenti | \N | 189 | 4 | 192 | \N | 
+| StagingConto | piano_dei_conti_aziendale | consideraBilancioSemplificato | \N | 391 | 1 | 391 | boolean | 
+| StagingConto | piano_dei_conti_aziendale | contoAvereCee | \N | 205 | 12 | 216 | \N | 
+| StagingConto | piano_dei_conti_aziendale | contoCostiRicaviCollegato | \N | 107 | 10 | 116 | \N | 
+| StagingConto | piano_dei_conti_aziendale | contoDareCee | \N | 193 | 12 | 204 | \N | 
+| StagingConto | piano_dei_conti_aziendale | controlloSegno | \N | 106 | 1 | 106 | \N | 
+| StagingConto | piano_dei_conti_aziendale | descrizione | \N | 34 | 60 | 93 | \N | 
+| StagingConto | piano_dei_conti_aziendale | descrizioneBilancioAvere | \N | 290 | 60 | 349 | \N | 
+| StagingConto | piano_dei_conti_aziendale | descrizioneBilancioDare | \N | 230 | 60 | 289 | \N | 
+| StagingConto | piano_dei_conti_aziendale | descrizioneLocale | \N | 351 | 40 | 390 | \N | 
+| StagingConto | piano_dei_conti_aziendale | dettaglioClienteFornitore | \N | 229 | 1 | 229 | \N | 
+| StagingConto | piano_dei_conti_aziendale | gestioneBeniAmmortizzabili | \N | 221 | 1 | 221 | \N | 
+| StagingConto | piano_dei_conti_aziendale | gruppo | \N | 228 | 1 | 228 | \N | 
+| StagingConto | piano_dei_conti_aziendale | livello | \N | 22 | 1 | 22 | \N | 
+| StagingConto | piano_dei_conti_aziendale | naturaConto | \N | 217 | 4 | 220 | \N | 
+| StagingConto | piano_dei_conti_aziendale | percDeduzioneManutenzione | \N | 222 | 6 | 227 | number:decimal | 
+| StagingConto | piano_dei_conti_aziendale | sigla | \N | 94 | 12 | 105 | \N | 
+| StagingConto | piano_dei_conti_aziendale | subcodiceAzienda | \N | 20 | 1 | 20 | \N | 
+| StagingConto | piano_dei_conti_aziendale | tipo | \N | 33 | 1 | 33 | \N | 
+| StagingConto | piano_dei_conti_aziendale | utilizzaDescrizioneLocale | \N | 350 | 1 | 350 | boolean | 
+| StagingConto | piano_dei_conti_aziendale | validoImpresaOrdinaria | \N | 117 | 1 | 117 | boolean | 
+| StagingConto | piano_dei_conti_aziendale | validoImpresaSemplificata | \N | 118 | 1 | 118 | boolean | 
+| StagingConto | piano_dei_conti_aziendale | validoProfessionistaOrdinario | \N | 119 | 1 | 119 | boolean | 
+| StagingConto | piano_dei_conti_aziendale | validoProfessionistaSemplificato | \N | 120 | 1 | 120 | boolean | 
+| StagingConto | piano_dei_conti_aziendale | validoUnicoEnc | \N | 124 | 1 | 124 | boolean | 
+| StagingConto | piano_dei_conti_aziendale | validoUnicoPf | \N | 121 | 1 | 121 | boolean | 
+| StagingConto | piano_dei_conti_aziendale | validoUnicoSc | \N | 123 | 1 | 123 | boolean | 
+| StagingConto | piano_dei_conti_aziendale | validoUnicoSp | \N | 122 | 1 | 122 | boolean | 
+| \N | scritture_contabili | causaleId | PNTESTA.TXT | 40 | 6 | 45 | \N | 
+| \N | scritture_contabili | centroDiCosto | MOVANAC.TXT | 19 | 4 | 22 | \N | 
+| \N | scritture_contabili | clienteFornitoreCodiceFiscale | PNTESTA.TXT | 100 | 16 | 115 | \N | 
+| \N | scritture_contabili | clienteFornitoreCodiceFiscale | PNRIGCON.TXT | 20 | 16 | 35 | \N | 
+| \N | scritture_contabili | codiceIva | PNRIGIVA.TXT | 16 | 4 | 19 | \N | 
+| \N | scritture_contabili | codiceUnivocoScaricamento | PNRIGIVA.TXT | 4 | 12 | 15 | \N | 
+| \N | scritture_contabili | conto | PNRIGCON.TXT | 49 | 10 | 58 | \N | 
+| \N | scritture_contabili | contropartita | PNRIGIVA.TXT | 20 | 10 | 29 | \N | 
+| \N | scritture_contabili | dataDocumento | PNTESTA.TXT | 129 | 8 | 136 | date:DDMMYYYY | 
+| \N | scritture_contabili | dataRegistrazione | PNTESTA.TXT | 86 | 8 | 93 | date:DDMMYYYY | 
+| \N | scritture_contabili | externalId | MOVANAC.TXT | 4 | 12 | 15 | \N | 
+| \N | scritture_contabili | externalId | PNRIGCON.TXT | 4 | 12 | 15 | \N | 
+| \N | scritture_contabili | externalId | PNTESTA.TXT | 21 | 12 | 32 | \N | 
+| \N | scritture_contabili | imponibile | PNRIGIVA.TXT | 30 | 12 | 41 | number | 
+| \N | scritture_contabili | imponibile50CorrNonCons | PNRIGIVA.TXT | 66 | 12 | 77 | number | 
+| \N | scritture_contabili | importoAvere | PNRIGCON.TXT | 71 | 12 | 82 | number | 
+| \N | scritture_contabili | importoDare | PNRIGCON.TXT | 59 | 12 | 70 | number | 
+| \N | scritture_contabili | importoLordo | PNRIGIVA.TXT | 90 | 12 | 101 | number | 
+| \N | scritture_contabili | imposta | PNRIGIVA.TXT | 42 | 12 | 53 | number | 
+| \N | scritture_contabili | impostaIntrattenimenti | PNRIGIVA.TXT | 54 | 12 | 65 | number | 
+| \N | scritture_contabili | impostaNonConsiderata | PNRIGIVA.TXT | 78 | 12 | 89 | number | 
+| \N | scritture_contabili | movimentiAnalitici | PNRIGCON.TXT | 248 | 1 | 248 | \N | 
+| \N | scritture_contabili | note | PNRIGIVA.TXT | 102 | 60 | 161 | \N | 
+| \N | scritture_contabili | note | PNRIGCON.TXT | 83 | 60 | 142 | \N | 
+| \N | scritture_contabili | noteMovimento | PNTESTA.TXT | 193 | 60 | 252 | \N | 
+| \N | scritture_contabili | numeroDocumento | PNTESTA.TXT | 137 | 12 | 148 | \N | 
+| \N | scritture_contabili | parametro | MOVANAC.TXT | 23 | 12 | 34 | number | 
+| \N | scritture_contabili | progressivoRigo | PNRIGCON.TXT | 16 | 3 | 18 | number | 
+| \N | scritture_contabili | progressivoRigoContabile | MOVANAC.TXT | 16 | 3 | 18 | number | 
+| \N | scritture_contabili | siglaContropartita | PNRIGIVA.TXT | 162 | 12 | 173 | \N | 
+| \N | scritture_contabili | tipoConto | PNRIGCON.TXT | 19 | 1 | 19 | \N | 
+| \N | scritture_contabili | totaleDocumento | PNTESTA.TXT | 173 | 12 | 184 | number | 
+| AnagraficaCliFor | anagrafica_clifor | aliquota | \N | 325 | 6 | 330 | percentage | 
+| AnagraficaCliFor | anagrafica_clifor | attivitaMensilizzazione | \N | 337 | 2 | 338 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | cap | \N | 212 | 5 | 216 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | codiceAnagrafica | \N | 71 | 12 | 82 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | codiceFiscaleAzienda | \N | 4 | 16 | 19 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | codiceFiscaleClifor | \N | 33 | 16 | 48 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | codiceIncassoCliente | \N | 292 | 8 | 299 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | codiceIncassoPagamento | \N | 284 | 8 | 291 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | codiceIso | \N | 282 | 2 | 283 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | codicePagamentoFornitore | \N | 300 | 8 | 307 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | codiceRitenuta | \N | 316 | 5 | 320 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | codiceUnivoco | \N | 21 | 12 | 32 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | codiceValuta | \N | 308 | 4 | 311 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | cognome | \N | 155 | 20 | 174 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | comuneNascita | \N | 204 | 4 | 207 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | comuneResidenza | \N | 208 | 4 | 211 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | contributoPrevid335 | \N | 324 | 1 | 324 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | contributoPrevidenziale | \N | 315 | 1 | 315 | boolean | 
+| AnagraficaCliFor | anagrafica_clifor | dataNascita | \N | 196 | 8 | 203 | date:DDMMYYYY | 
+| AnagraficaCliFor | anagrafica_clifor | denominazione | \N | 95 | 60 | 154 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | enasarco | \N | 321 | 1 | 321 | boolean | 
+| AnagraficaCliFor | anagrafica_clifor | gestioneDati770 | \N | 312 | 1 | 312 | boolean | 
+| AnagraficaCliFor | anagrafica_clifor | idFiscaleEstero | \N | 262 | 20 | 281 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | indirizzo | \N | 217 | 30 | 246 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | nome | \N | 175 | 20 | 194 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | numeroTelefono | \N | 251 | 11 | 261 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | partitaIva | \N | 83 | 11 | 93 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | percContributoCassa | \N | 331 | 6 | 336 | percentage | 
+| AnagraficaCliFor | anagrafica_clifor | prefissoTelefono | \N | 247 | 4 | 250 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | quadro770 | \N | 314 | 1 | 314 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | sesso | \N | 195 | 1 | 195 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | soggettoARitenuta | \N | 313 | 1 | 313 | boolean | 
+| AnagraficaCliFor | anagrafica_clifor | soggettoInail | \N | 323 | 1 | 323 | boolean | 
+| AnagraficaCliFor | anagrafica_clifor | sottocontoCliente | \N | 51 | 10 | 60 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | sottocontoFornitore | \N | 61 | 10 | 70 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | subcodiceAzienda | \N | 20 | 1 | 20 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | subcodiceClifor | \N | 49 | 1 | 49 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | tipoConto | \N | 50 | 1 | 50 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | tipoRitenuta | \N | 322 | 1 | 322 | \N | 
+| AnagraficaCliFor | anagrafica_clifor | tipoSoggetto | \N | 94 | 1 | 94 | \N | 
+| StagingCentroCosto | centri_costo | codice | \N | 21 | 4 | 24 | \N | 
+| StagingCentroCosto | centri_costo | codiceFiscaleAzienda | \N | 4 | 16 | 19 | \N | 
+| StagingCentroCosto | centri_costo | descrizione | \N | 25 | 40 | 64 | \N | 
+| StagingCentroCosto | centri_costo | livello | \N | 105 | 2 | 106 | number | 
+| StagingCentroCosto | centri_costo | note | \N | 107 | 50 | 156 | \N | 
+| StagingCentroCosto | centri_costo | responsabile | \N | 65 | 40 | 104 | \N | 
+| StagingCentroCosto | centri_costo | subcodeAzienda | \N | 20 | 1 | 20 | \N | 
+
+da dove cominciamo?
+sicuramente la fonte primaria di verità sono i tracciati in @.docs/dati_cliente/tracciati/modificati/ e a cui fare fede
+
+poi i parsers, cosa importano e su cosa si basano per importare i dati giusti?
+
+e poi le rispettive corrispondenze con il db, le tabelle dove verranno memorizzati questi dati.
+
+Architetta un ottimo piano di indagine e analisi e scrivilo come al solito in @.docs/
+
+think harder
