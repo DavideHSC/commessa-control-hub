@@ -180,7 +180,8 @@ export const rawPnRigConSchema = z.object({
  */
 export const rawPnRigIvaSchema = z.object({
   // Identificativi
-  externalId: z.string().optional(), // CODICE UNIVOCO DI SCARICAMENTO
+  codiceUnivocoScaricamento: z.string().optional(), // CODICE UNIVOCO DI SCARICAMENTO
+  externalId: z.string().optional(), // Legacy compatibility
 
   // Dati IVA
   codiceIva: z.string().optional(),

@@ -284,7 +284,7 @@ export class ImportScrittureContabiliWorkflow {
 
       // --- Mappatura StagingRigaIva ---
       const stagingRigheIva = righeIva.map((r: any, index) => ({
-        codiceUnivocoScaricamento: toStringOrEmpty(r.externalId),
+        codiceUnivocoScaricamento: toStringOrEmpty(r.codiceUnivocoScaricamento || r.externalId),
         codiceIva: toStringOrEmpty(r.codiceIva),
         contropartita: toStringOrEmpty(r.contropartita),
         imponibile: toStringOrEmpty(r.imponibile),

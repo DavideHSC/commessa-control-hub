@@ -22,7 +22,7 @@ See **ADR.md** in the project root for comprehensive architectural decisions, im
 - `npm start` - Start production build
 
 ### Code Quality & Testing ✅
-- `npm run lint` - Lint entire codebase
+- `npm run lint` - Lint entire codebase **⚠️ IMPORTANTE: Usa questo per verificare TypeScript, non npm run build**
 - `npm run lint:import-engine` - Lint import engine specifically
 - `npm test` - Run Jest tests (>80% coverage on critical functions, 9 test suites)
   - `server/verification/finalization.test.ts` - Finalization functions (87.5% pass rate)
@@ -102,6 +102,8 @@ RESTful endpoints in `/server/routes/`:
 - Strict TypeScript configuration
 - Separate ESLint configs for frontend (React) and backend (Node.js)
 - Path aliases: `@/` resolves to `/src/` in frontend code
+
+**⚠️ CLAUDE CODE REMINDER**: Per verificare TypeScript compilazione usare **SEMPRE** `npm run lint`, mai `npm run build` (manca server/tsconfig.json).
 
 ### ✅ NEW: Tracciati Documentation as Active Schema (2025-09-04)
 **Critical Pattern**: Files in `.docs/dati_cliente/tracciati/modificati/` are NOT just documentation but **active relationship schema**:
@@ -363,6 +365,21 @@ The finalization system had a **catastrophic architectural flaw**: `cleanSlate()
 - `server/staging-analysis/routes.ts` - API endpoint con validazione parametri
 - `src/staging-analysis/components/MovimentiContabiliSection.tsx` - UI component (26KB)
 - `src/staging-analysis/types/stagingAnalysisTypes.ts` - TypeScript interfaces estese
+
+### ✅ BUGFIX: Dettaglio IVA Parser PNRIGIVA ✅ FIXED (2025-09-09)
+**Problema**: Il dettaglio IVA non veniva visualizzato nella sezione H a causa di un errore di mappatura nel parser.
+
+**Cause Identificate**:
+- Parser workflow utilizzava campo `externalId` invece di `codiceUnivocoScaricamento` per righe IVA
+- JOIN fallito tra `StagingTestata` e `StagingRigaIva` per codici univoci inconsistenti
+- Validator PNRIGIVA non aveva field mapping standardizzato con altri file
+
+**Correzioni Applicate**:
+- **Workflow Fix**: `importScrittureContabiliWorkflow.ts:287` - Usato `r.codiceUnivocoScaricamento || r.externalId`
+- **Validator Fix**: `scrittureContabiliValidator.ts:183-184` - Aggiunto campo `codiceUnivocoScaricamento` + retrocompatibilità
+- **UX Enhancement**: `MovimentiContabiliSection.tsx:384-393` - Alert informativo quando righe IVA mancanti
+
+**Risultato**: Dettaglio IVA ora visualizzato correttamente con informazioni complete (codice, descrizione, aliquota, contropartita, importi).
 
 ## 🇮🇹 LINGUA ITALIANA OBBLIGATORIA
 **SEMPRE rispondere in ITALIANO con l'utente Davide - mai in inglese!**

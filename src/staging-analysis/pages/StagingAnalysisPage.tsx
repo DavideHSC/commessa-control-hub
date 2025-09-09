@@ -28,82 +28,87 @@ import { MovimentiContabiliSection } from '../components/MovimentiContabiliSecti
 import { TemplateManagementSection } from '../components/TemplateManagementSection';
 
 const SECTIONS = [
-  {
-    id: 'anagrafiche',
-    title: 'A. Risoluzione Anagrafica',
-    description: 'Interpreta dati staging per risolvere clienti/fornitori senza creare entità fake',
-    icon: Users,
-    color: 'bg-blue-500',
-    status: 'ready'
-  },
-  {
-    id: 'aggregazione',
-    title: 'B. Aggregazione Righe Contabili', 
-    description: 'Aggrega righe contabili staging per formare scritture virtuali complete',
-    icon: FileText,
-    color: 'bg-green-500',
-    status: 'ready'
-  },
-  {
-    id: 'allocazioni',
-    title: 'C. Calcolo Stato Allocazione',
-    description: 'Calcola percentuali allocazione da staging senza finalizzare',
-    icon: PieChart,
-    color: 'bg-yellow-500',
-    status: 'ready'
-  },
-  {
-    id: 'presentazione',
-    title: 'D. Presentazione Utente',
-    description: 'Trasforma dati staging in rappresentazione user-friendly',
-    icon: Eye,
-    color: 'bg-purple-500',
-    status: 'ready'
-  },
-  {
-    id: 'workflow',
-    title: 'E. Test Workflow Allocazione',
-    description: 'Simula workflow manuale di allocazione su staging data',
-    icon: Settings,
-    color: 'bg-orange-500',
-    status: 'ready'
-  },
-  {
-    id: 'validazioni',
-    title: 'F. Test Validazione Business',
-    description: 'Applica validazioni business sui dati staging',
-    icon: CheckCircle,
-    color: 'bg-red-500',
-    status: 'ready'
-  },
-  {
-    id: 'suggerimenti',
-    title: 'G. Suggerimenti Automatici',
-    description: 'Sistema intelligente per suggerimenti di allocazione automatica',
-    icon: TestTube,
-    color: 'bg-yellow-500',
-    status: 'ready'
-  },
+  // Prima riga - Sezioni principali operative
   {
     id: 'movimenti',
-    title: 'H. Movimenti Contabili Completi',
+    title: 'A. Movimenti Contabili Completi',
     description: 'Prima nota digitale con interfaccia tipo gestionale tradizionale',
     icon: Database,
     color: 'bg-pink-500',
-    status: 'ready'
+    status: 'pronto'
+  },
+  {
+    id: 'workflow',
+    title: 'B. Test Workflow Allocazione',
+    description: 'Simula workflow manuale di allocazione su staging data',
+    icon: Settings,
+    color: 'bg-orange-500',
+    status: 'pronto'
   },
   {
     id: 'templates',
-    title: 'I. Gestione Template Parsing',
+    title: 'C. Gestione Template Parsing',
     description: 'Configurazione template per il parsing dei file di importazione',
     icon: Settings,
     color: 'bg-indigo-500',
-    status: 'ready'
+    status: 'pronto'
+  },
+  
+  // Seconda riga - Analisi dati base
+  {
+    id: 'anagrafiche',
+    title: 'D. Risoluzione Anagrafica',
+    description: 'Interpreta dati staging per risolvere clienti/fornitori senza creare entità fake',
+    icon: Users,
+    color: 'bg-blue-500',
+    status: 'pronto'
+  },
+  {
+    id: 'aggregazione',
+    title: 'E. Aggregazione Righe Contabili', 
+    description: 'Aggrega righe contabili staging per formare scritture virtuali complete',
+    icon: FileText,
+    color: 'bg-green-500',
+    status: 'pronto'
+  },
+  {
+    id: 'allocazioni',
+    title: 'F. Calcolo Stato Allocazione',
+    description: 'Calcola percentuali allocazione da staging senza finalizzare',
+    icon: PieChart,
+    color: 'bg-yellow-500',
+    status: 'pronto'
+  },
+  
+  // Terza riga - Presentazione e validazioni
+  {
+    id: 'presentazione',
+    title: 'G. Presentazione Utente',
+    description: 'Trasforma dati staging in rappresentazione user-friendly',
+    icon: Eye,
+    color: 'bg-purple-500',
+    status: 'pronto'
+  },
+  {
+    id: 'validazioni',
+    title: 'H. Test Validazione Business',
+    description: 'Applica validazioni business sui dati staging',
+    icon: CheckCircle,
+    color: 'bg-red-500',
+    status: 'pronto'
+  },
+  {
+    id: 'suggerimenti',
+    title: 'I. Suggerimenti Automatici',
+    description: 'Sistema intelligente per suggerimenti di allocazione automatica',
+    icon: TestTube,
+    color: 'bg-yellow-500',
+    status: 'pronto'
   }
 ] as const;
 
 export const StagingAnalysisPage = () => {
-  const [activeSection, setActiveSection] = useState<string>('anagrafiche');
+  const [activeSection, setActiveSection] = useState<string>('movimenti');
   const [globalRefresh, setGlobalRefresh] = useState(0);
 
   const handleGlobalRefresh = () => {
@@ -134,7 +139,7 @@ export const StagingAnalysisPage = () => {
               className="flex items-center gap-2"
             >
               <RefreshCw size={16} />
-              Refresh All
+              Aggiorna Tutti
             </Button>
             <Badge variant="secondary" className="bg-green-100 text-green-800">
               <Database size={14} className="mr-1" />

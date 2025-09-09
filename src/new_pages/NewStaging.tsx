@@ -15,7 +15,7 @@ interface StagingStats {
   displayName: string;
   recordCount: number;
   lastUpdated: string;
-  status: 'ready' | 'processing' | 'error';
+  status: 'pronto' | 'in elaborazione' | 'errore';
   hasErrors?: boolean;
   errorCount?: number;
 }
@@ -23,7 +23,7 @@ interface StagingStats {
 interface StagingRecord {
   id: string;
   createdAt: string;
-  status: 'valid' | 'warning' | 'error';
+  status: 'valido' | 'avviso' | 'errore';
   validationErrors?: string[];
   [key: string]: unknown;
 }
@@ -68,7 +68,7 @@ export const NewStaging = () => {
             displayName: 'Anagrafiche Clienti/Fornitori', 
             recordCount: data.anagrafiche || 0,
             lastUpdated: new Date().toISOString(),
-            status: 'ready' as const,
+            status: 'pronto' as const,
             hasErrors: false,
             errorCount: 0
           },
@@ -77,7 +77,7 @@ export const NewStaging = () => {
             displayName: 'Piano dei Conti',
             recordCount: data.conti || 0,
             lastUpdated: new Date().toISOString(),
-            status: 'ready' as const,
+            status: 'pronto' as const,
             hasErrors: false,
             errorCount: 0
           },
@@ -86,7 +86,7 @@ export const NewStaging = () => {
             displayName: 'Causali Contabili',
             recordCount: data.causali || 0,
             lastUpdated: new Date().toISOString(),
-            status: 'ready' as const,
+            status: 'pronto' as const,
             hasErrors: false,
             errorCount: 0
           },
@@ -95,7 +95,7 @@ export const NewStaging = () => {
             displayName: 'Codici IVA',
             recordCount: data.codiciIva || 0,
             lastUpdated: new Date().toISOString(),
-            status: 'ready' as const,
+            status: 'pronto' as const,
             hasErrors: false,
             errorCount: 0
           },
@@ -104,7 +104,7 @@ export const NewStaging = () => {
             displayName: 'Condizioni Pagamento',
             recordCount: data.condizioniPagamento || 0,
             lastUpdated: new Date().toISOString(),
-            status: 'ready' as const,
+            status: 'pronto' as const,
             hasErrors: false,
             errorCount: 0
           },
@@ -113,7 +113,7 @@ export const NewStaging = () => {
             displayName: 'Centri di Costo',
             recordCount: data.centriCosto || 0,
             lastUpdated: new Date().toISOString(),
-            status: 'ready' as const,
+            status: 'pronto' as const,
             hasErrors: false,
             errorCount: 0
           },
@@ -122,7 +122,7 @@ export const NewStaging = () => {
             displayName: 'Scritture Contabili',
             recordCount: data.scritture || 0,
             lastUpdated: new Date().toISOString(),
-            status: 'ready' as const,
+              status: 'pronto' as const,
             hasErrors: false,
             errorCount: 0
           },
@@ -131,7 +131,7 @@ export const NewStaging = () => {
             displayName: 'Scritture Contabili (Master-Detail)',
             recordCount: data.scritture || 0,
             lastUpdated: new Date().toISOString(),
-            status: 'ready' as const,
+            status: 'pronto' as const,
             hasErrors: false,
             errorCount: 0
           }
@@ -547,7 +547,7 @@ Procedere con la finalizzazione intelligente?`
               const stats = stagingStats.find(s => s.tableName === table.value);
               const recordCount = stats?.recordCount || 0;
               const hasErrors = stats?.hasErrors || false;
-              const isProcessing = stats?.status === 'processing';
+              const isProcessing = stats?.status === 'in elaborazione';
 
               return (
                 <div 

@@ -328,7 +328,7 @@ export const MovimentiContabiliSection = ({ refreshTrigger }: MovimentiContabili
           </div>
 
           {/* Righe IVA */}
-          {movimento.righeIva.length > 0 && (
+          {movimento.righeIva.length > 0 ? (
             <div>
               <h4 className="font-medium mb-3 flex items-center gap-2">
                 <DollarSign size={16} />
@@ -381,6 +381,15 @@ export const MovimentiContabiliSection = ({ refreshTrigger }: MovimentiContabili
                 </Table>
               </div>
             </div>
+          ) : (
+            <Alert className="border-yellow-200 bg-yellow-50">
+              <AlertTriangle className="h-4 w-4 text-yellow-600" />
+              <AlertDescription className="text-yellow-800">
+                <strong>Nessuna riga IVA trovata</strong> per questo movimento contabile. 
+                Verificare che i dati PNRIGIVA.TXT siano stati importati correttamente e che il 
+                codice univoco di scaricamento sia consistente tra i file.
+              </AlertDescription>
+            </Alert>
           )}
 
           {/* Allocazioni Analitiche */}
@@ -388,7 +397,7 @@ export const MovimentiContabiliSection = ({ refreshTrigger }: MovimentiContabili
             <div>
               <h4 className="font-medium mb-3 flex items-center gap-2">
                 <TrendingUp size={16} />
-                Contabilità Analitica ({movimento.allocazioni.length} allocazioni)
+                Centri di Costo ({movimento.allocazioni.length} allocazioni)
               </h4>
               <div className="border rounded-lg overflow-hidden">
                 <Table className="w-full table-fixed">
