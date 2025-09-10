@@ -23,7 +23,7 @@ import stagingRoutes from './routes/staging.js';
 import importTemplatesRoutes from './routes/importTemplates.js';
 import databaseRoutes from './routes/database.js';
 import importRouter from './routes/import.js';
-import stagingAnalysisRouter from './staging-analysis/routes.js';
+import centroControlloRouter from './centro-controllo/routes.js';
 
 /**
  * Crea e configura l'istanza dell'applicazione Express.
@@ -58,7 +58,7 @@ export function createApp() {
     app.use('/api/smart-allocation', smartAllocationRoutes);
     app.use('/api/allocation/audit', auditTrailRoutes);
     app.use('/api/import', importRouter);
-    app.use('/api/staging-analysis', stagingAnalysisRouter);
+    app.use('/api/centro-controllo', centroControlloRouter);
 
     app.get('/api', (req: Request, res: Response) => {
         res.json({ message: 'Commessa Control Hub API - Server is running' });

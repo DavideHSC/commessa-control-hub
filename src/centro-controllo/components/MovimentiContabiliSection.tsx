@@ -76,7 +76,7 @@ export const MovimentiContabiliSection = ({ refreshTrigger }: MovimentiContabili
       if (filters.page) queryParams.append('page', filters.page.toString());
       if (filters.limit) queryParams.append('limit', filters.limit.toString());
 
-      const response = await fetch(`/api/staging-analysis/movimenti-contabili?${queryParams}`);
+      const response = await fetch(`/api/centro-controllo/movimenti-contabili?${queryParams}`);
       const result: StagingAnalysisApiResponse<MovimentiContabiliResponse> = await response.json();
       
       if (!result.success) {
@@ -450,7 +450,7 @@ export const MovimentiContabiliSection = ({ refreshTrigger }: MovimentiContabili
     if (!data?.pagination || data.pagination.totalPages <= 1) return null;
 
     const { page, totalPages } = data.pagination;
-    const pages = [];
+    const pages: React.ReactNode[] = [];
     
     // Previous button
     pages.push(

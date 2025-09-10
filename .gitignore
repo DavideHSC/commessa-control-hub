@@ -40,3 +40,4 @@ server/**/*.cjs
 *.tsbuildinfo
 
 server/scripts/
+.docs/screenshots

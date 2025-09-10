@@ -94,7 +94,7 @@ RESTful endpoints in `/server/routes/`:
 - `/api/commesse`, `/api/clienti`, `/api/fornitori` - Business entities
 - `/api/registrazioni`, `/api/conti`, `/api/causali` - Accounting data
 - `/api/dashboard`, `/api/reconciliation` - Analytics and reports
-- `/api/staging-analysis/*` - **NEW**: Staging-first analysis system (6 endpoints)
+- `/api/centro-controllo/*` - **REBRANDED**: Centro di Controllo Gestionale (ex staging-analysis, 6 endpoints)
 
 ## Development Notes
 
@@ -149,23 +149,23 @@ Located in `/server/import-engine/core/validations/businessValidations.ts`:
 - **Deletion Safety**: Prevents deletion of commesse with dependencies
 - **Integration**: Validations integrated into API endpoints with proper error handling
 
-### ✅ NEW: Staging-First Analysis System ✅ IMPLEMENTED
-Located in `/server/staging-analysis/`:
-- **Architecture**: 6 specialized services for interpretative analysis
+### ✅ REBRANDED: Centro di Controllo Gestionale ✅ IMPLEMENTED (ex Staging-First Analysis)
+Located in `/server/centro-controllo/` (renamed 2025-09-10):
+- **Architecture**: 6 specialized services for business management and control
 - **Virtual Entities**: Zero-persistence pattern for safe data exploration
 - **Real Data Validation**: Tested with 746 movements (€114+ million) without errors
 - **Error Resilience**: Robust error handling for complex real-world data
 - **API Integration**: 7 endpoints (5 GET + 2 POST) fully functional
-- **User Benefits**: Safe staging data analysis + workflow testing + allocation preview
+- **User Benefits**: Complete business control center for advanced operations management
 
 ### ✅ NEW: Anagrafiche Preview Import System ✅ IMPLEMENTED (2025-09-06)
 **Complete Import Validation System**: Advanced preview system for anagrafiche import validation.
 
 **Architecture**:
 - **Backend Service**: `AnagrafichePreviewService.ts` - Direct testate/anagrafiche comparison
-- **API Endpoint**: `/api/staging-analysis/anagrafiche-preview` - RESTful preview data
+- **API Endpoint**: `/api/centro-controllo/anagrafiche-preview` - RESTful preview data
 - **React Component**: `AnagrafichePreviewSection.tsx` - Interactive preview table
-- **Integration**: StagingAnalysisPage.tsx with automatic refresh capability
+- **Integration**: Centro di Controllo Gestionale page with automatic refresh capability
 
 **Key Features**:
 - **Real Matching Logic**: `StagingTestata.clienteFornitoreSigla` ↔ `StagingAnagrafica.codiceAnagrafica`
@@ -180,11 +180,11 @@ Located in `/server/staging-analysis/`:
 - **User Confidence**: Clear visual feedback on import consequences
 - **Debugging Support**: Resolve anagrafica matching issues pre-import
 
-**Files**:
-- `server/staging-analysis/services/AnagrafichePreviewService.ts` - Core business logic
-- `server/staging-analysis/routes.ts` - API endpoint registration  
-- `src/staging-analysis/components/AnagrafichePreviewSection.tsx` - React UI component
-- `src/staging-analysis/pages/StagingAnalysisPage.tsx` - Integration point
+**Files** (Updated paths after rebranding):
+- `server/centro-controllo/services/AnagrafichePreviewService.ts` - Core business logic
+- `server/centro-controllo/routes.ts` - API endpoint registration  
+- `src/centro-controllo/components/AnagrafichePreviewSection.tsx` - React UI component
+- `src/centro-controllo/pages/StagingAnalysisPage.tsx` - Integration point
 
 ### ✅ NEW: Relational Mapping & Field Decoding System ✅ IMPLEMENTED (2025-09-04)
 **Tracciati-Driven Architecture**: Complete system for managing table relationships based on legacy trace documentation.

@@ -54,7 +54,7 @@ export const AnagrafichePreviewSection = ({ refreshTrigger }: AnagrafichePreview
     
     try {
       console.log('🔍 Fetching anagrafiche preview...');
-      const response = await apiClient.get('/staging-analysis/anagrafiche-preview');
+      const response = await apiClient.get('/centro-controllo/anagrafiche-preview');
       
       if (response.data.success) {
         setData(response.data.data);

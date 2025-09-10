@@ -52,7 +52,7 @@ export const AutoAllocationSuggestionsSection = ({ refreshTrigger }: AutoAllocat
     setError(null);
     
     try {
-      const response = await fetch('/api/staging-analysis/auto-allocation-suggestions');
+      const response = await fetch('/api/centro-controllo/auto-allocation-suggestions');
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
@@ -76,7 +76,7 @@ export const AutoAllocationSuggestionsSection = ({ refreshTrigger }: AutoAllocat
     setTestResults(null);
     
     try {
-      const response = await fetch('/api/staging-analysis/apply-allocation-suggestions', {
+      const response = await fetch('/api/centro-controllo/apply-allocation-suggestions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

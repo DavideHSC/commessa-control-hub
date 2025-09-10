@@ -97,7 +97,7 @@ export const AllocationWorkflowSection = ({ refreshTrigger }: AllocationWorkflow
       if (filters.hasAllocazioniStaging) queryParams.append('hasAllocazioniStaging', 'true');
       if (filters.statoAllocazione) queryParams.append('statoAllocazione', filters.statoAllocazione);
 
-      const response = await fetch(`/api/staging-analysis/allocation-workflow?${queryParams}`);
+      const response = await fetch(`/api/centro-controllo/allocation-workflow?${queryParams}`);
       const result: StagingAnalysisApiResponse<AllocationWorkflowResponse> = await response.json();
       
       if (!result.success) {
@@ -158,7 +158,7 @@ export const AllocationWorkflowSection = ({ refreshTrigger }: AllocationWorkflow
         modalitaTest: 'IMPACT_ANALYSIS' as const
       };
 
-      const response = await fetch('/api/staging-analysis/allocation-workflow/test', {
+      const response = await fetch('/api/centro-controllo/allocation-workflow/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(testRequest)

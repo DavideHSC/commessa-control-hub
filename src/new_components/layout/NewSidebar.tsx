@@ -7,7 +7,7 @@ import {
   Database, 
   Target, 
   Settings,
-  TestTube
+  BarChart3
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -22,7 +22,7 @@ const menuItems: MenuItem[] = [
   { title: "Commesse", url: "/new/commesse", icon: Building2 },
   { title: "Importazione Dati", url: "/new/import", icon: Upload },
   { title: "Dati Importati", url: "/new/staging", icon: Layers },
-  { title: "Staging Analysis", url: "/new/staging-analysis", icon: TestTube },
+  { title: "Centro Controllo", url: "/new/centro-controllo", icon: BarChart3 },
   { title: "Database", url: "/new/database", icon: Database },
   { title: "Riconciliazione", url: "/new/riconciliazione", icon: Target },
   { title: "Impostazioni", url: "/new/settings", icon: Settings },

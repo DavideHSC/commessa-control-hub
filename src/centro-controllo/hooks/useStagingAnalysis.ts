@@ -92,7 +92,7 @@ export const useStagingAnalysis = () => {
     setErrorForSection(section, null);
 
     try {
-      const response = await fetch(`/api/staging-analysis/${endpoint}`, {
+      const response = await fetch(`/api/centro-controllo/${endpoint}`, {
         headers: {
           'Content-Type': 'application/json',
         },

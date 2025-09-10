@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../new_components/ui/Card';
 import { Button } from '../../new_components/ui/Button';
 import { Badge } from '../../new_components/ui/Badge';
@@ -12,7 +12,8 @@ import {
   CheckCircle,
   RefreshCw,
   Database,
-  TestTube
+  BarChart3,
+  Lightbulb
 } from 'lucide-react';
 
 // Importazione componenti sezioni
@@ -37,8 +38,8 @@ const SECTIONS = [
   },
   {
     id: 'workflow',
-    title: 'B. Test Workflow Allocazione',
-    description: 'Simula workflow manuale di allocazione su staging data',
+    title: 'B. Workflow Allocazione',
+    description: 'Gestione workflow manuale di allocazione e controllo operativo',
     icon: Settings,
     color: 'bg-orange-500',
     status: 'pronto'
@@ -55,24 +56,24 @@ const SECTIONS = [
   // Seconda riga - Analisi dati base
   {
     id: 'anagrafiche',
-    title: 'D. Risoluzione Anagrafica',
-    description: 'Interpreta dati staging per risolvere clienti/fornitori senza creare entità fake',
+    title: 'D. Gestione Anagrafica',
+    description: 'Gestione completa di clienti e fornitori con risoluzione automatica',
     icon: Users,
     color: 'bg-blue-500',
     status: 'pronto'
   },
   {
     id: 'allocazioni',
-    title: 'E. Calcolo Stato Allocazione',
-    description: 'Calcola percentuali allocazione da staging senza finalizzare',
+    title: 'E. Controllo Allocazioni',
+    description: 'Monitoraggio e calcolo percentuali allocazione in tempo reale',
     icon: PieChart,
     color: 'bg-yellow-500',
     status: 'pronto'
   },
   {
     id: 'validazioni',
-    title: 'F. Test Validazione Business',
-    description: 'Applica validazioni business sui dati staging',
+    title: 'F. Validazione Business',
+    description: 'Controllo automatico regole business e integrità dati',
     icon: CheckCircle,
     color: 'bg-red-500',
     status: 'pronto'
@@ -81,9 +82,9 @@ const SECTIONS = [
   // Terza riga - Suggerimenti intelligenti (centrata)
   {
     id: 'suggerimenti',
-    title: 'G. Suggerimenti Automatici',
-    description: 'Sistema intelligente per suggerimenti di allocazione automatica',
-    icon: TestTube,
+    title: 'G. Suggerimenti Intelligenti',
+    description: 'Sistema di intelligenza artificiale per ottimizzazione automatica',
+    icon: Lightbulb,
     color: 'bg-yellow-500',
     status: 'pronto'
   }
@@ -106,11 +107,11 @@ export const StagingAnalysisPage = () => {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">
-              <TestTube className="inline-block mr-3 text-blue-600" size={32} />
-              Staging Analysis - Sistema Interpretativo
+              <BarChart3 className="inline-block mr-3 text-blue-600" size={32} />
+              Centro di Controllo Gestionale
             </h1>
             <p className="text-gray-600 text-lg">
-              Testing della nuova architettura staging-first con logica interpretativa
+              Gestione completa dei flussi operativi e analisi in tempo reale
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -123,9 +124,9 @@ export const StagingAnalysisPage = () => {
               <RefreshCw size={16} />
               Aggiorna Tutti
             </Button>
-            <Badge variant="secondary" className="bg-green-100 text-green-800">
-              <Database size={14} className="mr-1" />
-              Sistema Isolato
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+              <BarChart3 size={14} className="mr-1" />
+              Operativo
             </Badge>
           </div>
         </div>
@@ -133,10 +134,9 @@ export const StagingAnalysisPage = () => {
 
       {/* Alert informativo */}
       <Alert className="border-blue-200 bg-blue-50">
-        <Database className="h-4 w-4 text-blue-600" />
+        <BarChart3 className="h-4 w-4 text-blue-600" />
         <AlertDescription className="text-blue-800">
-          <strong>Ambiente di Test Separato:</strong> Questo sistema lavora direttamente sui dati staging con logica interpretativa. 
-          Zero impatto sul sistema esistente - completamente isolato per testing sicuro della nuova architettura.
+          <strong>Centro di Controllo Gestionale:</strong> Sistema operativo per la gestione avanzata delle commesse con funzionalità integrate per l'analisi, il controllo e l'ottimizzazione dei processi aziendali.
         </AlertDescription>
       </Alert>
 
