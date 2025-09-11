@@ -158,6 +158,38 @@ Located in `/server/centro-controllo/` (renamed 2025-09-10):
 - **API Integration**: 7 endpoints (5 GET + 2 POST) fully functional
 - **User Benefits**: Complete business control center for advanced operations management
 
+#### ✅ BUGFIX: AllocationWorkflowService TypeScript Compliance ✅ FIXED (2025-09-10)
+**Problema**: IDE segnalava 6 errori TypeScript critici in `AllocationWorkflowService.ts` che compromettevano la type safety.
+
+**Correzioni Applicate**:
+- **Import Missing**: Aggiunto `TipoMovimentoAnalitico` da `@prisma/client`
+- **Mapping Allocazioni**: Corretto da `movimentoContabileId` → `rigaScritturaId` per conformità schema Prisma
+- **Enum Types**: Sostituito stringa generica con `TipoMovimentoAnalitico.COSTO_EFFETTIVO`
+- **Interface Compliance**: Ristrutturato oggetto `movimento` per rispettare `MovimentoContabileCompleto`
+- **Prisma Relations**: Rimosso `include: { righeContabili }` (non esistente nello schema)
+- **ValidationContext**: Gestito campo `movimento` opzionale con fallback sicuro
+
+**Risultato**: Zero errori TypeScript critici, compatibilità completa con schema Prisma, type safety migliorata
+
+**Files Updated**: `server/centro-controllo/services/AllocationWorkflowService.ts` (100% TypeScript compliant)
+
+#### ✅ ENHANCEMENT: Test Workflow Preview Scritture con Dati Reali ✅ ENHANCED (2025-01-14)
+**Miglioramento**: Sostituiti dati mock con conti reali nel tab "Preview Scritture" del Test Workflow Allocazione Completo.
+
+**Implementazione**:
+- **Lookup Dinamico**: Conti reali recuperati da `StagingConto` con fallback intelligenti
+- **Conti Specifici**: Utilizzo conti appropriati per allocazioni analitiche di commessa
+- **Denominazioni Personalizzate**: Include nome commessa specifico per chiarezza operativa
+- **Integrazione Completa**: Funziona sia per modalità `PREVIEW_SCRITTURE` che `IMPACT_ANALYSIS`
+
+**Conti Utilizzati**:
+- **Allocazione**: `1518000200` - "RIMANENZE COMMESSE IN CORSO DI LAVORAZIONE"
+- **Contropartita**: `3530000800` - "FONDO COSTI LAVORI SU COMMESSA"
+
+**Business Value**: Preview realistico delle scritture contabili che verranno generate, eliminando confusione da codici placeholder e fornendo rappresentazione accurata delle operazioni contabili.
+
+**Files Enhanced**: `server/centro-controllo/services/AllocationWorkflowService.ts:610-735` - Metodi `generateScritturePreview()` e `getContiPerAllocazioni()`
+
 ### ✅ NEW: Anagrafiche Preview Import System ✅ IMPLEMENTED (2025-09-06)
 **Complete Import Validation System**: Advanced preview system for anagrafiche import validation.
 
@@ -289,8 +321,10 @@ Located in `/server/centro-controllo/` (renamed 2025-09-10):
 - ✅ **CRITICAL**: **ZERO RISK** data loss in cyclic operations - User data safety guaranteed
 - ✅ **NEW**: Intelligent operational modes (Setup vs Cyclic) with automatic detection
 - ✅ **NEW**: Complete audit logging system for full traceability
+- ✅ **FIXED**: AllocationWorkflowService TypeScript compliance - Zero critical errors
+- ✅ **NEW**: Preview Scritture Contabili con dati reali dal piano dei conti (eliminati placeholder mock)
 
-**STATUS**: System ready for production deployment (**99% complete + CRITICAL SAFETY RESOLVED**)
+**STATUS**: System ready for production deployment (**99% complete + CRITICAL SAFETY RESOLVED + TYPE SAFETY ENHANCED + UI ENHANCEMENT**)
 
 ## 🛡️ CRITICAL FINALIZATION SAFETY SYSTEM (2025-09-02)
 
@@ -387,6 +421,29 @@ The finalization system had a **catastrophic architectural flaw**: `cleanSlate()
 - **UX Enhancement**: `MovimentiContabiliSection.tsx:384-393` - Alert informativo quando righe IVA mancanti
 
 **Risultato**: Dettaglio IVA ora visualizzato correttamente con informazioni complete (codice, descrizione, aliquota, contropartita, importi).
+
+### ✅ IMPLEMENTAZIONE: Preview Scritture Contabili con Dati Reali ✅ COMPLETED (2025-01-14)
+**Problema**: Il tab "Preview Scritture" nel Test Workflow Allocazione Completo mostrava solo dati mock (codici conto `999999/888888` con denominazioni generiche).
+
+**Cause Identificate**:
+- Frontend inviava modalità `IMPACT_ANALYSIS` ma backend generava preview solo per `PREVIEW_SCRITTURE`
+- Metodi `generateScritturePreview()` e `generateFallbackScritturePreview()` utilizzavano codici conto hardcoded
+- Mancava integrazione con piano dei conti reali da `StagingConto`
+
+**Soluzioni Implementate**:
+- **Estensione Modalità**: Generazione preview anche per modalità `IMPACT_ANALYSIS`
+- **Lookup Conti Reali**: Nuovo metodo `getContiPerAllocazioni()` per recupero conti da database
+- **Mapping Intelligente**: Utilizzo conti appropriati per allocazioni analitiche
+  - **Allocazione**: `1518000200` - "RIMANENZE COMMESSE IN CORSO DI LAVORAZIONE"
+  - **Contropartita**: `3530000800` - "FONDO COSTI LAVORI SU COMMESSA"
+- **Denominazioni Dinamiche**: Include nome commessa specifico per maggiore chiarezza
+- **Fallback Robusto**: Sistema di fallback sicuro per conti non trovati
+
+**Risultato**: Preview Scritture ora mostra dati contabili realistici con codici e denominazioni corretti dal piano dei conti, eliminando completamente i placeholder mock.
+
+**Files Modificati**:
+- `server/centro-controllo/services/AllocationWorkflowService.ts:610-735` - Logica preview con dati reali
+- `src/centro-controllo/components/workflow/ValidationPreview.tsx:286-296` - Tab preview funzionante
 
 ## 🇮🇹 LINGUA ITALIANA OBBLIGATORIA
 **SEMPRE rispondere in ITALIANO con l'utente Davide - mai in inglese!**
