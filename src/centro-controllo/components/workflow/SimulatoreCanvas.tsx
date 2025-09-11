@@ -211,7 +211,8 @@ export const SimulatoreCanvas = ({
 
   const canProceed = () => {
     const errors = validateAllocazioni();
-    return errors.length === 0 && allocazioni.length > 0;
+    // Permetti di procedere anche senza allocazioni (allocazione manuale vuota è valida)
+    return errors.length === 0;
   };
 
   return (
@@ -533,7 +534,9 @@ export const SimulatoreCanvas = ({
         <div className="text-sm text-gray-600">
           {!canProceed() ? 
             'Completa la configurazione per procedere' : 
-            'Simulazione pronta per la validazione'
+            allocazioni.length === 0 ? 
+              'Nessuna allocazione configurata - procedi per saltare l\'allocazione' :
+              'Simulazione pronta per la validazione'
           }
         </div>
         <Button
@@ -542,7 +545,7 @@ export const SimulatoreCanvas = ({
           className="flex items-center gap-2"
         >
           <ArrowRight size={16} />
-          Procedi alla Validazione
+          {allocazioni.length === 0 ? 'Salta Allocazione' : 'Procedi alla Validazione'}
         </Button>
       </div>
     </div>

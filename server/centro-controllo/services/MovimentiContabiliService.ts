@@ -2,6 +2,7 @@ import { Prisma, PrismaClient, StagingConto, StagingAnagrafica, StagingCausaleCo
 
 import { MovimentiContabiliData, MovimentoContabileCompleto, VirtualRigaContabile } from '../types/virtualEntities.js';
 import { parseDateGGMMAAAA, parseGestionaleCurrency } from '../utils/stagingDataHelpers.js';
+import { PerformanceOptimizedCache } from '../utils/PerformanceOptimizedCache.js';
 
 interface MovimentiContabiliFilters {
   dataDa?: string; // YYYY-MM-DD
@@ -44,6 +45,9 @@ export class MovimentiContabiliService {
   private anagraficheBySiglaMap: Map<string, StagingAnagrafica>; // NUOVA: Chiave sigla cliente/fornitore
   private codiciIvaMap: Map<string, StagingCodiceIva>;
   private centriCostoMap: Map<string, any>; // Chiave: codice centro di costo
+  
+  // FIX CRITICITÀ 5: Sistema cache ottimizzato per performance
+  private performanceCache: PerformanceOptimizedCache;
 
   constructor() {
     this.prisma = new PrismaClient();
@@ -54,79 +58,101 @@ export class MovimentiContabiliService {
     this.anagraficheBySiglaMap = new Map(); // NUOVA: Mappa per sigla
     this.codiciIvaMap = new Map();
     this.centriCostoMap = new Map();
+    
+    // Inizializza sistema cache ottimizzato
+    this.performanceCache = new PerformanceOptimizedCache(this.prisma);
   }
 
   private async loadAllLookups(): Promise<void> {
     const startTime = Date.now();
     try {
-      console.log('🔄 Loading all lookup tables into memory...');
+      console.log('🚀 Loading lookup tables with performance optimization...');
       
-      const [conti, causali, anagrafiche, codiciIva, centriCosto] = await Promise.all([
-        this.prisma.stagingConto.findMany(),
-        this.prisma.stagingCausaleContabile.findMany(),
-        this.prisma.stagingAnagrafica.findMany(),
-        this.prisma.stagingCodiceIva.findMany(),
-        (this.prisma as any).stagingCentroCosto.findMany()
-      ]);
+      // FIX CRITICITÀ 5: Usa cache ottimizzato invece di findMany() illimitato
+      const cacheResult = await this.performanceCache.loadOptimizedLookupTables();
+      
+      // Assegna le mappe ottimizzate
+      this.contiMap = cacheResult.contiMap;
+      this.causaliMap = cacheResult.causaliMap;
+      this.codiciIvaMap = cacheResult.codiciIvaMap;
+      this.centriCostoMap = cacheResult.centriCostoMap;
 
-      this.contiMap.clear();
-      conti.forEach(conto => {
-        if (conto.codice) this.contiMap.set(conto.codice, conto);
-        if (conto.sigla) this.contiMap.set(conto.sigla, conto);
-      });
+      // Popola le mappe anagrafiche con chiavi multiple (metodo ottimizzato)
+      this.populateAnagraficMaps(cacheResult.anagraficheMap);
 
-      this.causaliMap.clear();
-      causali.forEach(causale => {
-        if (causale.codiceCausale) this.causaliMap.set(causale.codiceCausale, causale);
-      });
-
-      // --- INIZIO BLOCCO LOGICA ANAGRAFICHE MIGLIORATA ---
-      this.anagraficheByCodiceMap.clear();
-      this.anagraficheBySottocontoMap.clear();
-      this.anagraficheBySiglaMap.clear();
-      anagrafiche.forEach(anagrafica => {
-        // Mappa per codice anagrafica (es. "ERION WEEE") e CF
-        if (anagrafica.codiceAnagrafica) this.anagraficheByCodiceMap.set(anagrafica.codiceAnagrafica, anagrafica);
-        if (anagrafica.codiceFiscaleClifor) this.anagraficheByCodiceMap.set(anagrafica.codiceFiscaleClifor, anagrafica);
-
-        // Mappa per sottoconto (es. "1410000034")
-        if (anagrafica.sottocontoCliente) this.anagraficheBySottocontoMap.set(anagrafica.sottocontoCliente, anagrafica);
-        if (anagrafica.sottocontoFornitore) this.anagraficheBySottocontoMap.set(anagrafica.sottocontoFornitore, anagrafica);
-
-        // NUOVA: Mappa per sigla estratta da sottoconto
-        if (anagrafica.sottocontoCliente) {
-          const siglaCliente = this.extractSiglaFromSottoconto(anagrafica.sottocontoCliente);
-          if (siglaCliente) this.anagraficheBySiglaMap.set(siglaCliente, anagrafica);
-        }
-        if (anagrafica.sottocontoFornitore) {
-          const siglaFornitore = this.extractSiglaFromSottoconto(anagrafica.sottocontoFornitore);
-          if (siglaFornitore) this.anagraficheBySiglaMap.set(siglaFornitore, anagrafica);
-        }
-        
-        // ALTERNATIVA: Mappa anche direttamente per codiceAnagrafica se è numerico
-        if (anagrafica.codiceAnagrafica && /^\d+$/.test(anagrafica.codiceAnagrafica)) {
-          this.anagraficheBySiglaMap.set(anagrafica.codiceAnagrafica, anagrafica);
-        }
-      });
-      // --- FINE BLOCCO LOGICA ANAGRAFICHE MIGLIORATA ---
-
-      this.codiciIvaMap.clear();
-      codiciIva.forEach(iva => {
-        if (iva.codice) this.codiciIvaMap.set(iva.codice, iva);
-      });
-
-      this.centriCostoMap.clear();
-      centriCosto.forEach(centro => {
-        if (centro.codice) this.centriCostoMap.set(centro.codice, centro);
-      });
-
-      const loadTime = Date.now() - startTime;
-      console.log(`✅ Lookup tables loaded: ${conti.length} conti, ${causali.length} causali, ${anagrafiche.length} anagrafiche, ${codiciIva.length} codici IVA, ${centriCosto.length} centri costo in ${loadTime}ms`);
+      // Log performance migliorata
+      const duration = Date.now() - startTime;
+      console.log(`✅ Performance-optimized lookup load completed in ${duration}ms`);
+      console.log(`📊 Cache Stats:`, cacheResult.stats);
+      
+      // Log statistiche cache dettagliate
+      const cacheStats = this.performanceCache.getCacheStats();
+      console.log(`💾 Cache Performance - Hit Rate: ${(cacheStats.hitRate * 100).toFixed(1)}%, Memory: ${cacheStats.totalMemoryMB.toFixed(1)}MB`);
       
     } catch (error) {
       console.error('❌ Error loading lookup tables:', error);
       throw error;
     }
+  }
+
+  /**
+   * Popola le mappe anagrafiche con chiavi multiple per lookup ottimizzato
+   * FIX PERFORMANCE: Metodo ottimizzato per gestire anagrafiche da cache
+   */
+  private populateAnagraficMaps(anagraficheMap: Map<string, any>): void {
+    console.log(`📊 Populating anagrafica maps from ${anagraficheMap.size} cached entries...`);
+    
+    // Reset mappe
+    this.anagraficheByCodiceMap.clear();
+    this.anagraficheBySottocontoMap.clear();
+    this.anagraficheBySiglaMap.clear();
+    
+    let processedCount = 0;
+    
+    // Itera sulla mappa cache già ottimizzata
+    for (const anagrafica of anagraficheMap.values()) {
+      // Mappa per codice anagrafica (es. "ERION WEEE") e CF
+      if (anagrafica.codiceAnagrafica) {
+        this.anagraficheByCodiceMap.set(anagrafica.codiceAnagrafica, anagrafica);
+      }
+      if (anagrafica.codiceFiscaleClifor) {
+        this.anagraficheByCodiceMap.set(anagrafica.codiceFiscaleClifor, anagrafica);
+      }
+
+      // Mappa per sottoconto (es. "1410000034")
+      if (anagrafica.sottocontoCliente) {
+        this.anagraficheBySottocontoMap.set(anagrafica.sottocontoCliente, anagrafica);
+        
+        // Estrai sigla da sottoconto per matching ottimizzato
+        const siglaCliente = this.extractSiglaFromSottoconto(anagrafica.sottocontoCliente);
+        if (siglaCliente) {
+          this.anagraficheBySiglaMap.set(siglaCliente, anagrafica);
+        }
+      }
+      
+      if (anagrafica.sottocontoFornitore) {
+        this.anagraficheBySottocontoMap.set(anagrafica.sottocontoFornitore, anagrafica);
+        
+        const siglaFornitore = this.extractSiglaFromSottoconto(anagrafica.sottocontoFornitore);
+        if (siglaFornitore) {
+          this.anagraficheBySiglaMap.set(siglaFornitore, anagrafica);
+        }
+      }
+      
+      // Mappa anche per codiceAnagrafica se è numerico (pattern comune)
+      if (anagrafica.codiceAnagrafica && /^\d+$/.test(anagrafica.codiceAnagrafica)) {
+        this.anagraficheBySiglaMap.set(anagrafica.codiceAnagrafica, anagrafica);
+      }
+      
+      processedCount++;
+      
+      // Progress log ogni 1000 entries per dataset grandi
+      if (processedCount % 1000 === 0) {
+        console.log(`📊 Processed ${processedCount} anagrafica entries...`);
+      }
+    }
+    
+    console.log(`✅ Anagrafica maps populated: ${this.anagraficheByCodiceMap.size} by code, ${this.anagraficheBySottocontoMap.size} by sottoconto, ${this.anagraficheBySiglaMap.size} by sigla`);
   }
 
   async getMovimentiContabili(filters: MovimentiContabiliFilters = {}): Promise<MovimentiContabiliResponse> {

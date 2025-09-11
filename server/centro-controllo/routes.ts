@@ -337,4 +337,83 @@ router.post('/allocation-workflow/test', async (req, res) => {
   }
 });
 
+/**
+ * NUOVO ENDPOINT: Applica allocazioni virtuali al database
+ * POST /api/centro-controllo/allocation-workflow/apply
+ * 
+ * COMPLETAMENTO CRITICO: Step finale workflow che persistisce allocazioni
+ * Risolve CRITICITÀ 4: Workflow incompleto mancante di persistenza
+ */
+router.post('/allocation-workflow/apply', async (req, res) => {
+  try {
+    console.log('🎯 Apply Virtual Allocations endpoint called');
+    
+    const { movimentoId, allocazioniVirtuali, userId, note } = req.body;
+    
+    // Validazione input base
+    if (!movimentoId || !Array.isArray(allocazioniVirtuali) || allocazioniVirtuali.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'movimentoId e allocazioniVirtuali sono richiesti',
+        details: {
+          movimentoIdPresent: !!movimentoId,
+          allocazioniCount: allocazioniVirtuali?.length || 0
+        }
+      });
+    }
+    
+    // Validazione struttura allocazioni
+    const invalidAllocations = allocazioniVirtuali.filter((alloc: any) => 
+      !alloc.commessaId || typeof alloc.importo !== 'number' || alloc.importo <= 0
+    );
+    
+    if (invalidAllocations.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Allocazioni non valide: commessaId e importo > 0 sono richiesti',
+        invalidCount: invalidAllocations.length,
+        invalidAllocations: invalidAllocations.map((alloc: any, index: number) => ({
+          index,
+          commessaId: alloc.commessaId,
+          importo: alloc.importo,
+          issues: [
+            !alloc.commessaId && 'commessaId mancante',
+            (typeof alloc.importo !== 'number' || alloc.importo <= 0) && 'importo non valido'
+          ].filter(Boolean)
+        }))
+      });
+    }
+    
+    // Inizializza service e applica allocazioni
+    const allocationService = new AllocationWorkflowService();
+    
+    const result = await allocationService.applyVirtualAllocations({
+      movimentoId,
+      allocazioniVirtuali,
+      userId,
+      note
+    });
+    
+    // Log risultato per monitoring
+    if (result.success) {
+      console.log(`✅ Applied ${result.allocazioniCreate} allocations to movimento ${movimentoId}`);
+    } else {
+      console.error(`❌ Failed to apply allocations to movimento ${movimentoId}:`, result.error);
+    }
+    
+    // Risposta con status code appropriato
+    const statusCode = result.success ? 200 : 400;
+    res.status(statusCode).json(result);
+    
+  } catch (error) {
+    console.error('❌ Critical error in apply allocation workflow:', error);
+    res.status(500).json({
+      success: false,
+      allocazioniCreate: 0,
+      error: 'Errore interno del server durante applicazione allocazioni',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;

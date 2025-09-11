@@ -692,6 +692,106 @@ async function main() {
 
   console.log('Template creati/aggiornati.');
 
+  // 7. Centri di Costo di base per collegamento MOVANAC
+  console.log('Creazione Centri di Costo per collegamento MOVANAC...');
+  
+  // Prima pulisce la tabella
+  await (prisma as any).stagingCentroCosto.deleteMany({});
+  
+  // Crea centri di costo collegati alle commesse seed
+  await (prisma as any).stagingCentroCosto.createMany({
+    data: [
+      // Centri di costo principali collegati alle commesse
+      {
+        codiceFiscaleAzienda: 'AZIENDA_CLIENTE', // Mock - in produzione sarà il CF reale
+        subcodeAzienda: '1',
+        codice: '0001',
+        descrizione: 'Centro Costo Sorrento - Igiene Urbana',
+        responsabile: 'Responsabile Sorrento',
+        livello: 1,
+        note: 'Centro collegato a commessa sorrento_igiene_urbana'
+      },
+      {
+        codiceFiscaleAzienda: 'AZIENDA_CLIENTE',
+        subcodeAzienda: '1', 
+        codice: '0002',
+        descrizione: 'Centro Costo Massa Lubrense - Igiene Urbana',
+        responsabile: 'Responsabile Massa Lubrense',
+        livello: 1,
+        note: 'Centro collegato a commessa massa_lubrense_igiene_urbana'
+      },
+      {
+        codiceFiscaleAzienda: 'AZIENDA_CLIENTE',
+        subcodeAzienda: '1',
+        codice: '0003', 
+        descrizione: 'Centro Costo Piano di Sorrento - Generale',
+        responsabile: 'Responsabile Piano di Sorrento',
+        livello: 1,
+        note: 'Centro collegato a commessa piano_di_sorrento'
+      },
+      
+      // Centri di costo aggiuntivi per pattern recognition
+      {
+        codiceFiscaleAzienda: 'AZIENDA_CLIENTE',
+        subcodeAzienda: '1',
+        codice: 'SORR',
+        descrizione: 'Sorrento - Attività Generali',
+        responsabile: 'Coordinatore Sorrento',
+        livello: 2,
+        note: 'Centro costo generico Sorrento per attività non specifiche'
+      },
+      {
+        codiceFiscaleAzienda: 'AZIENDA_CLIENTE',
+        subcodeAzienda: '1',
+        codice: 'MASS',
+        descrizione: 'Massa Lubrense - Attività Generali', 
+        responsabile: 'Coordinatore Massa Lubrense',
+        livello: 2,
+        note: 'Centro costo generico Massa Lubrense per attività non specifiche'
+      },
+      {
+        codiceFiscaleAzienda: 'AZIENDA_CLIENTE',
+        subcodeAzienda: '1',
+        codice: 'AMM',
+        descrizione: 'Amministrazione e Gestione Generale',
+        responsabile: 'Responsabile Amministrativo',
+        livello: 1,
+        note: 'Centro costo amministrativo generale'
+      },
+      
+      // Centri di costo per tipologie di attività
+      {
+        codiceFiscaleAzienda: 'AZIENDA_CLIENTE',
+        subcodeAzienda: '1',
+        codice: 'MANU',
+        descrizione: 'Manodopera Diretta',
+        responsabile: 'Capo Cantiere',
+        livello: 2,
+        note: 'Centro costo specifico per manodopera diretta'
+      },
+      {
+        codiceFiscaleAzienda: 'AZIENDA_CLIENTE', 
+        subcodeAzienda: '1',
+        codice: 'MEZZ',
+        descrizione: 'Mezzi e Attrezzature',
+        responsabile: 'Responsabile Parco Mezzi',
+        livello: 2,
+        note: 'Centro costo per gestione mezzi e attrezzature'
+      },
+      {
+        codiceFiscaleAzienda: 'AZIENDA_CLIENTE',
+        subcodeAzienda: '1', 
+        codice: 'MATE',
+        descrizione: 'Materiali e Consumabili',
+        responsabile: 'Magazziniere',
+        livello: 2,
+        note: 'Centro costo per materiali e beni di consumo'
+      }
+    ]
+  });
+  
+  console.log('Centri di Costo creati per collegamento MOVANAC.');
+
   console.log('Seeding completato.');
 }
 

@@ -148,7 +148,7 @@ export const AllocationWorkflowSection = ({ refreshTrigger }: AllocationWorkflow
   };
 
   const handleTestAllocations = async () => {
-    if (!selectedMovimento || allocazioniVirtuali.length === 0) return;
+    if (!selectedMovimento) return;
     
     setLoading(true);
     try {
@@ -444,7 +444,7 @@ export const AllocationWorkflowSection = ({ refreshTrigger }: AllocationWorkflow
         <Settings className="h-4 w-4 text-orange-600" />
         <AlertDescription className="text-orange-800">
           <strong>Workflow Integrato:</strong> Questo sistema combina i dati reali dei movimenti contabili 
-          con suggerimenti intelligenti basati su MOVANAC e regole DETTANAL, permettendo simulazioni 
+          con suggerimenti intelligenti, permettendo simulazioni 
           complete prima di applicare le allocazioni al sistema principale.
         </AlertDescription>
       </Alert>

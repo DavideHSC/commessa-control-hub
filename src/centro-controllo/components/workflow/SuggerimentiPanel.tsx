@@ -13,7 +13,8 @@ import {
   Target,
   AlertCircle,
   Users,
-  DollarSign
+  DollarSign,
+  Info
 } from 'lucide-react';
 import { 
   MovimentoAllocabile, 
@@ -163,7 +164,12 @@ export const SuggerimentiPanel = ({
   };
 
   const canProceed = () => {
-    return allocazioniVirtuali.length > 0;
+    // Permetti sempre di procedere - il simulatore può gestire allocazioni vuote
+    return true;
+  };
+
+  const hasAnySuggestions = () => {
+    return movimento.suggerimentiMOVANAC.length > 0 || movimento.suggerimentiRegole.length > 0;
   };
 
   return (
@@ -399,11 +405,11 @@ export const SuggerimentiPanel = ({
 
       {/* Stato e Navigazione */}
       {movimento.suggerimentiMOVANAC.length === 0 && movimento.suggerimentiRegole.length === 0 && (
-        <Alert className="border-yellow-200 bg-yellow-50">
-          <AlertCircle className="h-4 w-4 text-yellow-600" />
-          <AlertDescription className="text-yellow-800">
-            <strong>Nessun suggerimento disponibile</strong> per questo movimento. 
-            Puoi procedere alla simulazione manuale per creare allocazioni personalizzate.
+        <Alert className="border-blue-200 bg-blue-50">
+          <Info className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-800">
+            <strong>Creazione manuale disponibile</strong> - Non sono stati trovati suggerimenti automatici per questo movimento. 
+            Procedi alla simulazione per creare allocazioni personalizzate tramite l'interfaccia grafica.
           </AlertDescription>
         </Alert>
       )}
@@ -411,7 +417,10 @@ export const SuggerimentiPanel = ({
       <div className="flex justify-between">
         <div className="text-sm text-gray-600">
           {allocazioniVirtuali.length === 0 ? 
-            'Seleziona dei suggerimenti per procedere' : 
+            (hasAnySuggestions() ? 
+              'Seleziona dei suggerimenti o procedi alla simulazione manuale' : 
+              'Procedi alla simulazione manuale per creare allocazioni personalizzate'
+            ) : 
             `${allocazioniVirtuali.length} allocazioni pronte per la simulazione`
           }
         </div>
@@ -421,7 +430,7 @@ export const SuggerimentiPanel = ({
           className="flex items-center gap-2"
         >
           <Play size={16} />
-          Procedi alla Simulazione
+          {allocazioniVirtuali.length === 0 ? 'Simulazione Manuale' : 'Procedi alla Simulazione'}
         </Button>
       </div>
     </div>

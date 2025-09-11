@@ -1,4 +1,4 @@
-import { MovimentoType, CausaleCategory, RigaType, AllocationSuggestion } from '../types/virtualEntities.js';
+import { MovimentoType, CausaleCategory, RigaType, LegacyAllocationSuggestion } from '../types/virtualEntities.js';
 
 // ===============================================================================
 // CLASSIFICATORE MOVIMENTI CONTABILI (basato su esempi-registrazioni.md)
@@ -167,7 +167,7 @@ export class MovimentClassifier {
   /**
    * Suggerisce una voce analitica basandosi sul conto
    */
-  static suggestVoceAnalitica(conto: string, note: string): AllocationSuggestion {
+  static suggestVoceAnalitica(conto: string, note: string): LegacyAllocationSuggestion {
     const mappingVociAnalitiche = this.getMappingVociAnalitiche();
     const contoMatch = mappingVociAnalitiche[conto];
     
@@ -237,7 +237,7 @@ export class MovimentClassifier {
   /**
    * Suggerimenti basati su pattern nelle note
    */
-  private static suggestFromNotes(note: string, conto: string): AllocationSuggestion {
+  private static suggestFromNotes(note: string, conto: string): LegacyAllocationSuggestion {
     const noteUpper = note.toUpperCase();
     
     // Pattern per fornitore specifico

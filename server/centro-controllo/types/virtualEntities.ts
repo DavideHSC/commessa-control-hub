@@ -144,7 +144,7 @@ export interface VirtualScrittura {
   isAllocabile: boolean;
   motivoNonAllocabile?: string;
   righeAllocabili: number;
-  suggerimentiAllocazione: AllocationSuggestion[];
+  suggerimentiAllocazione: LegacyAllocationSuggestion[];
   
   // CAMPI RELAZIONALI ESTESI (via RelationalMapper)
   causaleEnricchita?: CausaleEnricchita; // Riferimento completo via RelationalMapper
@@ -287,7 +287,7 @@ export type RigaType =
   | 'PATRIMONIALE'            // Altri conti patrimoniali
   | 'ALTRO';
 
-export interface AllocationSuggestion {
+export interface LegacyAllocationSuggestion {
   rigaProgressivo: string;
   voceAnalitica: string;
   descrizioneVoce: string;
@@ -443,7 +443,7 @@ export interface AllocationWorkflowFilters {
   contoRilevante?: boolean;          // Solo conti isRilevantePerCommesse
 }
 
-export interface AllocationSuggestion {
+export interface WorkflowAllocationSuggestion {
   tipo: 'MOVANAC' | 'REGOLA_DETTANAL' | 'PATTERN_STORICO';
   commessaId: string;
   commessaNome: string;
@@ -455,6 +455,9 @@ export interface AllocationSuggestion {
   reasoning: string;
   applicabileAutomaticamente: boolean;
 }
+
+// Alias per compatibilità
+export type AllocationSuggestion = WorkflowAllocationSuggestion;
 
 export interface MovimentoAllocabile extends MovimentoContabileCompleto {
   righeLavorabili: VirtualRigaContabile[];  // Solo righe con isAllocabile=true

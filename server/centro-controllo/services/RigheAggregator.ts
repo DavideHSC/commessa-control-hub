@@ -242,11 +242,12 @@ export class RigheAggregator {
         const importoAvere = parseGestionaleCurrency(riga.importoAvere);
         
         // IDENTIFICAZIONE CONTO: usa CONTO o SIGLA CONTO (tracciato PNRIGCON)
-        const conto = riga.conto || riga.siglaConto || '';
+        const rawConto = riga.conto || riga.siglaConto || '';
+        const conto = typeof rawConto === 'string' ? rawConto : '';
         const tipoRiga = MovimentClassifier.classifyRigaType(conto, importoDare, importoAvere);
         const isRigaAllocabile = MovimentClassifier.isRigaAllocabile(tipoRiga);
         const motivoNonAllocabile = !isRigaAllocabile ? MovimentClassifier.getMotivoNonAllocabile(scrittura.tipoMovimento, tipoRiga) : undefined;
-        const classeContabile = conto.charAt(0) || '0';
+        const classeContabile = conto.length > 0 ? conto.charAt(0) : '0';
         
         // Suggerimento voce analitica
         const suggestionVoce = MovimentClassifier.suggestVoceAnalitica(conto, riga.note || '');
